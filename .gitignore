@@ -1,0 +1,10 @@
+.DS_Store
+.build/
+.swiftpm/
+DerivedData/
+*.xcuserdata/
+*.xcuserstate
+
+# Local secrets or environment experiments.
+.env
+*.local
