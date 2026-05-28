@@ -7,6 +7,8 @@ Small macOS dictation prototype inspired by the VoiceScribe architecture:
 3. Transcribe it through OpenAI's `/v1/audio/transcriptions` endpoint.
 4. Copy the resulting text and paste it into the previously active app.
 
+The generated icon source lives at `Assets/OpenDictateIcon.png`. The build script converts it into `OpenDictate.icns` and also uses it for the menu bar item.
+
 ## Build
 
 ```bash

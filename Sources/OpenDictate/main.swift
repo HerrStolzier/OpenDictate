@@ -18,6 +18,7 @@ private enum Config {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
+    private var statusMenuItem: NSMenuItem?
     private let hotKey = HotKeyManager()
     private let recorder = AudioRecorder()
     private let transcriber = OpenAITranscriber()
@@ -51,10 +52,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func configureMenuBar() {
-        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        item.button?.title = "Dictate"
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        if let button = item.button {
+            button.image = makeStatusBarImage()
+            button.imagePosition = .imageOnly
+            button.toolTip = "OpenDictate: Ready"
+        }
 
         let menu = NSMenu()
+        let statusMenuItem = NSMenuItem(title: "Status: Ready", action: nil, keyEquivalent: "")
+        statusMenuItem.isEnabled = false
+        menu.addItem(statusMenuItem)
+        menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Hotkey: Option+Shift+Space", action: nil, keyEquivalent: ""))
         let apiKeyItem = NSMenuItem(title: "Set API Key...", action: #selector(setAPIKey), keyEquivalent: "")
         apiKeyItem.target = self
@@ -62,7 +71,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         item.menu = menu
+        self.statusMenuItem = statusMenuItem
         statusItem = item
+    }
+
+    private func makeStatusBarImage() -> NSImage? {
+        let image: NSImage?
+        if let url = Bundle.main.url(forResource: "OpenDictateIcon", withExtension: "png") {
+            image = NSImage(contentsOf: url)
+        } else {
+            image = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "OpenDictate")
+            image?.isTemplate = true
+        }
+
+        image?.size = NSSize(width: 18, height: 18)
+        return image
     }
 
     @MainActor
@@ -134,7 +157,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updateStatus(_ value: String) {
-        statusItem?.button?.title = "Dictate: \(value)"
+        statusMenuItem?.title = "Status: \(value)"
+        statusItem?.button?.toolTip = "OpenDictate: \(value)"
     }
 
     private func showAlert(title: String, message: String) {
