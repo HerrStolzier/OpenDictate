@@ -14,6 +14,40 @@ private enum Config {
     }
 }
 
+private enum AppLog {
+    static let url = FileManager.default.homeDirectoryForCurrentUser
+        .appendingPathComponent("Library/Logs/OpenDictate.log")
+
+    static func write(_ message: String) {
+        let line = "[\(timestamp())] \(message)\n"
+        let data = Data(line.utf8)
+
+        do {
+            try FileManager.default.createDirectory(
+                at: url.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+
+            if FileManager.default.fileExists(atPath: url.path) {
+                let handle = try FileHandle(forWritingTo: url)
+                try handle.seekToEnd()
+                try handle.write(contentsOf: data)
+                try handle.close()
+            } else {
+                try data.write(to: url)
+            }
+        } catch {
+            NSLog("OpenDictate log failed: \(error.localizedDescription)")
+        }
+    }
+
+    private static func timestamp() -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter.string(from: Date())
+    }
+}
+
 @main
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -25,6 +59,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let pasteboard = PasteboardInserter()
     private var previousApplication: NSRunningApplication?
     private var isBusy = false
+    private var lastHotKeyAt = Date.distantPast
 
     static func main() {
         let app = NSApplication.shared
@@ -35,6 +70,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        AppLog.write("App launched from \(Bundle.main.bundlePath)")
         configureApplicationMenu()
         configureMenuBar()
         requestAccessibilityPermissionIfNeeded()
@@ -46,8 +82,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
             updateStatus("Ready")
+            AppLog.write("Global hotkey registered: Option+Shift+Space")
         } catch {
             updateStatus("Hotkey failed")
+            AppLog.write("Hotkey registration failed: \(error.localizedDescription)")
             showAlert(title: "OpenDictate could not register its hotkey", message: error.localizedDescription)
         }
     }
@@ -66,9 +104,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(statusMenuItem)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Hotkey: Option+Shift+Space", action: nil, keyEquivalent: ""))
+        let recordingItem = NSMenuItem(title: "Start/Stop Recording", action: #selector(toggleRecordingFromMenu), keyEquivalent: "")
+        recordingItem.target = self
+        menu.addItem(recordingItem)
         let apiKeyItem = NSMenuItem(title: "Set API Key...", action: #selector(setAPIKey), keyEquivalent: "")
         apiKeyItem.target = self
         menu.addItem(apiKeyItem)
+        let logItem = NSMenuItem(title: "Open Log", action: #selector(openLog), keyEquivalent: "")
+        logItem.target = self
+        menu.addItem(logItem)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         item.menu = menu
@@ -116,15 +160,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @MainActor
     private func toggleRecording() async {
+        let now = Date()
+        guard now.timeIntervalSince(lastHotKeyAt) > 0.35 else {
+            AppLog.write("Hotkey ignored because it arrived too quickly after the previous one")
+            return
+        }
+        lastHotKeyAt = now
+        AppLog.write("Hotkey triggered. recorder.isRecording=\(recorder.isRecording), isBusy=\(isBusy)")
+
         if recorder.isRecording {
             await stopAndTranscribe()
             return
         }
 
-        guard !isBusy else { return }
+        guard !isBusy else {
+            AppLog.write("Hotkey ignored because transcription is already busy")
+            return
+        }
 
         guard Config.apiKey != nil else {
             updateStatus("Missing API key")
+            AppLog.write("Recording blocked: missing API key")
             showAlert(
                 title: "OPENAI_API_KEY is missing",
                 message: "Choose Set API Key... from the OpenDictate menu bar item."
@@ -136,8 +192,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             previousApplication = currentFrontmostApplication()
             try recorder.start()
             updateStatus("Recording")
+            AppLog.write("Recording started. Previous app=\(previousApplication?.localizedName ?? "none")")
         } catch {
             updateStatus("Recording failed")
+            AppLog.write("Recording failed: \(error.localizedDescription)")
             showAlert(title: "Recording failed", message: error.localizedDescription)
         }
     }
@@ -147,14 +205,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !isBusy else { return }
         isBusy = true
         updateStatus("Processing")
+        AppLog.write("Stopping recording")
 
         do {
             let audioURL = try recorder.stop()
+            AppLog.write("Recording stopped: \(audioURL.path)")
             let text = try await transcriber.transcribe(audioURL: audioURL)
             try? FileManager.default.removeItem(at: audioURL)
+            AppLog.write("Transcription succeeded. characters=\(text.count)")
 
             guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                 updateStatus("No text")
+                AppLog.write("Transcription returned empty text")
                 NSSound.beep()
                 isBusy = false
                 return
@@ -163,8 +225,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             pasteboard.copy(text)
             let pasted = await pasteboard.pasteIntoPreviousApp(previousApplication)
             updateStatus(pasted ? "Pasted" : "Copied")
+            AppLog.write("Text copied. autoPaste=\(pasted)")
         } catch {
             updateStatus("Failed")
+            AppLog.write("Dictation failed: \(error.localizedDescription)")
             showAlert(title: "Dictation failed", message: error.localizedDescription)
         }
 
@@ -195,6 +259,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         alert.runModal()
     }
 
+    @objc private func toggleRecordingFromMenu() {
+        AppLog.write("Start/Stop Recording selected from menu")
+        Task { @MainActor in
+            await toggleRecording()
+        }
+    }
+
     @objc private func setAPIKey() {
         let alert = NSAlert()
         alert.messageText = "Set OpenAI API Key"
@@ -219,9 +290,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         do {
             try KeychainAPIKeyStore.save(key)
             updateStatus("Ready")
+            AppLog.write("API key saved to Keychain")
         } catch {
+            AppLog.write("Could not save API key: \(error.localizedDescription)")
             showAlert(title: "Could not save API key", message: error.localizedDescription)
         }
+    }
+
+    @objc private func openLog() {
+        AppLog.write("Opening log")
+        NSWorkspace.shared.open(AppLog.url)
     }
 }
 
@@ -442,6 +520,7 @@ private struct OpenAITranscriber {
             throw OpenDictateError.missingAPIKey
         }
 
+        AppLog.write("Uploading audio to OpenAI. model=\(Config.model)")
         let boundary = "OpenDictateBoundary-\(UUID().uuidString)"
         var request = URLRequest(url: URL(string: "https://api.openai.com/v1/audio/transcriptions")!)
         request.httpMethod = "POST"
@@ -479,6 +558,7 @@ private struct OpenAITranscriber {
 
         guard 200..<300 ~= httpResponse.statusCode else {
             let message = OpenAIAPIErrorMessage.humanReadableMessage(from: data, statusCode: httpResponse.statusCode)
+            AppLog.write("OpenAI API returned HTTP \(httpResponse.statusCode): \(message.replacingOccurrences(of: "\n", with: " "))")
             throw OpenDictateError.apiError(message)
         }
 
@@ -573,6 +653,7 @@ private struct PasteboardInserter {
 
     func pasteIntoPreviousApp(_ app: NSRunningApplication?) async -> Bool {
         guard AXIsProcessTrusted(), let app else {
+            AppLog.write("Auto-paste unavailable. accessibility=\(AXIsProcessTrusted()), previousApp=\(app?.localizedName ?? "none")")
             return false
         }
 
