@@ -35,6 +35,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        configureApplicationMenu()
         configureMenuBar()
         requestAccessibilityPermissionIfNeeded()
 
@@ -75,6 +76,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = item
     }
 
+    private func configureApplicationMenu() {
+        let mainMenu = NSMenu()
+
+        let appMenuItem = NSMenuItem()
+        let appMenu = NSMenu()
+        appMenu.addItem(NSMenuItem(title: "Quit OpenDictate", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        appMenuItem.submenu = appMenu
+        mainMenu.addItem(appMenuItem)
+
+        let editMenuItem = NSMenuItem()
+        let editMenu = NSMenu(title: "Edit")
+        editMenu.addItem(NSMenuItem(title: "Undo", action: Selector(("undo:")), keyEquivalent: "z"))
+        editMenu.addItem(NSMenuItem(title: "Redo", action: Selector(("redo:")), keyEquivalent: "Z"))
+        editMenu.addItem(.separator())
+        editMenu.addItem(NSMenuItem(title: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x"))
+        editMenu.addItem(NSMenuItem(title: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c"))
+        editMenu.addItem(NSMenuItem(title: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v"))
+        editMenu.addItem(.separator())
+        editMenu.addItem(NSMenuItem(title: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a"))
+        editMenuItem.submenu = editMenu
+        mainMenu.addItem(editMenuItem)
+
+        NSApp.mainMenu = mainMenu
+    }
+
     private func makeStatusBarImage() -> NSImage? {
         let image: NSImage?
         if let url = Bundle.main.url(forResource: "OpenDictateIcon", withExtension: "png") {
@@ -101,7 +127,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             updateStatus("Missing API key")
             showAlert(
                 title: "OPENAI_API_KEY is missing",
-                message: "Launch OpenDictate with OPENAI_API_KEY set in the environment."
+                message: "Choose Set API Key... from the OpenDictate menu bar item."
             )
             return
         }
@@ -177,15 +203,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         alert.addButton(withTitle: "Save")
         alert.addButton(withTitle: "Cancel")
 
-        let field = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 420, height: 24))
-        field.placeholderString = "sk-..."
-        alert.accessoryView = field
+        let inputView = APIKeyInputView(initialValue: Config.apiKey)
+        alert.accessoryView = inputView
 
         guard alert.runModal() == .alertFirstButtonReturn else {
             return
         }
 
-        let key = field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        let key = inputView.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !key.isEmpty else {
             showAlert(title: "No API key saved", message: "The field was empty.")
             return
@@ -196,6 +221,93 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             updateStatus("Ready")
         } catch {
             showAlert(title: "Could not save API key", message: error.localizedDescription)
+        }
+    }
+}
+
+@MainActor
+private final class APIKeyInputView: NSView {
+    private let secureField = NSSecureTextField()
+    private let plainField = NSTextField()
+    private let revealCheckbox = NSButton(checkboxWithTitle: "Show API key", target: nil, action: nil)
+
+    var stringValue: String {
+        plainField.isHidden ? secureField.stringValue : plainField.stringValue
+    }
+
+    init(initialValue: String?) {
+        super.init(frame: NSRect(x: 0, y: 0, width: 420, height: 62))
+        setup(initialValue: initialValue ?? "")
+    }
+
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    private func setup(initialValue: String) {
+        let fieldContainer = NSView()
+        fieldContainer.translatesAutoresizingMaskIntoConstraints = false
+
+        configureTextField(secureField, initialValue: initialValue)
+        configureTextField(plainField, initialValue: initialValue)
+        plainField.isHidden = true
+
+        fieldContainer.addSubview(secureField)
+        fieldContainer.addSubview(plainField)
+
+        revealCheckbox.target = self
+        revealCheckbox.action = #selector(toggleReveal)
+        revealCheckbox.translatesAutoresizingMaskIntoConstraints = false
+
+        let stack = NSStackView(views: [fieldContainer, revealCheckbox])
+        stack.orientation = .vertical
+        stack.alignment = .leading
+        stack.spacing = 8
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(stack)
+
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            stack.topAnchor.constraint(equalTo: topAnchor),
+            stack.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            fieldContainer.widthAnchor.constraint(equalToConstant: 420),
+            fieldContainer.heightAnchor.constraint(equalToConstant: 24),
+
+            secureField.leadingAnchor.constraint(equalTo: fieldContainer.leadingAnchor),
+            secureField.trailingAnchor.constraint(equalTo: fieldContainer.trailingAnchor),
+            secureField.topAnchor.constraint(equalTo: fieldContainer.topAnchor),
+            secureField.bottomAnchor.constraint(equalTo: fieldContainer.bottomAnchor),
+
+            plainField.leadingAnchor.constraint(equalTo: fieldContainer.leadingAnchor),
+            plainField.trailingAnchor.constraint(equalTo: fieldContainer.trailingAnchor),
+            plainField.topAnchor.constraint(equalTo: fieldContainer.topAnchor),
+            plainField.bottomAnchor.constraint(equalTo: fieldContainer.bottomAnchor)
+        ])
+    }
+
+    private func configureTextField(_ field: NSTextField, initialValue: String) {
+        field.stringValue = initialValue
+        field.placeholderString = "sk-..."
+        field.translatesAutoresizingMaskIntoConstraints = false
+        field.isEditable = true
+        field.isSelectable = true
+    }
+
+    @objc private func toggleReveal() {
+        let shouldReveal = revealCheckbox.state == .on
+
+        if shouldReveal {
+            plainField.stringValue = secureField.stringValue
+            secureField.isHidden = true
+            plainField.isHidden = false
+            window?.makeFirstResponder(plainField)
+        } else {
+            secureField.stringValue = plainField.stringValue
+            plainField.isHidden = true
+            secureField.isHidden = false
+            window?.makeFirstResponder(secureField)
         }
     }
 }

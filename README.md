@@ -28,7 +28,7 @@ The script writes the app bundle to:
 open .build/OpenDictate.app
 ```
 
-You can also start the app first and choose `Set API Key...` from the menu bar item. The app stores the key in the macOS Keychain either way.
+You can also start the app first and choose `Set API Key...` from the menu bar item. The app stores the key in the macOS Keychain either way. The API key field supports normal macOS edit shortcuts such as paste, copy, and select-all. Use `Show API key` in the dialog to keep the key visible until you uncheck it again.
 
 Press `Option+Shift+Space` once to start recording, then press it again to stop, transcribe, and paste.
 
