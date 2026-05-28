@@ -45,4 +45,5 @@ PLIST
 
 xattr -cr "$APP"
 codesign --force --deep --sign - "$APP"
+xattr -cr "$APP"
 echo "$APP"

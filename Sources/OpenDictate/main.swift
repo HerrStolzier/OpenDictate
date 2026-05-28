@@ -56,6 +56,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let menu = NSMenu()
         menu.addItem(NSMenuItem(title: "Hotkey: Option+Shift+Space", action: nil, keyEquivalent: ""))
+        let apiKeyItem = NSMenuItem(title: "Set API Key...", action: #selector(setAPIKey), keyEquivalent: "")
+        apiKeyItem.target = self
+        menu.addItem(apiKeyItem)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         item.menu = menu
@@ -140,6 +143,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         alert.informativeText = message
         alert.alertStyle = .warning
         alert.runModal()
+    }
+
+    @objc private func setAPIKey() {
+        let alert = NSAlert()
+        alert.messageText = "Set OpenAI API Key"
+        alert.informativeText = "The key is stored in your macOS Keychain under the OpenDictate service."
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "Save")
+        alert.addButton(withTitle: "Cancel")
+
+        let field = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 420, height: 24))
+        field.placeholderString = "sk-..."
+        alert.accessoryView = field
+
+        guard alert.runModal() == .alertFirstButtonReturn else {
+            return
+        }
+
+        let key = field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !key.isEmpty else {
+            showAlert(title: "No API key saved", message: "The field was empty.")
+            return
+        }
+
+        do {
+            try KeychainAPIKeyStore.save(key)
+            updateStatus("Ready")
+        } catch {
+            showAlert(title: "Could not save API key", message: error.localizedDescription)
+        }
     }
 }
 
@@ -378,6 +411,7 @@ private enum OpenDictateError: LocalizedError {
     case apiError(String)
     case hotKeyRegistrationFailed(OSStatus)
     case invalidResponse
+    case keychainStatus(OSStatus)
     case missingAPIKey
     case noActiveRecording
     case noAudioFile
@@ -391,6 +425,8 @@ private enum OpenDictateError: LocalizedError {
             return "RegisterEventHotKey failed with status \(status)."
         case .invalidResponse:
             return "The transcription service returned an invalid response."
+        case .keychainStatus(let status):
+            return "Keychain operation failed with status \(status)."
         case .missingAPIKey:
             return "OPENAI_API_KEY is not set."
         case .noActiveRecording:
@@ -428,6 +464,35 @@ private enum KeychainAPIKeyStore {
         }
 
         return key
+    }
+
+    static func save(_ key: String) throws {
+        let data = Data(key.utf8)
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account
+        ]
+
+        let update: [String: Any] = [
+            kSecValueData as String: data
+        ]
+
+        let updateStatus = SecItemUpdate(query as CFDictionary, update as CFDictionary)
+        if updateStatus == errSecSuccess {
+            return
+        }
+
+        guard updateStatus == errSecItemNotFound else {
+            throw OpenDictateError.keychainStatus(updateStatus)
+        }
+
+        var addQuery = query
+        addQuery[kSecValueData as String] = data
+        let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
+        guard addStatus == errSecSuccess else {
+            throw OpenDictateError.keychainStatus(addStatus)
+        }
     }
 }
 

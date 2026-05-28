@@ -26,6 +26,8 @@ The script writes the app bundle to:
 open .build/OpenDictate.app
 ```
 
+You can also start the app first and choose `Set API Key...` from the menu bar item. The app stores the key in the macOS Keychain either way.
+
 Press `Option+Shift+Space` once to start recording, then press it again to stop, transcribe, and paste.
 
 Optional environment variables:
