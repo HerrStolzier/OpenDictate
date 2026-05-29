@@ -1,6 +1,6 @@
 import AppKit
 import ApplicationServices
-import AVFoundation
+@preconcurrency import AVFoundation
 import Carbon
 import Foundation
 import Security
@@ -9,6 +9,10 @@ private enum Config {
     static let model = ProcessInfo.processInfo.environment["OPENAI_TRANSCRIBE_MODEL"] ?? "gpt-4o-mini-transcribe"
     static let language = ProcessInfo.processInfo.environment["OPENAI_TRANSCRIBE_LANGUAGE"]
     static let prompt = ProcessInfo.processInfo.environment["OPENAI_TRANSCRIBE_PROMPT"]
+    static let minimumRecordingDuration: TimeInterval = 1.0
+    static let maximumRecordingDuration: TimeInterval = 90.0
+    static let silenceThresholdDb: Float = -45.0
+    static let silencePadding: TimeInterval = 0.25
     static var apiKey: String? {
         ProcessInfo.processInfo.environment["OPENAI_API_KEY"] ?? KeychainAPIKeyStore.read()
     }
@@ -60,6 +64,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var previousApplication: NSRunningApplication?
     private var isBusy = false
     private var lastHotKeyAt = Date.distantPast
+    private var autoStopTask: Task<Void, Never>?
 
     static func main() {
         let app = NSApplication.shared
@@ -71,6 +76,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppLog.write("App launched from \(Bundle.main.bundlePath)")
+        AppLog.write("Default transcription model: \(Config.model)")
         configureApplicationMenu()
         configureMenuBar()
         requestAccessibilityPermissionIfNeeded()
@@ -104,6 +110,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(statusMenuItem)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Hotkey: Option+Shift+Space", action: nil, keyEquivalent: ""))
+        menu.addItem(NSMenuItem(title: "Max recording: \(Int(Config.maximumRecordingDuration)) seconds", action: nil, keyEquivalent: ""))
         let recordingItem = NSMenuItem(title: "Start/Stop Recording", action: #selector(toggleRecordingFromMenu), keyEquivalent: "")
         recordingItem.target = self
         menu.addItem(recordingItem)
@@ -172,6 +179,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AppLog.write("Hotkey triggered. recorder.isRecording=\(recorder.isRecording), isBusy=\(isBusy)")
 
         if recorder.isRecording {
+            cancelAutoStop()
             await stopAndTranscribe()
             return
         }
@@ -195,9 +203,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             previousApplication = currentFrontmostApplication()
             try recorder.start()
             updateStatus("Recording")
+            scheduleAutoStop()
             AppLog.write("Recording started. Previous app=\(previousApplication?.localizedName ?? "none")")
         } catch {
             updateStatus("Recording failed")
+            cancelAutoStop()
             AppLog.write("Recording failed: \(error.localizedDescription)")
             showAlert(title: "Recording failed", message: error.localizedDescription)
         }
@@ -212,9 +222,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         do {
             let audioURL = try recorder.stop()
+            var cleanupURLs = [audioURL]
+            defer {
+                for url in cleanupURLs {
+                    try? FileManager.default.removeItem(at: url)
+                }
+            }
+
             AppLog.write("Recording stopped: \(audioURL.path)")
-            let text = try await transcriber.transcribe(audioURL: audioURL)
-            try? FileManager.default.removeItem(at: audioURL)
+            let preparedAudio = try await AudioPreprocessor.prepare(audioURL: audioURL)
+            if preparedAudio.url != audioURL {
+                cleanupURLs.append(preparedAudio.url)
+            }
+            AppLog.write(
+                "Prepared audio. original=\(preparedAudio.originalDuration.formattedSeconds), upload=\(preparedAudio.uploadDuration.formattedSeconds), trimmed=\(preparedAudio.trimmedDuration.formattedSeconds)"
+            )
+            updateStatus("Uploading \(preparedAudio.uploadDuration.formattedSeconds)")
+
+            let text = try await transcriber.transcribe(audioURL: preparedAudio.url)
             AppLog.write("Transcription succeeded. characters=\(text.count)")
 
             guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
@@ -237,12 +262,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             AppLog.write("Text copied. autoPaste=\(pasted)")
         } catch {
-            updateStatus("Failed")
             AppLog.write("Dictation failed: \(error.localizedDescription)")
-            showAlert(title: "Dictation failed", message: error.localizedDescription)
+            if let openDictateError = error as? OpenDictateError, openDictateError.isSkippedRecording {
+                updateStatus("Skipped")
+                NSSound.beep()
+            } else {
+                updateStatus("Failed")
+                showAlert(title: "Dictation failed", message: error.localizedDescription)
+            }
         }
 
         isBusy = false
+    }
+
+    private func scheduleAutoStop() {
+        cancelAutoStop()
+        autoStopTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(Int(Config.maximumRecordingDuration * 1000)))
+            guard !Task.isCancelled, let self, self.recorder.isRecording else {
+                return
+            }
+
+            AppLog.write("Maximum recording duration reached. Auto-stopping.")
+            updateStatus("Auto-stopping")
+            await stopAndTranscribe()
+        }
+    }
+
+    private func cancelAutoStop() {
+        autoStopTask?.cancel()
+        autoStopTask = nil
     }
 
     private func currentFrontmostApplication() -> NSRunningApplication? {
@@ -514,9 +563,10 @@ private final class AudioRecorder: NSObject, AVAudioRecorderDelegate {
 
         let settings: [String: Any] = [
             AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-            AVSampleRateKey: 44_100.0,
+            AVSampleRateKey: 24_000.0,
             AVNumberOfChannelsKey: 1,
-            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+            AVEncoderBitRateKey: 48_000,
+            AVEncoderAudioQualityKey: AVAudioQuality.medium.rawValue
         ]
 
         let recorder = try AVAudioRecorder(url: fileURL, settings: settings)
@@ -545,6 +595,189 @@ private final class AudioRecorder: NSObject, AVAudioRecorderDelegate {
         }
 
         return url
+    }
+}
+
+private struct PreparedAudio {
+    let url: URL
+    let originalDuration: TimeInterval
+    let uploadDuration: TimeInterval
+    let trimmedDuration: TimeInterval
+}
+
+private final class ExportSessionBox: @unchecked Sendable {
+    let session: AVAssetExportSession
+
+    init(_ session: AVAssetExportSession) {
+        self.session = session
+    }
+}
+
+private enum AudioPreprocessor {
+    static func prepare(audioURL: URL) async throws -> PreparedAudio {
+        let originalDuration = try await duration(of: audioURL)
+        guard originalDuration >= Config.minimumRecordingDuration else {
+            throw OpenDictateError.recordingTooShort(actual: originalDuration, minimum: Config.minimumRecordingDuration)
+        }
+
+        guard let speechRange = try speechRange(in: audioURL) else {
+            throw OpenDictateError.noSpeechDetected
+        }
+
+        let start = max(0, speechRange.start - Config.silencePadding)
+        let end = min(originalDuration, speechRange.end + Config.silencePadding)
+        let uploadDuration = max(0, end - start)
+
+        guard uploadDuration >= Config.minimumRecordingDuration else {
+            throw OpenDictateError.recordingTooShort(actual: uploadDuration, minimum: Config.minimumRecordingDuration)
+        }
+
+        let trimmedDuration = max(0, originalDuration - uploadDuration)
+        guard trimmedDuration >= 0.35 else {
+            return PreparedAudio(
+                url: audioURL,
+                originalDuration: originalDuration,
+                uploadDuration: originalDuration,
+                trimmedDuration: 0
+            )
+        }
+
+        let trimmedURL = try await exportTrimmedAudio(
+            from: audioURL,
+            start: start,
+            duration: uploadDuration
+        )
+
+        return PreparedAudio(
+            url: trimmedURL,
+            originalDuration: originalDuration,
+            uploadDuration: uploadDuration,
+            trimmedDuration: trimmedDuration
+        )
+    }
+
+    private static func duration(of audioURL: URL) async throws -> TimeInterval {
+        let asset = AVURLAsset(url: audioURL)
+        let duration = try await asset.load(.duration).seconds
+        guard duration.isFinite, duration > 0 else {
+            throw OpenDictateError.noAudioFile
+        }
+        return duration
+    }
+
+    private static func speechRange(in audioURL: URL) throws -> (start: TimeInterval, end: TimeInterval)? {
+        let file = try AVAudioFile(forReading: audioURL)
+        let format = file.processingFormat
+        let sampleRate = format.sampleRate
+        let channelCount = max(1, Int(format.channelCount))
+        let windowFrameCount = AVAudioFrameCount(max(1, Int(sampleRate * 0.05)))
+
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: windowFrameCount) else {
+            throw OpenDictateError.audioPreprocessingFailed("Could not allocate audio analysis buffer.")
+        }
+
+        var cursor: AVAudioFramePosition = 0
+        var firstSpeechTime: TimeInterval?
+        var lastSpeechTime: TimeInterval?
+
+        while file.framePosition < file.length {
+            let remaining = AVAudioFrameCount(min(Int64(windowFrameCount), file.length - file.framePosition))
+            try file.read(into: buffer, frameCount: remaining)
+
+            let frameLength = Int(buffer.frameLength)
+            guard frameLength > 0 else {
+                break
+            }
+
+            let db = averagePowerDb(buffer: buffer, channelCount: channelCount, frameLength: frameLength)
+            let start = Double(cursor) / sampleRate
+            let end = Double(cursor + AVAudioFramePosition(frameLength)) / sampleRate
+
+            if db >= Config.silenceThresholdDb {
+                firstSpeechTime = firstSpeechTime ?? start
+                lastSpeechTime = end
+            }
+
+            cursor += AVAudioFramePosition(frameLength)
+        }
+
+        guard let firstSpeechTime, let lastSpeechTime else {
+            return nil
+        }
+
+        return (start: firstSpeechTime, end: lastSpeechTime)
+    }
+
+    private static func averagePowerDb(
+        buffer: AVAudioPCMBuffer,
+        channelCount: Int,
+        frameLength: Int
+    ) -> Float {
+        guard let channelData = buffer.floatChannelData else {
+            return -160
+        }
+
+        var sum: Float = 0
+        var count = 0
+
+        for channel in 0..<channelCount {
+            let samples = channelData[channel]
+            for frame in 0..<frameLength {
+                let sample = samples[frame]
+                sum += sample * sample
+                count += 1
+            }
+        }
+
+        guard count > 0 else {
+            return -160
+        }
+
+        let rms = sqrt(sum / Float(count))
+        return 20 * log10(max(rms, 0.000_000_1))
+    }
+
+    private static func exportTrimmedAudio(
+        from inputURL: URL,
+        start: TimeInterval,
+        duration: TimeInterval
+    ) async throws -> URL {
+        let asset = AVURLAsset(url: inputURL)
+        let outputURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("opendictate-trimmed-\(UUID().uuidString).m4a")
+
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A) else {
+            throw OpenDictateError.audioPreprocessingFailed("Could not create audio export session.")
+        }
+
+        exportSession.outputURL = outputURL
+        exportSession.outputFileType = .m4a
+        exportSession.timeRange = CMTimeRange(
+            start: CMTime(seconds: start, preferredTimescale: 600),
+            duration: CMTime(seconds: duration, preferredTimescale: 600)
+        )
+
+        let exportBox = ExportSessionBox(exportSession)
+        try await withCheckedThrowingContinuation { continuation in
+            exportBox.session.exportAsynchronously {
+                switch exportBox.session.status {
+                case .completed:
+                    continuation.resume()
+                case .failed, .cancelled:
+                    continuation.resume(
+                        throwing: OpenDictateError.audioPreprocessingFailed(
+                            exportBox.session.error?.localizedDescription ?? "Audio export failed."
+                        )
+                    )
+                default:
+                    continuation.resume(
+                        throwing: OpenDictateError.audioPreprocessingFailed("Audio export ended unexpectedly.")
+                    )
+                }
+            }
+        }
+
+        return outputURL
     }
 }
 
@@ -715,6 +948,7 @@ private struct PasteboardInserter {
 }
 
 private enum OpenDictateError: LocalizedError {
+    case audioPreprocessingFailed(String)
     case apiError(String)
     case hotKeyRegistrationFailed(OSStatus)
     case invalidResponse
@@ -722,10 +956,23 @@ private enum OpenDictateError: LocalizedError {
     case missingAPIKey
     case noActiveRecording
     case noAudioFile
+    case noSpeechDetected
     case recordingCouldNotStart
+    case recordingTooShort(actual: TimeInterval, minimum: TimeInterval)
+
+    var isSkippedRecording: Bool {
+        switch self {
+        case .noSpeechDetected, .recordingTooShort:
+            return true
+        default:
+            return false
+        }
+    }
 
     var errorDescription: String? {
         switch self {
+        case .audioPreprocessingFailed(let message):
+            return "Could not prepare the recording for transcription.\n\n\(message)"
         case .apiError(let message):
             return message
         case .hotKeyRegistrationFailed(let status):
@@ -740,8 +987,12 @@ private enum OpenDictateError: LocalizedError {
             return "There is no active recording to stop."
         case .noAudioFile:
             return "The recording finished, but no audio file was written."
+        case .noSpeechDetected:
+            return "No speech was detected, so nothing was sent to OpenAI."
         case .recordingCouldNotStart:
             return "AVAudioRecorder could not start recording."
+        case .recordingTooShort(let actual, let minimum):
+            return "Recording skipped: \(actual.formattedSeconds) is too short. Speak for at least \(minimum.formattedSeconds)."
         }
     }
 }
@@ -805,6 +1056,12 @@ private enum KeychainAPIKeyStore {
 
 private func fourCharCode(_ value: String) -> FourCharCode {
     value.utf8.reduce(0) { ($0 << 8) + FourCharCode($1) }
+}
+
+private extension TimeInterval {
+    var formattedSeconds: String {
+        String(format: "%.1fs", self)
+    }
 }
 
 private extension Data {

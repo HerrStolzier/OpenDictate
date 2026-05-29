@@ -32,6 +32,16 @@ You can also start the app first and choose `Set API Key...` from the menu bar i
 
 Press `Option+Shift+Space` once to start recording, then press it again to stop, transcribe, and paste.
 
+## Cost controls
+
+OpenDictate keeps API usage lean by default:
+
+- skips recordings shorter than 1 second
+- auto-stops recordings after 90 seconds
+- trims silence from the beginning and end before upload
+- records speech-focused mono AAC at 24 kHz / 48 kbps
+- defaults to `gpt-4o-mini-transcribe`
+
 Optional environment variables:
 
 - `OPENAI_TRANSCRIBE_MODEL`, default `gpt-4o-mini-transcribe`
