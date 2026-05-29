@@ -110,6 +110,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let apiKeyItem = NSMenuItem(title: "Set API Key...", action: #selector(setAPIKey), keyEquivalent: "")
         apiKeyItem.target = self
         menu.addItem(apiKeyItem)
+        let accessibilityItem = NSMenuItem(title: "Open Accessibility Settings", action: #selector(openAccessibilitySettings), keyEquivalent: "")
+        accessibilityItem.target = self
+        menu.addItem(accessibilityItem)
         let logItem = NSMenuItem(title: "Open Log", action: #selector(openLog), keyEquivalent: "")
         logItem.target = self
         menu.addItem(logItem)
@@ -224,7 +227,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
             pasteboard.copy(text)
             let pasted = await pasteboard.pasteIntoPreviousApp(previousApplication)
-            updateStatus(pasted ? "Pasted" : "Copied")
+            if pasted {
+                updateStatus("Pasted")
+            } else if !AXIsProcessTrusted() {
+                updateStatus("Copied - Enable Accessibility")
+                showAccessibilityRequiredAlert()
+            } else {
+                updateStatus("Copied")
+            }
             AppLog.write("Text copied. autoPaste=\(pasted)")
         } catch {
             updateStatus("Failed")
@@ -257,6 +267,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         alert.informativeText = message
         alert.alertStyle = .warning
         alert.runModal()
+    }
+
+    private func showAccessibilityRequiredAlert() {
+        let alert = NSAlert()
+        alert.messageText = "Text copied, but OpenDictate cannot paste yet"
+        alert.informativeText = """
+        macOS is blocking automatic paste. OpenDictate needs Accessibility permission to send Cmd+V into the app you were using.
+
+        Grant access in Privacy & Security > Accessibility, then try dictating again.
+        """
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "Open Settings")
+        alert.addButton(withTitle: "OK")
+
+        if alert.runModal() == .alertFirstButtonReturn {
+            openAccessibilitySettings()
+        }
     }
 
     @objc private func toggleRecordingFromMenu() {
@@ -300,6 +327,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func openLog() {
         AppLog.write("Opening log")
         NSWorkspace.shared.open(AppLog.url)
+    }
+
+    @objc private func openAccessibilitySettings() {
+        AppLog.write("Opening Accessibility settings")
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+            NSWorkspace.shared.open(url)
+        }
     }
 }
 
