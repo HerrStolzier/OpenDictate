@@ -62,7 +62,38 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 </plist>
 PLIST
 
-xattr -cr "$APP"
-codesign --force --deep --sign - "$APP"
-xattr -cr "$APP"
+# Strip extended attributes before signing. When the checkout lives in an
+# iCloud-synced folder (Desktop/Documents), the file provider keeps re-adding
+# com.apple.FinderInfo / com.apple.provenance, which codesign rejects as
+# "detritus" — so clear thoroughly and retry once if it races back in.
+clear_xattrs() {
+  xattr -cr "$APP" 2>/dev/null || true
+  find "$APP" -exec xattr -c {} \; 2>/dev/null || true
+}
+
+# Sign with a stable code-signing identity so macOS keeps the Accessibility
+# (TCC) grant across rebuilds. Ad-hoc signatures change their code hash on every
+# build, which silently invalidates the Accessibility permission. Override the
+# identity with OPENDICTATE_SIGN_IDENTITY; falls back to ad-hoc if it is missing.
+# Note: the self-signed identity is intentionally untrusted (it only exists to
+# keep the code hash stable for TCC), so it appears under "Matching identities"
+# but not under "Valid identities only" — match the former, without -v.
+SIGN_IDENTITY="${OPENDICTATE_SIGN_IDENTITY:-OpenDictate Self-Signed}"
+if security find-identity -p codesigning 2>/dev/null | grep -qF "\"$SIGN_IDENTITY\""; then
+  echo "Signing with identity: $SIGN_IDENTITY"
+  SIGN_ARGS=(--force --deep --sign "$SIGN_IDENTITY")
+else
+  echo "WARNING: code-signing identity '$SIGN_IDENTITY' not found; falling back to ad-hoc."
+  echo "         The Accessibility permission will need to be re-granted after each build."
+  echo "         See docs/accessibility-signing.md to create the stable identity."
+  SIGN_ARGS=(--force --deep --sign -)
+fi
+
+clear_xattrs
+if ! codesign "${SIGN_ARGS[@]}" "$APP" 2>/dev/null; then
+  clear_xattrs
+  codesign "${SIGN_ARGS[@]}" "$APP"
+fi
+
+clear_xattrs
 echo "$APP"
