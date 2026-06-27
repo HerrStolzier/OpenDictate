@@ -2,6 +2,7 @@ import AppKit
 import ApplicationServices
 @preconcurrency import AVFoundation
 import Carbon
+import CoreAudio
 import Foundation
 import Security
 
@@ -52,11 +53,72 @@ private enum AppLog {
     }
 }
 
+/// Reads the system default audio input device via CoreAudio so we can show
+/// which microphone OpenDictate is actually recording from and warn when it is
+/// a wireless headset (whose mic often delivers near-silent audio).
+private enum AudioInput {
+    struct Info {
+        let name: String
+        let isBluetooth: Bool
+    }
+
+    static func current() -> Info? {
+        guard let deviceID = defaultInputDeviceID() else { return nil }
+        let name = deviceName(deviceID) ?? "Unknown input"
+        let transport = transportType(deviceID)
+        let isBluetooth = transport == kAudioDeviceTransportTypeBluetooth
+            || transport == kAudioDeviceTransportTypeBluetoothLE
+        return Info(name: name, isBluetooth: isBluetooth)
+    }
+
+    private static func defaultInputDeviceID() -> AudioDeviceID? {
+        var deviceID = AudioDeviceID(0)
+        var size = UInt32(MemoryLayout<AudioDeviceID>.size)
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDefaultInputDevice,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        let status = AudioObjectGetPropertyData(
+            AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &deviceID
+        )
+        guard status == noErr, deviceID != kAudioObjectUnknown else { return nil }
+        return deviceID
+    }
+
+    private static func deviceName(_ deviceID: AudioDeviceID) -> String? {
+        var name: Unmanaged<CFString>?
+        var size = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioObjectPropertyName,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        let status = AudioObjectGetPropertyData(deviceID, &address, 0, nil, &size, &name)
+        guard status == noErr, let cfName = name?.takeRetainedValue() else { return nil }
+        return cfName as String
+    }
+
+    private static func transportType(_ deviceID: AudioDeviceID) -> UInt32 {
+        var transport = UInt32(0)
+        var size = UInt32(MemoryLayout<UInt32>.size)
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioDevicePropertyTransportType,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        let status = AudioObjectGetPropertyData(deviceID, &address, 0, nil, &size, &transport)
+        return status == noErr ? transport : 0
+    }
+}
+
 @main
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var statusItem: NSStatusItem?
     private var statusMenuItem: NSMenuItem?
+    private var inputDeviceMenuItem: NSMenuItem?
+    private var didWarnBluetoothInput = false
     private let hotKey = HotKeyManager()
     private let recorder = AudioRecorder()
     private let transcriber = OpenAITranscriber()
@@ -111,6 +173,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Hotkey: Option+Shift+Space", action: nil, keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Max recording: \(Int(Config.maximumRecordingDuration)) seconds", action: nil, keyEquivalent: ""))
+        let inputDeviceItem = NSMenuItem(title: "Input: -", action: #selector(openSoundSettings), keyEquivalent: "")
+        inputDeviceItem.target = self
+        inputDeviceItem.toolTip = "Microphone OpenDictate records from. Click to open Sound settings."
+        menu.addItem(inputDeviceItem)
+        self.inputDeviceMenuItem = inputDeviceItem
+        menu.addItem(.separator())
         let recordingItem = NSMenuItem(title: "Start/Stop Recording", action: #selector(toggleRecordingFromMenu), keyEquivalent: "")
         recordingItem.target = self
         menu.addItem(recordingItem)
@@ -125,8 +193,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(logItem)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.delegate = self
         item.menu = menu
         self.statusMenuItem = statusMenuItem
+        refreshInputDeviceMenuItem()
         statusItem = item
     }
 
@@ -204,7 +274,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             try recorder.start()
             updateStatus("Recording")
             scheduleAutoStop()
-            AppLog.write("Recording started. Previous app=\(previousApplication?.localizedName ?? "none")")
+            let input = AudioInput.current()
+            AppLog.write(
+                "Recording started. Previous app=\(previousApplication?.localizedName ?? "none"), input=\(input?.name ?? "unknown"), bluetooth=\(input?.isBluetooth ?? false)"
+            )
         } catch {
             updateStatus("Recording failed")
             cancelAutoStop()
@@ -264,8 +337,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } catch {
             AppLog.write("Dictation failed: \(error.localizedDescription)")
             if let openDictateError = error as? OpenDictateError, openDictateError.isSkippedRecording {
-                updateStatus("Skipped")
-                NSSound.beep()
+                handleSkippedRecording(openDictateError)
             } else {
                 updateStatus("Failed")
                 showAlert(title: "Dictation failed", message: error.localizedDescription)
@@ -308,6 +380,54 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func updateStatus(_ value: String) {
         statusMenuItem?.title = "Status: \(value)"
         statusItem?.button?.toolTip = "OpenDictate: \(value)"
+    }
+
+    private func handleSkippedRecording(_ error: OpenDictateError) {
+        NSSound.beep()
+
+        guard case .noSpeechDetected(let peakDb) = error else {
+            updateStatus("Skipped")
+            return
+        }
+
+        let input = AudioInput.current()
+        if let input {
+            updateStatus("Skipped - no speech (peak \(peakDb.formattedDb), in: \(input.name))")
+        } else {
+            updateStatus("Skipped - no speech (peak \(peakDb.formattedDb))")
+        }
+
+        // A Bluetooth headset mic frequently records near-silent audio; warn once
+        // per session so the user can switch back to a wired/built-in microphone.
+        if let input, input.isBluetooth, !didWarnBluetoothInput {
+            didWarnBluetoothInput = true
+            AppLog.write("Warning: skipped recording while default input is Bluetooth device '\(input.name)'")
+            showBluetoothInputWarning(deviceName: input.name)
+        }
+    }
+
+    private func showBluetoothInputWarning(deviceName: String) {
+        let alert = NSAlert()
+        alert.messageText = "No speech detected from \(deviceName)"
+        alert.informativeText = """
+        OpenDictate recorded, but the audio was (near) silent, so nothing was sent for transcription.
+
+        Your microphone is currently set to \(deviceName), a Bluetooth device. Bluetooth headset mics often deliver almost no signal. Switch the input to the built-in microphone in Sound settings, then try dictating again.
+        """
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "Open Sound Settings")
+        alert.addButton(withTitle: "OK")
+        if alert.runModal() == .alertFirstButtonReturn {
+            openSoundSettings()
+        }
+    }
+
+    private func refreshInputDeviceMenuItem() {
+        guard let inputDeviceMenuItem else { return }
+        let input = AudioInput.current()
+        let name = input?.name ?? "Unknown"
+        let suffix = (input?.isBluetooth ?? false) ? " (Bluetooth)" : ""
+        inputDeviceMenuItem.title = "Input: \(name)\(suffix)"
     }
 
     private func showAlert(title: String, message: String) {
@@ -381,6 +501,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func openAccessibilitySettings() {
         AppLog.write("Opening Accessibility settings")
         if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        refreshInputDeviceMenuItem()
+    }
+
+    @objc private func openSoundSettings() {
+        AppLog.write("Opening Sound settings")
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.sound") {
             NSWorkspace.shared.open(url)
         }
     }
@@ -605,6 +736,12 @@ private struct PreparedAudio {
     let trimmedDuration: TimeInterval
 }
 
+private struct AudioAnalysis {
+    let speechRange: (start: TimeInterval, end: TimeInterval)?
+    let peakDb: Float
+    let averageDb: Float
+}
+
 private final class ExportSessionBox: @unchecked Sendable {
     let session: AVAssetExportSession
 
@@ -620,8 +757,13 @@ private enum AudioPreprocessor {
             throw OpenDictateError.recordingTooShort(actual: originalDuration, minimum: Config.minimumRecordingDuration)
         }
 
-        guard let speechRange = try speechRange(in: audioURL) else {
-            throw OpenDictateError.noSpeechDetected
+        let analysis = try analyze(audioURL: audioURL)
+        AppLog.write(
+            "Audio levels. peak=\(analysis.peakDb.formattedDb), avg=\(analysis.averageDb.formattedDb), threshold=\(Config.silenceThresholdDb.formattedDb)"
+        )
+
+        guard let speechRange = analysis.speechRange else {
+            throw OpenDictateError.noSpeechDetected(peakDb: analysis.peakDb)
         }
 
         let start = max(0, speechRange.start - Config.silencePadding)
@@ -665,7 +807,11 @@ private enum AudioPreprocessor {
         return duration
     }
 
-    private static func speechRange(in audioURL: URL) throws -> (start: TimeInterval, end: TimeInterval)? {
+    /// Scans the recording in 50 ms windows: finds the speech span (windows above
+    /// the silence threshold) and, regardless of the outcome, the peak and overall
+    /// average level so callers can log them and distinguish "trimmed too hard"
+    /// from "the microphone delivered (near) silence".
+    private static func analyze(audioURL: URL) throws -> AudioAnalysis {
         let file = try AVAudioFile(forReading: audioURL)
         let format = file.processingFormat
         let sampleRate = format.sampleRate
@@ -679,6 +825,9 @@ private enum AudioPreprocessor {
         var cursor: AVAudioFramePosition = 0
         var firstSpeechTime: TimeInterval?
         var lastSpeechTime: TimeInterval?
+        var peakDb: Float = -160
+        var totalSquares: Float = 0
+        var totalSamples = 0
 
         while file.framePosition < file.length {
             let remaining = AVAudioFrameCount(min(Int64(windowFrameCount), file.length - file.framePosition))
@@ -689,7 +838,13 @@ private enum AudioPreprocessor {
                 break
             }
 
-            let db = averagePowerDb(buffer: buffer, channelCount: channelCount, frameLength: frameLength)
+            let window = windowPower(buffer: buffer, channelCount: channelCount, frameLength: frameLength)
+            totalSquares += window.sumSquares
+            totalSamples += window.count
+
+            let db = decibels(sumSquares: window.sumSquares, count: window.count)
+            peakDb = max(peakDb, db)
+
             let start = Double(cursor) / sampleRate
             let end = Double(cursor + AVAudioFramePosition(frameLength)) / sampleRate
 
@@ -701,20 +856,24 @@ private enum AudioPreprocessor {
             cursor += AVAudioFramePosition(frameLength)
         }
 
-        guard let firstSpeechTime, let lastSpeechTime else {
-            return nil
+        let averageDb = decibels(sumSquares: totalSquares, count: totalSamples)
+        let range: (start: TimeInterval, end: TimeInterval)?
+        if let firstSpeechTime, let lastSpeechTime {
+            range = (start: firstSpeechTime, end: lastSpeechTime)
+        } else {
+            range = nil
         }
 
-        return (start: firstSpeechTime, end: lastSpeechTime)
+        return AudioAnalysis(speechRange: range, peakDb: peakDb, averageDb: averageDb)
     }
 
-    private static func averagePowerDb(
+    private static func windowPower(
         buffer: AVAudioPCMBuffer,
         channelCount: Int,
         frameLength: Int
-    ) -> Float {
+    ) -> (sumSquares: Float, count: Int) {
         guard let channelData = buffer.floatChannelData else {
-            return -160
+            return (0, 0)
         }
 
         var sum: Float = 0
@@ -729,11 +888,15 @@ private enum AudioPreprocessor {
             }
         }
 
+        return (sum, count)
+    }
+
+    private static func decibels(sumSquares: Float, count: Int) -> Float {
         guard count > 0 else {
             return -160
         }
 
-        let rms = sqrt(sum / Float(count))
+        let rms = sqrt(sumSquares / Float(count))
         return 20 * log10(max(rms, 0.000_000_1))
     }
 
@@ -956,7 +1119,7 @@ private enum OpenDictateError: LocalizedError {
     case missingAPIKey
     case noActiveRecording
     case noAudioFile
-    case noSpeechDetected
+    case noSpeechDetected(peakDb: Float)
     case recordingCouldNotStart
     case recordingTooShort(actual: TimeInterval, minimum: TimeInterval)
 
@@ -987,8 +1150,8 @@ private enum OpenDictateError: LocalizedError {
             return "There is no active recording to stop."
         case .noAudioFile:
             return "The recording finished, but no audio file was written."
-        case .noSpeechDetected:
-            return "No speech was detected, so nothing was sent to OpenAI."
+        case .noSpeechDetected(let peakDb):
+            return "No speech was detected (peak \(peakDb.formattedDb)), so nothing was sent to OpenAI."
         case .recordingCouldNotStart:
             return "AVAudioRecorder could not start recording."
         case .recordingTooShort(let actual, let minimum):
@@ -1061,6 +1224,12 @@ private func fourCharCode(_ value: String) -> FourCharCode {
 private extension TimeInterval {
     var formattedSeconds: String {
         String(format: "%.1fs", self)
+    }
+}
+
+private extension Float {
+    var formattedDb: String {
+        String(format: "%.0f dB", self)
     }
 }
 
