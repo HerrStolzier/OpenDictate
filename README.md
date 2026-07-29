@@ -40,11 +40,11 @@ OpenDictate keeps API usage lean by default:
 - auto-stops recordings after 90 seconds
 - trims silence from the beginning and end before upload
 - records speech-focused mono AAC at 24 kHz / 48 kbps
-- defaults to `gpt-4o-mini-transcribe`
+- defaults to `gpt-transcribe` ($0.0045/min), the accuracy-focused async model
 
 Optional environment variables:
 
-- `OPENAI_TRANSCRIBE_MODEL`, default `gpt-4o-mini-transcribe`
+- `OPENAI_TRANSCRIBE_MODEL`, default `gpt-transcribe`. Set `gpt-4o-mini-transcribe` ($0.003/min) to trade accuracy for cost. Do not set `gpt-live-transcribe` here, it targets the realtime transcription endpoint, not this upload flow.
 - `OPENAI_TRANSCRIBE_LANGUAGE`, for example `de`
 - `OPENAI_TRANSCRIBE_PROMPT`, for vocabulary hints
 
