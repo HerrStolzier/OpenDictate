@@ -2,7 +2,7 @@
 
 > **Purpose:** Turn the 1240-line single-file prototype into a maintainable package without changing what the app does.
 > **Scope:** `Sources/OpenDictate/main.swift`, `Package.swift`, `scripts/build-app.sh`.
-> **Status:** 2026-07-29. Stages 1 and 2 done. Stage 3 open.
+> **Status:** 2026-07-29. All three stages done.
 
 ## Where we are
 
@@ -119,7 +119,28 @@ First tests to write, in this order:
 
 **Done when:** `swift test` passes and covers the four groups above.
 
-## Stage 3: fix the three real defects
+## Stage 3: fix the three real defects (DONE)
+
+All three shipped. What differs from the sketch below:
+
+- **3a** the retry candidate is the *prepared* (trimmed) file, which is what would
+  be re-uploaded. Cleanup moved to a function-scope `defer`, because the old
+  `do`-scoped one ran before the `catch` and had already deleted the evidence.
+  Skipped recordings (too short, no speech) are still discarded, there is nothing
+  in them to retry.
+- **3b** precedence is stored value, then environment variable, then default. A
+  menu choice has to beat the environment, otherwise the menu would do nothing for
+  anyone who exports `OPENAI_TRANSCRIBE_MODEL`.
+- **3c** `MenuBarController` moved from an `Actions` closure struct to a delegate
+  protocol. Ten closures for state queries and callbacks was worse than one
+  protocol.
+
+Verified: 62 tests green; pruning proven end to end (7 kept files in, 5 out, log
+confirms); stored model and shortcut proven to be read at launch (`F5` and
+`gpt-4o-mini-transcribe (from menu)` in the log). Not verified by machine: a real
+spoken dictation, and the failure path with the network down.
+
+### Original plan
 
 **3a. Keep the audio when transcription fails.** On any error other than
 "skipped recording", move the prepared file to

@@ -1,8 +1,15 @@
+import AppKit
 import Foundation
 
 enum AppLog {
     static let url = FileManager.default.homeDirectoryForCurrentUser
         .appendingPathComponent("Library/Logs/OpenDictate.log")
+
+    @MainActor
+    static func reveal() {
+        write("Opening log")
+        NSWorkspace.shared.open(url)
+    }
 
     static func write(_ message: String) {
         let line = "[\(timestamp())] \(message)\n"

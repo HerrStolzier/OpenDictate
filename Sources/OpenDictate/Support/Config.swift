@@ -1,21 +1,26 @@
 import Foundation
 import OpenDictateCore
 
+/// App-wide access to the live settings plus the fixed recording limits.
+/// Everything that can change at runtime is a computed property, so a menu
+/// change takes effect on the next dictation without a restart.
 enum Config {
-    static let model: TranscriptionModel = {
-        guard let raw = ProcessInfo.processInfo.environment["OPENAI_TRANSCRIBE_MODEL"], !raw.isEmpty else {
-            return .default
-        }
-        return TranscriptionModel(rawValue: raw)
-    }()
+    static let settings = Settings(
+        store: UserDefaults.standard,
+        environment: ProcessInfo.processInfo.environment
+    )
 
-    static let language = ProcessInfo.processInfo.environment["OPENAI_TRANSCRIBE_LANGUAGE"]
-    static let prompt = ProcessInfo.processInfo.environment["OPENAI_TRANSCRIBE_PROMPT"]
+    static var model: TranscriptionModel { settings.model }
+    static var language: String? { settings.language }
+    static var prompt: String? { settings.prompt }
+    static var shortcut: HotKeyShortcut { settings.shortcut }
+
     static let minimumRecordingDuration: TimeInterval = 1.0
     static let maximumRecordingDuration: TimeInterval = 90.0
     static let silenceThresholdDb: Float = -45.0
     static let silencePadding: TimeInterval = 0.25
+
     static var apiKey: String? {
-        ProcessInfo.processInfo.environment["OPENAI_API_KEY"] ?? KeychainAPIKeyStore.read()
+        settings.apiKeyFromEnvironment ?? KeychainAPIKeyStore.read()
     }
 }

@@ -17,9 +17,37 @@ final class HotKeyManager {
         }
     }
 
-    func register(keyCode: UInt32, modifiers: UInt32, action: @escaping () -> Void) throws {
+    /// Registers `shortcut`, replacing whatever was registered before. Safe to
+    /// call repeatedly: the Carbon event handler is installed only once, so
+    /// switching shortcuts does not stack up handlers.
+    func register(_ shortcut: HotKeyShortcut, action: @escaping () -> Void) throws {
         self.action = action
 
+        if handlerRef == nil {
+            try installEventHandler()
+        }
+
+        if let hotKeyRef {
+            UnregisterEventHotKey(hotKeyRef)
+            self.hotKeyRef = nil
+        }
+
+        let hotKeyID = EventHotKeyID(signature: fourCharCode("ODCT"), id: 1)
+        let registrationStatus = RegisterEventHotKey(
+            shortcut.keyCode,
+            shortcut.modifiers,
+            hotKeyID,
+            GetApplicationEventTarget(),
+            0,
+            &hotKeyRef
+        )
+
+        guard registrationStatus == noErr else {
+            throw OpenDictateError.hotKeyRegistrationFailed(registrationStatus)
+        }
+    }
+
+    private func installEventHandler() throws {
         var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
         let selfPointer = Unmanaged.passUnretained(self).toOpaque()
 
@@ -60,20 +88,6 @@ final class HotKeyManager {
 
         guard status == noErr else {
             throw OpenDictateError.hotKeyRegistrationFailed(status)
-        }
-
-        let hotKeyID = EventHotKeyID(signature: fourCharCode("ODCT"), id: 1)
-        let registrationStatus = RegisterEventHotKey(
-            keyCode,
-            modifiers,
-            hotKeyID,
-            GetApplicationEventTarget(),
-            0,
-            &hotKeyRef
-        )
-
-        guard registrationStatus == noErr else {
-            throw OpenDictateError.hotKeyRegistrationFailed(registrationStatus)
         }
     }
 }

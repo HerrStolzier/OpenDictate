@@ -30,38 +30,60 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppLog.write("App launched from \(Bundle.main.bundlePath)")
-        AppLog.write("Default transcription model: \(Config.model.rawValue)")
+        AppLog.write("Transcription model: \(Config.model.rawValue) (from \(Config.settings.modelSource))")
+        verifyHotKeyConstants()
+        FailedRecordingStore.prune()
         ApplicationMenu.install()
         configureMenuBar()
         requestAccessibilityPermissionIfNeeded()
         warnAboutUnusableModelIfNeeded()
+        registerHotKey(announce: true)
+    }
 
+    private func configureMenuBar() {
+        let controller = MenuBarController(delegate: self)
+        controller.install()
+        menuBar = controller
+    }
+
+    // MARK: - Hotkey
+
+    private func registerHotKey(announce: Bool) {
+        let shortcut = Config.shortcut
         do {
-            try hotKey.register(keyCode: UInt32(kVK_Space), modifiers: UInt32(optionKey | shiftKey)) { [weak self] in
+            try hotKey.register(shortcut) { [weak self] in
                 Task { @MainActor in
                     await self?.toggleRecording()
                 }
             }
-            updateStatus("Ready")
-            AppLog.write("Global hotkey registered: Option+Shift+Space")
+            if announce {
+                updateStatus("Ready")
+            }
+            AppLog.write("Global hotkey registered: \(shortcut.displayName)")
         } catch {
             updateStatus("Hotkey failed")
             AppLog.write("Hotkey registration failed: \(error.localizedDescription)")
-            AlertPresenter.showWarning(title: "OpenDictate could not register its hotkey", message: error.localizedDescription)
+            AlertPresenter.showWarning(
+                title: "OpenDictate could not register \(shortcut.displayName)",
+                message: "\(error.localizedDescription)\n\nAnother app is probably using this shortcut. Pick a different one from the Hotkey menu."
+            )
         }
     }
 
-    private func configureMenuBar() {
-        let actions = MenuBarController.Actions(
-            toggleRecording: { [weak self] in self?.toggleRecordingFromMenu() },
-            setAPIKey: { [weak self] in self?.setAPIKey() },
-            openAccessibilitySettings: { SystemSettings.openAccessibility() },
-            openLog: { Self.openLog() },
-            openSoundSettings: { SystemSettings.openSound() }
+    /// The key codes live in OpenDictateCore, which cannot see Carbon. If Apple
+    /// ever changed them, the shortcuts would silently register the wrong key.
+    private func verifyHotKeyConstants() {
+        let matches = HotKeyShortcut.carbonConstantsMatch(
+            space: UInt32(kVK_Space),
+            d: UInt32(kVK_ANSI_D),
+            f5: UInt32(kVK_F5),
+            shift: UInt32(shiftKey),
+            control: UInt32(controlKey),
+            option: UInt32(optionKey)
         )
-        let controller = MenuBarController(actions: actions)
-        controller.install()
-        menuBar = controller
+        if !matches {
+            AppLog.write("WARNING: hotkey constants in OpenDictateCore no longer match Carbon")
+        }
     }
 
     // MARK: - Dictation flow
@@ -87,15 +109,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        guard Config.apiKey != nil else {
-            updateStatus("Missing API key")
-            AppLog.write("Recording blocked: missing API key")
-            AlertPresenter.showWarning(
-                title: "OPENAI_API_KEY is missing",
-                message: "Choose Set API Key... from the OpenDictate menu bar item."
-            )
-            return
-        }
+        guard hasAPIKey() else { return }
 
         do {
             previousApplication = currentFrontmostApplication()
@@ -121,58 +135,127 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         updateStatus("Processing")
         AppLog.write("Stopping recording")
 
+        // Function-scope so it also runs after the catch block below. Anything
+        // still listed here is a temporary file nobody needs; a recording kept
+        // for retry has already been moved out of the temporary directory, so
+        // removing its old path is a harmless no-op.
+        var artifacts: [URL] = []
+        defer {
+            for url in artifacts {
+                try? FileManager.default.removeItem(at: url)
+            }
+            isBusy = false
+        }
+
         do {
             let audioURL = try recorder.stop()
-            var cleanupURLs = [audioURL]
-            defer {
-                for url in cleanupURLs {
-                    try? FileManager.default.removeItem(at: url)
-                }
-            }
-
+            artifacts.append(audioURL)
             AppLog.write("Recording stopped: \(audioURL.path)")
+
             let preparedAudio = try await AudioPreprocessor.prepare(audioURL: audioURL)
             if preparedAudio.url != audioURL {
-                cleanupURLs.append(preparedAudio.url)
+                artifacts.append(preparedAudio.url)
             }
             AppLog.write(
                 "Prepared audio. original=\(preparedAudio.originalDuration.formattedSeconds), upload=\(preparedAudio.uploadDuration.formattedSeconds), trimmed=\(preparedAudio.trimmedDuration.formattedSeconds)"
             )
             updateStatus("Uploading \(preparedAudio.uploadDuration.formattedSeconds)")
 
-            let text = try await transcriber.transcribe(audioURL: preparedAudio.url)
-            AppLog.write("Transcription succeeded. characters=\(text.count)")
-
-            guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                updateStatus("No text")
-                AppLog.write("Transcription returned empty text")
-                NSSound.beep()
-                isBusy = false
-                return
-            }
-
-            pasteboard.copy(text)
-            let pasted = await pasteboard.pasteIntoPreviousApp(previousApplication)
-            if pasted {
-                updateStatus("Pasted")
-            } else if !AXIsProcessTrusted() {
-                updateStatus("Copied - Enable Accessibility")
-                AlertPresenter.showAccessibilityRequired()
-            } else {
-                updateStatus("Copied")
-            }
-            AppLog.write("Text copied. autoPaste=\(pasted)")
+            try await transcribeAndPaste(audioURL: preparedAudio.url)
         } catch {
             AppLog.write("Dictation failed: \(error.localizedDescription)")
             if let openDictateError = error as? OpenDictateError, openDictateError.isSkippedRecording {
                 handleSkippedRecording(openDictateError)
             } else {
-                updateStatus("Failed")
-                AlertPresenter.showWarning(title: "Dictation failed", message: error.localizedDescription)
+                handleTranscriptionFailure(error, audioToKeep: artifacts.last)
             }
         }
+    }
 
-        isBusy = false
+    /// Uploads a file, then copies and pastes whatever came back.
+    @MainActor
+    private func transcribeAndPaste(audioURL: URL) async throws {
+        let text = try await transcriber.transcribe(audioURL: audioURL)
+        AppLog.write("Transcription succeeded. characters=\(text.count)")
+
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            updateStatus("No text")
+            AppLog.write("Transcription returned empty text")
+            NSSound.beep()
+            return
+        }
+
+        pasteboard.copy(text)
+        let pasted = await pasteboard.pasteIntoPreviousApp(previousApplication)
+        if pasted {
+            updateStatus("Pasted")
+        } else if !AXIsProcessTrusted() {
+            updateStatus("Copied - Enable Accessibility")
+            AlertPresenter.showAccessibilityRequired()
+        } else {
+            updateStatus("Copied")
+        }
+        AppLog.write("Text copied. autoPaste=\(pasted)")
+    }
+
+    /// Keeps the audio instead of throwing it away, so a dropped connection does
+    /// not cost the user what they just said.
+    @MainActor
+    private func handleTranscriptionFailure(_ error: Error, audioToKeep: URL?) {
+        let kept = audioToKeep.flatMap { FailedRecordingStore.keep($0, recordedAt: Date()) }
+        updateStatus(kept == nil ? "Failed" : "Failed - kept for retry")
+
+        var message = error.localizedDescription
+        if kept != nil {
+            message += "\n\nThe recording was kept. Choose Retry Last Recording from the OpenDictate menu to upload it again."
+        }
+        AlertPresenter.showWarning(title: "Dictation failed", message: message)
+    }
+
+    @MainActor
+    private func retryLastRecording() async {
+        guard !isBusy else {
+            AppLog.write("Retry ignored because a dictation is already running")
+            return
+        }
+
+        guard let audioURL = FailedRecordingStore.newest() else {
+            updateStatus("Nothing to retry")
+            AppLog.write("Retry requested but nothing is kept")
+            return
+        }
+
+        guard hasAPIKey() else { return }
+
+        isBusy = true
+        defer { isBusy = false }
+        updateStatus("Retrying")
+        AppLog.write("Retrying kept recording: \(audioURL.path)")
+
+        do {
+            previousApplication = currentFrontmostApplication() ?? previousApplication
+            try await transcribeAndPaste(audioURL: audioURL)
+            FailedRecordingStore.remove(audioURL)
+            AppLog.write("Retry succeeded, kept recording removed")
+        } catch {
+            AppLog.write("Retry failed: \(error.localizedDescription)")
+            updateStatus("Retry failed")
+            AlertPresenter.showWarning(
+                title: "Retry failed",
+                message: "\(error.localizedDescription)\n\nThe recording is still kept, you can try again."
+            )
+        }
+    }
+
+    private func hasAPIKey() -> Bool {
+        guard Config.apiKey == nil else { return true }
+        updateStatus("Missing API key")
+        AppLog.write("Blocked: missing API key")
+        AlertPresenter.showWarning(
+            title: "OPENAI_API_KEY is missing",
+            message: "Choose Set API Key... from the OpenDictate menu bar item."
+        )
+        return false
     }
 
     private func scheduleAutoStop() {
@@ -200,17 +283,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return app?.processIdentifier == currentPID ? nil : app
     }
 
+    private func requestAccessibilityPermissionIfNeeded() {
+        guard !AXIsProcessTrusted() else { return }
+        AXIsProcessTrustedWithOptions(["AXTrustedCheckOptionPrompt": true] as CFDictionary)
+    }
+
     /// OPENAI_TRANSCRIBE_MODEL accepts anything, so catch the one mistake that
     /// would otherwise only surface as an API error after the first dictation.
     private func warnAboutUnusableModelIfNeeded() {
         guard let reason = Config.model.uploadRejectionReason else { return }
         AppLog.write("Configured model is not usable: \(reason.replacingOccurrences(of: "\n", with: " "))")
-        AlertPresenter.showWarning(title: "OPENAI_TRANSCRIBE_MODEL cannot be used", message: reason)
-    }
-
-    private func requestAccessibilityPermissionIfNeeded() {
-        guard !AXIsProcessTrusted() else { return }
-        AXIsProcessTrustedWithOptions(["AXTrustedCheckOptionPrompt": true] as CFDictionary)
+        AlertPresenter.showWarning(title: "The configured model cannot be used", message: reason)
     }
 
     private func updateStatus(_ value: String) {
@@ -241,15 +324,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    // MARK: - Menu actions
-
-    private func toggleRecordingFromMenu() {
-        AppLog.write("Start/Stop Recording selected from menu")
-        Task { @MainActor in
-            await toggleRecording()
-        }
-    }
-
     private func setAPIKey() {
         switch AlertPresenter.promptForAPIKey(initialValue: Config.apiKey) {
         case .cancelled:
@@ -267,9 +341,49 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
+}
 
-    private static func openLog() {
-        AppLog.write("Opening log")
-        NSWorkspace.shared.open(AppLog.url)
+// MARK: - MenuBarControllerDelegate
+
+extension AppDelegate: MenuBarControllerDelegate {
+    func menuBarDidTriggerToggleRecording() {
+        AppLog.write("Start/Stop Recording selected from menu")
+        Task { @MainActor in
+            await toggleRecording()
+        }
     }
+
+    func menuBarDidTriggerRetry() {
+        Task { @MainActor in
+            await retryLastRecording()
+        }
+    }
+
+    func menuBarDidTriggerSetAPIKey() {
+        setAPIKey()
+    }
+
+    func menuBarDidSelect(shortcut: HotKeyShortcut) {
+        guard shortcut != Config.shortcut else { return }
+        Config.settings.shortcut = shortcut
+        AppLog.write("Hotkey changed to \(shortcut.displayName)")
+        registerHotKey(announce: false)
+    }
+
+    func menuBarDidSelect(model: TranscriptionModel) {
+        guard model != Config.model else { return }
+        Config.settings.model = model
+        AppLog.write("Transcription model changed to \(model.rawValue)")
+    }
+
+    func menuBarDidSelect(language: String?) {
+        guard language != Config.language else { return }
+        Config.settings.language = language
+        AppLog.write("Transcription language changed to \(language ?? "auto")")
+    }
+
+    var menuBarShortcut: HotKeyShortcut { Config.shortcut }
+    var menuBarModel: TranscriptionModel { Config.model }
+    var menuBarLanguage: String? { Config.language }
+    var menuBarHasRetryableRecording: Bool { FailedRecordingStore.hasAny }
 }
