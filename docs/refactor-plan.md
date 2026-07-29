@@ -2,7 +2,7 @@
 
 > **Purpose:** Turn the 1240-line single-file prototype into a maintainable package without changing what the app does.
 > **Scope:** `Sources/OpenDictate/main.swift`, `Package.swift`, `scripts/build-app.sh`.
-> **Status:** Draft, 2026-07-29. Nothing below is implemented yet.
+> **Status:** 2026-07-29. Stage 1 done. Stages 2 and 3 open.
 
 ## Where we are
 
@@ -32,7 +32,23 @@ So this is mostly a *file split plus three behavioural fixes*, not a rewrite.
 - The app must keep its stable signing identity, or macOS drops the Accessibility
   grant. See `docs/accessibility-signing.md` before touching `scripts/build-app.sh`.
 
-## Stage 1: split the file (mechanical, no logic change)
+## Stage 1: split the file (DONE)
+
+Shipped as two commits so the risky half is reviewable on its own:
+
+- **1a** pure file split, proven lossless line by line.
+- **1b** `AppDelegate` 409 -> 243 lines, with `MenuBarController`,
+  `AlertPresenter`, `ApplicationMenu` and `SystemSettings` extracted.
+
+Deviation from the layout below: `@main` has to sit on the type that owns
+`static func main()`, so there is no separate `OpenDictateApp.swift`.
+`ApplicationMenu.swift` and `System/SystemSettings.swift` were added instead.
+
+Verified: `swift build` clean, app bundle signs with the stable identity,
+launches from `/Applications`, registers the hotkey. A full spoken dictation
+round trip was **not** tested, that needs a human at the microphone.
+
+### Planned layout
 
 Move each existing type into its own file. Change `private` to `internal` only where
 the split forces it. Nothing else.

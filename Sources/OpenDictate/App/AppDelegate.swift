@@ -3,12 +3,12 @@ import ApplicationServices
 import Carbon
 import Foundation
 
+/// App lifecycle and the dictation flow. UI construction lives in
+/// `MenuBarController` / `ApplicationMenu`, modals in `AlertPresenter`.
 @main
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
-    private var statusItem: NSStatusItem?
-    private var statusMenuItem: NSMenuItem?
-    private var inputDeviceMenuItem: NSMenuItem?
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var menuBar: MenuBarController?
     private var didWarnBluetoothInput = false
     private let hotKey = HotKeyManager()
     private let recorder = AudioRecorder()
@@ -30,7 +30,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppLog.write("App launched from \(Bundle.main.bundlePath)")
         AppLog.write("Default transcription model: \(Config.model)")
-        configureApplicationMenu()
+        ApplicationMenu.install()
         configureMenuBar()
         requestAccessibilityPermissionIfNeeded()
 
@@ -45,89 +45,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         } catch {
             updateStatus("Hotkey failed")
             AppLog.write("Hotkey registration failed: \(error.localizedDescription)")
-            showAlert(title: "OpenDictate could not register its hotkey", message: error.localizedDescription)
+            AlertPresenter.showWarning(title: "OpenDictate could not register its hotkey", message: error.localizedDescription)
         }
     }
 
     private func configureMenuBar() {
-        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        if let button = item.button {
-            button.image = makeStatusBarImage()
-            button.imagePosition = .imageOnly
-            button.toolTip = "OpenDictate: Ready"
-        }
-
-        let menu = NSMenu()
-        let statusMenuItem = NSMenuItem(title: "Status: Ready", action: nil, keyEquivalent: "")
-        statusMenuItem.isEnabled = false
-        menu.addItem(statusMenuItem)
-        menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "Hotkey: Option+Shift+Space", action: nil, keyEquivalent: ""))
-        menu.addItem(NSMenuItem(title: "Max recording: \(Int(Config.maximumRecordingDuration)) seconds", action: nil, keyEquivalent: ""))
-        let inputDeviceItem = NSMenuItem(title: "Input: -", action: #selector(openSoundSettings), keyEquivalent: "")
-        inputDeviceItem.target = self
-        inputDeviceItem.toolTip = "Microphone OpenDictate records from. Click to open Sound settings."
-        menu.addItem(inputDeviceItem)
-        self.inputDeviceMenuItem = inputDeviceItem
-        menu.addItem(.separator())
-        let recordingItem = NSMenuItem(title: "Start/Stop Recording", action: #selector(toggleRecordingFromMenu), keyEquivalent: "")
-        recordingItem.target = self
-        menu.addItem(recordingItem)
-        let apiKeyItem = NSMenuItem(title: "Set API Key...", action: #selector(setAPIKey), keyEquivalent: "")
-        apiKeyItem.target = self
-        menu.addItem(apiKeyItem)
-        let accessibilityItem = NSMenuItem(title: "Open Accessibility Settings", action: #selector(openAccessibilitySettings), keyEquivalent: "")
-        accessibilityItem.target = self
-        menu.addItem(accessibilityItem)
-        let logItem = NSMenuItem(title: "Open Log", action: #selector(openLog), keyEquivalent: "")
-        logItem.target = self
-        menu.addItem(logItem)
-        menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
-        menu.delegate = self
-        item.menu = menu
-        self.statusMenuItem = statusMenuItem
-        refreshInputDeviceMenuItem()
-        statusItem = item
+        let actions = MenuBarController.Actions(
+            toggleRecording: { [weak self] in self?.toggleRecordingFromMenu() },
+            setAPIKey: { [weak self] in self?.setAPIKey() },
+            openAccessibilitySettings: { SystemSettings.openAccessibility() },
+            openLog: { Self.openLog() },
+            openSoundSettings: { SystemSettings.openSound() }
+        )
+        let controller = MenuBarController(actions: actions)
+        controller.install()
+        menuBar = controller
     }
 
-    private func configureApplicationMenu() {
-        let mainMenu = NSMenu()
-
-        let appMenuItem = NSMenuItem()
-        let appMenu = NSMenu()
-        appMenu.addItem(NSMenuItem(title: "Quit OpenDictate", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
-        appMenuItem.submenu = appMenu
-        mainMenu.addItem(appMenuItem)
-
-        let editMenuItem = NSMenuItem()
-        let editMenu = NSMenu(title: "Edit")
-        editMenu.addItem(NSMenuItem(title: "Undo", action: Selector(("undo:")), keyEquivalent: "z"))
-        editMenu.addItem(NSMenuItem(title: "Redo", action: Selector(("redo:")), keyEquivalent: "Z"))
-        editMenu.addItem(.separator())
-        editMenu.addItem(NSMenuItem(title: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x"))
-        editMenu.addItem(NSMenuItem(title: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c"))
-        editMenu.addItem(NSMenuItem(title: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v"))
-        editMenu.addItem(.separator())
-        editMenu.addItem(NSMenuItem(title: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a"))
-        editMenuItem.submenu = editMenu
-        mainMenu.addItem(editMenuItem)
-
-        NSApp.mainMenu = mainMenu
-    }
-
-    private func makeStatusBarImage() -> NSImage? {
-        let image: NSImage?
-        if let url = Bundle.main.url(forResource: "OpenDictateIcon", withExtension: "png") {
-            image = NSImage(contentsOf: url)
-        } else {
-            image = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "OpenDictate")
-            image?.isTemplate = true
-        }
-
-        image?.size = NSSize(width: 18, height: 18)
-        return image
-    }
+    // MARK: - Dictation flow
 
     @MainActor
     private func toggleRecording() async {
@@ -153,7 +88,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         guard Config.apiKey != nil else {
             updateStatus("Missing API key")
             AppLog.write("Recording blocked: missing API key")
-            showAlert(
+            AlertPresenter.showWarning(
                 title: "OPENAI_API_KEY is missing",
                 message: "Choose Set API Key... from the OpenDictate menu bar item."
             )
@@ -173,7 +108,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             updateStatus("Recording failed")
             cancelAutoStop()
             AppLog.write("Recording failed: \(error.localizedDescription)")
-            showAlert(title: "Recording failed", message: error.localizedDescription)
+            AlertPresenter.showWarning(title: "Recording failed", message: error.localizedDescription)
         }
     }
 
@@ -220,7 +155,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 updateStatus("Pasted")
             } else if !AXIsProcessTrusted() {
                 updateStatus("Copied - Enable Accessibility")
-                showAccessibilityRequiredAlert()
+                AlertPresenter.showAccessibilityRequired()
             } else {
                 updateStatus("Copied")
             }
@@ -231,7 +166,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 handleSkippedRecording(openDictateError)
             } else {
                 updateStatus("Failed")
-                showAlert(title: "Dictation failed", message: error.localizedDescription)
+                AlertPresenter.showWarning(title: "Dictation failed", message: error.localizedDescription)
             }
         }
 
@@ -269,8 +204,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func updateStatus(_ value: String) {
-        statusMenuItem?.title = "Status: \(value)"
-        statusItem?.button?.toolTip = "OpenDictate: \(value)"
+        menuBar?.updateStatus(value)
     }
 
     private func handleSkippedRecording(_ error: OpenDictateError) {
@@ -293,117 +227,39 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if let input, input.isBluetooth, !didWarnBluetoothInput {
             didWarnBluetoothInput = true
             AppLog.write("Warning: skipped recording while default input is Bluetooth device '\(input.name)'")
-            showBluetoothInputWarning(deviceName: input.name)
+            AlertPresenter.showBluetoothInputWarning(deviceName: input.name)
         }
     }
 
-    private func showBluetoothInputWarning(deviceName: String) {
-        let alert = NSAlert()
-        alert.messageText = "No speech detected from \(deviceName)"
-        alert.informativeText = """
-        OpenDictate recorded, but the audio was (near) silent, so nothing was sent for transcription.
+    // MARK: - Menu actions
 
-        Your microphone is currently set to \(deviceName), a Bluetooth device. Bluetooth headset mics often deliver almost no signal. Switch the input to the built-in microphone in Sound settings, then try dictating again.
-        """
-        alert.alertStyle = .informational
-        alert.addButton(withTitle: "Open Sound Settings")
-        alert.addButton(withTitle: "OK")
-        if alert.runModal() == .alertFirstButtonReturn {
-            openSoundSettings()
-        }
-    }
-
-    private func refreshInputDeviceMenuItem() {
-        guard let inputDeviceMenuItem else { return }
-        let input = AudioInput.current()
-        let name = input?.name ?? "Unknown"
-        let suffix = (input?.isBluetooth ?? false) ? " (Bluetooth)" : ""
-        inputDeviceMenuItem.title = "Input: \(name)\(suffix)"
-    }
-
-    private func showAlert(title: String, message: String) {
-        let alert = NSAlert()
-        alert.messageText = title
-        alert.informativeText = message
-        alert.alertStyle = .warning
-        alert.runModal()
-    }
-
-    private func showAccessibilityRequiredAlert() {
-        let alert = NSAlert()
-        alert.messageText = "Text copied, but OpenDictate cannot paste yet"
-        alert.informativeText = """
-        macOS is blocking automatic paste. OpenDictate needs Accessibility permission to send Cmd+V into the app you were using.
-
-        Grant access in Privacy & Security > Accessibility, then try dictating again.
-        """
-        alert.alertStyle = .informational
-        alert.addButton(withTitle: "Open Settings")
-        alert.addButton(withTitle: "OK")
-
-        if alert.runModal() == .alertFirstButtonReturn {
-            openAccessibilitySettings()
-        }
-    }
-
-    @objc private func toggleRecordingFromMenu() {
+    private func toggleRecordingFromMenu() {
         AppLog.write("Start/Stop Recording selected from menu")
         Task { @MainActor in
             await toggleRecording()
         }
     }
 
-    @objc private func setAPIKey() {
-        let alert = NSAlert()
-        alert.messageText = "Set OpenAI API Key"
-        alert.informativeText = "The key is stored in your macOS Keychain under the OpenDictate service."
-        alert.alertStyle = .informational
-        alert.addButton(withTitle: "Save")
-        alert.addButton(withTitle: "Cancel")
-
-        let inputView = APIKeyInputView(initialValue: Config.apiKey)
-        alert.accessoryView = inputView
-
-        guard alert.runModal() == .alertFirstButtonReturn else {
+    private func setAPIKey() {
+        switch AlertPresenter.promptForAPIKey(initialValue: Config.apiKey) {
+        case .cancelled:
             return
-        }
-
-        let key = inputView.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !key.isEmpty else {
-            showAlert(title: "No API key saved", message: "The field was empty.")
-            return
-        }
-
-        do {
-            try KeychainAPIKeyStore.save(key)
-            updateStatus("Ready")
-            AppLog.write("API key saved to Keychain")
-        } catch {
-            AppLog.write("Could not save API key: \(error.localizedDescription)")
-            showAlert(title: "Could not save API key", message: error.localizedDescription)
+        case .empty:
+            AlertPresenter.showWarning(title: "No API key saved", message: "The field was empty.")
+        case .key(let key):
+            do {
+                try KeychainAPIKeyStore.save(key)
+                updateStatus("Ready")
+                AppLog.write("API key saved to Keychain")
+            } catch {
+                AppLog.write("Could not save API key: \(error.localizedDescription)")
+                AlertPresenter.showWarning(title: "Could not save API key", message: error.localizedDescription)
+            }
         }
     }
 
-    @objc private func openLog() {
+    private static func openLog() {
         AppLog.write("Opening log")
         NSWorkspace.shared.open(AppLog.url)
-    }
-
-    @objc private func openAccessibilitySettings() {
-        AppLog.write("Opening Accessibility settings")
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-            NSWorkspace.shared.open(url)
-        }
-    }
-
-    func menuNeedsUpdate(_ menu: NSMenu) {
-        refreshInputDeviceMenuItem()
-    }
-
-    @objc private func openSoundSettings() {
-        AppLog.write("Opening Sound settings")
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.sound") {
-            NSWorkspace.shared.open(url)
-        }
     }
 }
