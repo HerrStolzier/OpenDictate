@@ -1,0 +1,196 @@
+@preconcurrency import AVFoundation
+import Foundation
+
+enum AudioPreprocessor {
+    static func prepare(audioURL: URL) async throws -> PreparedAudio {
+        let originalDuration = try await duration(of: audioURL)
+        guard originalDuration >= Config.minimumRecordingDuration else {
+            throw OpenDictateError.recordingTooShort(actual: originalDuration, minimum: Config.minimumRecordingDuration)
+        }
+
+        let analysis = try analyze(audioURL: audioURL)
+        AppLog.write(
+            "Audio levels. peak=\(analysis.peakDb.formattedDb), avg=\(analysis.averageDb.formattedDb), threshold=\(Config.silenceThresholdDb.formattedDb)"
+        )
+
+        guard let speechRange = analysis.speechRange else {
+            throw OpenDictateError.noSpeechDetected(peakDb: analysis.peakDb)
+        }
+
+        let start = max(0, speechRange.start - Config.silencePadding)
+        let end = min(originalDuration, speechRange.end + Config.silencePadding)
+        let uploadDuration = max(0, end - start)
+
+        guard uploadDuration >= Config.minimumRecordingDuration else {
+            throw OpenDictateError.recordingTooShort(actual: uploadDuration, minimum: Config.minimumRecordingDuration)
+        }
+
+        let trimmedDuration = max(0, originalDuration - uploadDuration)
+        guard trimmedDuration >= 0.35 else {
+            return PreparedAudio(
+                url: audioURL,
+                originalDuration: originalDuration,
+                uploadDuration: originalDuration,
+                trimmedDuration: 0
+            )
+        }
+
+        let trimmedURL = try await exportTrimmedAudio(
+            from: audioURL,
+            start: start,
+            duration: uploadDuration
+        )
+
+        return PreparedAudio(
+            url: trimmedURL,
+            originalDuration: originalDuration,
+            uploadDuration: uploadDuration,
+            trimmedDuration: trimmedDuration
+        )
+    }
+
+    private static func duration(of audioURL: URL) async throws -> TimeInterval {
+        let asset = AVURLAsset(url: audioURL)
+        let duration = try await asset.load(.duration).seconds
+        guard duration.isFinite, duration > 0 else {
+            throw OpenDictateError.noAudioFile
+        }
+        return duration
+    }
+
+    /// Scans the recording in 50 ms windows: finds the speech span (windows above
+    /// the silence threshold) and, regardless of the outcome, the peak and overall
+    /// average level so callers can log them and distinguish "trimmed too hard"
+    /// from "the microphone delivered (near) silence".
+    private static func analyze(audioURL: URL) throws -> AudioAnalysis {
+        let file = try AVAudioFile(forReading: audioURL)
+        let format = file.processingFormat
+        let sampleRate = format.sampleRate
+        let channelCount = max(1, Int(format.channelCount))
+        let windowFrameCount = AVAudioFrameCount(max(1, Int(sampleRate * 0.05)))
+
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: windowFrameCount) else {
+            throw OpenDictateError.audioPreprocessingFailed("Could not allocate audio analysis buffer.")
+        }
+
+        var cursor: AVAudioFramePosition = 0
+        var firstSpeechTime: TimeInterval?
+        var lastSpeechTime: TimeInterval?
+        var peakDb: Float = -160
+        var totalSquares: Float = 0
+        var totalSamples = 0
+
+        while file.framePosition < file.length {
+            let remaining = AVAudioFrameCount(min(Int64(windowFrameCount), file.length - file.framePosition))
+            try file.read(into: buffer, frameCount: remaining)
+
+            let frameLength = Int(buffer.frameLength)
+            guard frameLength > 0 else {
+                break
+            }
+
+            let window = windowPower(buffer: buffer, channelCount: channelCount, frameLength: frameLength)
+            totalSquares += window.sumSquares
+            totalSamples += window.count
+
+            let db = decibels(sumSquares: window.sumSquares, count: window.count)
+            peakDb = max(peakDb, db)
+
+            let start = Double(cursor) / sampleRate
+            let end = Double(cursor + AVAudioFramePosition(frameLength)) / sampleRate
+
+            if db >= Config.silenceThresholdDb {
+                firstSpeechTime = firstSpeechTime ?? start
+                lastSpeechTime = end
+            }
+
+            cursor += AVAudioFramePosition(frameLength)
+        }
+
+        let averageDb = decibels(sumSquares: totalSquares, count: totalSamples)
+        let range: (start: TimeInterval, end: TimeInterval)?
+        if let firstSpeechTime, let lastSpeechTime {
+            range = (start: firstSpeechTime, end: lastSpeechTime)
+        } else {
+            range = nil
+        }
+
+        return AudioAnalysis(speechRange: range, peakDb: peakDb, averageDb: averageDb)
+    }
+
+    private static func windowPower(
+        buffer: AVAudioPCMBuffer,
+        channelCount: Int,
+        frameLength: Int
+    ) -> (sumSquares: Float, count: Int) {
+        guard let channelData = buffer.floatChannelData else {
+            return (0, 0)
+        }
+
+        var sum: Float = 0
+        var count = 0
+
+        for channel in 0..<channelCount {
+            let samples = channelData[channel]
+            for frame in 0..<frameLength {
+                let sample = samples[frame]
+                sum += sample * sample
+                count += 1
+            }
+        }
+
+        return (sum, count)
+    }
+
+    private static func decibels(sumSquares: Float, count: Int) -> Float {
+        guard count > 0 else {
+            return -160
+        }
+
+        let rms = sqrt(sumSquares / Float(count))
+        return 20 * log10(max(rms, 0.000_000_1))
+    }
+
+    private static func exportTrimmedAudio(
+        from inputURL: URL,
+        start: TimeInterval,
+        duration: TimeInterval
+    ) async throws -> URL {
+        let asset = AVURLAsset(url: inputURL)
+        let outputURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("opendictate-trimmed-\(UUID().uuidString).m4a")
+
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A) else {
+            throw OpenDictateError.audioPreprocessingFailed("Could not create audio export session.")
+        }
+
+        exportSession.outputURL = outputURL
+        exportSession.outputFileType = .m4a
+        exportSession.timeRange = CMTimeRange(
+            start: CMTime(seconds: start, preferredTimescale: 600),
+            duration: CMTime(seconds: duration, preferredTimescale: 600)
+        )
+
+        let exportBox = ExportSessionBox(exportSession)
+        try await withCheckedThrowingContinuation { continuation in
+            exportBox.session.exportAsynchronously {
+                switch exportBox.session.status {
+                case .completed:
+                    continuation.resume()
+                case .failed, .cancelled:
+                    continuation.resume(
+                        throwing: OpenDictateError.audioPreprocessingFailed(
+                            exportBox.session.error?.localizedDescription ?? "Audio export failed."
+                        )
+                    )
+                default:
+                    continuation.resume(
+                        throwing: OpenDictateError.audioPreprocessingFailed("Audio export ended unexpectedly.")
+                    )
+                }
+            }
+        }
+
+        return outputURL
+    }
+}
