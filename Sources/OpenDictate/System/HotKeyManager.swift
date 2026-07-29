@@ -1,6 +1,7 @@
 import AppKit
 import Carbon
 import Foundation
+import OpenDictateCore
 
 final class HotKeyManager {
     private var hotKeyRef: EventHotKeyRef?

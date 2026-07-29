@@ -1,6 +1,6 @@
 import Foundation
 
-enum OpenDictateError: LocalizedError {
+public enum OpenDictateError: LocalizedError {
     case audioPreprocessingFailed(String)
     case apiError(String)
     case hotKeyRegistrationFailed(OSStatus)
@@ -13,7 +13,7 @@ enum OpenDictateError: LocalizedError {
     case recordingCouldNotStart
     case recordingTooShort(actual: TimeInterval, minimum: TimeInterval)
 
-    var isSkippedRecording: Bool {
+    public var isSkippedRecording: Bool {
         switch self {
         case .noSpeechDetected, .recordingTooShort:
             return true
@@ -22,7 +22,7 @@ enum OpenDictateError: LocalizedError {
         }
     }
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .audioPreprocessingFailed(let message):
             return "Could not prepare the recording for transcription.\n\n\(message)"

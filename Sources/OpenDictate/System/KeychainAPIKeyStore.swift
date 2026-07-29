@@ -1,5 +1,6 @@
 import Foundation
 import Security
+import OpenDictateCore
 
 enum KeychainAPIKeyStore {
     private static let service = "OpenDictate"

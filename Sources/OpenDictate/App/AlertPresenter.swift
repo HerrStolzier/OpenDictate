@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import OpenDictateCore
 
 /// Every modal the app shows, in one place. Each call blocks on `runModal()`
 /// exactly like the inline versions it replaces.

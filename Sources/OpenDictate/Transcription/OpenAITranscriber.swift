@@ -1,4 +1,5 @@
 import Foundation
+import OpenDictateCore
 
 struct OpenAITranscriber {
     func transcribe(audioURL: URL) async throws -> String {
@@ -6,7 +7,7 @@ struct OpenAITranscriber {
             throw OpenDictateError.missingAPIKey
         }
 
-        AppLog.write("Uploading audio to OpenAI. model=\(Config.model)")
+        AppLog.write("Uploading audio to OpenAI. model=\(Config.model.rawValue)")
         let boundary = "OpenDictateBoundary-\(UUID().uuidString)"
         var request = URLRequest(url: URL(string: "https://api.openai.com/v1/audio/transcriptions")!)
         request.httpMethod = "POST"
@@ -14,7 +15,7 @@ struct OpenAITranscriber {
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
 
         var body = Data()
-        appendField(name: "model", value: Config.model, boundary: boundary, body: &body)
+        appendField(name: "model", value: Config.model.rawValue, boundary: boundary, body: &body)
         appendField(name: "response_format", value: "text", boundary: boundary, body: &body)
 
         if let language = Config.language, !language.isEmpty {

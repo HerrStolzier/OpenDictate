@@ -1,5 +1,6 @@
 @preconcurrency import AVFoundation
 import Foundation
+import OpenDictateCore
 
 enum AudioPreprocessor {
     static func prepare(audioURL: URL) async throws -> PreparedAudio {
@@ -17,35 +18,33 @@ enum AudioPreprocessor {
             throw OpenDictateError.noSpeechDetected(peakDb: analysis.peakDb)
         }
 
-        let start = max(0, speechRange.start - Config.silencePadding)
-        let end = min(originalDuration, speechRange.end + Config.silencePadding)
-        let uploadDuration = max(0, end - start)
+        let plan = try TrimPlanner.plan(
+            originalDuration: originalDuration,
+            speechRange: speechRange,
+            padding: Config.silencePadding,
+            minimumDuration: Config.minimumRecordingDuration
+        )
 
-        guard uploadDuration >= Config.minimumRecordingDuration else {
-            throw OpenDictateError.recordingTooShort(actual: uploadDuration, minimum: Config.minimumRecordingDuration)
-        }
-
-        let trimmedDuration = max(0, originalDuration - uploadDuration)
-        guard trimmedDuration >= 0.35 else {
+        guard plan.shouldExport else {
             return PreparedAudio(
                 url: audioURL,
                 originalDuration: originalDuration,
-                uploadDuration: originalDuration,
-                trimmedDuration: 0
+                uploadDuration: plan.uploadDuration,
+                trimmedDuration: plan.trimmedDuration
             )
         }
 
         let trimmedURL = try await exportTrimmedAudio(
             from: audioURL,
-            start: start,
-            duration: uploadDuration
+            start: plan.start,
+            duration: plan.uploadDuration
         )
 
         return PreparedAudio(
             url: trimmedURL,
             originalDuration: originalDuration,
-            uploadDuration: uploadDuration,
-            trimmedDuration: trimmedDuration
+            uploadDuration: plan.uploadDuration,
+            trimmedDuration: plan.trimmedDuration
         )
     }
 
@@ -74,9 +73,8 @@ enum AudioPreprocessor {
         }
 
         var cursor: AVAudioFramePosition = 0
-        var firstSpeechTime: TimeInterval?
-        var lastSpeechTime: TimeInterval?
-        var peakDb: Float = -160
+        var speech = SpeechRangeAccumulator(thresholdDb: Config.silenceThresholdDb)
+        var peakDb = AudioLevels.floorDb
         var totalSquares: Float = 0
         var totalSamples = 0
 
@@ -93,29 +91,21 @@ enum AudioPreprocessor {
             totalSquares += window.sumSquares
             totalSamples += window.count
 
-            let db = decibels(sumSquares: window.sumSquares, count: window.count)
+            let db = AudioLevels.decibels(sumSquares: window.sumSquares, count: window.count)
             peakDb = max(peakDb, db)
 
             let start = Double(cursor) / sampleRate
             let end = Double(cursor + AVAudioFramePosition(frameLength)) / sampleRate
-
-            if db >= Config.silenceThresholdDb {
-                firstSpeechTime = firstSpeechTime ?? start
-                lastSpeechTime = end
-            }
+            speech.add(start: start, end: end, db: db)
 
             cursor += AVAudioFramePosition(frameLength)
         }
 
-        let averageDb = decibels(sumSquares: totalSquares, count: totalSamples)
-        let range: (start: TimeInterval, end: TimeInterval)?
-        if let firstSpeechTime, let lastSpeechTime {
-            range = (start: firstSpeechTime, end: lastSpeechTime)
-        } else {
-            range = nil
-        }
-
-        return AudioAnalysis(speechRange: range, peakDb: peakDb, averageDb: averageDb)
+        return AudioAnalysis(
+            speechRange: speech.range,
+            peakDb: peakDb,
+            averageDb: AudioLevels.decibels(sumSquares: totalSquares, count: totalSamples)
+        )
     }
 
     private static func windowPower(
@@ -140,15 +130,6 @@ enum AudioPreprocessor {
         }
 
         return (sum, count)
-    }
-
-    private static func decibels(sumSquares: Float, count: Int) -> Float {
-        guard count > 0 else {
-            return -160
-        }
-
-        let rms = sqrt(sumSquares / Float(count))
-        return 20 * log10(max(rms, 0.000_000_1))
     }
 
     private static func exportTrimmedAudio(

@@ -1,7 +1,14 @@
 import Foundation
+import OpenDictateCore
 
 enum Config {
-    static let model = ProcessInfo.processInfo.environment["OPENAI_TRANSCRIBE_MODEL"] ?? "gpt-transcribe"
+    static let model: TranscriptionModel = {
+        guard let raw = ProcessInfo.processInfo.environment["OPENAI_TRANSCRIBE_MODEL"], !raw.isEmpty else {
+            return .default
+        }
+        return TranscriptionModel(rawValue: raw)
+    }()
+
     static let language = ProcessInfo.processInfo.environment["OPENAI_TRANSCRIBE_LANGUAGE"]
     static let prompt = ProcessInfo.processInfo.environment["OPENAI_TRANSCRIBE_PROMPT"]
     static let minimumRecordingDuration: TimeInterval = 1.0

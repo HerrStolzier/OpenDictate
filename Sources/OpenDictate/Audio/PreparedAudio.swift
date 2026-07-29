@@ -1,5 +1,6 @@
 @preconcurrency import AVFoundation
 import Foundation
+import OpenDictateCore
 
 struct PreparedAudio {
     let url: URL
@@ -9,7 +10,7 @@ struct PreparedAudio {
 }
 
 struct AudioAnalysis {
-    let speechRange: (start: TimeInterval, end: TimeInterval)?
+    let speechRange: SpeechRange?
     let peakDb: Float
     let averageDb: Float
 }

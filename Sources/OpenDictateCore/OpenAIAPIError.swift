@@ -1,6 +1,6 @@
 import Foundation
 
-struct OpenAIAPIErrorMessage: Decodable {
+public enum OpenAIAPIErrorMessage {
     struct Body: Decodable {
         let error: Detail
     }
@@ -11,7 +11,7 @@ struct OpenAIAPIErrorMessage: Decodable {
         let code: String?
     }
 
-    static func humanReadableMessage(from data: Data, statusCode: Int) -> String {
+    public static func humanReadableMessage(from data: Data, statusCode: Int) -> String {
         let fallback = "OpenAI returned HTTP \(statusCode). Please try again in a moment."
 
         guard

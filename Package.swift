@@ -11,8 +11,12 @@ let package = Package(
         .executable(name: "OpenDictate", targets: ["OpenDictate"])
     ],
     targets: [
+        // Pure logic: no AppKit, no AVFoundation, no network, no globals.
+        // Everything it needs is passed in, so it can be tested directly.
+        .target(name: "OpenDictateCore"),
         .executableTarget(
             name: "OpenDictate",
+            dependencies: ["OpenDictateCore"],
             linkerSettings: [
                 .linkedFramework("AppKit"),
                 .linkedFramework("AVFoundation"),
@@ -21,6 +25,10 @@ let package = Package(
                 .linkedFramework("ApplicationServices"),
                 .linkedFramework("Security")
             ]
+        ),
+        .testTarget(
+            name: "OpenDictateCoreTests",
+            dependencies: ["OpenDictateCore"]
         )
     ]
 )

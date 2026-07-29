@@ -1,5 +1,6 @@
 @preconcurrency import AVFoundation
 import Foundation
+import OpenDictateCore
 
 @MainActor
 final class AudioRecorder: NSObject, AVAudioRecorderDelegate {

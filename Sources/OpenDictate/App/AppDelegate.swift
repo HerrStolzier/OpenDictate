@@ -2,6 +2,7 @@ import AppKit
 import ApplicationServices
 import Carbon
 import Foundation
+import OpenDictateCore
 
 /// App lifecycle and the dictation flow. UI construction lives in
 /// `MenuBarController` / `ApplicationMenu`, modals in `AlertPresenter`.
@@ -29,10 +30,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppLog.write("App launched from \(Bundle.main.bundlePath)")
-        AppLog.write("Default transcription model: \(Config.model)")
+        AppLog.write("Default transcription model: \(Config.model.rawValue)")
         ApplicationMenu.install()
         configureMenuBar()
         requestAccessibilityPermissionIfNeeded()
+        warnAboutUnusableModelIfNeeded()
 
         do {
             try hotKey.register(keyCode: UInt32(kVK_Space), modifiers: UInt32(optionKey | shiftKey)) { [weak self] in
@@ -196,6 +198,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let currentPID = ProcessInfo.processInfo.processIdentifier
         let app = NSWorkspace.shared.frontmostApplication
         return app?.processIdentifier == currentPID ? nil : app
+    }
+
+    /// OPENAI_TRANSCRIBE_MODEL accepts anything, so catch the one mistake that
+    /// would otherwise only surface as an API error after the first dictation.
+    private func warnAboutUnusableModelIfNeeded() {
+        guard let reason = Config.model.uploadRejectionReason else { return }
+        AppLog.write("Configured model is not usable: \(reason.replacingOccurrences(of: "\n", with: " "))")
+        AlertPresenter.showWarning(title: "OPENAI_TRANSCRIBE_MODEL cannot be used", message: reason)
     }
 
     private func requestAccessibilityPermissionIfNeeded() {

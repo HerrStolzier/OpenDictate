@@ -2,7 +2,7 @@
 
 > **Purpose:** Turn the 1240-line single-file prototype into a maintainable package without changing what the app does.
 > **Scope:** `Sources/OpenDictate/main.swift`, `Package.swift`, `scripts/build-app.sh`.
-> **Status:** 2026-07-29. Stage 1 done. Stages 2 and 3 open.
+> **Status:** 2026-07-29. Stages 1 and 2 done. Stage 3 open.
 
 ## Where we are
 
@@ -83,7 +83,24 @@ Sources/OpenDictate/
 
 **Done when:** `swift build` is clean and dictation still works end to end.
 
-## Stage 2: make the core testable
+## Stage 2: make the core testable (DONE)
+
+`OpenDictateCore` now holds `Formatting`, `OpenDictateError`, `OpenAIAPIError`,
+plus three types extracted from the app: `AudioLevels` / `SpeechRangeAccumulator`
+(the silence decision), `TrimPlanner` (the padding and clamping maths) and
+`TranscriptionModel`. 34 tests in 7 suites, `swift test` green.
+
+`TranscriptionModel` earns its keep beyond typing: the app now warns at launch
+when `OPENAI_TRANSCRIBE_MODEL` names a realtime-only model, instead of failing on
+the first dictation. Unknown identifiers still pass through untouched.
+
+**Not done:** step 3, the `TranscribingService` protocol. `OpenAITranscriber` is
+40 lines of multipart assembly around one `URLSession` call and reads `Config`
+directly. Faking it well means injecting configuration and a `URLProtocol` stub,
+which is more machinery than the current risk justifies. Revisit if the upload
+path grows retries or streaming.
+
+### Original plan
 
 1. Add a `OpenDictateCore` library target and an `OpenDictateTests` test target.
    `OpenDictate` (executable) depends on `OpenDictateCore`. AppKit-bound code
