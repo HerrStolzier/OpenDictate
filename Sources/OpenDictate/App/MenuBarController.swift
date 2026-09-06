@@ -6,6 +6,7 @@ import OpenDictateCore
 protocol MenuBarControllerDelegate: AnyObject {
     func menuBarDidTriggerToggleRecording()
     func menuBarDidTriggerRetry()
+    func menuBarDidTriggerDeleteSavedRecordings()
     func menuBarDidTriggerSetAPIKey()
     func menuBarDidSelect(shortcut: HotKeyShortcut)
     func menuBarDidSelect(model: TranscriptionModel)
@@ -15,6 +16,7 @@ protocol MenuBarControllerDelegate: AnyObject {
     var menuBarModel: TranscriptionModel { get }
     var menuBarLanguage: String? { get }
     var menuBarHasRetryableRecording: Bool { get }
+    var menuBarHasStoredRecordings: Bool { get }
 }
 
 /// Owns the status bar item and its menu. Knows nothing about recording or
@@ -38,6 +40,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private var statusMenuItem: NSMenuItem?
     private var inputDeviceMenuItem: NSMenuItem?
     private var retryMenuItem: NSMenuItem?
+    private var deleteRecordingsMenuItem: NSMenuItem?
     private var shortcutMenuItem: NSMenuItem?
     private var modelMenuItem: NSMenuItem?
     private var languageMenuItem: NSMenuItem?
@@ -96,6 +99,12 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         retryItem.toolTip = "Upload the most recent recording whose transcription failed."
         menu.addItem(retryItem)
         self.retryMenuItem = retryItem
+
+        let deleteRecordingsItem = NSMenuItem(title: "Delete Saved Recordings...", action: #selector(deleteSavedRecordings), keyEquivalent: "")
+        deleteRecordingsItem.target = self
+        deleteRecordingsItem.toolTip = "Permanently delete recordings retained after failed transcriptions."
+        menu.addItem(deleteRecordingsItem)
+        self.deleteRecordingsMenuItem = deleteRecordingsItem
 
         let apiKeyItem = NSMenuItem(title: "Set API Key...", action: #selector(setAPIKey), keyEquivalent: "")
         apiKeyItem.target = self
@@ -176,6 +185,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     private func refreshRetryMenuItem() {
         retryMenuItem?.isEnabled = delegate?.menuBarHasRetryableRecording ?? false
+        deleteRecordingsMenuItem?.isEnabled = delegate?.menuBarHasStoredRecordings ?? false
     }
 
     private func refreshSelections() {
@@ -226,6 +236,11 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     @objc private func retryLastRecording() {
         delegate?.menuBarDidTriggerRetry()
+    }
+
+    @objc private func deleteSavedRecordings() {
+        delegate?.menuBarDidTriggerDeleteSavedRecordings()
+        refreshRetryMenuItem()
     }
 
     @objc private func setAPIKey() {

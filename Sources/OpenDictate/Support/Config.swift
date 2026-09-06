@@ -21,6 +21,6 @@ enum Config {
     static let silencePadding: TimeInterval = 0.25
 
     static var apiKey: String? {
-        settings.apiKeyFromEnvironment ?? KeychainAPIKeyStore.read()
+        KeychainAPIKeyStore.read()
     }
 }

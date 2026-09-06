@@ -1,65 +1,46 @@
-# Accessibility permission & stable code signing
+# Accessibility permission and local code signing
 
-OpenDictate pastes the transcript into the previously active app by synthesizing
-Cmd+V, which requires the **Accessibility** permission (`AXIsProcessTrusted()`).
+OpenDictate pastes by sending `Cmd+V`, which requires macOS Accessibility
+permission. macOS associates that permission with the app's code signature. An
+ad-hoc signature changes on rebuild, so development builds may need the grant
+again.
 
-macOS ties that permission to the app's **code signature**. An ad-hoc signature
-(`codesign --sign -`) gets a *new* code hash on every build, so after each rebuild
-macOS treats the app as "different" and the Accessibility grant silently stops
-applying — the toggle still looks ON, but `AXIsProcessTrusted()` returns `false`
-and auto-paste fails (the log shows `accessibility=false`).
+`scripts/build-app.sh` uses the identity named `OpenDictate Self-Signed` when it
+exists (override with `OPENDICTATE_SIGN_IDENTITY`) and otherwise falls back to an
+ad-hoc signature.
 
-The fix is to sign with a **stable, self-signed code-signing identity**. The leaf
-certificate stays the same across rebuilds, so the grant persists. The identity is
-intentionally *untrusted* — it only needs to keep the code hash stable for TCC, not
-to pass Gatekeeper.
+## Create a local development identity
 
-`scripts/build-app.sh` signs with the identity named `OpenDictate Self-Signed`
-(override via `OPENDICTATE_SIGN_IDENTITY`). If it is missing, the script falls back
-to ad-hoc and prints a warning.
+Use the attended Keychain Access workflow so an exportable private key is never
+written to a predictable temporary path:
 
-## Recreate the identity (once per machine)
+1. Open **Keychain Access** and select the **login** keychain.
+2. Choose **Keychain Access > Certificate Assistant > Create a Certificate**.
+3. Name it `OpenDictate Self-Signed`, choose **Self Signed Root** as the identity
+   type and **Code Signing** as the certificate type, then create it.
+4. Leave the private key's access control restricted. When a build asks to use
+   the key, choose **Allow** for that signature only. Do not choose **Always
+   Allow**, do not authorize every application, and do not grant unattended
+   access to `/usr/bin/codesign`.
+5. Confirm that the identity appears among the matching identities:
 
-```bash
-# 1. Generate a self-signed cert with the codeSigning EKU
-cat > /tmp/cs.cnf <<'CNF'
-[ req ]
-distinguished_name = dn
-x509_extensions    = v3
-prompt             = no
-[ dn ]
-CN = OpenDictate Self-Signed
-[ v3 ]
-basicConstraints   = critical,CA:FALSE
-keyUsage           = critical,digitalSignature
-extendedKeyUsage   = critical,codeSigning
-CNF
-openssl req -x509 -newkey rsa:2048 -keyout /tmp/cs.key -out /tmp/cs.crt \
-  -days 3650 -nodes -config /tmp/cs.cnf
+   ```bash
+   security find-identity -p codesigning | grep "OpenDictate Self-Signed"
+   ```
 
-# 2. Bundle to PKCS#12 (legacy algos + a non-empty password — macOS `security`
-#    rejects empty-password p12 with a MAC verification error)
-openssl pkcs12 -export -inkey /tmp/cs.key -in /tmp/cs.crt \
-  -name "OpenDictate Self-Signed" -out /tmp/cs.p12 \
-  -passout pass:opendictate -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -macalg sha1
+The certificate is intentionally local and untrusted. It is only for stable
+identity during development; it does not make an app suitable for public binary
+distribution. Public binaries require a protected Developer ID identity,
+hardened runtime, notarization, stapling, and verification of the final artifact.
 
-# 3. Import into the login keychain; -A lets codesign use the key without prompts
-security import /tmp/cs.p12 -k "$HOME/Library/Keychains/login.keychain-db" \
-  -P opendictate -A -T /usr/bin/codesign
-
-# 4. Confirm (appears under "Matching identities" with CSSMERR_TP_NOT_TRUSTED —
-#    that is expected and fine; it will NOT show under -v / "Valid identities")
-security find-identity -p codesigning | grep "OpenDictate Self-Signed"
-
-# 5. Clean up the private-key material on disk
-rm -f /tmp/cs.key /tmp/cs.p12 /tmp/cs.crt /tmp/cs.cnf
-```
-
-Then `./scripts/build-app.sh`, reinstall to `/Applications`, and grant Accessibility
-**one** more time. After that the grant survives future rebuilds.
-
-If you ever need to clear a stale grant manually:
+After creating or replacing the identity, rebuild the app and grant
+Accessibility once. To clear a stale grant:
 
 ```bash
 tccutil reset Accessibility local.opendictate.app
 ```
+
+If an identity was created with the repository's older instructions (`-A`, a
+permanently trusted `codesign`, or private-key files under `/tmp/cs.*`), delete
+and replace that identity and reset the old Accessibility entry. Those settings
+allowed unattended same-user use of an identity carrying a TCC grant.

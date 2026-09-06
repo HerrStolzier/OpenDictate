@@ -20,6 +20,16 @@ enum AlertPresenter {
         alert.runModal()
     }
 
+    static func confirmDeleteSavedRecordings(count: Int) -> Bool {
+        let alert = NSAlert()
+        alert.messageText = "Delete saved recordings?"
+        alert.informativeText = "This permanently deletes \(count) failed recording\(count == 1 ? "" : "s") kept for retry."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Delete")
+        alert.addButton(withTitle: "Cancel")
+        return alert.runModal() == .alertFirstButtonReturn
+    }
+
     /// Shown when the transcript reached the clipboard but Cmd+V could not be
     /// simulated. Returns to the caller after the user dismisses it.
     static func showAccessibilityRequired() {

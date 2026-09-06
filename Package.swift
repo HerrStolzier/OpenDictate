@@ -29,6 +29,10 @@ let package = Package(
         .testTarget(
             name: "OpenDictateCoreTests",
             dependencies: ["OpenDictateCore"]
+        ),
+        .testTarget(
+            name: "OpenDictateSystemTests",
+            dependencies: ["OpenDictate"]
         )
     ]
 )

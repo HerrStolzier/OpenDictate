@@ -130,12 +130,10 @@ struct SettingsTests {
 
     // MARK: - Environment only
 
-    @Test("Prompt and API key come from the environment, empty means unset")
+    @Test("Prompt comes from the environment, empty means unset")
     func environmentOnlyValues() {
         #expect(settings(env: ["OPENAI_TRANSCRIBE_PROMPT": "OpenDictate"]).prompt == "OpenDictate")
         #expect(settings(env: ["OPENAI_TRANSCRIBE_PROMPT": ""]).prompt == nil)
-        #expect(settings(env: ["OPENAI_API_KEY": "sk-x"]).apiKeyFromEnvironment == "sk-x")
-        #expect(settings().apiKeyFromEnvironment == nil)
     }
 }
 

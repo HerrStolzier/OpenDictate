@@ -35,7 +35,7 @@ public enum OpenDictateError: LocalizedError {
         case .keychainStatus(let status):
             return "Keychain operation failed with status \(status)."
         case .missingAPIKey:
-            return "OPENAI_API_KEY is not set."
+            return "The OpenAI API key is not set."
         case .noActiveRecording:
             return "There is no active recording to stop."
         case .noAudioFile:

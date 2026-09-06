@@ -1,6 +1,7 @@
 import AppKit
 import ApplicationServices
 import Carbon
+import Darwin
 import Foundation
 import OpenDictateCore
 
@@ -21,6 +22,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var autoStopTask: Task<Void, Never>?
 
     static func main() {
+        // Credentials are accepted only through the in-app Keychain flow. Drop
+        // an inherited legacy value before settings snapshot the environment.
+        unsetenv("OPENAI_API_KEY")
         let app = NSApplication.shared
         let delegate = AppDelegate()
         app.delegate = delegate
@@ -176,26 +180,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @MainActor
     private func transcribeAndPaste(audioURL: URL) async throws {
         let text = try await transcriber.transcribe(audioURL: audioURL)
-        AppLog.write("Transcription succeeded. characters=\(text.count)")
-
-        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            updateStatus("No text")
-            AppLog.write("Transcription returned empty text")
-            NSSound.beep()
-            return
-        }
-
-        pasteboard.copy(text)
-        let pasted = await pasteboard.pasteIntoPreviousApp(previousApplication)
-        if pasted {
-            updateStatus("Pasted")
-        } else if !AXIsProcessTrusted() {
-            updateStatus("Copied - Enable Accessibility")
-            AlertPresenter.showAccessibilityRequired()
-        } else {
-            updateStatus("Copied")
-        }
-        AppLog.write("Text copied. autoPaste=\(pasted)")
+        await deliverTranscript(text)
     }
 
     /// Keeps the audio instead of throwing it away, so a dropped connection does
@@ -219,7 +204,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        guard let audioURL = FailedRecordingStore.newest() else {
+        guard let payload = FailedRecordingStore.newest() else {
             updateStatus("Nothing to retry")
             AppLog.write("Retry requested but nothing is kept")
             return
@@ -230,13 +215,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         isBusy = true
         defer { isBusy = false }
         updateStatus("Retrying")
-        AppLog.write("Retrying kept recording: \(audioURL.path)")
+        AppLog.write("Retrying authenticated kept recording: \(payload.filename)")
 
         do {
             previousApplication = currentFrontmostApplication() ?? previousApplication
-            try await transcribeAndPaste(audioURL: audioURL)
-            FailedRecordingStore.remove(audioURL)
-            AppLog.write("Retry succeeded, kept recording removed")
+            let text = try await transcriber.transcribe(audioData: payload.data, filename: payload.filename)
+            await deliverTranscript(text)
+            let removed = FailedRecordingStore.remove(payload)
+            AppLog.write(removed ? "Retry succeeded, kept recording removed" : "Retry succeeded, but the kept recording could not be removed")
         } catch {
             AppLog.write("Retry failed: \(error.localizedDescription)")
             updateStatus("Retry failed")
@@ -252,10 +238,39 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         updateStatus("Missing API key")
         AppLog.write("Blocked: missing API key")
         AlertPresenter.showWarning(
-            title: "OPENAI_API_KEY is missing",
+            title: "OpenAI API key is missing",
             message: "Choose Set API Key... from the OpenDictate menu bar item."
         )
         return false
+    }
+
+    @MainActor
+    private func deliverTranscript(_ text: String) async {
+        AppLog.write("Transcription succeeded. characters=\(text.count)")
+
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            updateStatus("No text")
+            AppLog.write("Transcription returned empty text")
+            NSSound.beep()
+            return
+        }
+
+        guard pasteboard.copy(text) else {
+            updateStatus("Clipboard failed")
+            AppLog.write("Could not write the transcript to the clipboard")
+            NSSound.beep()
+            return
+        }
+        let pasteShortcutSent = await pasteboard.pasteIntoPreviousApp(previousApplication)
+        if pasteShortcutSent {
+            updateStatus("Paste sent")
+        } else if !AXIsProcessTrusted() {
+            updateStatus("Copied - Enable Accessibility")
+            AlertPresenter.showAccessibilityRequired()
+        } else {
+            updateStatus("Copied")
+        }
+        AppLog.write("Text copied. pasteShortcutSent=\(pasteShortcutSent)")
     }
 
     private func scheduleAutoStop() {
@@ -341,6 +356,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
+
+    private func deleteSavedRecordings() {
+        let count = FailedRecordingStore.storedFileCount
+        guard count > 0, AlertPresenter.confirmDeleteSavedRecordings(count: count) else { return }
+        let removed = FailedRecordingStore.removeAll()
+        updateStatus(removed == count ? "Saved recordings deleted" : "Some recordings could not be deleted")
+        AppLog.write("User deleted \(removed) of \(count) saved recording(s)")
+    }
 }
 
 // MARK: - MenuBarControllerDelegate
@@ -357,6 +380,10 @@ extension AppDelegate: MenuBarControllerDelegate {
         Task { @MainActor in
             await retryLastRecording()
         }
+    }
+
+    func menuBarDidTriggerDeleteSavedRecordings() {
+        deleteSavedRecordings()
     }
 
     func menuBarDidTriggerSetAPIKey() {
@@ -386,4 +413,5 @@ extension AppDelegate: MenuBarControllerDelegate {
     var menuBarModel: TranscriptionModel { Config.model }
     var menuBarLanguage: String? { Config.language }
     var menuBarHasRetryableRecording: Bool { FailedRecordingStore.hasAny }
+    var menuBarHasStoredRecordings: Bool { FailedRecordingStore.hasStoredFiles }
 }

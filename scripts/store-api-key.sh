@@ -1,22 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
+unset OPENAI_API_KEY
 
-if [[ -n "${OPENAI_API_KEY:-}" ]]; then
-  key="$OPENAI_API_KEY"
-else
-  read -r -s -p "OpenAI API key: " key
-  printf "\n"
-fi
-
-if [[ -z "$key" ]]; then
-  echo "No API key provided." >&2
-  exit 1
-fi
-
+# Keep -w last: macOS `security` then prompts without putting the secret in
+# shell history, this script's environment, or a child process argument.
 security add-generic-password \
   -a OPENAI_API_KEY \
   -s OpenDictate \
-  -w "$key" \
-  -U
+  -U \
+  -w
 
 echo "Stored OPENAI_API_KEY in the macOS Keychain service 'OpenDictate'."

@@ -3,6 +3,11 @@ import OpenDictateCore
 
 struct OpenAITranscriber {
     func transcribe(audioURL: URL) async throws -> String {
+        let audioData = try Data(contentsOf: audioURL)
+        return try await transcribe(audioData: audioData, filename: audioURL.lastPathComponent)
+    }
+
+    func transcribe(audioData: Data, filename: String) async throws -> String {
         guard let apiKey = Config.apiKey else {
             throw OpenDictateError.missingAPIKey
         }
@@ -26,10 +31,9 @@ struct OpenAITranscriber {
             appendField(name: "prompt", value: prompt, boundary: boundary, body: &body)
         }
 
-        let audioData = try Data(contentsOf: audioURL)
         appendFile(
             name: "file",
-            filename: audioURL.lastPathComponent,
+            filename: filename,
             mimeType: "audio/m4a",
             data: audioData,
             boundary: boundary,

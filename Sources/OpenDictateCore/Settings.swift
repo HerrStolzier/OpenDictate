@@ -108,11 +108,6 @@ public final class Settings: Sendable {
         return (value?.isEmpty ?? true) ? nil : value
     }
 
-    public var apiKeyFromEnvironment: String? {
-        let value = environment["OPENAI_API_KEY"]
-        return (value?.isEmpty ?? true) ? nil : value
-    }
-
     /// Drops every stored choice, so the environment variables take over again.
     public func resetToEnvironment() {
         store.removeObject(forKey: Key.model)
