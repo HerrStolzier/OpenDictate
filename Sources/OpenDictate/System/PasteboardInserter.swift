@@ -12,18 +12,22 @@ struct PasteboardInserter {
     }
 
     func pasteIntoPreviousApp(_ app: NSRunningApplication?) async -> Bool {
-        guard AXIsProcessTrusted(), let app, !app.isTerminated else {
+        guard !Task.isCancelled, AXIsProcessTrusted(), let app, !app.isTerminated else {
             AppLog.write("Auto-paste unavailable. accessibility=\(AXIsProcessTrusted()), previousApp=\(app?.localizedName ?? "none")")
             return false
         }
 
+        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == app.processIdentifier else {
+            AppLog.write("Auto-paste skipped: user changed the foreground application")
+            return false
+        }
         guard app.activate() else {
             AppLog.write("Auto-paste aborted because the target app could not be activated")
             return false
         }
 
         let deadline = ContinuousClock.now.advanced(by: .milliseconds(750))
-        while ContinuousClock.now < deadline {
+        while !Task.isCancelled && ContinuousClock.now < deadline {
             if NSWorkspace.shared.frontmostApplication?.processIdentifier == app.processIdentifier {
                 return sendCommandV(targetPID: app.processIdentifier)
             }

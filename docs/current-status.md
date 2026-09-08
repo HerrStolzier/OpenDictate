@@ -1,0 +1,17 @@
+# Aktueller Auftrag: Live-Abnahme vor Commit/Push
+
+Arbeitsweg-Grenze vom 2026-09-07: Local Offload, KI-Orchestrierung oder Delegierung, Manager-/Worker-/Router-Experimente, Grok-Delegation, Rig-Projekte und Worktree-Chat-Workflows sind bis zur ausdrücklichen Wiederaufnahme ruhend. Sie werden für diese unabhängige OpenDictate-Abnahme weder gestartet noch als Ersatzweg genutzt.
+
+2026-09-07: Der Nutzer hat die offenen Live-Tests von Mikrofon, Zielapp, VoiceOver und Transkriptions-API autorisiert. Dieser Auftrag erweitert die bisherigen reinen Offline-Prüfungen; deren frühere Aktivierungs-/API-Sperre ist für die gezielte Abnahme abgelöst. Kein Commit oder Push ist bislang ausgeführt oder als bereits freigegeben vorausgesetzt.
+
+Ausgangsstand: HEAD 6b4c6d74011212b44ec5547f6fb7bc06d1e5cfa3 mit den vorhandenen, nicht committeden Verbesserungen. Der laufende Prozess wurde direkt als `.build/OpenDictate.app/Contents/MacOS/OpenDictate` identifiziert; das Bundle ist mit `OpenDictate Self-Signed` signiert und besteht `codesign --verify --deep --strict`. Die installierte App unter `/Applications` wurde nicht ersetzt. Bei einer späteren Wiederaufnahme müssen Pfad und Signatur erneut geprüft werden.
+
+Abnahme: gezielt gestarteter Kandidat; Aufnahmezustand/Stop/Abbruch; tatsächliche Textübergabe und Fokuswechsel; zugängliche Bedienung; mindestens ein begrenzter API-Test mit unkritischem Testtext; Fehler beheben, regressionsprüfen und Ergebnisse dokumentieren. Reale menschliche Sprachqualität benötigt einen gesprochenen Test beziehungsweise geeignete Referenzaufnahmen. Streaming/Hold-to-talk sind weiterhin gesonderte optionale Kandidaten, keine bereits vorhandenen Funktionen.
+
+Stand: Kandidat gebaut, signaturgeprüft und aus `.build` gestartet; zwei synthetische Live-API-Tests und die nachfolgende Offline-Suite bestanden. Ein menschlicher Normaldurchlauf in TextEdit, der Fokuswechsel-Fallback, die manuelle Zwischenablage-Verfügbarkeit und das Behalten einer abgebrochenen Aufnahme sind belegt. VoiceOver ließ sich kontrolliert ein- und wieder ausschalten, doch sowohl der direkte Zugriff auf die fensterlose App als auch die Menüleistennavigation über die UI-Automation blieben technisch blockiert; das ist keine bestandene VoiceOver-Abnahme. Der synthetische `Option+Shift+Space`-Befehl erreicht den Carbon-Hotkey nicht, daher benötigt der native 90-Sekunden-Test einen einzelnen physischen Start durch den Nutzer. Weitere offene Randfälle stehen in `remaining-acceptance.md`. Details: `live-acceptance-2026-09-07.md`.
+
+Projektabschlusswerkzeug: scripts/agent_finish.py und die Guard-Dateien WORKFLOWS.md, KNOWN_ERRORS.md und CHECKS.md sind im OpenDictate-Repository beim Start dieses Auftrags nicht vorhanden. Kein fremdes Projektwerkzeug wird stillschweigend als OpenDictate-Abnahme ausgeführt.
+
+Die Guard-Dateien wurden inzwischen angelegt. Der verlangte agent_finish-Aufruf wurde ausgeführt und scheiterte am fehlenden Skript.
+
+Menschlicher Normaldurchlauf: Text in TextEdit direkt geprüft, zugehörige Phasen im Log; Stop-bis-Ergebnis 2,144 s. Beim Fokuswechsel wurde in keiner App automatisch eingefügt; das Log bestätigt das explizite Überspringen wegen App-Wechsel. Der zurückgegebene Referenztext bestätigt die manuelle Zwischenablage-Verfügbarkeit. Nach dem Abbruchtest wurden die gesicherte Aufnahme und ihre Auth-Datei direkt gefunden; `afinfo` bestätigt einen lesbaren AAC-Track. Diese Prüfungen nicht wiederholen.

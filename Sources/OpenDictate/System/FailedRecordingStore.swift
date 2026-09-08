@@ -6,7 +6,7 @@ import OpenDictateCore
 /// Keeps recordings whose transcription failed. Only recordings authenticated
 /// with a device-local Keychain key are eligible for retry or automatic pruning.
 enum FailedRecordingStore {
-    struct RetryPayload {
+    struct RetryPayload: Sendable {
         let url: URL
         let filename: String
         let data: Data
@@ -61,15 +61,35 @@ enum FailedRecordingStore {
 
     /// Loads and authenticates bytes once. The caller uploads these exact bytes,
     /// avoiding a second path lookup after validation.
-    static func newest() -> RetryPayload? {
-        let payloads = verifiedPayloads()
-        return payloads.max { left, right in
-            if left.created != right.created { return left.created < right.created }
-            return left.filename < right.filename
-        }
+    static func newest(now: Date = Date()) -> RetryPayload? {
+        guard let key = RecordingAuthenticationKeyStore.read() else { return nil }
+        return newest(now: now, in: directory, key: key)
     }
 
-    static var hasAny: Bool { !verifiedPayloads().isEmpty }
+    static func newest(now: Date, in directoryURL: URL, key: SymmetricKey) -> RetryPayload? {
+        for url in candidateAudioURLs(in: directoryURL).sorted(by: { $0.lastPathComponent > $1.lastPathComponent }) {
+            if let payload = payload(at: url, now: now, key: key) { return payload }
+        }
+        return nil
+    }
+
+    static func payload(filename: String, now: Date = Date()) -> RetryPayload? {
+        guard isExpectedFilename(filename), let key = RecordingAuthenticationKeyStore.read() else { return nil }
+        return payload(at: directory.appendingPathComponent(filename), now: now, key: key)
+    }
+
+    static func payload(at url: URL, now: Date, key: SymmetricKey) -> RetryPayload? {
+        guard let created = date(from: url.lastPathComponent),
+              now.timeIntervalSince(created) < RecordingRetention.maximumAge,
+              let audioData = secureRead(url, maximumBytes: maximumAudioBytes),
+              let savedCode = secureRead(authenticationURL(for: url), maximumBytes: authenticationBytes),
+              savedCode.count == authenticationBytes,
+              isValidAuthenticationCode(savedCode, for: audioData, filename: url.lastPathComponent, key: key)
+        else { return nil }
+        return RetryPayload(url: url, filename: url.lastPathComponent, data: audioData, created: created)
+    }
+
+    static var hasAny: Bool { newest() != nil }
     static var hasStoredFiles: Bool { !candidateAudioURLs().isEmpty }
     static var storedFileCount: Int { candidateAudioURLs().count }
 
@@ -124,20 +144,7 @@ enum FailedRecordingStore {
         }
     }
 
-    private static func verifiedPayloads() -> [RetryPayload] {
-        guard let key = RecordingAuthenticationKeyStore.read() else { return [] }
-        return candidateAudioURLs().compactMap { url in
-            guard let audioData = secureRead(url, maximumBytes: maximumAudioBytes),
-                  let savedCode = secureRead(authenticationURL(for: url), maximumBytes: authenticationBytes),
-                  savedCode.count == authenticationBytes,
-                  isValidAuthenticationCode(savedCode, for: audioData, filename: url.lastPathComponent, key: key),
-                  let created = date(from: url.lastPathComponent)
-            else { return nil }
-            return RetryPayload(url: url, filename: url.lastPathComponent, data: audioData, created: created)
-        }
-    }
-
-    private static func candidateAudioURLs(in directoryURL: URL? = nil) -> [URL] {
+    static func candidateAudioURLs(in directoryURL: URL? = nil) -> [URL] {
         let directoryURL = directoryURL ?? directory
         let contents = (try? FileManager.default.contentsOfDirectory(
             at: directoryURL,
@@ -279,7 +286,7 @@ enum FailedRecordingStore {
         ) != nil
     }
 
-    private static func date(from filename: String) -> Date? {
+    static func date(from filename: String) -> Date? {
         guard filename.count >= 20 else { return nil }
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")

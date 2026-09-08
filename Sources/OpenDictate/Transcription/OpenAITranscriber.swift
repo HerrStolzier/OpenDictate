@@ -1,80 +1,87 @@
 import Foundation
 import OpenDictateCore
 
-struct OpenAITranscriber {
-    func transcribe(audioURL: URL) async throws -> String {
-        let audioData = try Data(contentsOf: audioURL)
-        return try await transcribe(audioData: audioData, filename: audioURL.lastPathComponent)
+struct TranscriptionOptions: Sendable {
+    let apiKey: String
+    let model: TranscriptionModel
+    let language: String?
+    let prompt: String?
+
+    static func current() throws -> Self {
+        guard let key = Config.apiKey else { throw OpenDictateError.missingAPIKey }
+        let model = Config.model
+        guard model.isUsableForUpload else { throw OpenDictateError.invalidResponse }
+        return Self(apiKey: key, model: model, language: Config.language, prompt: Config.prompt)
+    }
+}
+
+struct OpenAITranscriber: Sendable {
+    private let session: URLSession
+
+    init(session: URLSession? = nil) {
+        if let session { self.session = session }
+        else {
+            let configuration = URLSessionConfiguration.ephemeral
+            configuration.timeoutIntervalForRequest = 30
+            configuration.timeoutIntervalForResource = 120
+            configuration.urlCache = nil
+            configuration.httpCookieStorage = nil
+            self.session = URLSession(configuration: configuration)
+        }
     }
 
-    func transcribe(audioData: Data, filename: String) async throws -> String {
-        guard let apiKey = Config.apiKey else {
-            throw OpenDictateError.missingAPIKey
-        }
+    func transcribe(audioURL: URL, options: TranscriptionOptions? = nil) async throws -> String {
+        try Task.checkCancellation()
+        return try await transcribe(audioData: Data(contentsOf: audioURL), filename: audioURL.lastPathComponent, options: options)
+    }
 
-        AppLog.write("Uploading audio to OpenAI. model=\(Config.model.rawValue)")
+    func transcribe(audioData: Data, filename: String, options: TranscriptionOptions? = nil) async throws -> String {
+        let options = try options ?? .current()
+        let request = try Self.request(audioData: audioData, filename: filename, options: options)
+        try Task.checkCancellation()
+        let timing = PhaseTiming(phase: "request")
+        defer { timing.finish() }
+        let (data, response) = try await session.data(for: request)
+        guard let response = response as? HTTPURLResponse else { throw OpenDictateError.invalidResponse }
+        return try Self.decode(data: data, statusCode: response.statusCode)
+    }
+
+    static func request(audioData: Data, filename: String, options: TranscriptionOptions) throws -> URLRequest {
+        guard options.model.isUsableForUpload, !audioData.isEmpty,
+              audioData.count <= 25 * 1_024 * 1_024 else { throw OpenDictateError.invalidResponse }
         let boundary = "OpenDictateBoundary-\(UUID().uuidString)"
         var request = URLRequest(url: URL(string: "https://api.openai.com/v1/audio/transcriptions")!)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = 30
+        request.setValue("Bearer \(options.apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-
         var body = Data()
-        appendField(name: "model", value: Config.model.rawValue, boundary: boundary, body: &body)
-        appendField(name: "response_format", value: "text", boundary: boundary, body: &body)
-
-        if let language = Config.language, !language.isEmpty {
-            appendField(name: "language", value: language, boundary: boundary, body: &body)
+        func field(_ name: String, _ value: String) {
+            body.appendString("--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"\r\n\r\n\(value)\r\n")
         }
-
-        if let prompt = Config.prompt, !prompt.isEmpty {
-            appendField(name: "prompt", value: prompt, boundary: boundary, body: &body)
+        field("model", options.model.rawValue)
+        field("response_format", "json")
+        if let language = options.language, !language.isEmpty {
+            field(options.model == .gptTranscribe ? "languages[]" : "language", language)
         }
-
-        appendFile(
-            name: "file",
-            filename: filename,
-            mimeType: "audio/m4a",
-            data: audioData,
-            boundary: boundary,
-            body: &body
-        )
-        body.appendString("--\(boundary)--\r\n")
+        if let prompt = options.prompt, !prompt.isEmpty { field("prompt", prompt) }
+        // The endpoint detects the container. A fixed transport filename avoids
+        // carrying local paths or multipart syntax into the request headers.
+        body.appendString("--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"recording.m4a\"\r\nContent-Type: audio/mp4\r\n\r\n")
+        body.append(audioData)
+        body.appendString("\r\n--\(boundary)--\r\n")
         request.httpBody = body
+        return request
+    }
 
-        let (data, response) = try await URLSession.shared.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse else {
+    static func decode(data: Data, statusCode: Int) throws -> String {
+        guard 200..<300 ~= statusCode else {
+            throw OpenDictateError.apiError(OpenAIAPIErrorMessage.humanReadableMessage(from: data, statusCode: statusCode))
+        }
+        struct Response: Decodable { let text: String }
+        guard let result = try? JSONDecoder().decode(Response.self, from: data) else {
             throw OpenDictateError.invalidResponse
         }
-
-        guard 200..<300 ~= httpResponse.statusCode else {
-            let message = OpenAIAPIErrorMessage.humanReadableMessage(from: data, statusCode: httpResponse.statusCode)
-            AppLog.write("OpenAI API returned HTTP \(httpResponse.statusCode): \(message.replacingOccurrences(of: "\n", with: " "))")
-            throw OpenDictateError.apiError(message)
-        }
-
-        return String(data: data, encoding: .utf8)?
-            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-    }
-
-    private func appendField(name: String, value: String, boundary: String, body: inout Data) {
-        body.appendString("--\(boundary)\r\n")
-        body.appendString("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n")
-        body.appendString("\(value)\r\n")
-    }
-
-    private func appendFile(
-        name: String,
-        filename: String,
-        mimeType: String,
-        data: Data,
-        boundary: String,
-        body: inout Data
-    ) {
-        body.appendString("--\(boundary)\r\n")
-        body.appendString("Content-Disposition: form-data; name=\"\(name)\"; filename=\"\(filename)\"\r\n")
-        body.appendString("Content-Type: \(mimeType)\r\n\r\n")
-        body.append(data)
-        body.appendString("\r\n")
+        return result.text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

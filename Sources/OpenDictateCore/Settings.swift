@@ -85,27 +85,37 @@ public final class Settings: Sendable {
 
     public var shortcut: HotKeyShortcut {
         get {
-            guard
-                let code = store.object(forKey: Key.hotKeyCode) as? Int,
-                let modifiers = store.object(forKey: Key.hotKeyModifiers) as? Int,
-                let preset = HotKeyShortcut.preset(keyCode: UInt32(truncatingIfNeeded: code), modifiers: UInt32(truncatingIfNeeded: modifiers))
-            else {
-                return .default
-            }
-            return preset
+            guard let code = store.object(forKey: Key.hotKeyCode) as? Int,
+                  let modifiers = store.object(forKey: Key.hotKeyModifiers) as? Int,
+                  code >= 0, modifiers >= 0, code <= 126, modifiers <= Int(UInt32.max)
+            else { return .default }
+            if let preset = HotKeyShortcut.preset(keyCode: UInt32(code), modifiers: UInt32(modifiers)) { return preset }
+            guard let name = store.object(forKey: "hotKeyName") as? String,
+                  let custom = HotKeyShortcut.custom(keyCode: UInt32(code), modifiers: UInt32(modifiers), displayName: name)
+            else { return .default }
+            return custom
         }
         set {
             store.set(Int(newValue.keyCode), forKey: Key.hotKeyCode)
             store.set(Int(newValue.modifiers), forKey: Key.hotKeyModifiers)
+            store.set(newValue.displayName, forKey: "hotKeyName")
         }
     }
 
-    // MARK: - Environment only
+    public var autoPaste: Bool {
+        get { store.object(forKey: "autoPaste") as? Bool ?? true }
+        set { store.set(newValue, forKey: "autoPaste") }
+    }
 
-    /// Vocabulary hint. No menu for this, it is too long to pick from a menu.
+    // MARK: - Vocabulary
+
+    /// A stored vocabulary/context hint overrides the legacy environment value.
     public var prompt: String? {
-        let value = environment["OPENAI_TRANSCRIBE_PROMPT"]
-        return (value?.isEmpty ?? true) ? nil : value
+        get {
+            let value = (store.object(forKey: "vocabularyPrompt") as? String) ?? environment["OPENAI_TRANSCRIBE_PROMPT"]
+            return (value?.isEmpty ?? true) ? nil : value
+        }
+        set { store.set(newValue ?? "", forKey: "vocabularyPrompt") }
     }
 
     /// Drops every stored choice, so the environment variables take over again.
@@ -114,5 +124,7 @@ public final class Settings: Sendable {
         store.removeObject(forKey: Key.language)
         store.removeObject(forKey: Key.hotKeyCode)
         store.removeObject(forKey: Key.hotKeyModifiers)
+        store.removeObject(forKey: "hotKeyName")
+        store.removeObject(forKey: "vocabularyPrompt")
     }
 }

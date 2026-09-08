@@ -1,0 +1,25 @@
+name: Swift checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: swift-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test-and-build:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Test including synthetic audio files
+        run: swift test
+      - name: Build and verify local ad-hoc bundle
+        env:
+          OPENDICTATE_SIGN_IDENTITY: '-'
+        run: ./scripts/build-app.sh

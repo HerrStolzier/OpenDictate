@@ -7,10 +7,26 @@ final class HotKeyManager {
     private var hotKeyRef: EventHotKeyRef?
     private var handlerRef: EventHandlerRef?
     private var action: (() -> Void)?
+    private(set) var registeredShortcut: HotKeyShortcut?
+    private var activeID: UInt32 = 0
+
+    private let registerOverride: ((HotKeyShortcut, UInt32) throws -> EventHotKeyRef)?
+    private let unregisterOverride: ((EventHotKeyRef) -> Void)?
+
+    init(register: ((HotKeyShortcut, UInt32) throws -> EventHotKeyRef)? = nil,
+         unregister: ((EventHotKeyRef) -> Void)? = nil) {
+        registerOverride = register
+        unregisterOverride = unregister
+    }
+
+    private func unregister(_ ref: EventHotKeyRef) {
+        if let unregisterOverride { unregisterOverride(ref) }
+        else { UnregisterEventHotKey(ref) }
+    }
 
     deinit {
         if let hotKeyRef {
-            UnregisterEventHotKey(hotKeyRef)
+            unregister(hotKeyRef)
         }
         if let handlerRef {
             RemoveEventHandler(handlerRef)
@@ -21,30 +37,41 @@ final class HotKeyManager {
     /// call repeatedly: the Carbon event handler is installed only once, so
     /// switching shortcuts does not stack up handlers.
     func register(_ shortcut: HotKeyShortcut, action: @escaping () -> Void) throws {
-        self.action = action
+        if shortcut == registeredShortcut { self.action = action; return }
 
-        if handlerRef == nil {
+        if handlerRef == nil && registerOverride == nil {
             try installEventHandler()
         }
 
-        if let hotKeyRef {
-            UnregisterEventHotKey(hotKeyRef)
-            self.hotKeyRef = nil
-        }
+        let nextID = activeID &+ 1
+        let candidate: EventHotKeyRef
+        if let registerOverride { candidate = try registerOverride(shortcut, nextID) }
+        else { candidate = try registerNative(shortcut, id: nextID) }
+        let previous = hotKeyRef
+        hotKeyRef = candidate
+        registeredShortcut = shortcut
+        activeID = nextID
+        self.action = action
+        if let previous { unregister(previous) }
+    }
 
-        let hotKeyID = EventHotKeyID(signature: fourCharCode("ODCT"), id: 1)
+    private func registerNative(_ shortcut: HotKeyShortcut, id: UInt32) throws -> EventHotKeyRef {
+        let hotKeyID = EventHotKeyID(signature: fourCharCode("ODCT"), id: id)
+        var candidate: EventHotKeyRef?
         let registrationStatus = RegisterEventHotKey(
             shortcut.keyCode,
             shortcut.modifiers,
             hotKeyID,
             GetApplicationEventTarget(),
             0,
-            &hotKeyRef
+            &candidate
         )
 
         guard registrationStatus == noErr else {
             throw OpenDictateError.hotKeyRegistrationFailed(registrationStatus)
         }
+        guard let candidate else { throw OpenDictateError.hotKeyRegistrationFailed(-1) }
+        return candidate
     }
 
     private func installEventHandler() throws {
@@ -77,6 +104,7 @@ final class HotKeyManager {
                 }
 
                 let manager = Unmanaged<HotKeyManager>.fromOpaque(userData).takeUnretainedValue()
+                guard hotKeyID.id == manager.activeID else { return noErr }
                 manager.action?()
                 return noErr
             },

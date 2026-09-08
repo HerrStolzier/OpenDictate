@@ -8,6 +8,10 @@ ICON_SOURCE="$ROOT/Assets/OpenDictateIcon.png"
 ICONSET="$ROOT/.build/OpenDictate.iconset"
 
 cd "$ROOT"
+VERSION="$(cat "$ROOT/VERSION")"
+BUILD_NUMBER="${OPENDICTATE_BUILD_NUMBER:-1}"
+[[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid VERSION" >&2; exit 1; }
+[[ "$BUILD_NUMBER" =~ ^[0-9]+$ ]] || { echo "Invalid build number" >&2; exit 1; }
 swift build -c release
 
 rm -rf "$APP"
@@ -61,6 +65,9 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 </dict>
 </plist>
 PLIST
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$APP/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$APP/Contents/Info.plist"
+plutil -lint "$APP/Contents/Info.plist"
 
 # Strip extended attributes before signing. When the checkout lives in an
 # iCloud-synced folder (Desktop/Documents), the file provider keeps re-adding
@@ -96,4 +103,5 @@ if ! codesign "${SIGN_ARGS[@]}" "$APP" 2>/dev/null; then
 fi
 
 clear_xattrs
+codesign --verify --deep --strict "$APP"
 echo "$APP"

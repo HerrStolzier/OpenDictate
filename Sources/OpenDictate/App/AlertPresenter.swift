@@ -22,11 +22,11 @@ enum AlertPresenter {
 
     static func confirmDeleteSavedRecordings(count: Int) -> Bool {
         let alert = NSAlert()
-        alert.messageText = "Delete saved recordings?"
-        alert.informativeText = "This permanently deletes \(count) failed recording\(count == 1 ? "" : "s") kept for retry."
+        alert.messageText = "Gespeicherte Aufnahmen löschen?"
+        alert.informativeText = "Damit werden \(count) aufbewahrte Aufnahme(n) endgültig gelöscht."
         alert.alertStyle = .warning
-        alert.addButton(withTitle: "Delete")
-        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: "Löschen")
+        alert.addButton(withTitle: "Abbrechen")
         return alert.runModal() == .alertFirstButtonReturn
     }
 
@@ -67,11 +67,11 @@ enum AlertPresenter {
 
     static func promptForAPIKey(initialValue: String?) -> APIKeyPromptResult {
         let alert = NSAlert()
-        alert.messageText = "Set OpenAI API Key"
-        alert.informativeText = "The key is stored in your macOS Keychain under the OpenDictate service."
+        alert.messageText = "OpenAI-API-Schlüssel einrichten"
+        alert.informativeText = "Der Schlüssel wird im macOS-Schlüsselbund unter OpenDictate gespeichert."
         alert.alertStyle = .informational
-        alert.addButton(withTitle: "Save")
-        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: "Speichern")
+        alert.addButton(withTitle: "Abbrechen")
 
         let inputView = APIKeyInputView(initialValue: initialValue)
         alert.accessoryView = inputView

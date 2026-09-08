@@ -4,6 +4,18 @@ import OpenDictateCore
 
 @MainActor
 protocol MenuBarControllerDelegate: AnyObject {
+    func menuBarDidConfigureShortcut()
+    func menuBarDidConfigureVocabulary()
+    func menuBarDidCancel(discard: Bool)
+    func menuBarDidCopyLastText()
+    func menuBarDidClearLastText()
+    func menuBarDidToggleAutoPaste()
+    var menuBarRecordings: [SavedRecording] { get }
+    func menuBarDidRetry(filename: String)
+    func menuBarDidDelete(filename: String)
+    var menuBarState: DictationState { get }
+    var menuBarHasTranscript: Bool { get }
+    var menuBarAutoPaste: Bool { get }
     func menuBarDidTriggerToggleRecording()
     func menuBarDidTriggerRetry()
     func menuBarDidTriggerDeleteSavedRecordings()
@@ -30,12 +42,20 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     /// Menu title and stored value. nil means let the API detect the language.
     static let offeredLanguages: [(title: String, code: String?)] = [
-        ("Auto", nil),
-        ("German", "de"),
-        ("English", "en")
+        ("Automatisch", nil),
+        ("Deutsch", "de"),
+        ("Englisch", "en")
     ]
 
+    private var isMenuOpen = false
     private weak var delegate: MenuBarControllerDelegate?
+    private var recordingsMenuItem: NSMenuItem?
+    private var recordingMenuItem: NSMenuItem?
+    private var cancelMenuItem: NSMenuItem?
+    private var discardMenuItem: NSMenuItem?
+    private var copyLastMenuItem: NSMenuItem?
+    private var clearLastMenuItem: NSMenuItem?
+    private var autoPasteMenuItem: NSMenuItem?
     private var statusItem: NSStatusItem?
     private var statusMenuItem: NSMenuItem?
     private var inputDeviceMenuItem: NSMenuItem?
@@ -51,72 +71,96 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     }
 
     func install() {
-        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = item.button {
             button.image = Self.makeStatusBarImage()
             button.imagePosition = .imageOnly
-            button.toolTip = "OpenDictate: Ready"
+            button.toolTip = "OpenDictate: Bereit"
         }
 
         let menu = NSMenu()
+        menu.autoenablesItems = false
 
-        let statusMenuItem = NSMenuItem(title: "Status: Ready", action: nil, keyEquivalent: "")
+        let statusMenuItem = NSMenuItem(title: "Status: Bereit", action: nil, keyEquivalent: "")
         statusMenuItem.isEnabled = false
         menu.addItem(statusMenuItem)
         menu.addItem(.separator())
 
-        let shortcutItem = NSMenuItem(title: "Hotkey", action: nil, keyEquivalent: "")
+        let shortcutItem = NSMenuItem(title: "Tastenkombination", action: nil, keyEquivalent: "")
         shortcutItem.submenu = makeShortcutSubmenu()
         menu.addItem(shortcutItem)
         self.shortcutMenuItem = shortcutItem
+        let customShortcut = NSMenuItem(title: "Eigene Tastenkombination …", action: #selector(configureShortcut), keyEquivalent: "")
+        customShortcut.target = self
+        shortcutItem.submenu?.addItem(.separator())
+        shortcutItem.submenu?.addItem(customShortcut)
 
-        let modelItem = NSMenuItem(title: "Model", action: nil, keyEquivalent: "")
+        let modelItem = NSMenuItem(title: "Modell", action: nil, keyEquivalent: "")
         modelItem.submenu = makeModelSubmenu()
         menu.addItem(modelItem)
         self.modelMenuItem = modelItem
 
-        let languageItem = NSMenuItem(title: "Language", action: nil, keyEquivalent: "")
+        let languageItem = NSMenuItem(title: "Sprache", action: nil, keyEquivalent: "")
         languageItem.submenu = makeLanguageSubmenu()
         menu.addItem(languageItem)
         self.languageMenuItem = languageItem
+        let vocabulary = NSMenuItem(title: "Vokabular und Kontext …", action: #selector(configureVocabulary), keyEquivalent: "")
+        vocabulary.target = self
+        menu.addItem(vocabulary)
 
         menu.addItem(NSMenuItem(title: "Max recording: \(Int(Config.maximumRecordingDuration)) seconds", action: nil, keyEquivalent: ""))
 
-        let inputDeviceItem = NSMenuItem(title: "Input: -", action: #selector(openSoundSettings), keyEquivalent: "")
+        let inputDeviceItem = NSMenuItem(title: "Mikrofon: –", action: #selector(openSoundSettings), keyEquivalent: "")
         inputDeviceItem.target = self
-        inputDeviceItem.toolTip = "Microphone OpenDictate records from. Click to open Sound settings."
+        inputDeviceItem.toolTip = "Aktuelles Systemmikrofon. Klicken öffnet die Toneinstellungen."
         menu.addItem(inputDeviceItem)
         self.inputDeviceMenuItem = inputDeviceItem
 
         menu.addItem(.separator())
 
-        let recordingItem = NSMenuItem(title: "Start/Stop Recording", action: #selector(toggleRecording), keyEquivalent: "")
+        let recordingItem = NSMenuItem(title: "Aufnahme starten/stoppen", action: #selector(toggleRecording), keyEquivalent: "")
         recordingItem.target = self
         menu.addItem(recordingItem)
+        recordingMenuItem = recordingItem
+        func actionItem(_ title: String, _ action: Selector) -> NSMenuItem {
+            let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
+            item.target = self
+            menu.addItem(item)
+            return item
+        }
+        cancelMenuItem = actionItem("Abbrechen und Aufnahme behalten", #selector(cancelOperation))
+        discardMenuItem = actionItem("Aktuelle Aufnahme verwerfen", #selector(discardOperation))
+        copyLastMenuItem = actionItem("Letzten Text erneut kopieren", #selector(copyLastText))
+        clearLastMenuItem = actionItem("Letzten Text aus Speicher löschen", #selector(clearLastText))
+        autoPasteMenuItem = actionItem("Automatisch einfügen", #selector(toggleAutoPaste))
 
-        let retryItem = NSMenuItem(title: "Retry Last Recording", action: #selector(retryLastRecording), keyEquivalent: "")
+        let retryItem = NSMenuItem(title: "Letzte Aufnahme wiederholen", action: #selector(retryLastRecording), keyEquivalent: "")
         retryItem.target = self
-        retryItem.toolTip = "Upload the most recent recording whose transcription failed."
+        retryItem.toolTip = "Die neueste gültige Aufnahme bewusst erneut an OpenAI senden."
         menu.addItem(retryItem)
         self.retryMenuItem = retryItem
+        let recordingsItem = NSMenuItem(title: "Gespeicherte Aufnahmen", action: nil, keyEquivalent: "")
+        recordingsItem.submenu = NSMenu()
+        menu.addItem(recordingsItem)
+        recordingsMenuItem = recordingsItem
 
-        let deleteRecordingsItem = NSMenuItem(title: "Delete Saved Recordings...", action: #selector(deleteSavedRecordings), keyEquivalent: "")
+        let deleteRecordingsItem = NSMenuItem(title: "Gespeicherte Aufnahmen löschen …", action: #selector(deleteSavedRecordings), keyEquivalent: "")
         deleteRecordingsItem.target = self
-        deleteRecordingsItem.toolTip = "Permanently delete recordings retained after failed transcriptions."
+        deleteRecordingsItem.toolTip = "Aufbewahrte Aufnahmen endgültig löschen."
         menu.addItem(deleteRecordingsItem)
         self.deleteRecordingsMenuItem = deleteRecordingsItem
 
-        let apiKeyItem = NSMenuItem(title: "Set API Key...", action: #selector(setAPIKey), keyEquivalent: "")
+        let apiKeyItem = NSMenuItem(title: "API-Schlüssel einrichten …", action: #selector(setAPIKey), keyEquivalent: "")
         apiKeyItem.target = self
         menu.addItem(apiKeyItem)
-        let accessibilityItem = NSMenuItem(title: "Open Accessibility Settings", action: #selector(openAccessibilitySettings), keyEquivalent: "")
+        let accessibilityItem = NSMenuItem(title: "Bedienungshilfen öffnen", action: #selector(openAccessibilitySettings), keyEquivalent: "")
         accessibilityItem.target = self
         menu.addItem(accessibilityItem)
-        let logItem = NSMenuItem(title: "Open Log", action: #selector(openLog), keyEquivalent: "")
+        let logItem = NSMenuItem(title: "Protokoll öffnen", action: #selector(openLog), keyEquivalent: "")
         logItem.target = self
         menu.addItem(logItem)
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 
         menu.delegate = self
         item.menu = menu
@@ -128,19 +172,88 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     func updateStatus(_ value: String) {
         statusMenuItem?.title = "Status: \(value)"
         statusItem?.button?.toolTip = "OpenDictate: \(value)"
+        statusItem?.button?.setAccessibilityLabel("OpenDictate: \(value)")
+    }
+
+    func updateState(_ state: DictationState, elapsed: Double = 0, level: Float = -160) {
+        let symbol: String
+        switch state {
+        case .idle: symbol = "mic"
+        case .recording: symbol = "record.circle.fill"
+        case .processing: symbol = "ellipsis.circle"
+        case .delivering: symbol = "doc.on.clipboard"
+        }
+        statusItem?.button?.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)
+        statusItem?.button?.image?.isTemplate = true
+        statusItem?.button?.imagePosition = .imageLeading
+        statusItem?.button?.title = state == .recording ? " \(Int(elapsed)) s" : ""
+        if state == .recording {
+            let remaining = max(0, Int(Config.maximumRecordingDuration - elapsed))
+            let warning = remaining <= 10 ? " – noch \(remaining) s" : ""
+            updateStatus("Aufnahme \(Int(elapsed)) s, Pegel \(Int(level)) dB\(warning)")
+        }
+        refreshActions()
+    }
+
+    private func refreshActions() {
+        let state = delegate?.menuBarState ?? .idle
+        recordingMenuItem?.title = state == .recording ? "Aufnahme stoppen" : "Aufnahme starten"
+        recordingMenuItem?.isEnabled = state == .idle || state == .recording
+        cancelMenuItem?.isEnabled = state != .idle
+        discardMenuItem?.isEnabled = state == .recording
+        copyLastMenuItem?.isEnabled = delegate?.menuBarHasTranscript ?? false
+        clearLastMenuItem?.isEnabled = delegate?.menuBarHasTranscript ?? false
+        autoPasteMenuItem?.state = delegate?.menuBarAutoPaste == true ? .on : .off
     }
 
     /// Re-reads everything that can change while the app runs.
     func refresh() {
+        guard !isMenuOpen else { return }
+        refreshActions()
         refreshInputDeviceMenuItem()
         refreshRetryMenuItem()
         refreshSelections()
+        refreshRecordings()
+    }
+
+    private func refreshRecordings() {
+        guard let menu = recordingsMenuItem?.submenu else { return }
+        menu.removeAllItems()
+        let available = delegate?.menuBarState == .idle
+        for entry in delegate?.menuBarRecordings ?? [] {
+            let duration = entry.duration.map { " · \(Int($0)) s" } ?? ""
+            let item = NSMenuItem(title: entry.created.formatted(date: .abbreviated, time: .standard) + duration,
+                                  action: nil, keyEquivalent: "")
+            let submenu = NSMenu()
+        submenu.autoenablesItems = false
+            let retry = NSMenuItem(title: entry.retryable ? "Wiederholen" : "Nicht zur Wiederholung verfügbar", action: #selector(retrySelected(_:)), keyEquivalent: "")
+            retry.representedObject = entry.filename
+            retry.target = self
+            retry.isEnabled = available && entry.retryable
+            submenu.addItem(retry)
+            let delete = NSMenuItem(title: "Diese Aufnahme löschen …", action: #selector(deleteSelected(_:)), keyEquivalent: "")
+            delete.representedObject = entry.filename
+            delete.target = self
+            delete.isEnabled = available
+            submenu.addItem(delete)
+            item.submenu = submenu
+            menu.addItem(item)
+        }
+        recordingsMenuItem?.isEnabled = !menu.items.isEmpty
+    }
+
+    @objc private func retrySelected(_ sender: NSMenuItem) {
+        if let name = sender.representedObject as? String { delegate?.menuBarDidRetry(filename: name) }
+    }
+    @objc private func deleteSelected(_ sender: NSMenuItem) {
+        if let name = sender.representedObject as? String { delegate?.menuBarDidDelete(filename: name) }
     }
 
     // MARK: - Submenus
 
     private func makeShortcutSubmenu() -> NSMenu {
         let submenu = NSMenu()
+        submenu.autoenablesItems = false
         for preset in HotKeyShortcut.presets {
             let item = NSMenuItem(title: preset.displayName, action: #selector(selectShortcut(_:)), keyEquivalent: "")
             item.target = self
@@ -152,6 +265,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     private func makeModelSubmenu() -> NSMenu {
         let submenu = NSMenu()
+        submenu.autoenablesItems = false
         for model in Self.offeredModels {
             let price = model.pricePerMinuteUSD.map { String(format: " ($%.4f/min)", $0) } ?? ""
             let item = NSMenuItem(title: "\(model.rawValue)\(price)", action: #selector(selectModel(_:)), keyEquivalent: "")
@@ -164,6 +278,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     private func makeLanguageSubmenu() -> NSMenu {
         let submenu = NSMenu()
+        submenu.autoenablesItems = false
         for option in Self.offeredLanguages {
             let item = NSMenuItem(title: option.title, action: #selector(selectLanguage(_:)), keyEquivalent: "")
             item.target = self
@@ -178,34 +293,34 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private func refreshInputDeviceMenuItem() {
         guard let inputDeviceMenuItem else { return }
         let input = AudioInput.current()
-        let name = input?.name ?? "Unknown"
+        let name = input?.name ?? "Unbekannt"
         let suffix = (input?.isBluetooth ?? false) ? " (Bluetooth)" : ""
-        inputDeviceMenuItem.title = "Input: \(name)\(suffix)"
+        inputDeviceMenuItem.title = "Mikrofon: \(name)\(suffix)"
     }
 
     private func refreshRetryMenuItem() {
         retryMenuItem?.isEnabled = delegate?.menuBarHasRetryableRecording ?? false
-        deleteRecordingsMenuItem?.isEnabled = delegate?.menuBarHasStoredRecordings ?? false
+        deleteRecordingsMenuItem?.isEnabled = delegate?.menuBarState == .idle && (delegate?.menuBarHasStoredRecordings ?? false)
     }
 
     private func refreshSelections() {
         guard let delegate else { return }
 
         let shortcut = delegate.menuBarShortcut
-        shortcutMenuItem?.title = "Hotkey: \(shortcut.displayName)"
+        shortcutMenuItem?.title = "Tastenkombination: \(shortcut.displayName)"
         for item in shortcutMenuItem?.submenu?.items ?? [] {
             item.state = (item.representedObject as? String) == shortcut.displayName ? .on : .off
         }
 
         let model = delegate.menuBarModel
-        modelMenuItem?.title = "Model: \(model.rawValue)"
+        modelMenuItem?.title = "Modell: \(model.rawValue)"
         for item in modelMenuItem?.submenu?.items ?? [] {
             item.state = (item.representedObject as? String) == model.rawValue ? .on : .off
         }
 
         let language = delegate.menuBarLanguage ?? Settings.automaticLanguage
         let languageTitle = Self.offeredLanguages.first { ($0.code ?? Settings.automaticLanguage) == language }?.title ?? language
-        languageMenuItem?.title = "Language: \(languageTitle)"
+        languageMenuItem?.title = "Sprache: \(languageTitle)"
         for item in languageMenuItem?.submenu?.items ?? [] {
             item.state = (item.representedObject as? String) == language ? .on : .off
         }
@@ -224,11 +339,22 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         return image
     }
 
+    func menuWillOpen(_ menu: NSMenu) { isMenuOpen = true }
+    func menuDidClose(_ menu: NSMenu) { isMenuOpen = false; refresh() }
+
     func menuNeedsUpdate(_ menu: NSMenu) {
         refresh()
     }
 
     // MARK: - Actions
+
+    @objc private func configureShortcut() { delegate?.menuBarDidConfigureShortcut() }
+    @objc private func configureVocabulary() { delegate?.menuBarDidConfigureVocabulary() }
+    @objc private func cancelOperation() { delegate?.menuBarDidCancel(discard: false) }
+    @objc private func discardOperation() { delegate?.menuBarDidCancel(discard: true) }
+    @objc private func copyLastText() { delegate?.menuBarDidCopyLastText() }
+    @objc private func clearLastText() { delegate?.menuBarDidClearLastText(); refreshActions() }
+    @objc private func toggleAutoPaste() { delegate?.menuBarDidToggleAutoPaste(); refreshActions() }
 
     @objc private func toggleRecording() {
         delegate?.menuBarDidTriggerToggleRecording()

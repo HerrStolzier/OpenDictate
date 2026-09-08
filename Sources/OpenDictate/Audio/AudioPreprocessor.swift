@@ -4,6 +4,8 @@ import OpenDictateCore
 
 enum AudioPreprocessor {
     static func prepare(audioURL: URL) async throws -> PreparedAudio {
+        let timing = PhaseTiming(phase: "prepare")
+        defer { timing.finish() }
         let originalDuration = try await duration(of: audioURL)
         guard originalDuration >= Config.minimumRecordingDuration else {
             throw OpenDictateError.recordingTooShort(actual: originalDuration, minimum: Config.minimumRecordingDuration)
@@ -61,7 +63,9 @@ enum AudioPreprocessor {
     /// the silence threshold) and, regardless of the outcome, the peak and overall
     /// average level so callers can log them and distinguish "trimmed too hard"
     /// from "the microphone delivered (near) silence".
-    private static func analyze(audioURL: URL) throws -> AudioAnalysis {
+    static func analyze(audioURL: URL) throws -> AudioAnalysis {
+        let timing = PhaseTiming(phase: "analyze")
+        defer { timing.finish() }
         let file = try AVAudioFile(forReading: audioURL)
         let format = file.processingFormat
         let sampleRate = format.sampleRate
@@ -79,6 +83,7 @@ enum AudioPreprocessor {
         var totalSamples = 0
 
         while file.framePosition < file.length {
+            try Task.checkCancellation()
             let remaining = AVAudioFrameCount(min(Int64(windowFrameCount), file.length - file.framePosition))
             try file.read(into: buffer, frameCount: remaining)
 
@@ -132,14 +137,19 @@ enum AudioPreprocessor {
         return (sum, count)
     }
 
-    private static func exportTrimmedAudio(
+    static func exportTrimmedAudio(
         from inputURL: URL,
         start: TimeInterval,
         duration: TimeInterval
     ) async throws -> URL {
+        let timing = PhaseTiming(phase: "export")
+        defer { timing.finish() }
         let asset = AVURLAsset(url: inputURL)
         let outputURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("opendictate-trimmed-\(UUID().uuidString).m4a")
+
+        var completed = false
+        defer { if !completed { try? FileManager.default.removeItem(at: outputURL) } }
 
         guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A) else {
             throw OpenDictateError.audioPreprocessingFailed("Could not create audio export session.")
@@ -153,7 +163,9 @@ enum AudioPreprocessor {
         )
 
         let exportBox = ExportSessionBox(exportSession)
-        try await withCheckedThrowingContinuation { continuation in
+        try await withTaskCancellationHandler {
+          try Task.checkCancellation()
+          try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             exportBox.session.exportAsynchronously {
                 switch exportBox.session.status {
                 case .completed:
@@ -170,8 +182,12 @@ enum AudioPreprocessor {
                     )
                 }
             }
+          }
+        } onCancel: {
+            exportBox.session.cancelExport()
         }
-
+        try Task.checkCancellation()
+        completed = true
         return outputURL
     }
 }

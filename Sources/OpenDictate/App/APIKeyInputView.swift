@@ -4,7 +4,7 @@ import AppKit
 final class APIKeyInputView: NSView {
     private let secureField = NSSecureTextField()
     private let plainField = NSTextField()
-    private let revealCheckbox = NSButton(checkboxWithTitle: "Show API key", target: nil, action: nil)
+    private let revealCheckbox = NSButton(checkboxWithTitle: "API-Schlüssel anzeigen", target: nil, action: nil)
 
     var stringValue: String {
         plainField.isHidden ? secureField.stringValue : plainField.stringValue
@@ -65,6 +65,7 @@ final class APIKeyInputView: NSView {
     private func configureTextField(_ field: NSTextField, initialValue: String) {
         field.stringValue = initialValue
         field.placeholderString = "sk-..."
+        field.setAccessibilityLabel("OpenAI-API-Schlüssel")
         field.translatesAutoresizingMaskIntoConstraints = false
         field.isEditable = true
         field.isSelectable = true

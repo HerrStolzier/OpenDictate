@@ -11,15 +11,39 @@ import OpenDictateCore
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBar: MenuBarController?
-    private var didWarnBluetoothInput = false
     private let hotKey = HotKeyManager()
     private let recorder = AudioRecorder()
     private let transcriber = OpenAITranscriber()
     private let pasteboard = PasteboardInserter()
     private var previousApplication: NSRunningApplication?
-    private var isBusy = false
     private var lastHotKeyAt = Date.distantPast
     private var autoStopTask: Task<Void, Never>?
+    private var retentionTask: Task<Void, Never>?
+    private var permissionRequestPending = false
+    private let recordingLibrary = RecordingLibrary()
+    private var savedRecordings: [SavedRecording] = []
+    private var snapshotNeedsRefresh = false
+    private var snapshotTask: Task<Void, Never>?
+    private var requestOptions: TranscriptionOptions?
+    private lazy var flow = makeFlow()
+
+    private func makeFlow() -> DictationFlow {
+        DictationFlow(operations: .init(
+        start: { [unowned self] in try recorder.start() },
+        stop: { [unowned self] in try recorder.stop() },
+        prepare: { try await AudioPreprocessor.prepare(audioURL: $0) },
+        transcribeFile: { [unowned self] in try await transcriber.transcribe(audioURL: $0, options: requestOptions) },
+        transcribeRetry: { [unowned self] in try await transcriber.transcribe(audioData: $0.data, filename: $0.filename, options: requestOptions) },
+        keep: { FailedRecordingStore.keep($0, recordedAt: Date()) != nil },
+        removeRetry: { _ = FailedRecordingStore.remove($0) },
+        clean: { try? FileManager.default.removeItem(at: $0) },
+        copy: { [unowned self] in pasteboard.copy($0) },
+        paste: { [unowned self] in
+            guard Config.settings.autoPaste else { return false }
+            return await pasteboard.pasteIntoPreviousApp(previousApplication)
+        }
+        ))
+    }
 
     static func main() {
         // Credentials are accepted only through the in-app Keychain flow. Drop
@@ -36,9 +60,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AppLog.write("App launched from \(Bundle.main.bundlePath)")
         AppLog.write("Transcription model: \(Config.model.rawValue) (from \(Config.settings.modelSource))")
         verifyHotKeyConstants()
-        FailedRecordingStore.prune()
         ApplicationMenu.install()
         configureMenuBar()
+        flow.onStatus = { [weak self] in self?.updateStatus($0) }
+        flow.onState = { [weak self] state in
+            if state != .recording { self?.cancelAutoStop() }
+            self?.menuBar?.updateState(state)
+            if state == .idle { self?.requestOptions = nil; self?.refreshSavedRecordings() }
+        }
+        recorder.onUnexpectedStop = { [weak self] in
+            guard let self else { return }
+            _ = flow.stop()
+        }
+        retentionTask = Task { @MainActor in
+            while !Task.isCancelled {
+                do { try await Task.sleep(for: .seconds(60)) } catch { break }
+                refreshSavedRecordings()
+            }
+        }
+        refreshSavedRecordings()
         requestAccessibilityPermissionIfNeeded()
         warnAboutUnusableModelIfNeeded()
         registerHotKey(announce: true)
@@ -52,8 +92,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Hotkey
 
-    private func registerHotKey(announce: Bool) {
-        let shortcut = Config.shortcut
+    @discardableResult
+    private func registerHotKey(announce: Bool, shortcut: HotKeyShortcut? = nil) -> Bool {
+        let shortcut = shortcut ?? Config.shortcut
         do {
             try hotKey.register(shortcut) { [weak self] in
                 Task { @MainActor in
@@ -61,16 +102,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
             if announce {
-                updateStatus("Ready")
+                updateStatus("Bereit")
             }
             AppLog.write("Global hotkey registered: \(shortcut.displayName)")
+            return true
         } catch {
-            updateStatus("Hotkey failed")
+            updateStatus("Tastenkombination nicht verfügbar")
             AppLog.write("Hotkey registration failed: \(error.localizedDescription)")
             AlertPresenter.showWarning(
                 title: "OpenDictate could not register \(shortcut.displayName)",
                 message: "\(error.localizedDescription)\n\nAnother app is probably using this shortcut. Pick a different one from the Hotkey menu."
             )
+            return false
         }
     }
 
@@ -92,204 +135,110 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Dictation flow
 
-    @MainActor
     private func toggleRecording() async {
         let now = Date()
-        guard now.timeIntervalSince(lastHotKeyAt) > 0.35 else {
-            AppLog.write("Hotkey ignored because it arrived too quickly after the previous one")
-            return
-        }
+        guard now.timeIntervalSince(lastHotKeyAt) > 0.35 else { return }
         lastHotKeyAt = now
-        AppLog.write("Hotkey triggered. recorder.isRecording=\(recorder.isRecording), isBusy=\(isBusy)")
-
-        if recorder.isRecording {
-            cancelAutoStop()
-            await stopAndTranscribe()
+        if flow.state.canStop {
+            if flow.stop() { cancelAutoStop() }
             return
         }
-
-        guard !isBusy else {
-            AppLog.write("Hotkey ignored because transcription is already busy")
+        guard flow.state.canStart, !permissionRequestPending else { return }
+        guard hasAPIKey(), Config.model.isUsableForUpload else {
+            warnAboutUnusableModelIfNeeded()
             return
         }
-
-        guard hasAPIKey() else { return }
-
+        permissionRequestPending = true
+        let permitted = await AudioRecorder.requestPermission()
+        permissionRequestPending = false
+        guard permitted else {
+            updateStatus("Mikrofonzugriff fehlt – in den Systemeinstellungen erlauben")
+            return
+        }
+        guard flow.state.canStart else { return }
         do {
+            requestOptions = try .current()
             previousApplication = currentFrontmostApplication()
-            try recorder.start()
-            updateStatus("Recording")
-            scheduleAutoStop()
-            let input = AudioInput.current()
-            AppLog.write(
-                "Recording started. Previous app=\(previousApplication?.localizedName ?? "none"), input=\(input?.name ?? "unknown"), bluetooth=\(input?.isBluetooth ?? false)"
-            )
-        } catch {
-            updateStatus("Recording failed")
-            cancelAutoStop()
-            AppLog.write("Recording failed: \(error.localizedDescription)")
-            AlertPresenter.showWarning(title: "Recording failed", message: error.localizedDescription)
+            if try flow.start() { scheduleAutoStop() }
+        } catch { updateStatus("Aufnahme fehlgeschlagen: \(error.localizedDescription)") }
+    }
+
+    private func refreshSavedRecordings() {
+        guard snapshotTask == nil else { snapshotNeedsRefresh = true; return }
+        snapshotTask = Task { @MainActor in
+            savedRecordings = await recordingLibrary.snapshot()
+            snapshotTask = nil
+            menuBar?.refresh()
+            if snapshotNeedsRefresh { snapshotNeedsRefresh = false; refreshSavedRecordings() }
         }
     }
 
-    @MainActor
-    private func stopAndTranscribe() async {
-        guard !isBusy else { return }
-        isBusy = true
-        updateStatus("Processing")
-        AppLog.write("Stopping recording")
-
-        // Function-scope so it also runs after the catch block below. Anything
-        // still listed here is a temporary file nobody needs; a recording kept
-        // for retry has already been moved out of the temporary directory, so
-        // removing its old path is a harmless no-op.
-        var artifacts: [URL] = []
-        defer {
-            for url in artifacts {
-                try? FileManager.default.removeItem(at: url)
+    private func retryLastRecording(filename: String? = nil) {
+        guard flow.state.canRetry, !permissionRequestPending, hasAPIKey() else { return }
+        permissionRequestPending = true
+        let target = currentFrontmostApplication()
+        Task { @MainActor in
+            defer { permissionRequestPending = false }
+            guard let payload = await recordingLibrary.load(filename: filename) else {
+                updateStatus("Keine gültige Aufnahme zum Wiederholen")
+                refreshSavedRecordings()
+                return
             }
-            isBusy = false
-        }
-
-        do {
-            let audioURL = try recorder.stop()
-            artifacts.append(audioURL)
-            AppLog.write("Recording stopped: \(audioURL.path)")
-
-            let preparedAudio = try await AudioPreprocessor.prepare(audioURL: audioURL)
-            if preparedAudio.url != audioURL {
-                artifacts.append(preparedAudio.url)
-            }
-            AppLog.write(
-                "Prepared audio. original=\(preparedAudio.originalDuration.formattedSeconds), upload=\(preparedAudio.uploadDuration.formattedSeconds), trimmed=\(preparedAudio.trimmedDuration.formattedSeconds)"
-            )
-            updateStatus("Uploading \(preparedAudio.uploadDuration.formattedSeconds)")
-
-            try await transcribeAndPaste(audioURL: preparedAudio.url)
-        } catch {
-            AppLog.write("Dictation failed: \(error.localizedDescription)")
-            if let openDictateError = error as? OpenDictateError, openDictateError.isSkippedRecording {
-                handleSkippedRecording(openDictateError)
-            } else {
-                handleTranscriptionFailure(error, audioToKeep: artifacts.last)
-            }
-        }
-    }
-
-    /// Uploads a file, then copies and pastes whatever came back.
-    @MainActor
-    private func transcribeAndPaste(audioURL: URL) async throws {
-        let text = try await transcriber.transcribe(audioURL: audioURL)
-        await deliverTranscript(text)
-    }
-
-    /// Keeps the audio instead of throwing it away, so a dropped connection does
-    /// not cost the user what they just said.
-    @MainActor
-    private func handleTranscriptionFailure(_ error: Error, audioToKeep: URL?) {
-        let kept = audioToKeep.flatMap { FailedRecordingStore.keep($0, recordedAt: Date()) }
-        updateStatus(kept == nil ? "Failed" : "Failed - kept for retry")
-
-        var message = error.localizedDescription
-        if kept != nil {
-            message += "\n\nThe recording was kept. Choose Retry Last Recording from the OpenDictate menu to upload it again."
-        }
-        AlertPresenter.showWarning(title: "Dictation failed", message: message)
-    }
-
-    @MainActor
-    private func retryLastRecording() async {
-        guard !isBusy else {
-            AppLog.write("Retry ignored because a dictation is already running")
-            return
-        }
-
-        guard let payload = FailedRecordingStore.newest() else {
-            updateStatus("Nothing to retry")
-            AppLog.write("Retry requested but nothing is kept")
-            return
-        }
-
-        guard hasAPIKey() else { return }
-
-        isBusy = true
-        defer { isBusy = false }
-        updateStatus("Retrying")
-        AppLog.write("Retrying authenticated kept recording: \(payload.filename)")
-
-        do {
-            previousApplication = currentFrontmostApplication() ?? previousApplication
-            let text = try await transcriber.transcribe(audioData: payload.data, filename: payload.filename)
-            await deliverTranscript(text)
-            let removed = FailedRecordingStore.remove(payload)
-            AppLog.write(removed ? "Retry succeeded, kept recording removed" : "Retry succeeded, but the kept recording could not be removed")
-        } catch {
-            AppLog.write("Retry failed: \(error.localizedDescription)")
-            updateStatus("Retry failed")
-            AlertPresenter.showWarning(
-                title: "Retry failed",
-                message: "\(error.localizedDescription)\n\nThe recording is still kept, you can try again."
-            )
+            guard flow.state.canRetry, let options = try? TranscriptionOptions.current() else { return }
+            requestOptions = options
+            previousApplication = target
+            _ = flow.retry(payload)
         }
     }
 
     private func hasAPIKey() -> Bool {
         guard Config.apiKey == nil else { return true }
-        updateStatus("Missing API key")
-        AppLog.write("Blocked: missing API key")
-        AlertPresenter.showWarning(
-            title: "OpenAI API key is missing",
-            message: "Choose Set API Key... from the OpenDictate menu bar item."
-        )
+        updateStatus("API-Schlüssel fehlt – über das Menü einrichten")
         return false
-    }
-
-    @MainActor
-    private func deliverTranscript(_ text: String) async {
-        AppLog.write("Transcription succeeded. characters=\(text.count)")
-
-        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            updateStatus("No text")
-            AppLog.write("Transcription returned empty text")
-            NSSound.beep()
-            return
-        }
-
-        guard pasteboard.copy(text) else {
-            updateStatus("Clipboard failed")
-            AppLog.write("Could not write the transcript to the clipboard")
-            NSSound.beep()
-            return
-        }
-        let pasteShortcutSent = await pasteboard.pasteIntoPreviousApp(previousApplication)
-        if pasteShortcutSent {
-            updateStatus("Paste sent")
-        } else if !AXIsProcessTrusted() {
-            updateStatus("Copied - Enable Accessibility")
-            AlertPresenter.showAccessibilityRequired()
-        } else {
-            updateStatus("Copied")
-        }
-        AppLog.write("Text copied. pasteShortcutSent=\(pasteShortcutSent)")
     }
 
     private func scheduleAutoStop() {
         cancelAutoStop()
         autoStopTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .milliseconds(Int(Config.maximumRecordingDuration * 1000)))
-            guard !Task.isCancelled, let self, self.recorder.isRecording else {
-                return
+            let start = ContinuousClock.now
+            while !Task.isCancelled {
+                guard let self, flow.state == .recording else { return }
+                let elapsed = start.duration(to: .now)
+                let seconds = Double(elapsed.components.seconds) + Double(elapsed.components.attoseconds) / 1e18
+                menuBar?.updateState(.recording, elapsed: seconds, level: recorder.level())
+                if seconds >= Config.maximumRecordingDuration { _ = flow.stop(); return }
+                do { try await Task.sleep(for: .milliseconds(200)) } catch { return }
             }
-
-            AppLog.write("Maximum recording duration reached. Auto-stopping.")
-            updateStatus("Auto-stopping")
-            await stopAndTranscribe()
         }
     }
 
     private func cancelAutoStop() {
         autoStopTask?.cancel()
         autoStopTask = nil
+    }
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        guard flow.state != .idle else { return .terminateNow }
+        let alert = NSAlert()
+        alert.messageText = "Aktives Diktat sichern und beenden?"
+        alert.informativeText = "Die laufende Arbeit wird abgebrochen. Die Aufnahme bleibt zur manuellen Wiederholung erhalten."
+        alert.addButton(withTitle: "Sichern und beenden")
+        alert.addButton(withTitle: "Weiterarbeiten")
+        guard alert.runModal() == .alertFirstButtonReturn else { return .terminateCancel }
+        cancelAutoStop()
+        flow.cancel()
+        let activeTask = flow.task
+        Task { @MainActor in
+            await activeTask?.value
+            sender.reply(toApplicationShouldTerminate: true)
+        }
+        return .terminateLater
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        cancelAutoStop()
+        retentionTask?.cancel()
+        flow.clearLastTranscript()
     }
 
     private func currentFrontmostApplication() -> NSRunningApplication? {
@@ -308,35 +257,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func warnAboutUnusableModelIfNeeded() {
         guard let reason = Config.model.uploadRejectionReason else { return }
         AppLog.write("Configured model is not usable: \(reason.replacingOccurrences(of: "\n", with: " "))")
-        AlertPresenter.showWarning(title: "The configured model cannot be used", message: reason)
+        AlertPresenter.showWarning(title: "Das eingestellte Modell ist nicht geeignet", message: reason)
     }
 
     private func updateStatus(_ value: String) {
         menuBar?.updateStatus(value)
-    }
-
-    private func handleSkippedRecording(_ error: OpenDictateError) {
-        NSSound.beep()
-
-        guard case .noSpeechDetected(let peakDb) = error else {
-            updateStatus("Skipped")
-            return
-        }
-
-        let input = AudioInput.current()
-        if let input {
-            updateStatus("Skipped - no speech (peak \(peakDb.formattedDb), in: \(input.name))")
-        } else {
-            updateStatus("Skipped - no speech (peak \(peakDb.formattedDb))")
-        }
-
-        // A Bluetooth headset mic frequently records near-silent audio; warn once
-        // per session so the user can switch back to a wired/built-in microphone.
-        if let input, input.isBluetooth, !didWarnBluetoothInput {
-            didWarnBluetoothInput = true
-            AppLog.write("Warning: skipped recording while default input is Bluetooth device '\(input.name)'")
-            AlertPresenter.showBluetoothInputWarning(deviceName: input.name)
-        }
     }
 
     private func setAPIKey() {
@@ -344,24 +269,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case .cancelled:
             return
         case .empty:
-            AlertPresenter.showWarning(title: "No API key saved", message: "The field was empty.")
+            AlertPresenter.showWarning(title: "Kein API-Schlüssel gespeichert", message: "Das Feld war leer.")
         case .key(let key):
             do {
                 try KeychainAPIKeyStore.save(key)
-                updateStatus("Ready")
+                updateStatus("Bereit")
                 AppLog.write("API key saved to Keychain")
             } catch {
                 AppLog.write("Could not save API key: \(error.localizedDescription)")
-                AlertPresenter.showWarning(title: "Could not save API key", message: error.localizedDescription)
+                AlertPresenter.showWarning(title: "API-Schlüssel konnte nicht gespeichert werden", message: error.localizedDescription)
             }
         }
     }
 
     private func deleteSavedRecordings() {
+        guard flow.state == .idle else { return }
         let count = FailedRecordingStore.storedFileCount
         guard count > 0, AlertPresenter.confirmDeleteSavedRecordings(count: count) else { return }
         let removed = FailedRecordingStore.removeAll()
-        updateStatus(removed == count ? "Saved recordings deleted" : "Some recordings could not be deleted")
+        refreshSavedRecordings()
+        updateStatus(removed == count ? "Gespeicherte Aufnahmen gelöscht" : "Einige Aufnahmen konnten nicht gelöscht werden")
         AppLog.write("User deleted \(removed) of \(count) saved recording(s)")
     }
 }
@@ -369,6 +296,49 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 // MARK: - MenuBarControllerDelegate
 
 extension AppDelegate: MenuBarControllerDelegate {
+    func menuBarDidConfigureShortcut() {
+        guard flow.state == .idle else { return }
+        if let shortcut = ShortcutCaptureView.prompt() { menuBarDidSelect(shortcut: shortcut); menuBar?.refresh() }
+    }
+    func menuBarDidConfigureVocabulary() {
+        let alert = NSAlert()
+        alert.messageText = "Vokabular und Kontext"
+        alert.informativeText = "Namen, Fachbegriffe oder ein kurzer Kontext. Maximal 2.000 Zeichen. Diese Hinweise werden mit jedem Diktat an OpenAI gesendet. Leer speichern entfernt die Hinweise."
+        let field = NSTextField(wrappingLabelWithString: "")
+        field.isEditable = true
+        field.isSelectable = true
+        field.isBezeled = true
+        field.drawsBackground = true
+        field.frame = NSRect(x: 0, y: 0, width: 440, height: 90)
+        field.stringValue = Config.prompt ?? ""
+        field.setAccessibilityLabel("Vokabular und Kontext")
+        alert.accessoryView = field
+        alert.addButton(withTitle: "Speichern")
+        alert.addButton(withTitle: "Abbrechen")
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        let value = field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard value.count <= 2000 else { updateStatus("Vokabular nicht gespeichert: maximal 2.000 Zeichen"); return }
+        Config.settings.prompt = value
+        updateStatus("Vokabular gespeichert")
+    }
+
+    func menuBarDidCancel(discard: Bool) { flow.cancel(discardRecording: discard) }
+    func menuBarDidCopyLastText() { _ = flow.copyLastTranscript() }
+    func menuBarDidClearLastText() { flow.clearLastTranscript() }
+    func menuBarDidToggleAutoPaste() { Config.settings.autoPaste.toggle() }
+    var menuBarRecordings: [SavedRecording] { savedRecordings }
+    func menuBarDidRetry(filename: String) { retryLastRecording(filename: filename) }
+    func menuBarDidDelete(filename: String) {
+        guard flow.state == .idle, AlertPresenter.confirmDeleteSavedRecordings(count: 1) else { return }
+        Task { @MainActor in
+            await recordingLibrary.delete(filename: filename)
+            refreshSavedRecordings()
+        }
+    }
+    var menuBarState: DictationState { flow.state }
+    var menuBarHasTranscript: Bool { flow.lastTranscript != nil }
+    var menuBarAutoPaste: Bool { Config.settings.autoPaste }
+
     func menuBarDidTriggerToggleRecording() {
         AppLog.write("Start/Stop Recording selected from menu")
         Task { @MainActor in
@@ -378,7 +348,7 @@ extension AppDelegate: MenuBarControllerDelegate {
 
     func menuBarDidTriggerRetry() {
         Task { @MainActor in
-            await retryLastRecording()
+            retryLastRecording()
         }
     }
 
@@ -392,9 +362,9 @@ extension AppDelegate: MenuBarControllerDelegate {
 
     func menuBarDidSelect(shortcut: HotKeyShortcut) {
         guard shortcut != Config.shortcut else { return }
-        Config.settings.shortcut = shortcut
-        AppLog.write("Hotkey changed to \(shortcut.displayName)")
-        registerHotKey(announce: false)
+        if registerHotKey(announce: false, shortcut: shortcut) {
+            Config.settings.shortcut = shortcut
+        }
     }
 
     func menuBarDidSelect(model: TranscriptionModel) {
@@ -412,6 +382,6 @@ extension AppDelegate: MenuBarControllerDelegate {
     var menuBarShortcut: HotKeyShortcut { Config.shortcut }
     var menuBarModel: TranscriptionModel { Config.model }
     var menuBarLanguage: String? { Config.language }
-    var menuBarHasRetryableRecording: Bool { FailedRecordingStore.hasAny }
-    var menuBarHasStoredRecordings: Bool { FailedRecordingStore.hasStoredFiles }
+    var menuBarHasRetryableRecording: Bool { flow.state.canRetry && savedRecordings.contains(where: \.retryable) }
+    var menuBarHasStoredRecordings: Bool { !savedRecordings.isEmpty }
 }

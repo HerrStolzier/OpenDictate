@@ -47,6 +47,15 @@ public struct HotKeyShortcut: Equatable, Sendable {
     public static let presets: [HotKeyShortcut] = [.optionShiftSpace, .controlOptionD, .f5]
     public static let `default` = HotKeyShortcut.optionShiftSpace
 
+    public static func custom(keyCode: UInt32, modifiers: UInt32, displayName: String) -> HotKeyShortcut? {
+        let allowed = shiftMask | controlMask | optionMask | commandMask
+        guard keyCode <= 126, modifiers & ~allowed == 0,
+              modifiers & (controlMask | optionMask | commandMask) != 0,
+              !displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              displayName.count <= 80 else { return nil }
+        return HotKeyShortcut(keyCode: keyCode, modifiers: modifiers, displayName: displayName)
+    }
+
     /// Matches a stored key code and modifier pair back to a preset. Returns nil
     /// for anything unrecognised, so a stale or hand-edited preference falls back
     /// to the default instead of registering a shortcut with no label.
