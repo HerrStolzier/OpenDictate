@@ -14,21 +14,30 @@ to this transfer.
 The OpenAI API key is stored as a generic password in the macOS Keychain under
 service `OpenDictate` and account `OPENAI_API_KEY`. OpenDictate does not support
 supplying the key through a command-line argument or environment variable.
+The optional shell helper restricts a new item to the built OpenDictate bundle.
+Saving through the in-app dialog deletes and recreates an existing item under
+the app's access policy, including items created by an older helper.
 
-## Clipboard and automatic paste
+## Clipboard and automatic insertion
 
 The transcript is written as plain text to the macOS general clipboard. Any
 local application with clipboard access may be able to read it.
 
-OpenDictate cannot reliably observe whether a target control accepted the paste
-shortcut. It therefore leaves the transcript on the clipboard until another
-clipboard write replaces it, preserving a manual recovery path when automatic
-paste is unavailable or ineffective. Clipboard managers may retain their own
-copy; OpenDictate cannot remove that copy.
+OpenDictate leaves the transcript on the clipboard until another clipboard write
+replaces it, preserving a manual recovery path when automatic insertion is
+unavailable or ineffective. Clipboard managers may retain their own copy;
+OpenDictate cannot remove that copy. Automatic insertion does not read or paste
+from the clipboard: it sends the transcript directly to the focused
+Accessibility text element in the accepted target process.
 
-Automatic paste targets the process that was active when recording started (or
+If the focused control does not expose a settable selected-text Accessibility
+attribute, automatic insertion stops and the transcript remains available only
+through the clipboard. OpenDictate does not fall back to an automatic `Cmd+V`
+because that would again consume mutable global clipboard contents.
+
+Automatic insertion targets the process that was active when recording started (or
 when retry started), provided it is still frontmost. Otherwise only the clipboard
-is updated. Automatic paste can also be disabled in the menu. It cannot prove that the same text field remains
+is updated. Automatic insertion can also be disabled in the menu. It cannot prove that the same text field remains
 focused inside that process.
 
 ## Failed recordings

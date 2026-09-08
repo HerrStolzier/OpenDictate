@@ -2,9 +2,11 @@
 
 - `swift test`: offline logic, lifecycle, HTTP stubs, recovery, logging and synthetic audio-file tests. Optional benchmark and live API test are skipped by default.
 - `swift format lint --configuration .swift-format --recursive Sources Tests Package.swift`: project formatting.
-- `./scripts/build-app.sh`: release bundle, Plist and signature verification. Does not launch/install it.
+- `./scripts/build-app.sh`: release bundle, Plist, signature and Hardened Runtime verification. Does not launch/install it.
 - `git diff --check` and `bash -n scripts/build-app.sh` before handoff.
-- Real microphone, hotkeys, target-field paste and VoiceOver require attended native-app acceptance; an accessibility tree alone is not a VoiceOver listening test.
+- Real microphone, hotkeys, direct target-field insertion, clipboard fallback and VoiceOver require attended native-app acceptance; an accessibility tree alone is not a VoiceOver listening test.
+- After changing the insertion mechanism, recheck one native text control and one actually used browser or Electron control. A successful historical `Cmd+V` test does not validate direct `AXSelectedText` insertion.
+- For a legacy API-key item, save the key once through the in-app dialog and inspect or test its resulting ACL separately; never use a real credential in automated checks.
 
 ## Explicit live API check
 

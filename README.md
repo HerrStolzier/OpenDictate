@@ -5,7 +5,7 @@ Small macOS dictation app inspired by the VoiceScribe architecture:
 1. Register a global hotkey.
 2. Record microphone audio to a temporary `.m4a`.
 3. Transcribe it through OpenAI's `/v1/audio/transcriptions` endpoint.
-4. Copy the resulting text and paste it into the previously active app.
+4. Copy the resulting text and insert it into the previously active app through Accessibility.
 
 The generated icon source lives at `Assets/OpenDictateIcon.png`. The build script converts it into `OpenDictate.icns` and also uses it for the menu bar item.
 
@@ -28,9 +28,9 @@ The script writes the app bundle to:
 open .build/OpenDictate.app
 ```
 
-You can also start the app first and choose `API-Schlüssel einrichten …` from the menu bar item. The app stores the key in the macOS Keychain either way. The helper asks for the key itself; do not put an API key in a shell command or environment variable. The API key field supports normal macOS edit shortcuts such as paste, copy, and select-all. Use `API-Schlüssel anzeigen` in the dialog to keep the key visible until you uncheck it again.
+You can also start the app first and choose `API-Schlüssel einrichten …` from the menu bar item. The app stores the key in the macOS Keychain either way. The helper requires the built app, creates only a new item and restricts it to that bundle. It intentionally fails if an item already exists. If an older helper created the item, do not rerun the helper: save the key once through the in-app dialog to recreate it under the app's access policy. The helper asks for the key itself, so do not put an API key in a shell command or environment variable. The API key field supports normal macOS edit shortcuts such as paste, copy, and select-all. Use `API-Schlüssel anzeigen` in the dialog to keep the key visible until you uncheck it again.
 
-Press `Option+Shift+Space` once to start recording, then press it again to stop, transcribe, and paste.
+Press `Option+Shift+Space` once to start recording, then press it again to stop, transcribe, and insert.
 
 ## Settings
 
@@ -82,11 +82,14 @@ menu is not silently ignored for anyone who exports them:
 macOS will ask for:
 
 - Microphone access for recording.
-- Accessibility access for simulating `Cmd+V`.
+- Accessibility access for inserting the transcript into the focused text control.
 
-OpenDictate cannot reliably confirm that the target control accepted `Cmd+V`, so
-the transcript remains on the general clipboard until it is overwritten. This
-also preserves manual paste when Accessibility or target activation fails.
+Automatic insertion sends the transcript directly to the target's focused
+Accessibility text element; it does not consume the clipboard. The transcript
+also remains on the general clipboard until it is overwritten, preserving
+manual paste when Accessibility, target activation or direct insertion fails.
+Some custom, browser or Electron text controls may not expose a settable
+Accessibility selection; those controls receive the clipboard-only fallback.
 
 See [PRIVACY.md](PRIVACY.md) for the complete data flow and retention behavior,
 [docs/accessibility-signing.md](docs/accessibility-signing.md) for safe local

@@ -86,15 +86,15 @@ clear_xattrs() {
 SIGN_IDENTITY="${OPENDICTATE_SIGN_IDENTITY:-OpenDictate Self-Signed}"
 if [[ "$SIGN_IDENTITY" == "-" ]]; then
   echo "Signing ad hoc."
-  SIGN_ARGS=(--force --deep --sign -)
+  SIGN_ARGS=(--force --deep --options runtime --sign -)
 elif security find-identity -p codesigning 2>/dev/null | grep -qF "\"$SIGN_IDENTITY\""; then
   echo "Signing with identity: $SIGN_IDENTITY"
-  SIGN_ARGS=(--force --deep --sign "$SIGN_IDENTITY")
+  SIGN_ARGS=(--force --deep --options runtime --sign "$SIGN_IDENTITY")
 else
   echo "WARNING: code-signing identity '$SIGN_IDENTITY' not found; falling back to ad-hoc."
   echo "         The Accessibility permission will need to be re-granted after each build."
   echo "         See docs/accessibility-signing.md to create the stable identity."
-  SIGN_ARGS=(--force --deep --sign -)
+  SIGN_ARGS=(--force --deep --options runtime --sign -)
 fi
 
 clear_xattrs
@@ -105,4 +105,8 @@ fi
 
 clear_xattrs
 codesign --verify --deep --strict "$APP"
+if ! codesign -d --verbose=4 "$APP" 2>&1 | grep 'flags=.*runtime' >/dev/null; then
+  echo "Signed app is missing Hardened Runtime." >&2
+  exit 1
+fi
 echo "$APP"

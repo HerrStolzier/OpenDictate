@@ -1,13 +1,18 @@
 # Accessibility permission and local code signing
 
-OpenDictate pastes by sending `Cmd+V`, which requires macOS Accessibility
-permission. macOS associates that permission with the app's code signature. An
-ad-hoc signature changes on rebuild, so development builds may need the grant
-again.
+OpenDictate inserts the transcript into the focused text element through the
+macOS Accessibility API. macOS associates that permission with the app's code
+signature. Every build enables Hardened Runtime; an ad-hoc signature still
+changes on rebuild, so development builds may need the grant again.
 
 `scripts/build-app.sh` uses the identity named `OpenDictate Self-Signed` when it
 exists (override with `OPENDICTATE_SIGN_IDENTITY`) and otherwise falls back to an
-ad-hoc signature.
+ad-hoc signature. The build fails if the final bundle does not report the
+Hardened Runtime flag.
+
+Direct insertion requires the focused control to expose a settable
+`AXSelectedText` attribute. When it does not, OpenDictate leaves the transcript
+on the clipboard for manual paste instead of sending an automatic `Cmd+V`.
 
 ## Create a local development identity
 
@@ -31,10 +36,13 @@ written to a predictable temporary path:
 The certificate is intentionally local and untrusted. It is only for stable
 identity during development; it does not make an app suitable for public binary
 distribution. Public binaries require a protected Developer ID identity,
-hardened runtime, notarization, stapling, and verification of the final artifact.
+notarization, stapling, and verification of the final Hardened Runtime artifact.
 
 After creating or replacing the identity, rebuild the app and grant
-Accessibility once. To clear a stale grant:
+Accessibility once. A stable identity is intended to preserve the grant, but
+the current hardened build still needs a fresh attended insertion check. If the
+app reports that Accessibility is unavailable, remove and add the current
+bundle again or clear the stale grant:
 
 ```bash
 tccutil reset Accessibility local.opendictate.app

@@ -43,9 +43,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 removeRetry: { _ = FailedRecordingStore.remove($0) },
                 clean: { try? FileManager.default.removeItem(at: $0) },
                 copy: { [unowned self] in pasteboard.copy($0) },
-                paste: { [unowned self] in
+                paste: { [unowned self] text in
                     guard Config.settings.autoPaste else { return false }
-                    return await pasteboard.pasteIntoPreviousApp(previousApplication)
+                    return await pasteboard.pasteIntoPreviousApp(previousApplication, text: text)
                 }
             ))
     }

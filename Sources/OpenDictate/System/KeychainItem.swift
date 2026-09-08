@@ -20,13 +20,6 @@ struct KeychainItem {
         return result as? Data
     }
 
-    func update(with data: Data) -> OSStatus {
-        SecItemUpdate(
-            baseQuery as CFDictionary,
-            [kSecValueData as String: data] as CFDictionary
-        )
-    }
-
     func add(_ data: Data, accessible: CFString? = nil) -> OSStatus {
         var query = baseQuery
         query[kSecValueData as String] = data
@@ -34,6 +27,10 @@ struct KeychainItem {
             query[kSecAttrAccessible as String] = accessible
         }
         return SecItemAdd(query as CFDictionary, nil)
+    }
+
+    func delete() -> OSStatus {
+        SecItemDelete(baseQuery as CFDictionary)
     }
 
     private var baseQuery: [String: Any] {

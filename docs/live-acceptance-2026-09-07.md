@@ -2,6 +2,8 @@
 
 Historischer Prüfbericht für den damaligen Kandidaten. Er dokumentiert den
 belegten Umfang, ersetzt aber keine erneute Prüfung eines späteren Builds.
+Insbesondere verwendete dieser Kandidat noch automatisches `Cmd+V`; der Bericht
+belegt nicht die später eingeführte direkte `AXSelectedText`-Einfügung.
 
 ## Geprüft
 
