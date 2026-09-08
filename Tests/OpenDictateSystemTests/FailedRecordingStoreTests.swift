@@ -2,6 +2,7 @@ import CryptoKit
 import Foundation
 import OpenDictateCore
 import Testing
+
 @testable import OpenDictate
 
 @Suite("Failed recording store security boundaries")
@@ -50,8 +51,12 @@ struct FailedRecordingStoreTests {
         let code = FailedRecordingStore.authenticationCode(for: audio, filename: filename, key: key)
 
         #expect(FailedRecordingStore.isValidAuthenticationCode(code, for: audio, filename: filename, key: key))
-        #expect(!FailedRecordingStore.isValidAuthenticationCode(code, for: Data("tampered".utf8), filename: filename, key: key))
-        #expect(!FailedRecordingStore.isValidAuthenticationCode(code, for: audio, filename: "2026-09-06T20-00-00Z-DEADBEEF.m4a", key: key))
+        #expect(
+            !FailedRecordingStore.isValidAuthenticationCode(
+                code, for: Data("tampered".utf8), filename: filename, key: key))
+        #expect(
+            !FailedRecordingStore.isValidAuthenticationCode(
+                code, for: audio, filename: "2026-09-06T20-00-00Z-DEADBEEF.m4a", key: key))
     }
 
     @Test("Deletion never follows links or recursively removes directories")

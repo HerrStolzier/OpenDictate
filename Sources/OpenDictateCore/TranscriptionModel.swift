@@ -47,9 +47,9 @@ public struct TranscriptionModel: RawRepresentable, Sendable, Equatable, Hashabl
     public var uploadRejectionReason: String? {
         guard !isUsableForUpload else { return nil }
         return """
-        \(rawValue) is a realtime model. It is served from the realtime transcription \
-        endpoint, not from /v1/audio/transcriptions, so OpenDictate cannot use it. \
-        Unset OPENAI_TRANSCRIBE_MODEL to fall back to \(Self.default.rawValue).
-        """
+            \(rawValue) is a realtime model. It is served from the realtime transcription \
+            endpoint, not from /v1/audio/transcriptions, so OpenDictate cannot use it. \
+            Unset OPENAI_TRANSCRIBE_MODEL to fall back to \(Self.default.rawValue).
+            """
     }
 }

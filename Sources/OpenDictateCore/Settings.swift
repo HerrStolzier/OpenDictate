@@ -22,6 +22,9 @@ public final class Settings: Sendable {
         public static let language = "transcriptionLanguage"
         public static let hotKeyCode = "hotKeyCode"
         public static let hotKeyModifiers = "hotKeyModifiers"
+        public static let hotKeyName = "hotKeyName"
+        public static let autoPaste = "autoPaste"
+        public static let vocabularyPrompt = "vocabularyPrompt"
     }
 
     /// Stored value for "transcribe in whatever language you hear".
@@ -86,25 +89,26 @@ public final class Settings: Sendable {
     public var shortcut: HotKeyShortcut {
         get {
             guard let code = store.object(forKey: Key.hotKeyCode) as? Int,
-                  let modifiers = store.object(forKey: Key.hotKeyModifiers) as? Int,
-                  code >= 0, modifiers >= 0, code <= 126, modifiers <= Int(UInt32.max)
+                let modifiers = store.object(forKey: Key.hotKeyModifiers) as? Int,
+                code >= 0, modifiers >= 0, code <= 126, modifiers <= Int(UInt32.max)
             else { return .default }
             if let preset = HotKeyShortcut.preset(keyCode: UInt32(code), modifiers: UInt32(modifiers)) { return preset }
-            guard let name = store.object(forKey: "hotKeyName") as? String,
-                  let custom = HotKeyShortcut.custom(keyCode: UInt32(code), modifiers: UInt32(modifiers), displayName: name)
+            guard let name = store.object(forKey: Key.hotKeyName) as? String,
+                let custom = HotKeyShortcut.custom(
+                    keyCode: UInt32(code), modifiers: UInt32(modifiers), displayName: name)
             else { return .default }
             return custom
         }
         set {
             store.set(Int(newValue.keyCode), forKey: Key.hotKeyCode)
             store.set(Int(newValue.modifiers), forKey: Key.hotKeyModifiers)
-            store.set(newValue.displayName, forKey: "hotKeyName")
+            store.set(newValue.displayName, forKey: Key.hotKeyName)
         }
     }
 
     public var autoPaste: Bool {
-        get { store.object(forKey: "autoPaste") as? Bool ?? true }
-        set { store.set(newValue, forKey: "autoPaste") }
+        get { store.object(forKey: Key.autoPaste) as? Bool ?? true }
+        set { store.set(newValue, forKey: Key.autoPaste) }
     }
 
     // MARK: - Vocabulary
@@ -112,10 +116,11 @@ public final class Settings: Sendable {
     /// A stored vocabulary/context hint overrides the legacy environment value.
     public var prompt: String? {
         get {
-            let value = (store.object(forKey: "vocabularyPrompt") as? String) ?? environment["OPENAI_TRANSCRIBE_PROMPT"]
+            let value =
+                (store.object(forKey: Key.vocabularyPrompt) as? String) ?? environment["OPENAI_TRANSCRIBE_PROMPT"]
             return (value?.isEmpty ?? true) ? nil : value
         }
-        set { store.set(newValue ?? "", forKey: "vocabularyPrompt") }
+        set { store.set(newValue ?? "", forKey: Key.vocabularyPrompt) }
     }
 
     /// Drops every stored choice, so the environment variables take over again.
@@ -124,7 +129,8 @@ public final class Settings: Sendable {
         store.removeObject(forKey: Key.language)
         store.removeObject(forKey: Key.hotKeyCode)
         store.removeObject(forKey: Key.hotKeyModifiers)
-        store.removeObject(forKey: "hotKeyName")
-        store.removeObject(forKey: "vocabularyPrompt")
+        store.removeObject(forKey: Key.hotKeyName)
+        store.removeObject(forKey: Key.autoPaste)
+        store.removeObject(forKey: Key.vocabularyPrompt)
     }
 }

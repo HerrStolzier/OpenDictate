@@ -28,7 +28,7 @@ The script writes the app bundle to:
 open .build/OpenDictate.app
 ```
 
-You can also start the app first and choose `Set API Key...` from the menu bar item. The app stores the key in the macOS Keychain either way. The helper asks for the key itself; do not put an API key in a shell command or environment variable. The API key field supports normal macOS edit shortcuts such as paste, copy, and select-all. Use `Show API key` in the dialog to keep the key visible until you uncheck it again.
+You can also start the app first and choose `API-Schlüssel einrichten …` from the menu bar item. The app stores the key in the macOS Keychain either way. The helper asks for the key itself; do not put an API key in a shell command or environment variable. The API key field supports normal macOS edit shortcuts such as paste, copy, and select-all. Use `API-Schlüssel anzeigen` in the dialog to keep the key visible until you uncheck it again.
 
 Press `Option+Shift+Space` once to start recording, then press it again to stop, transcribe, and paste.
 
@@ -52,11 +52,11 @@ The menu bar shows recording time and a countdown in the last ten seconds. Cance
 ## If a transcription fails
 
 A failed upload no longer throws the recording away. It keeps a recovery copy in
-`~/Library/Application Support/OpenDictate/failed/`, and `Retry Last Recording` in
+`~/Library/Application Support/OpenDictate/failed/`, and `Letzte Aufnahme wiederholen` in
 the menu uploads it again. Recordings are authenticated with a device-local
 Keychain secret before retry. At most five are kept, for at most 24 hours; pruning
 runs at launch, after every keep and periodically while the app is open; expired recordings cannot be retried. A retry deletes the file only after a non-empty transcript has reached the clipboard. Clipboard failures keep both the audio and the last transcript in memory. Use
-`Delete Saved Recordings...` to delete all retained or legacy recordings.
+`Gespeicherte Aufnahmen löschen …` to delete all retained or legacy recordings.
 
 Recordings classified as too short or too quiet are retained for a deliberate manual retry. These heuristics do not prove that no speech exists; they never trigger an automatic upload.
 
@@ -102,8 +102,8 @@ The local self-signed development build is not a signed and notarized public
 binary. See [docs/accessibility-signing.md](docs/accessibility-signing.md) before
 distributing binaries.
 
-## Verification and implementation plan
+## Verification
 
 Run `swift test` for pure logic, lifecycle, HTTP stubs, recovery, logging and synthetic audio-file tests. No microphone or OpenAI calls are part of these tests. `./scripts/build-app.sh` builds and verifies the bundle; `VERSION` controls the marketing version, and `OPENDICTATE_BUILD_NUMBER` can set the numeric build number (default 1). CI runs tests and an ad-hoc bundle build on macOS. This does not publish or install an app.
 
-See `docs/improvement-plan.md`, `docs/performance-decisions.md`, `docs/audio-quality-fixtures.md` and `docs/remaining-acceptance.md`. Live microphone, target-app, VoiceOver and paid API checks remain separate. Streaming and hold-to-talk are not enabled.
+See [CHECKS.md](CHECKS.md), [docs/performance-decisions.md](docs/performance-decisions.md), [docs/audio-quality-fixtures.md](docs/audio-quality-fixtures.md) and [docs/remaining-acceptance.md](docs/remaining-acceptance.md). Live microphone, target-app, VoiceOver and paid API checks remain separate. Streaming and hold-to-talk are not enabled.

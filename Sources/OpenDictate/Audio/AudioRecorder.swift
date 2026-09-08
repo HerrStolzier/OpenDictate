@@ -8,10 +8,6 @@ final class AudioRecorder: NSObject, AVAudioRecorderDelegate {
     private var url: URL?
     var onUnexpectedStop: (() -> Void)?
 
-    var isRecording: Bool {
-        recorder?.isRecording == true
-    }
-
     static func requestPermission() async -> Bool {
         switch AVCaptureDevice.authorizationStatus(for: .audio) {
         case .authorized: return true
@@ -71,14 +67,14 @@ final class AudioRecorder: NSObject, AVAudioRecorderDelegate {
     }
 
     nonisolated func audioRecorderDidFinishRecording(_ recorder: AVAudioRecorder, successfully flag: Bool) {
-        let identity = ObjectIdentifier(recorder)
-        Task { @MainActor [weak self] in
-            guard let self, let active = self.recorder, ObjectIdentifier(active) == identity else { return }
-            self.onUnexpectedStop?()
-        }
+        notifyUnexpectedStop(for: recorder)
     }
 
     nonisolated func audioRecorderEncodeErrorDidOccur(_ recorder: AVAudioRecorder, error: Error?) {
+        notifyUnexpectedStop(for: recorder)
+    }
+
+    private nonisolated func notifyUnexpectedStop(for recorder: AVAudioRecorder) {
         let identity = ObjectIdentifier(recorder)
         Task { @MainActor [weak self] in
             guard let self, let active = self.recorder, ObjectIdentifier(active) == identity else { return }

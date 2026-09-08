@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import OpenDictate
 
 private final class StubProtocol: URLProtocol, @unchecked Sendable {
@@ -12,7 +13,9 @@ private final class StubProtocol: URLProtocol, @unchecked Sendable {
             client?.urlProtocol(self, didFailWithError: URLError(code))
             return
         }
-        let response = HTTPURLResponse(url: request.url!, statusCode: Self.responseCode, httpVersion: nil, headerFields: ["Content-Type": "application/json"])!
+        let response = HTTPURLResponse(
+            url: request.url!, statusCode: Self.responseCode, httpVersion: nil,
+            headerFields: ["Content-Type": "application/json"])!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         client?.urlProtocol(self, didLoad: Data(#"{"text":"transport result"}"#.utf8))
         client?.urlProtocolDidFinishLoading(self)
@@ -30,11 +33,11 @@ struct TranscriptionTransportTests {
         let transcriber = OpenAITranscriber(session: session)
         let options = TranscriptionOptions(apiKey: "fixture-only", model: .gptTranscribe, language: nil, prompt: nil)
         StubProtocol.failure = nil
-        #expect(try await transcriber.transcribe(audioData: Data([1]), filename: "audio.m4a", options: options) == "transport result")
+        #expect(try await transcriber.transcribe(audioData: Data([1]), options: options) == "transport result")
         for failure in [URLError.Code.notConnectedToInternet, .timedOut, .cancelled] {
             StubProtocol.failure = failure
             do {
-                _ = try await transcriber.transcribe(audioData: Data([1]), filename: "audio.m4a", options: options)
+                _ = try await transcriber.transcribe(audioData: Data([1]), options: options)
                 Issue.record("network failure must not become a successful transcript")
             } catch { #expect((error as? URLError)?.code == failure) }
         }

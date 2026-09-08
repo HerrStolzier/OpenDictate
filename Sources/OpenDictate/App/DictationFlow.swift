@@ -60,7 +60,10 @@ final class DictationFlow {
         state = .processing
         discardOnCancel = false
         task = Task {
-            defer { state = .idle; task = nil }
+            defer {
+                state = .idle
+                task = nil
+            }
             do {
                 onStatus?("Wiederholen …")
                 try Task.checkCancellation()
@@ -71,7 +74,10 @@ final class DictationFlow {
             } catch is CancellationError {
                 onStatus?("Abgebrochen – Aufnahme bleibt erhalten")
             } catch {
-                onStatus?(Task.isCancelled ? "Abgebrochen – Aufnahme bleibt erhalten" : "Wiederholen fehlgeschlagen: \(error.localizedDescription)")
+                onStatus?(
+                    Task.isCancelled
+                        ? "Abgebrochen – Aufnahme bleibt erhalten"
+                        : "Wiederholen fehlgeschlagen: \(error.localizedDescription)")
             }
         }
         return true
@@ -84,8 +90,13 @@ final class DictationFlow {
             state = .processing
             do {
                 let audio = try operations.stop()
-                if discardRecording || operations.keep(audio) { operations.clean(audio) }
-                else { onStatus?("Aufnahme konnte nicht gesichert werden: \(audio.path)"); state = .idle; return }
+                if discardRecording || operations.keep(audio) {
+                    operations.clean(audio)
+                } else {
+                    onStatus?("Aufnahme konnte nicht gesichert werden: \(audio.path)")
+                    state = .idle
+                    return
+                }
                 onStatus?(discardRecording ? "Aufnahme verworfen" : "Aufnahme für Wiederholung gesichert")
             } catch { onStatus?(error.localizedDescription) }
             state = .idle
@@ -134,9 +145,10 @@ final class DictationFlow {
             } else {
                 mayCleanOriginal = preserve(original)
                 if mayCleanOriginal {
-                    onStatus?(Task.isCancelled
-                        ? "Abgebrochen – Aufnahme für Wiederholung gesichert"
-                        : "\(error.localizedDescription) – Aufnahme für manuelle Wiederholung gesichert")
+                    onStatus?(
+                        Task.isCancelled
+                            ? "Abgebrochen – Aufnahme für Wiederholung gesichert"
+                            : "\(error.localizedDescription) – Aufnahme für manuelle Wiederholung gesichert")
                 }
             }
         }

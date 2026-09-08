@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import OpenDictateCore
 
 @Suite("Failed recording retention")
@@ -30,10 +31,11 @@ struct RecordingRetentionTests {
     func dropsOldest() {
         let expired = RecordingRetention.expired(from: entries([1, 2, 3, 4, 5, 6, 7]), now: epoch)
         #expect(expired.count == 2)
-        #expect(expired.map(\.created.timeIntervalSince1970) == [
-            epoch.addingTimeInterval(1).timeIntervalSince1970,
-            epoch.addingTimeInterval(2).timeIntervalSince1970
-        ])
+        #expect(
+            expired.map(\.created.timeIntervalSince1970) == [
+                epoch.addingTimeInterval(1).timeIntervalSince1970,
+                epoch.addingTimeInterval(2).timeIntervalSince1970
+            ])
     }
 
     @Test("Input order does not matter")

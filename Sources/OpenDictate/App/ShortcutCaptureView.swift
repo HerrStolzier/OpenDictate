@@ -23,13 +23,30 @@ final class ShortcutCaptureView: NSView {
         let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
         var modifiers: UInt32 = 0
         var name = ""
-        if flags.contains(.control) { modifiers |= HotKeyShortcut.controlMask; name += "⌃" }
-        if flags.contains(.option) { modifiers |= HotKeyShortcut.optionMask; name += "⌥" }
-        if flags.contains(.shift) { modifiers |= HotKeyShortcut.shiftMask; name += "⇧" }
-        if flags.contains(.command) { modifiers |= HotKeyShortcut.commandMask; name += "⌘" }
-        if event.keyCode == 49 { name += "Leertaste" }
-        else { name += event.charactersIgnoringModifiers?.uppercased() ?? "Taste \(event.keyCode)" }
-        guard let result = HotKeyShortcut.custom(keyCode: UInt32(event.keyCode), modifiers: modifiers, displayName: name) else {
+        if flags.contains(.control) {
+            modifiers |= HotKeyShortcut.controlMask
+            name += "⌃"
+        }
+        if flags.contains(.option) {
+            modifiers |= HotKeyShortcut.optionMask
+            name += "⌥"
+        }
+        if flags.contains(.shift) {
+            modifiers |= HotKeyShortcut.shiftMask
+            name += "⇧"
+        }
+        if flags.contains(.command) {
+            modifiers |= HotKeyShortcut.commandMask
+            name += "⌘"
+        }
+        if event.keyCode == 49 {
+            name += "Leertaste"
+        } else {
+            name += event.charactersIgnoringModifiers?.uppercased() ?? "Taste \(event.keyCode)"
+        }
+        guard
+            let result = HotKeyShortcut.custom(keyCode: UInt32(event.keyCode), modifiers: modifiers, displayName: name)
+        else {
             label.stringValue = "Bitte zusätzlich ⌘, ⌥ oder ⌃ verwenden"
             return
         }

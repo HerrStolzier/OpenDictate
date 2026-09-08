@@ -45,7 +45,8 @@ public enum OpenDictateError: LocalizedError {
         case .recordingCouldNotStart:
             return "AVAudioRecorder could not start recording."
         case .recordingTooShort(let actual, let minimum):
-            return "Recording skipped: \(actual.formattedSeconds) is too short. Speak for at least \(minimum.formattedSeconds)."
+            return
+                "Recording skipped: \(actual.formattedSeconds) is too short. Speak for at least \(minimum.formattedSeconds)."
         }
     }
 }

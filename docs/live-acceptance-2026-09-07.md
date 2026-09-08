@@ -1,5 +1,8 @@
 # OpenDictate Live-Abnahme – 2026-09-07
 
+Historischer Prüfbericht für den damaligen Kandidaten. Er dokumentiert den
+belegten Umfang, ersetzt aber keine erneute Prüfung eines späteren Builds.
+
 ## Geprüft
 
 - Aktueller Repository-Kandidat mit `scripts/build-app.sh` gebaut und signaturgeprüft; aus `.build/OpenDictate.app` gestartet. Der laufende Prozess verweist auf dieses Bundle, dessen Signatur als `OpenDictate Self-Signed` verifiziert wurde. Die installierte App unter `/Applications` wurde nicht ersetzt.
@@ -10,8 +13,6 @@
 ## Noch offen
 
 Der laufende fensterlose Kandidat lässt sich durch das native UI-Werkzeug weiterhin nicht direkt auslesen (Timeout -10005), auch nicht nach Öffnen des Menüs. Ein unveränderter Wiederholungsversuch ist daher kein geeigneter nächster Nachweis. Normaler Mikrofonlauf, Zielapp-Übergabe, Fokuswechsel, Zwischenablage-Fallback und Abbruch/Behalten sind unten belegt. Offen bleiben VoiceOver, der sichtbare Countdown samt nativem 90-Sekunden-Stopp und die weiteren Randfälle in `remaining-acceptance.md`. Synthetische Sprache und ein einzelner menschlicher Satz ersetzen keine allgemeine Sprachqualitätsprüfung. Streaming und Hold-to-talk bleiben optionale, nicht implementierte Erweiterungen.
-
-`CHECKS.md`, `WORKFLOWS.md` und `KNOWN_ERRORS.md` wurden ergänzt. Der verlangte Befehl `python3 scripts/agent_finish.py --auto-claims` wurde versucht und scheiterte, weil das Skript im Repository fehlt. Es wurde kein fremdes Skript als Ersatz ausgeführt.
 
 Kein Commit, Push, Installationsaustausch oder öffentliche Binärveröffentlichung erfolgt. Der Kandidat bleibt für den noch ausstehenden bedienten Test geöffnet.
 

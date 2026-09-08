@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import OpenDictate
 
 /// Explicit, attended integration check. Never reads arbitrary recordings or
@@ -22,10 +23,11 @@ struct LiveTranscriptionTests {
         try #require(["gpt-transcribe", "gpt-4o-mini-transcribe"].contains(modelName))
         let options = TranscriptionOptions(apiKey: key, model: .init(rawValue: modelName), language: "de", prompt: nil)
         let start = ContinuousClock.now
-        let result = try await OpenAITranscriber().transcribe(audioData: data, filename: "reference.m4a", options: options)
+        let result = try await OpenAITranscriber().transcribe(audioData: data, options: options)
         let elapsed = start.duration(to: .now)
         let seconds = Double(elapsed.components.seconds) + Double(elapsed.components.attoseconds) / 1e18
-        let recognized = result.localizedCaseInsensitiveContains("Apfel")
+        let recognized =
+            result.localizedCaseInsensitiveContains("Apfel")
             && result.localizedCaseInsensitiveContains("Test")
             && (result.localizedCaseInsensitiveContains("sieben") || result.contains("7"))
         struct Evidence: Encodable {
@@ -37,10 +39,13 @@ struct LiveTranscriptionTests {
             let expectedTermsRecognized: Bool
             let transcript: String
         }
-        let evidence = Evidence(fixture: "macOS synthesized speech, not human microphone audio", model: modelName, language: "de", inputBytes: data.count, elapsedSeconds: seconds, expectedTermsRecognized: recognized, transcript: result)
+        let evidence = Evidence(
+            fixture: "macOS synthesized speech, not human microphone audio", model: modelName, language: "de",
+            inputBytes: data.count, elapsedSeconds: seconds, expectedTermsRecognized: recognized, transcript: result)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        try encoder.encode(evidence).write(to: root.appendingPathComponent("api-result-\(modelName).json"), options: .atomic)
+        try encoder.encode(evidence).write(
+            to: root.appendingPathComponent("api-result-\(modelName).json"), options: .atomic)
         #expect(recognized)
     }
 }

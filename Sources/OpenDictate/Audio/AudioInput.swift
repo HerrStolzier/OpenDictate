@@ -14,7 +14,8 @@ enum AudioInput {
         guard let deviceID = defaultInputDeviceID() else { return nil }
         let name = deviceName(deviceID) ?? "Unbekanntes Mikrofon"
         let transport = transportType(deviceID)
-        let isBluetooth = transport == kAudioDeviceTransportTypeBluetooth
+        let isBluetooth =
+            transport == kAudioDeviceTransportTypeBluetooth
             || transport == kAudioDeviceTransportTypeBluetoothLE
         return Info(name: name, isBluetooth: isBluetooth)
     }

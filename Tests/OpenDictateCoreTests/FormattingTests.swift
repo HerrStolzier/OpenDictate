@@ -1,27 +1,32 @@
 import Foundation
 import Testing
+
 @testable import OpenDictateCore
 
 @Suite("Formatting")
 struct FormattingTests {
-    @Test("Seconds always carry exactly one decimal", arguments: [
-        (0.0, "0.0s"),
-        (1.0, "1.0s"),
-        (0.44, "0.4s"),
-        (1.96, "2.0s"),
-        (90.0, "90.0s"),
-        (-1.0, "-1.0s")
-    ])
+    @Test(
+        "Seconds always carry exactly one decimal",
+        arguments: [
+            (0.0, "0.0s"),
+            (1.0, "1.0s"),
+            (0.44, "0.4s"),
+            (1.96, "2.0s"),
+            (90.0, "90.0s"),
+            (-1.0, "-1.0s")
+        ])
     func formattedSeconds(value: TimeInterval, expected: String) {
         #expect(value.formattedSeconds == expected)
     }
 
-    @Test("Decibels are whole numbers with a unit", arguments: [
-        (Float(-45), "-45 dB"),
-        (Float(-140), "-140 dB"),
-        (Float(0), "0 dB"),
-        (Float(-59.6), "-60 dB")
-    ])
+    @Test(
+        "Decibels are whole numbers with a unit",
+        arguments: [
+            (Float(-45), "-45 dB"),
+            (Float(-140), "-140 dB"),
+            (Float(0), "0 dB"),
+            (Float(-59.6), "-60 dB")
+        ])
     func formattedDb(value: Float, expected: String) {
         #expect(value.formattedDb == expected)
     }

@@ -1,4 +1,5 @@
 import Testing
+
 @testable import OpenDictateCore
 
 @Suite("Custom shortcut validation")

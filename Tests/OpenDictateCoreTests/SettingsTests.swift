@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import OpenDictateCore
 
 /// Stand-in for UserDefaults. Locked because `KeyValueStore` is Sendable, not
@@ -13,17 +14,20 @@ private final class MemoryStore: KeyValueStore, @unchecked Sendable {
     }
 
     func object(forKey defaultName: String) -> Any? {
-        lock.lock(); defer { lock.unlock() }
+        lock.lock()
+        defer { lock.unlock() }
         return values[defaultName]
     }
 
     func set(_ value: Any?, forKey defaultName: String) {
-        lock.lock(); defer { lock.unlock() }
+        lock.lock()
+        defer { lock.unlock() }
         values[defaultName] = value
     }
 
     func removeObject(forKey defaultName: String) {
-        lock.lock(); defer { lock.unlock() }
+        lock.lock()
+        defer { lock.unlock() }
         values.removeValue(forKey: defaultName)
     }
 }
@@ -118,14 +122,24 @@ struct SettingsTests {
 
     // MARK: - Reset
 
-    @Test("Resetting hands control back to the environment")
+    @Test("Resetting clears every stored preference and hands control back to the environment")
     func resetToEnvironment() {
-        let s = settings(env: ["OPENAI_TRANSCRIBE_MODEL": "whisper-1"])
+        let s = settings(env: [
+            "OPENAI_TRANSCRIBE_MODEL": "whisper-1",
+            "OPENAI_TRANSCRIBE_LANGUAGE": "de",
+            "OPENAI_TRANSCRIBE_PROMPT": "environment prompt"
+        ])
         s.model = .gpt4oMiniTranscribe
+        s.language = "en"
         s.shortcut = .f5
+        s.autoPaste = false
+        s.prompt = "stored prompt"
         s.resetToEnvironment()
         #expect(s.model == .whisper1)
+        #expect(s.language == "de")
         #expect(s.shortcut == .default)
+        #expect(s.autoPaste)
+        #expect(s.prompt == "environment prompt")
     }
 
     // MARK: - Environment only

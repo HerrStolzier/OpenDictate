@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import OpenDictateCore
 
 @Suite("OpenAI error messages")
@@ -10,21 +11,26 @@ struct OpenAIAPIErrorTests {
 
     @Test("401 with an invalid key points at Set API Key")
     func invalidKey() {
-        let text = message(#"{"error":{"message":"Incorrect API key","type":"invalid_request_error","code":"invalid_api_key"}}"#, status: 401)
+        let text = message(
+            #"{"error":{"message":"Incorrect API key","type":"invalid_request_error","code":"invalid_api_key"}}"#,
+            status: 401)
         #expect(text.contains("not valid"))
         #expect(text.contains("Set API Key"))
     }
 
     @Test("429 for an exhausted quota talks about billing, not about waiting")
     func exhaustedQuota() {
-        let text = message(#"{"error":{"message":"You exceeded your quota","type":"insufficient_quota","code":"insufficient_quota"}}"#, status: 429)
+        let text = message(
+            #"{"error":{"message":"You exceeded your quota","type":"insufficient_quota","code":"insufficient_quota"}}"#,
+            status: 429)
         #expect(text.contains("quota is exhausted"))
         #expect(text.contains("billing"))
     }
 
     @Test("429 for rate limiting tells the user to wait")
     func rateLimited() {
-        let text = message(#"{"error":{"message":"Rate limit reached","type":"requests","code":"rate_limit_exceeded"}}"#, status: 429)
+        let text = message(
+            #"{"error":{"message":"Rate limit reached","type":"requests","code":"rate_limit_exceeded"}}"#, status: 429)
         #expect(text.contains("rate limiting"))
         #expect(text.contains("Wait a moment"))
     }
@@ -43,7 +49,9 @@ struct OpenAIAPIErrorTests {
 
     @Test("An unknown code passes the server's own message through")
     func unknownCodeKeepsServerMessage() {
-        let text = message(#"{"error":{"message":"Unsupported audio format.","type":"invalid_request_error","code":"unsupported_format"}}"#, status: 400)
+        let text = message(
+            #"{"error":{"message":"Unsupported audio format.","type":"invalid_request_error","code":"unsupported_format"}}"#,
+            status: 400)
         #expect(text.contains("Unsupported audio format."))
     }
 

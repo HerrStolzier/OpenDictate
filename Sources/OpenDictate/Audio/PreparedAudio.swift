@@ -4,9 +4,7 @@ import OpenDictateCore
 
 struct PreparedAudio {
     let url: URL
-    let originalDuration: TimeInterval
     let uploadDuration: TimeInterval
-    let trimmedDuration: TimeInterval
 }
 
 struct AudioAnalysis {

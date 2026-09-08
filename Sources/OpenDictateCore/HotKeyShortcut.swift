@@ -50,9 +50,10 @@ public struct HotKeyShortcut: Equatable, Sendable {
     public static func custom(keyCode: UInt32, modifiers: UInt32, displayName: String) -> HotKeyShortcut? {
         let allowed = shiftMask | controlMask | optionMask | commandMask
         guard keyCode <= 126, modifiers & ~allowed == 0,
-              modifiers & (controlMask | optionMask | commandMask) != 0,
-              !displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              displayName.count <= 80 else { return nil }
+            modifiers & (controlMask | optionMask | commandMask) != 0,
+            !displayName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            displayName.count <= 80
+        else { return nil }
         return HotKeyShortcut(keyCode: keyCode, modifiers: modifiers, displayName: displayName)
     }
 

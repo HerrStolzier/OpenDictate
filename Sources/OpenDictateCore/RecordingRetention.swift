@@ -41,7 +41,8 @@ public enum RecordingRetention {
             return age >= maximumAge && age >= 0
         }
         let expiredURLs = Set(overCount.map(\.url)).union(tooOld.map(\.url))
-        return entries
+        return
+            entries
             .filter { expiredURLs.contains($0.url) }
             .sorted { left, right in
                 if left.created != right.created { return left.created < right.created }

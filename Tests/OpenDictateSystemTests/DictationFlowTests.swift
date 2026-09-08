@@ -1,6 +1,7 @@
 import Foundation
-import Testing
 import OpenDictateCore
+import Testing
+
 @testable import OpenDictate
 
 @Suite("Dictation lifecycle and recovery")
@@ -24,28 +25,41 @@ struct DictationFlowTests {
         let trimmed = URL(fileURLWithPath: "/test/trimmed.m4a")
         lazy var flow = makeFlow()
         func makeFlow() -> DictationFlow {
-          DictationFlow(operations: .init(
-            start: { self.starts += 1 },
-            stop: { self.stops += 1; return self.original },
-            prepare: { _ in
-                if self.preparationFails { throw OpenDictateError.noSpeechDetected(peakDb: -60) }
-                return PreparedAudio(url: self.trimmed, originalDuration: 3, uploadDuration: 2, trimmedDuration: 1)
-            },
-            transcribeFile: { _ in
-                self.uploads += 1
-                if self.suspendUpload { try await Task.sleep(for: .seconds(3600)) }
-                return self.text
-            },
-            transcribeRetry: { _ in self.uploads += 1; return self.text },
-            keep: { self.kept.append($0); return self.keepSucceeds },
-            removeRetry: { _ in self.removed += 1 },
-            clean: { self.cleaned.append($0) },
-            copy: { _ in self.copySucceeds },
-            paste: { self.pasted += 1; return true }
-          ))
+            DictationFlow(
+                operations: .init(
+                    start: { self.starts += 1 },
+                    stop: {
+                        self.stops += 1
+                        return self.original
+                    },
+                    prepare: { _ in
+                        if self.preparationFails { throw OpenDictateError.noSpeechDetected(peakDb: -60) }
+                        return PreparedAudio(url: self.trimmed, uploadDuration: 2)
+                    },
+                    transcribeFile: { _ in
+                        self.uploads += 1
+                        if self.suspendUpload { try await Task.sleep(for: .seconds(3600)) }
+                        return self.text
+                    },
+                    transcribeRetry: { _ in
+                        self.uploads += 1
+                        return self.text
+                    },
+                    keep: {
+                        self.kept.append($0)
+                        return self.keepSucceeds
+                    },
+                    removeRetry: { _ in self.removed += 1 },
+                    clean: { self.cleaned.append($0) },
+                    copy: { _ in self.copySucceeds },
+                    paste: {
+                        self.pasted += 1
+                        return true
+                    }
+                ))
         }
         var payload: FailedRecordingStore.RetryPayload {
-            .init(url: original, filename: "retry.m4a", data: Data([1]), created: Date())
+            .init(url: original, data: Data([1]))
         }
     }
 
@@ -62,14 +76,16 @@ struct DictationFlowTests {
     }
 
     @Test func emptyRetryKeepsAudio() async {
-        let h = Harness(); h.text = " \n"
+        let h = Harness()
+        h.text = " \n"
         #expect(h.flow.retry(h.payload))
         await h.flow.task?.value
         #expect(h.removed == 0 && h.pasted == 0)
     }
 
     @Test func clipboardFailureKeepsAudioAndText() async {
-        let h = Harness(); h.copySucceeds = false
+        let h = Harness()
+        h.copySucceeds = false
         #expect(h.flow.retry(h.payload))
         await h.flow.task?.value
         #expect(h.removed == 0 && h.pasted == 0)
@@ -87,8 +103,10 @@ struct DictationFlowTests {
     }
 
     @Test func skippedAudioIsKeptWithoutUpload() async throws {
-        let h = Harness(); h.preparationFails = true
-        _ = try h.flow.start(); _ = h.flow.stop()
+        let h = Harness()
+        h.preparationFails = true
+        _ = try h.flow.start()
+        _ = h.flow.stop()
         await h.flow.task?.value
         #expect(h.uploads == 0)
         #expect(h.kept == [h.original])
@@ -96,15 +114,20 @@ struct DictationFlowTests {
     }
 
     @Test func failedPersistenceNeverDeletesOnlyOriginal() async throws {
-        let h = Harness(); h.preparationFails = true; h.keepSucceeds = false
-        _ = try h.flow.start(); _ = h.flow.stop()
+        let h = Harness()
+        h.preparationFails = true
+        h.keepSucceeds = false
+        _ = try h.flow.start()
+        _ = h.flow.stop()
         await h.flow.task?.value
         #expect(h.cleaned.isEmpty)
     }
 
     @Test func failedDeliveryKeepsOriginalNotTrimmedAudio() async throws {
-        let h = Harness(); h.copySucceeds = false
-        _ = try h.flow.start(); _ = h.flow.stop()
+        let h = Harness()
+        h.copySucceeds = false
+        _ = try h.flow.start()
+        _ = h.flow.stop()
         await h.flow.task?.value
         #expect(h.kept == [h.original])
         #expect(Set(h.cleaned) == Set([h.original, h.trimmed]))
@@ -112,7 +135,8 @@ struct DictationFlowTests {
 
     @Test func cancelBeforeProcessingPreservesAudio() async throws {
         let h = Harness()
-        _ = try h.flow.start(); _ = h.flow.stop()
+        _ = try h.flow.start()
+        _ = h.flow.stop()
         h.flow.cancel()
         await h.flow.task?.value
         #expect(h.uploads == 0)
@@ -139,7 +163,8 @@ struct DictationFlowTests {
 
     @Test func secondStartIsRejectedDuringProcessing() async throws {
         let h = Harness()
-        _ = try h.flow.start(); _ = h.flow.stop()
+        _ = try h.flow.start()
+        _ = h.flow.stop()
         #expect(try !h.flow.start())
         #expect(!h.flow.retry(h.payload))
         await h.flow.task?.value

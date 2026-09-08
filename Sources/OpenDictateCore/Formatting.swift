@@ -1,19 +1,19 @@
 import Foundation
 
-public extension TimeInterval {
-    var formattedSeconds: String {
+extension TimeInterval {
+    public var formattedSeconds: String {
         String(format: "%.1fs", self)
     }
 }
 
-public extension Float {
-    var formattedDb: String {
+extension Float {
+    public var formattedDb: String {
         String(format: "%.0f dB", self)
     }
 }
 
-public extension Data {
-    mutating func appendString(_ value: String) {
+extension Data {
+    public mutating func appendString(_ value: String) {
         append(value.data(using: .utf8)!)
     }
 }

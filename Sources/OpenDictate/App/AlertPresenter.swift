@@ -1,17 +1,10 @@
 import AppKit
 import Foundation
-import OpenDictateCore
 
 /// Every modal the app shows, in one place. Each call blocks on `runModal()`
 /// exactly like the inline versions it replaces.
 @MainActor
 enum AlertPresenter {
-    enum APIKeyPromptResult {
-        case cancelled
-        case empty
-        case key(String)
-    }
-
     static func showWarning(title: String, message: String) {
         let alert = NSAlert()
         alert.messageText = title
@@ -30,42 +23,37 @@ enum AlertPresenter {
         return alert.runModal() == .alertFirstButtonReturn
     }
 
-    /// Shown when the transcript reached the clipboard but Cmd+V could not be
-    /// simulated. Returns to the caller after the user dismisses it.
-    static func showAccessibilityRequired() {
+    static func confirmQuitWithActiveDictation() -> Bool {
         let alert = NSAlert()
-        alert.messageText = "Text copied, but OpenDictate cannot paste yet"
-        alert.informativeText = """
-        macOS is blocking automatic paste. OpenDictate needs Accessibility permission to send Cmd+V into the app you were using.
-
-        Grant access in Privacy & Security > Accessibility, then try dictating again.
-        """
-        alert.alertStyle = .informational
-        alert.addButton(withTitle: "Open Settings")
-        alert.addButton(withTitle: "OK")
-
-        if alert.runModal() == .alertFirstButtonReturn {
-            SystemSettings.openAccessibility()
-        }
+        alert.messageText = "Aktives Diktat sichern und beenden?"
+        alert.informativeText =
+            "Die laufende Arbeit wird abgebrochen. Die Aufnahme bleibt zur manuellen Wiederholung erhalten."
+        alert.addButton(withTitle: "Sichern und beenden")
+        alert.addButton(withTitle: "Weiterarbeiten")
+        return alert.runModal() == .alertFirstButtonReturn
     }
 
-    static func showBluetoothInputWarning(deviceName: String) {
+    static func promptForVocabulary(initialValue: String?) -> String? {
         let alert = NSAlert()
-        alert.messageText = "No speech detected from \(deviceName)"
-        alert.informativeText = """
-        OpenDictate recorded, but the audio was (near) silent, so nothing was sent for transcription.
-
-        Your microphone is currently set to \(deviceName), a Bluetooth device. Bluetooth headset mics often deliver almost no signal. Switch the input to the built-in microphone in Sound settings, then try dictating again.
-        """
-        alert.alertStyle = .informational
-        alert.addButton(withTitle: "Open Sound Settings")
-        alert.addButton(withTitle: "OK")
-        if alert.runModal() == .alertFirstButtonReturn {
-            SystemSettings.openSound()
-        }
+        alert.messageText = "Vokabular und Kontext"
+        alert.informativeText =
+            "Namen, Fachbegriffe oder ein kurzer Kontext. Maximal 2.000 Zeichen. Diese Hinweise werden mit jedem Diktat an OpenAI gesendet. Leer speichern entfernt die Hinweise."
+        let field = NSTextField(wrappingLabelWithString: "")
+        field.isEditable = true
+        field.isSelectable = true
+        field.isBezeled = true
+        field.drawsBackground = true
+        field.frame = NSRect(x: 0, y: 0, width: 440, height: 90)
+        field.stringValue = initialValue ?? ""
+        field.setAccessibilityLabel("Vokabular und Kontext")
+        alert.accessoryView = field
+        alert.addButton(withTitle: "Speichern")
+        alert.addButton(withTitle: "Abbrechen")
+        guard alert.runModal() == .alertFirstButtonReturn else { return nil }
+        return field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    static func promptForAPIKey(initialValue: String?) -> APIKeyPromptResult {
+    static func promptForAPIKey(initialValue: String?) -> String? {
         let alert = NSAlert()
         alert.messageText = "OpenAI-API-Schlüssel einrichten"
         alert.informativeText = "Der Schlüssel wird im macOS-Schlüsselbund unter OpenDictate gespeichert."
@@ -77,10 +65,9 @@ enum AlertPresenter {
         alert.accessoryView = inputView
 
         guard alert.runModal() == .alertFirstButtonReturn else {
-            return .cancelled
+            return nil
         }
 
-        let key = inputView.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        return key.isEmpty ? .empty : .key(key)
+        return inputView.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

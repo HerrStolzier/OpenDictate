@@ -13,7 +13,9 @@ struct PasteboardInserter {
 
     func pasteIntoPreviousApp(_ app: NSRunningApplication?) async -> Bool {
         guard !Task.isCancelled, AXIsProcessTrusted(), let app, !app.isTerminated else {
-            AppLog.write("Auto-paste unavailable. accessibility=\(AXIsProcessTrusted()), previousApp=\(app?.localizedName ?? "none")")
+            AppLog.write(
+                "Auto-paste unavailable. accessibility=\(AXIsProcessTrusted()), previousApp=\(app?.localizedName ?? "none")"
+            )
             return false
         }
 

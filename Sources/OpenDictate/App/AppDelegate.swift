@@ -28,21 +28,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var flow = makeFlow()
 
     private func makeFlow() -> DictationFlow {
-        DictationFlow(operations: .init(
-        start: { [unowned self] in try recorder.start() },
-        stop: { [unowned self] in try recorder.stop() },
-        prepare: { try await AudioPreprocessor.prepare(audioURL: $0) },
-        transcribeFile: { [unowned self] in try await transcriber.transcribe(audioURL: $0, options: requestOptions) },
-        transcribeRetry: { [unowned self] in try await transcriber.transcribe(audioData: $0.data, filename: $0.filename, options: requestOptions) },
-        keep: { FailedRecordingStore.keep($0, recordedAt: Date()) != nil },
-        removeRetry: { _ = FailedRecordingStore.remove($0) },
-        clean: { try? FileManager.default.removeItem(at: $0) },
-        copy: { [unowned self] in pasteboard.copy($0) },
-        paste: { [unowned self] in
-            guard Config.settings.autoPaste else { return false }
-            return await pasteboard.pasteIntoPreviousApp(previousApplication)
-        }
-        ))
+        DictationFlow(
+            operations: .init(
+                start: { [unowned self] in try recorder.start() },
+                stop: { [unowned self] in try recorder.stop() },
+                prepare: { try await AudioPreprocessor.prepare(audioURL: $0) },
+                transcribeFile: { [unowned self] in
+                    try await transcriber.transcribe(audioURL: $0, options: requestOptions)
+                },
+                transcribeRetry: { [unowned self] in
+                    try await transcriber.transcribe(audioData: $0.data, options: requestOptions)
+                },
+                keep: { FailedRecordingStore.keep($0, recordedAt: Date()) != nil },
+                removeRetry: { _ = FailedRecordingStore.remove($0) },
+                clean: { try? FileManager.default.removeItem(at: $0) },
+                copy: { [unowned self] in pasteboard.copy($0) },
+                paste: { [unowned self] in
+                    guard Config.settings.autoPaste else { return false }
+                    return await pasteboard.pasteIntoPreviousApp(previousApplication)
+                }
+            ))
     }
 
     static func main() {
@@ -66,7 +71,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         flow.onState = { [weak self] state in
             if state != .recording { self?.cancelAutoStop() }
             self?.menuBar?.updateState(state)
-            if state == .idle { self?.requestOptions = nil; self?.refreshSavedRecordings() }
+            if state == .idle {
+                self?.requestOptions = nil
+                self?.refreshSavedRecordings()
+            }
         }
         recorder.onUnexpectedStop = { [weak self] in
             guard let self else { return }
@@ -111,7 +119,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             AppLog.write("Hotkey registration failed: \(error.localizedDescription)")
             AlertPresenter.showWarning(
                 title: "OpenDictate could not register \(shortcut.displayName)",
-                message: "\(error.localizedDescription)\n\nAnother app is probably using this shortcut. Pick a different one from the Hotkey menu."
+                message:
+                    "\(error.localizedDescription)\n\nAnother app is probably using this shortcut. Pick a different one from the Hotkey menu."
             )
             return false
         }
@@ -164,12 +173,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func refreshSavedRecordings() {
-        guard snapshotTask == nil else { snapshotNeedsRefresh = true; return }
+        guard snapshotTask == nil else {
+            snapshotNeedsRefresh = true
+            return
+        }
         snapshotTask = Task { @MainActor in
             savedRecordings = await recordingLibrary.snapshot()
             snapshotTask = nil
             menuBar?.refresh()
-            if snapshotNeedsRefresh { snapshotNeedsRefresh = false; refreshSavedRecordings() }
+            if snapshotNeedsRefresh {
+                snapshotNeedsRefresh = false
+                refreshSavedRecordings()
+            }
         }
     }
 
@@ -206,7 +221,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 let elapsed = start.duration(to: .now)
                 let seconds = Double(elapsed.components.seconds) + Double(elapsed.components.attoseconds) / 1e18
                 menuBar?.updateState(.recording, elapsed: seconds, level: recorder.level())
-                if seconds >= Config.maximumRecordingDuration { _ = flow.stop(); return }
+                if seconds >= Config.maximumRecordingDuration {
+                    _ = flow.stop()
+                    return
+                }
                 do { try await Task.sleep(for: .milliseconds(200)) } catch { return }
             }
         }
@@ -219,12 +237,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard flow.state != .idle else { return .terminateNow }
-        let alert = NSAlert()
-        alert.messageText = "Aktives Diktat sichern und beenden?"
-        alert.informativeText = "Die laufende Arbeit wird abgebrochen. Die Aufnahme bleibt zur manuellen Wiederholung erhalten."
-        alert.addButton(withTitle: "Sichern und beenden")
-        alert.addButton(withTitle: "Weiterarbeiten")
-        guard alert.runModal() == .alertFirstButtonReturn else { return .terminateCancel }
+        guard AlertPresenter.confirmQuitWithActiveDictation() else { return .terminateCancel }
         cancelAutoStop()
         flow.cancel()
         let activeTask = flow.task
@@ -265,20 +278,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setAPIKey() {
-        switch AlertPresenter.promptForAPIKey(initialValue: Config.apiKey) {
-        case .cancelled:
-            return
-        case .empty:
+        guard let key = AlertPresenter.promptForAPIKey(initialValue: Config.apiKey) else { return }
+        guard !key.isEmpty else {
             AlertPresenter.showWarning(title: "Kein API-Schlüssel gespeichert", message: "Das Feld war leer.")
-        case .key(let key):
-            do {
-                try KeychainAPIKeyStore.save(key)
-                updateStatus("Bereit")
-                AppLog.write("API key saved to Keychain")
-            } catch {
-                AppLog.write("Could not save API key: \(error.localizedDescription)")
-                AlertPresenter.showWarning(title: "API-Schlüssel konnte nicht gespeichert werden", message: error.localizedDescription)
-            }
+            return
+        }
+        do {
+            try KeychainAPIKeyStore.save(key)
+            updateStatus("Bereit")
+            AppLog.write("API key saved to Keychain")
+        } catch {
+            AppLog.write("Could not save API key: \(error.localizedDescription)")
+            AlertPresenter.showWarning(
+                title: "API-Schlüssel konnte nicht gespeichert werden", message: error.localizedDescription)
         }
     }
 
@@ -288,7 +300,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard count > 0, AlertPresenter.confirmDeleteSavedRecordings(count: count) else { return }
         let removed = FailedRecordingStore.removeAll()
         refreshSavedRecordings()
-        updateStatus(removed == count ? "Gespeicherte Aufnahmen gelöscht" : "Einige Aufnahmen konnten nicht gelöscht werden")
+        updateStatus(
+            removed == count ? "Gespeicherte Aufnahmen gelöscht" : "Einige Aufnahmen konnten nicht gelöscht werden")
         AppLog.write("User deleted \(removed) of \(count) saved recording(s)")
     }
 }
@@ -298,26 +311,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 extension AppDelegate: MenuBarControllerDelegate {
     func menuBarDidConfigureShortcut() {
         guard flow.state == .idle else { return }
-        if let shortcut = ShortcutCaptureView.prompt() { menuBarDidSelect(shortcut: shortcut); menuBar?.refresh() }
+        if let shortcut = ShortcutCaptureView.prompt() {
+            menuBarDidSelect(shortcut: shortcut)
+            menuBar?.refresh()
+        }
     }
+
     func menuBarDidConfigureVocabulary() {
-        let alert = NSAlert()
-        alert.messageText = "Vokabular und Kontext"
-        alert.informativeText = "Namen, Fachbegriffe oder ein kurzer Kontext. Maximal 2.000 Zeichen. Diese Hinweise werden mit jedem Diktat an OpenAI gesendet. Leer speichern entfernt die Hinweise."
-        let field = NSTextField(wrappingLabelWithString: "")
-        field.isEditable = true
-        field.isSelectable = true
-        field.isBezeled = true
-        field.drawsBackground = true
-        field.frame = NSRect(x: 0, y: 0, width: 440, height: 90)
-        field.stringValue = Config.prompt ?? ""
-        field.setAccessibilityLabel("Vokabular und Kontext")
-        alert.accessoryView = field
-        alert.addButton(withTitle: "Speichern")
-        alert.addButton(withTitle: "Abbrechen")
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
-        let value = field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard value.count <= 2000 else { updateStatus("Vokabular nicht gespeichert: maximal 2.000 Zeichen"); return }
+        guard let value = AlertPresenter.promptForVocabulary(initialValue: Config.prompt) else { return }
+        guard value.count <= 2000 else {
+            updateStatus("Vokabular nicht gespeichert: maximal 2.000 Zeichen")
+            return
+        }
         Config.settings.prompt = value
         updateStatus("Vokabular gespeichert")
     }
@@ -382,6 +387,4 @@ extension AppDelegate: MenuBarControllerDelegate {
     var menuBarShortcut: HotKeyShortcut { Config.shortcut }
     var menuBarModel: TranscriptionModel { Config.model }
     var menuBarLanguage: String? { Config.language }
-    var menuBarHasRetryableRecording: Bool { flow.state.canRetry && savedRecordings.contains(where: \.retryable) }
-    var menuBarHasStoredRecordings: Bool { !savedRecordings.isEmpty }
 }

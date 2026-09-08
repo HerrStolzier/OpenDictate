@@ -8,9 +8,7 @@ import OpenDictateCore
 enum FailedRecordingStore {
     struct RetryPayload: Sendable {
         let url: URL
-        let filename: String
         let data: Data
-        let created: Date
     }
 
     private static let maximumAudioBytes = 16 * 1_024 * 1_024
@@ -27,7 +25,7 @@ enum FailedRecordingStore {
     static func keep(_ audioURL: URL, recordedAt: Date) -> URL? {
         do {
             guard let audioData = secureRead(audioURL, maximumBytes: maximumAudioBytes),
-                  !audioData.isEmpty
+                !audioData.isEmpty
             else {
                 throw CocoaError(.fileReadTooLarge)
             }
@@ -80,17 +78,15 @@ enum FailedRecordingStore {
 
     static func payload(at url: URL, now: Date, key: SymmetricKey) -> RetryPayload? {
         guard let created = date(from: url.lastPathComponent),
-              now.timeIntervalSince(created) < RecordingRetention.maximumAge,
-              let audioData = secureRead(url, maximumBytes: maximumAudioBytes),
-              let savedCode = secureRead(authenticationURL(for: url), maximumBytes: authenticationBytes),
-              savedCode.count == authenticationBytes,
-              isValidAuthenticationCode(savedCode, for: audioData, filename: url.lastPathComponent, key: key)
+            now.timeIntervalSince(created) < RecordingRetention.maximumAge,
+            let audioData = secureRead(url, maximumBytes: maximumAudioBytes),
+            let savedCode = secureRead(authenticationURL(for: url), maximumBytes: authenticationBytes),
+            savedCode.count == authenticationBytes,
+            isValidAuthenticationCode(savedCode, for: audioData, filename: url.lastPathComponent, key: key)
         else { return nil }
-        return RetryPayload(url: url, filename: url.lastPathComponent, data: audioData, created: created)
+        return RetryPayload(url: url, data: audioData)
     }
 
-    static var hasAny: Bool { newest() != nil }
-    static var hasStoredFiles: Bool { !candidateAudioURLs().isEmpty }
     static var storedFileCount: Int { candidateAudioURLs().count }
 
     @discardableResult
@@ -146,14 +142,15 @@ enum FailedRecordingStore {
 
     static func candidateAudioURLs(in directoryURL: URL? = nil) -> [URL] {
         let directoryURL = directoryURL ?? directory
-        let contents = (try? FileManager.default.contentsOfDirectory(
-            at: directoryURL,
-            includingPropertiesForKeys: [.isRegularFileKey, .isSymbolicLinkKey],
-            options: [.skipsHiddenFiles]
-        )) ?? []
+        let contents =
+            (try? FileManager.default.contentsOfDirectory(
+                at: directoryURL,
+                includingPropertiesForKeys: [.isRegularFileKey, .isSymbolicLinkKey],
+                options: [.skipsHiddenFiles]
+            )) ?? []
         return contents.filter { url in
             guard isExpectedFilename(url.lastPathComponent),
-                  let values = try? url.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
+                let values = try? url.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
             else { return false }
             return values.isRegularFile == true && values.isSymbolicLink != true
         }
@@ -166,10 +163,10 @@ enum FailedRecordingStore {
 
         var metadata = stat()
         guard fstat(descriptor, &metadata) == 0,
-              metadata.st_mode & S_IFMT == S_IFREG,
-              metadata.st_uid == geteuid(),
-              metadata.st_size >= 0,
-              metadata.st_size <= maximumBytes
+            metadata.st_mode & S_IFMT == S_IFREG,
+            metadata.st_uid == geteuid(),
+            metadata.st_size >= 0,
+            metadata.st_size <= maximumBytes
         else { return nil }
 
         var data = Data(count: Int(metadata.st_size))
@@ -190,10 +187,11 @@ enum FailedRecordingStore {
     }
 
     static func authenticationCode(for data: Data, filename: String, key: SymmetricKey) -> Data {
-        Data(HMAC<SHA256>.authenticationCode(
-            for: authenticatedMessage(audioData: data, filename: filename),
-            using: key
-        ))
+        Data(
+            HMAC<SHA256>.authenticationCode(
+                for: authenticatedMessage(audioData: data, filename: filename),
+                using: key
+            ))
     }
 
     static func isValidAuthenticationCode(
@@ -228,9 +226,9 @@ enum FailedRecordingStore {
         defer { Darwin.close(descriptor) }
         var metadata = stat()
         guard fstat(descriptor, &metadata) == 0,
-              metadata.st_mode & S_IFMT == S_IFDIR,
-              metadata.st_uid == geteuid(),
-              fchmod(descriptor, 0o700) == 0
+            metadata.st_mode & S_IFMT == S_IFDIR,
+            metadata.st_uid == geteuid(),
+            fchmod(descriptor, 0o700) == 0
         else { throw CocoaError(.fileWriteNoPermission) }
     }
 
@@ -254,11 +252,12 @@ enum FailedRecordingStore {
     }
 
     private static func pruneOrphanAuthenticationFiles(in directoryURL: URL) {
-        let contents = (try? FileManager.default.contentsOfDirectory(
-            at: directoryURL,
-            includingPropertiesForKeys: [.isRegularFileKey, .isSymbolicLinkKey],
-            options: [.skipsHiddenFiles]
-        )) ?? []
+        let contents =
+            (try? FileManager.default.contentsOfDirectory(
+                at: directoryURL,
+                includingPropertiesForKeys: [.isRegularFileKey, .isSymbolicLinkKey],
+                options: [.skipsHiddenFiles]
+            )) ?? []
         for authURL in contents where authURL.lastPathComponent.hasSuffix(".m4a.auth") {
             let audioName = String(authURL.lastPathComponent.dropLast(5))
             guard isExpectedFilename(audioName) else { continue }

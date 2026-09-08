@@ -14,7 +14,8 @@ actor RecordingLibrary {
     func snapshot() async -> [SavedRecording] {
         FailedRecordingStore.prune()
         var entries: [SavedRecording] = []
-        for url in FailedRecordingStore.candidateAudioURLs().sorted(by: { $0.lastPathComponent > $1.lastPathComponent }) {
+        for url in FailedRecordingStore.candidateAudioURLs().sorted(by: { $0.lastPathComponent > $1.lastPathComponent })
+        {
             guard let created = FailedRecordingStore.date(from: url.lastPathComponent) else { continue }
             let valid = FailedRecordingStore.payload(filename: url.lastPathComponent) != nil
             var duration: Double?
@@ -22,7 +23,8 @@ actor RecordingLibrary {
                 let seconds = try? await AVURLAsset(url: url).load(.duration).seconds
                 if let seconds, seconds.isFinite { duration = seconds }
             }
-            entries.append(.init(filename: url.lastPathComponent, created: created, duration: duration, retryable: valid))
+            entries.append(
+                .init(filename: url.lastPathComponent, created: created, duration: duration, retryable: valid))
         }
         return entries
     }

@@ -32,7 +32,8 @@ final class LogWriter: @unchecked Sendable {
     func write(_ message: String) {
         let date = Date()
         queue.async { [self] in
-            let line = "[\(formatter.string(from: date))] \(message.replacingOccurrences(of: "\n", with: " ").prefix(4096))\n"
+            let line =
+                "[\(formatter.string(from: date))] \(message.replacingOccurrences(of: "\n", with: " ").prefix(4096))\n"
             do {
                 let manager = FileManager.default
                 try manager.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)

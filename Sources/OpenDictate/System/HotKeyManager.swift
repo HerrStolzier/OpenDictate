@@ -13,15 +13,16 @@ final class HotKeyManager {
     private let registerOverride: ((HotKeyShortcut, UInt32) throws -> EventHotKeyRef)?
     private let unregisterOverride: ((EventHotKeyRef) -> Void)?
 
-    init(register: ((HotKeyShortcut, UInt32) throws -> EventHotKeyRef)? = nil,
-         unregister: ((EventHotKeyRef) -> Void)? = nil) {
+    init(
+        register: ((HotKeyShortcut, UInt32) throws -> EventHotKeyRef)? = nil,
+        unregister: ((EventHotKeyRef) -> Void)? = nil
+    ) {
         registerOverride = register
         unregisterOverride = unregister
     }
 
     private func unregister(_ ref: EventHotKeyRef) {
-        if let unregisterOverride { unregisterOverride(ref) }
-        else { UnregisterEventHotKey(ref) }
+        if let unregisterOverride { unregisterOverride(ref) } else { UnregisterEventHotKey(ref) }
     }
 
     deinit {
@@ -37,7 +38,10 @@ final class HotKeyManager {
     /// call repeatedly: the Carbon event handler is installed only once, so
     /// switching shortcuts does not stack up handlers.
     func register(_ shortcut: HotKeyShortcut, action: @escaping () -> Void) throws {
-        if shortcut == registeredShortcut { self.action = action; return }
+        if shortcut == registeredShortcut {
+            self.action = action
+            return
+        }
 
         if handlerRef == nil && registerOverride == nil {
             try installEventHandler()
@@ -45,8 +49,11 @@ final class HotKeyManager {
 
         let nextID = activeID &+ 1
         let candidate: EventHotKeyRef
-        if let registerOverride { candidate = try registerOverride(shortcut, nextID) }
-        else { candidate = try registerNative(shortcut, id: nextID) }
+        if let registerOverride {
+            candidate = try registerOverride(shortcut, nextID)
+        } else {
+            candidate = try registerNative(shortcut, id: nextID)
+        }
         let previous = hotKeyRef
         hotKeyRef = candidate
         registeredShortcut = shortcut

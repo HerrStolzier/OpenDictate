@@ -1,25 +1,13 @@
 import Foundation
-import Security
 import OpenDictateCore
+import Security
 
 enum KeychainAPIKeyStore {
-    private static let service = "OpenDictate"
-    private static let account = "OPENAI_API_KEY"
+    private static let item = KeychainItem(account: "OPENAI_API_KEY")
 
     static func read() -> String? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-
-        var result: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
         guard
-            status == errSecSuccess,
-            let data = result as? Data,
+            let data = item.readData(),
             let key = String(data: data, encoding: .utf8),
             !key.isEmpty
         else {
@@ -31,17 +19,7 @@ enum KeychainAPIKeyStore {
 
     static func save(_ key: String) throws {
         let data = Data(key.utf8)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account
-        ]
-
-        let update: [String: Any] = [
-            kSecValueData as String: data
-        ]
-
-        let updateStatus = SecItemUpdate(query as CFDictionary, update as CFDictionary)
+        let updateStatus = item.update(with: data)
         if updateStatus == errSecSuccess {
             return
         }
@@ -50,9 +28,7 @@ enum KeychainAPIKeyStore {
             throw OpenDictateError.keychainStatus(updateStatus)
         }
 
-        var addQuery = query
-        addQuery[kSecValueData as String] = data
-        let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
+        let addStatus = item.add(data)
         guard addStatus == errSecSuccess else {
             throw OpenDictateError.keychainStatus(addStatus)
         }

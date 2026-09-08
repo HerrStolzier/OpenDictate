@@ -19,8 +19,9 @@ struct OpenAITranscriber: Sendable {
     private let session: URLSession
 
     init(session: URLSession? = nil) {
-        if let session { self.session = session }
-        else {
+        if let session {
+            self.session = session
+        } else {
             let configuration = URLSessionConfiguration.ephemeral
             configuration.timeoutIntervalForRequest = 30
             configuration.timeoutIntervalForResource = 120
@@ -32,12 +33,12 @@ struct OpenAITranscriber: Sendable {
 
     func transcribe(audioURL: URL, options: TranscriptionOptions? = nil) async throws -> String {
         try Task.checkCancellation()
-        return try await transcribe(audioData: Data(contentsOf: audioURL), filename: audioURL.lastPathComponent, options: options)
+        return try await transcribe(audioData: Data(contentsOf: audioURL), options: options)
     }
 
-    func transcribe(audioData: Data, filename: String, options: TranscriptionOptions? = nil) async throws -> String {
+    func transcribe(audioData: Data, options: TranscriptionOptions? = nil) async throws -> String {
         let options = try options ?? .current()
-        let request = try Self.request(audioData: audioData, filename: filename, options: options)
+        let request = try Self.request(audioData: audioData, options: options)
         try Task.checkCancellation()
         let timing = PhaseTiming(phase: "request")
         defer { timing.finish() }
@@ -46,9 +47,10 @@ struct OpenAITranscriber: Sendable {
         return try Self.decode(data: data, statusCode: response.statusCode)
     }
 
-    static func request(audioData: Data, filename: String, options: TranscriptionOptions) throws -> URLRequest {
+    static func request(audioData: Data, options: TranscriptionOptions) throws -> URLRequest {
         guard options.model.isUsableForUpload, !audioData.isEmpty,
-              audioData.count <= 25 * 1_024 * 1_024 else { throw OpenDictateError.invalidResponse }
+            audioData.count <= 25 * 1_024 * 1_024
+        else { throw OpenDictateError.invalidResponse }
         let boundary = "OpenDictateBoundary-\(UUID().uuidString)"
         var request = URLRequest(url: URL(string: "https://api.openai.com/v1/audio/transcriptions")!)
         request.httpMethod = "POST"
@@ -67,7 +69,9 @@ struct OpenAITranscriber: Sendable {
         if let prompt = options.prompt, !prompt.isEmpty { field("prompt", prompt) }
         // The endpoint detects the container. A fixed transport filename avoids
         // carrying local paths or multipart syntax into the request headers.
-        body.appendString("--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"recording.m4a\"\r\nContent-Type: audio/mp4\r\n\r\n")
+        body.appendString(
+            "--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"recording.m4a\"\r\nContent-Type: audio/mp4\r\n\r\n"
+        )
         body.append(audioData)
         body.appendString("\r\n--\(boundary)--\r\n")
         request.httpBody = body
@@ -76,7 +80,8 @@ struct OpenAITranscriber: Sendable {
 
     static func decode(data: Data, statusCode: Int) throws -> String {
         guard 200..<300 ~= statusCode else {
-            throw OpenDictateError.apiError(OpenAIAPIErrorMessage.humanReadableMessage(from: data, statusCode: statusCode))
+            throw OpenDictateError.apiError(
+                OpenAIAPIErrorMessage.humanReadableMessage(from: data, statusCode: statusCode))
         }
         struct Response: Decodable { let text: String }
         guard let result = try? JSONDecoder().decode(Response.self, from: data) else {

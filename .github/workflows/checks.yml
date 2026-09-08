@@ -17,6 +17,8 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
+      - name: Check formatting
+        run: swift format lint --configuration .swift-format --recursive Sources Tests Package.swift
       - name: Test including synthetic audio files
         run: swift test
       - name: Build and verify local ad-hoc bundle

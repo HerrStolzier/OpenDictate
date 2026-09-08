@@ -7,21 +7,11 @@ import Security
 /// launches. Directory ownership alone cannot distinguish an app-created file
 /// from one planted by another process running as the same user.
 enum RecordingAuthenticationKeyStore {
-    private static let service = "OpenDictate"
-    private static let account = "FAILED_RECORDING_AUTH_KEY"
+    private static let item = KeychainItem(account: "FAILED_RECORDING_AUTH_KEY")
 
     static func read() -> SymmetricKey? {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
-        var result: CFTypeRef?
-        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
-              let data = result as? Data,
-              data.count == 32
+        guard let data = item.readData(),
+            data.count == 32
         else { return nil }
         return SymmetricKey(data: data)
     }
@@ -37,14 +27,7 @@ enum RecordingAuthenticationKeyStore {
             throw OpenDictateError.keychainStatus(status)
         }
 
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: account,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
-            kSecValueData as String: bytes
-        ]
-        let addStatus = SecItemAdd(query as CFDictionary, nil)
+        let addStatus = item.add(bytes, accessible: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly)
         guard addStatus == errSecSuccess else {
             if addStatus == errSecDuplicateItem, let existing = read() { return existing }
             throw OpenDictateError.keychainStatus(addStatus)

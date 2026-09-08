@@ -1,19 +1,21 @@
 import Foundation
-import Testing
 import OpenDictateCore
+import Testing
+
 @testable import OpenDictate
 
 @Suite("Offline transcription API contract")
 struct TranscriptionRequestTests {
     @Test(arguments: [TranscriptionModel.gptTranscribe, .gpt4oMiniTranscribe])
     func languageFieldMatchesModel(_ model: TranscriptionModel) throws {
-        let request = try OpenAITranscriber.request(audioData: Data([1, 2]), filename: "private.m4a",
+        let request = try OpenAITranscriber.request(
+            audioData: Data([1, 2]),
             options: .init(apiKey: "test-only", model: model, language: "de", prompt: nil))
         let body = String(decoding: request.httpBody!, as: UTF8.self)
         #expect(body.contains(model == .gptTranscribe ? "name=\"languages[]\"" : "name=\"language\""))
         #expect(!body.contains(model == .gptTranscribe ? "name=\"language\"" : "name=\"languages[]\""))
         #expect(body.contains("\r\n\r\njson\r\n"))
-        #expect(!body.contains("private.m4a"))
+        #expect(body.contains("filename=\"recording.m4a\""))
     }
 
     @Test func parsesTypedResponseAndRejectsMalformedSuccess() throws {

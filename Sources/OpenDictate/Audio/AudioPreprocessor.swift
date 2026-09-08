@@ -30,9 +30,7 @@ enum AudioPreprocessor {
         guard plan.shouldExport else {
             return PreparedAudio(
                 url: audioURL,
-                originalDuration: originalDuration,
-                uploadDuration: plan.uploadDuration,
-                trimmedDuration: plan.trimmedDuration
+                uploadDuration: plan.uploadDuration
             )
         }
 
@@ -44,9 +42,7 @@ enum AudioPreprocessor {
 
         return PreparedAudio(
             url: trimmedURL,
-            originalDuration: originalDuration,
-            uploadDuration: plan.uploadDuration,
-            trimmedDuration: plan.trimmedDuration
+            uploadDuration: plan.uploadDuration
         )
     }
 
@@ -164,25 +160,25 @@ enum AudioPreprocessor {
 
         let exportBox = ExportSessionBox(exportSession)
         try await withTaskCancellationHandler {
-          try Task.checkCancellation()
-          try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            exportBox.session.exportAsynchronously {
-                switch exportBox.session.status {
-                case .completed:
-                    continuation.resume()
-                case .failed, .cancelled:
-                    continuation.resume(
-                        throwing: OpenDictateError.audioPreprocessingFailed(
-                            exportBox.session.error?.localizedDescription ?? "Audio export failed."
+            try Task.checkCancellation()
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                exportBox.session.exportAsynchronously {
+                    switch exportBox.session.status {
+                    case .completed:
+                        continuation.resume()
+                    case .failed, .cancelled:
+                        continuation.resume(
+                            throwing: OpenDictateError.audioPreprocessingFailed(
+                                exportBox.session.error?.localizedDescription ?? "Audio export failed."
+                            )
                         )
-                    )
-                default:
-                    continuation.resume(
-                        throwing: OpenDictateError.audioPreprocessingFailed("Audio export ended unexpectedly.")
-                    )
+                    default:
+                        continuation.resume(
+                            throwing: OpenDictateError.audioPreprocessingFailed("Audio export ended unexpectedly.")
+                        )
+                    }
                 }
             }
-          }
         } onCancel: {
             exportBox.session.cancelExport()
         }
