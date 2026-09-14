@@ -39,9 +39,8 @@ microphone access, transcription or insertion.
 The subsequent attended attempt with the corrected bundle completed audio
 preparation and transcription (request: 2.564 s; stop-to-result: 2.595 s).
 The delivery path copied a nonempty result successfully, then logged
-`accessibility=false, previousApp=TextEdit`. Direct insertion is therefore still
-unverified; the current bundle needs a valid Accessibility grant. The transcript
-content and visible manual clipboard recovery have not yet been checked.
+`accessibility=false, previousApp=TextEdit`. This attempt established no direct
+insertion; the later manual fallback and stable-candidate test are recorded below.
 Packaging fix: [PR #3](https://github.com/HerrStolzier/OpenDictate/pull/3), merged
 after the Swift checks and ad-hoc bundle build passed.
 
@@ -61,17 +60,34 @@ an old ad-hoc code hash, including after restart. The existing API-key ACL was
 extended to the installed app; the user had already approved this app for the
 recording-authentication item. Neither secret was replaced. The restart logged
 successful shortcut registration and no new Keychain prompt was observed.
-The microphone grant still matches the previous ad-hoc build, so the next
-attended test must handle normal microphone consent for this stable candidate.
-Direct TextEdit insertion, browser/Electron insertion and target-switch behavior
-remain open. Temporary setup windows were closed; the TextEdit test document
-remains for the next attended acceptance step.
+Both microphone and Accessibility grants now match this stable installed
+candidate's signature, verified after the attended test below. Temporary setup
+windows and all temporary TextEdit documents have been closed.
+
+### Direct TextEdit insertion — 2026-09-14, 21:57 CEST
+
+Candidate: installed `~/Applications/OpenDictate.app`, source including packaging
+fix `ab9f1b3`, signed by `OpenDictate Self-Signed`, CDHash
+`d495368f28bbf1bcb87444dbffa1f9118ac883fb`. TextEdit was initially not running.
+Exactly one fresh empty document was created and focused. The user started and
+stopped human microphone dictation with Option+Shift+Space, without Cmd+V, and
+confirmed automatic insertion worked. The resulting text was verified in the
+native accessibility tree and screenshot:
+"Dies ist ein kurzer Test. Sieben Äpfel liegen auf dem Tisch."
+
+Matching operational logs show preparation, a 1.810 s transcription request,
+29 ms delivery and 1.863 s stop-to-result, without a fallback/error entry for
+that attempt. User observation plus visible field content establish the direct
+insertion result; timings alone would not. The test document was immediately
+discarded without saving and TextEdit terminated, confirmed by process check.
+The daily-use OpenDictate app remains running. No additional recording, retry,
+browser test or general speech-quality assessment was performed.
 
 The 2026-09-07 candidate proved one human microphone dictation through its then-current `Cmd+V` delivery, conservative no-paste behavior after a foreground-app switch, manual clipboard recovery, cancellation retaining authenticated readable AAC, and two bounded synthetic live API checks. Those microphone, transcription, focus-switch, clipboard and recovery observations remain historical evidence for their exact paths. The successful TextEdit delivery does **not** validate the current direct `AXSelectedText` insertion implementation. See `live-acceptance-2026-09-07.md` for the exact scope and limitations.
 
 Still open:
 
-- Current hardened bundle: direct insertion into TextEdit, clipboard-only fallback when insertion is rejected, and one actually used browser or Electron text control. Confirm that a target switch still prevents insertion. Unsupported controls are allowed to fall back; silent insertion of different clipboard contents is not.
+- Current hardened bundle: one actually used browser or Electron text control, and clipboard fallback for a control that rejects insertion. Confirm that a target switch still prevents insertion. TextEdit direct insertion and the earlier missing-permission clipboard fallback are evidenced above. Unsupported controls are allowed to fall back; silent insertion of different clipboard contents is not.
 - Current Keychain state: users of the older helper must save the API key once through the in-app dialog. Confirming the real item's narrowed ACL is a credential-state check and remains separately authorized.
 - Microphone permission denied; built-in versus selected external input; visible elapsed time and low level; native 90-second stop; unplug/interruption.
 - Custom shortcut capture with keyboard-only navigation; collision with another app; original shortcut still works after a failed replacement.
