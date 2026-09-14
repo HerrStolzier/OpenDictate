@@ -35,7 +35,7 @@
                         fixtureClipboardChange = NSPasteboard.general.changeCount
                         return copied
                     },
-                    paste: { [unowned self] in await inserter.pasteIntoPreviousApp(target) }))
+                    paste: { [unowned self] text in await inserter.pasteIntoPreviousApp(target, text: text) }))
         }
 
         static func run(_ app: NSApplication) {

@@ -51,3 +51,12 @@ The optional hold-to-talk mode is deferred. Custom toggle shortcuts are supporte
 ## Review 7: crash leftovers
 
 New start/export failure paths clean their own partial outputs. The flow preserves the original if copying into recovery fails. It deliberately does not sweep historical temp audio by filename: such a file might be the only remaining copy after a crash or failed save. A future crash-recovery feature should establish ownership and recovery consent before deleting legacy recordings.
+
+## Git integration — 2026-09-14
+
+The daily-interface branch was merged locally with the later direct-insertion
+security fixes and recovery/UI performance commits. Both transcript byte delivery
+and no-auto-insertion on retry remain covered by the merged offline suite.
+The processing-focus helper now passes the explicit transcript to the insertion
+API. Earlier UI evidence remains historical; no app was launched or installed
+for this integration, and the merged delivery path needs native acceptance.
