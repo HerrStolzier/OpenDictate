@@ -1,5 +1,16 @@
 # OpenDictate repository practices
 
+## Project context and authorized work
+
+- Read `PROJECT.md` for product scope and `docs/remaining-acceptance.md` for the
+  single current handoff. Verify checkout state before relying on that handoff.
+- Consult `APPROVALS.md` for evidenced project approvals; the record does not
+  expand the original authorization or override later restrictions.
+- Routine commits, pushes to this repository and merges of verified changes
+  belong to an authorized implementation task under the governing workspace
+  rules. Check deployment effects before push/merge; publication, loss of
+  existing work or material scope expansion requires specific authorization.
+
 ## Scope and architecture
 
 - Keep the project SwiftPM-first and compatible with macOS 14 or newer.
@@ -27,25 +38,24 @@
 
 ## Required verification
 
-Run after source changes:
+Run the source-change checks in `CHECKS.md` after source changes, and its bundle
+checks for release or packaging changes. Documentation-only changes need link,
+consistency and diff checks, not an unrelated source test suite.
 
-```bash
-swift format lint --configuration .swift-format --recursive Sources Tests Package.swift
-swift test -Xswiftc -warnings-as-errors
-bash -n scripts/build-app.sh
-bash -n scripts/store-api-key.sh
-```
-
-For release- or packaging-related changes, also run `./scripts/build-app.sh` and verify the generated Plist and signature. A build does not prove microphone, Accessibility, target-field paste, VoiceOver, signing identity persistence, installation, or publication.
-
-Tests must remain offline and deterministic by default. Live microphone tests, provider requests, app launch/install, Keychain changes, TCC reset, signing-identity changes, commit, push, and publication each require the corresponding explicit authorization. Never turn a synthetic fixture or one successful dictation into a general speech-quality claim.
+Tests remain offline and deterministic by default. Live microphone tests,
+provider requests, app launch/install, Keychain changes, TCC reset, signing-identity
+changes and publication require corresponding authorization. Use applicable
+existing authorization without broadening it. Never turn a synthetic fixture
+or one successful dictation into a general speech-quality claim.
 
 ## Documentation ownership
 
+- `PROJECT.md`: product goal, scope, non-goals and grounded decisions.
+- `APPROVALS.md`: evidenced project authorization, scope and validity.
 - `README.md`: current product behavior and setup.
 - `PRIVACY.md`: complete current data flow and retention behavior.
 - `CHECKS.md`: reproducible verification commands and explicit live-test gates.
-- `docs/remaining-acceptance.md`: behavior that is not yet evidenced.
+- `docs/remaining-acceptance.md`: single current handoff and behavior not yet evidenced.
 - Dated acceptance files: historical evidence for that exact candidate only.
 
 Update these documents in the same change whenever their claimed behavior changes.

@@ -1,5 +1,9 @@
 # OpenDictate
 
+Project orientation: [product and scope](PROJECT.md), [current handoff and open
+acceptance](docs/remaining-acceptance.md), [project rules](AGENTS.md),
+[recorded approvals](APPROVALS.md), and [verification](CHECKS.md).
+
 Small macOS dictation app inspired by the VoiceScribe architecture:
 
 1. Register a global hotkey.
