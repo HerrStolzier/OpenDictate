@@ -51,12 +51,17 @@ Die acht geänderten Workspace-Dokumente wurden auf Inhalt, Whitespace,
 geschlossene Codeblöcke, vorhandene Verweisziele und Entfernung alter pauschaler
 Git-Gegenregeln geprüft. Die Vorlagen enthalten Platzhalter, keine neuen Freigaben.
 
-## Offener externer Abschluss
+## Externer Abschluss und ursprüngliche Grenze
 
 Automatische Freigabeprüfung lehnte den Push des Dokumentationsbranches nach
 `HerrStolzier/OpenDictate` ab: direkte Zustimmung für genau diesen Payload und
-dieses Ziel sei nicht belegt. Kein Umgehungsversuch. Lokaler Commit und Prüfungen
-sind abgeschlossen; Upload, GitHub-Prüfung und Merge sind nicht belegt.
+dieses Ziel sei nicht belegt. Kein Umgehungsversuch. Basti bestätigte danach
+direkt den Upload und geprüften Merge von `956afec`; der Commit wurde in
+[PR #2](https://github.com/HerrStolzier/OpenDictate/pull/2) hochgeladen.
+Die erste CI scheiterte am bestehenden UserDefaults-/SDK-Fehler. Nach dem
+erfolgreichen SDK-/Performance-Merge von PR #1 wurde `2c7ce37` konfliktfrei
+integriert. Die abschließende CI und der Merge sind direkt im PR nachprüfbar;
+dieser Bericht behauptet keine neue Produkt-Live-Abnahme.
 
 ## Ablage
 

@@ -9,14 +9,14 @@ Product decisions live in [PROJECT.md](../PROJECT.md), approvals in
 Documentation ownership is implemented and checked against the existing
 Git/acceptance handoff. Local links, diff and preservation of technical invariants
 passed. No new app functionality or live test is part of this task. The next
-product step remains the authorized live acceptance below; the documentation
+product step remains the separately authorized live acceptance below; the documentation
 pilot does not authorize it. Detailed pilot evidence is kept in
 [the dated pilot report](documentation-pilot-2026-09-14.md).
 
-Documentation Git handoff: locally committed on `codex/documentation-pilot`.
-Push and merge remain open: automatic approval review rejected the GitHub
-upload pending direct authorization for this payload and repository. No upload
-or alternate transfer was performed.
+Documentation Git handoff: [PR #2](https://github.com/HerrStolzier/OpenDictate/pull/2)
+tracks upload, CI and merge. The initial upload approval block was resolved by
+direct user authorization. The SDK fix from merged PR #1 is integrated for CI;
+this does not establish any of the live acceptance below.
 
 The source changes and offline tests do not activate the app or prove real dictation quality. Do not install, launch a replacement app, publish a binary or make paid transcription requests without the corresponding authorization.
 
