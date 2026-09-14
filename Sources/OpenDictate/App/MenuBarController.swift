@@ -49,6 +49,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     ]
 
     private var isMenuOpen = false
+    private var renderedState: DictationState?
     private weak var delegate: MenuBarControllerDelegate?
     private var recordingsMenuItem: NSMenuItem?
     private var recordingMenuItem: NSMenuItem?
@@ -194,23 +195,27 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     }
 
     func updateState(_ state: DictationState, elapsed: Double = 0, level: Float = -160) {
-        let symbol: String
-        switch state {
-        case .idle: symbol = "mic"
-        case .recording: symbol = "record.circle.fill"
-        case .processing: symbol = "ellipsis.circle"
-        case .delivering: symbol = "doc.on.clipboard"
+        if renderedState != state {
+            let symbol: String
+            switch state {
+            case .idle: symbol = "mic"
+            case .recording: symbol = "record.circle.fill"
+            case .processing: symbol = "ellipsis.circle"
+            case .delivering: symbol = "doc.on.clipboard"
+            }
+            statusItem?.button?.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)
+            statusItem?.button?.image?.isTemplate = true
+            statusItem?.button?.imagePosition = .imageLeading
+            renderedState = state
+            refreshActions()
         }
-        statusItem?.button?.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)
-        statusItem?.button?.image?.isTemplate = true
-        statusItem?.button?.imagePosition = .imageLeading
-        statusItem?.button?.title = state == .recording ? " \(Int(elapsed)) s" : ""
+        let title = state == .recording ? " \(Int(elapsed)) s" : ""
+        if statusItem?.button?.title != title { statusItem?.button?.title = title }
         if state == .recording {
             let remaining = max(0, Int(Config.maximumRecordingDuration - elapsed))
             let warning = remaining <= 10 ? " – noch \(remaining) s" : ""
             updateStatus("Aufnahme \(Int(elapsed)) s, Pegel \(Int(level)) dB\(warning)")
         }
-        refreshActions()
     }
 
     private func refreshActions() {

@@ -262,7 +262,11 @@ enum FailedRecordingStore {
             let audioName = String(authURL.lastPathComponent.dropLast(5))
             guard isExpectedFilename(audioName) else { continue }
             let audioURL = directoryURL.appendingPathComponent(audioName, isDirectory: false)
-            if secureRead(audioURL, maximumBytes: maximumAudioBytes) == nil {
+            // Only remove a sidecar when its audio directory entry is absent.
+            // Reading the audio is unnecessary here; uncertain or unreadable
+            // entries retain their sidecar. Retry still authenticates all bytes.
+            var metadata = stat()
+            if lstat(audioURL.path, &metadata) != 0 && errno == ENOENT {
                 _ = unlinkFile(authURL)
             }
         }

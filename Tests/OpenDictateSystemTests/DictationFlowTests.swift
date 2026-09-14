@@ -13,6 +13,7 @@ struct DictationFlowTests {
         var stops = 0
         var uploads = 0
         var pasted = 0
+        var pastedText: String?
         var copySucceeds = true
         var keepSucceeds = true
         var text = "dictated text"
@@ -54,6 +55,7 @@ struct DictationFlowTests {
                     copy: { _ in self.copySucceeds },
                     paste: {
                         self.pasted += 1
+                        self.pastedText = $0
                         return true
                     }
                 ))
@@ -134,6 +136,15 @@ struct DictationFlowTests {
         await h.flow.task?.value
         #expect(outcomes == [.failed])
         #expect(h.cleaned.isEmpty)
+    }
+
+    @Test func automaticInsertionReceivesTheExactTrimmedTranscript() async throws {
+        let h = Harness()
+        h.text = "  dictated text\n"
+        _ = try h.flow.start()
+        _ = h.flow.stop()
+        await h.flow.task?.value
+        #expect(h.pastedText == "dictated text")
     }
 
     @Test func skippedAudioIsKeptWithoutUpload() async throws {

@@ -28,9 +28,11 @@ system installation is changed. Also lint the new run script with
 
 - `swift test`: offline logic, lifecycle, HTTP stubs, recovery, logging and synthetic audio-file tests. Optional benchmark and live API test are skipped by default.
 - `swift format lint --configuration .swift-format --recursive Sources Tests Package.swift`: project formatting.
-- `./scripts/build-app.sh`: release bundle, Plist and signature verification. Does not launch/install it.
+- `./scripts/build-app.sh`: release bundle, Plist, signature and Hardened Runtime verification. Does not launch/install it.
 - `git diff --check` and `bash -n scripts/build-app.sh` before handoff.
-- Real microphone, hotkeys, target-field paste and VoiceOver require attended native-app acceptance; an accessibility tree alone is not a VoiceOver listening test.
+- Real microphone, hotkeys, direct target-field insertion, clipboard fallback and VoiceOver require attended native-app acceptance; an accessibility tree alone is not a VoiceOver listening test.
+- After changing the insertion mechanism, recheck one native text control and one actually used browser or Electron control. A successful historical `Cmd+V` test does not validate direct `AXSelectedText` insertion.
+- For a legacy API-key item, save the key once through the in-app dialog and inspect or test its resulting ACL separately; never use a real credential in automated checks.
 
 ## Explicit live API check
 
@@ -68,3 +70,13 @@ copy described in `docs/live-acceptance-2026-09-13.md`. The normal macOS app lau
 reused existing instances for an actual foreground switch; background-only UI
 events did not suffice. The daily launcher also passed both duplicate prevention
 and repeated-open reuse checks. All helpers were closed afterward.
+
+## Offline resource benchmark
+
+No microphone, network or Keychain access. Synthetic recovery files are created and removed only in a unique temporary directory. Run in release mode, with an absolute output path in an existing directory:
+
+```bash
+OPENDICTATE_RESOURCE_BENCHMARK=1 OPENDICTATE_RESOURCE_BENCHMARK_OUTPUT=/path/to/recovery.csv swift test -c release --filter ResourceBenchmarkTests
+```
+
+The CSV records cleanup wall time, process CPU time and cumulative process peak RSS for empty, normal-size and maximum-size recovery fixtures. Exclude iteration 0 when comparing warm medians. Peak RSS includes fixture generation and runner allocations; it is not a measurement of app RAM saved. Results and remaining gaps: `docs/resource-performance-2026-09-08.md`.

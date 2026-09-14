@@ -15,7 +15,7 @@ final class DictationFlow {
         var removeRetry: @MainActor (FailedRecordingStore.RetryPayload) -> Void
         var clean: @MainActor (URL) -> Void
         var copy: @MainActor (String) -> Bool
-        var paste: @MainActor () async -> Bool
+        var paste: @MainActor (String) async -> Bool
     }
 
     private let operations: Operations
@@ -195,7 +195,7 @@ final class DictationFlow {
             onOutcome?(.textAvailable)
             return .copied
         }
-        let pasted = await operations.paste()
+        let pasted = await operations.paste(text)
         onStatus?(pasted ? "Einfügebefehl gesendet – Text auch kopiert" : "Text kopiert")
         onOutcome?(pasted ? .deliveryUnconfirmed : .textAvailable)
         return pasted ? .pasteSent : .copied

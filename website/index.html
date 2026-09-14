@@ -1,51 +1,33 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="OpenDictate ist eine kleine Diktier-App für macOS. Per Tastenkürzel aufnehmen, mit OpenAI transkribieren und Text einfügen.">
-  <title>OpenDictate — Gedanken werden Text.</title>
-  <link rel="icon" href="icon.png">
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="OpenDictate: eine kleine Diktier-App für macOS. Aufnehmen, mit OpenAI transkribieren und im Textfeld weiterarbeiten.">
+<title>OpenDictate — Diktieren auf dem Mac</title>
+<link rel="icon" href="icon.png"><link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <a class="skip" href="#main">Zum Inhalt</a>
-  <header class="header wrap">
-    <a class="brand" href="#"><img src="icon.png" width="36" height="36" alt="">OpenDictate</a>
-    <a class="nav" href="#details">Über die App <span aria-hidden="true">↗</span></a>
-  </header>
-  <main id="main">
-    <section class="hero wrap" aria-labelledby="headline">
-      <div class="intro">
-        <p class="eyebrow"><span class="dot"></span> EIN KLEINER HELFER FÜR macOS</p>
-        <h1 id="headline">Der Gedanke ist da.<br>Jetzt auch<br><em>der Text.</em></h1>
-        <p class="lead">Sprich, statt alles zu tippen. OpenDictate macht aus deiner Stimme Text und fügt ihn in die App ein, in der du gerade arbeitest.</p>
-        <a class="button" href="#ablauf">So funktioniert’s <span aria-hidden="true">↓</span></a>
-        <p class="caption">Eigener OpenAI API-Schlüssel · Internet erforderlich</p>
-      </div>
-      <div class="demo" aria-label="Illustratives Beispiel eines Diktats">
-        <div class="window">
-          <div class="window-bar"><span class="lights" aria-hidden="true">● ● ●</span><span>Eine kurze Notiz</span><span aria-hidden="true">↗</span></div>
-          <div class="paper"><p class="date">GEDANKEN FÜR SPÄTER</p><h2>Einfach mal<br>aussprechen.</h2><p>Die besten Ideen kommen selten dann, wenn ich schon die Hände auf der Tastatur habe.<span class="cursor" aria-hidden="true"></span></p></div>
-          <div class="transcript"><span class="check" aria-hidden="true">✓</span> Ausgesprochen. Aufgeschrieben.</div>
-        </div>
-        <div class="recording"><span class="mic" aria-hidden="true">●</span><div><strong>Ein Kürzel. Dein Gedanke.</strong><span>Aufnahme starten und stoppen</span></div><div class="keys" aria-label="Option, Umschalt und Leertaste"><kbd>⌥</kbd><kbd>⇧</kbd><kbd>space</kbd></div></div>
-        <p class="demo-label">BEISPIEL · KEINE LIVE-AUFNAHME</p>
-      </div>
-    </section>
-    <section class="flow wrap" id="ablauf" aria-labelledby="flow-heading">
-      <div class="section-title"><p class="eyebrow">VON DER STIMME IN DEIN TEXTFELD</p><h2 id="flow-heading">Drei Schritte. Ein Gedanke weniger im Kopf.</h2></div>
-      <div class="steps">
-        <article><span class="number">01</span><h3>Kürzel drücken.</h3><p>Setze den Cursor in dein Textfeld. Mit <span class="shortcut">⌥ ⇧ Leertaste</span> startest du die Aufnahme. Das Kürzel lässt sich anpassen.</p></article>
-        <article><span class="number">02</span><h3>Gedanken aussprechen.</h3><p>Diktiere deine Nachricht oder Notiz. Drücke das Kürzel erneut, sobald du fertig bist.</p></article>
-        <article><span class="number">03</span><h3>Mit Text weitermachen.</h3><p>OpenAI transkribiert deine Aufnahme. OpenDictate fügt den Text ein. Falls das nicht klappt, kannst du ihn aus der Zwischenablage einfügen.</p></article>
-      </div>
-    </section>
-    <section class="details wrap" id="details" aria-labelledby="details-heading">
-      <div><p class="eyebrow">KLEIN, MIT KLAREN GRENZEN</p><h2 id="details-heading">In deiner Menüleiste.<br>Mit deinem API-Schlüssel.</h2><p>OpenDictate konzentriert sich auf einen Ablauf: aufnehmen, transkribieren, einfügen.</p></div>
-      <div class="facts"><article><h3>Du bringst den Schlüssel mit.</h3><p>Dein OpenAI API-Schlüssel liegt im macOS-Schlüsselbund. Für die Transkription fallen API-Nutzungskosten bei OpenAI an.</p></article><article><h3>Die Aufnahme geht an OpenAI.</h3><p>Die Spracherkennung läuft online. OpenDictate enthält keine Analyse- oder Tracking-Funktion. Der fertige Text bleibt zum Einfügen in deiner Zwischenablage.</p></article><article><h3>Ein Projekt in Entwicklung.</h3><p>Die App wird noch geprüft und verbessert. Ein signierter und notarisierter öffentlicher Download steht derzeit nicht bereit.</p></article></div>
-    </section>
-  </main>
-  <footer class="wrap"><a class="brand" href="#">OpenDictate<span class="dot"></span></a><span>Seitenentwurf · September 2026</span><a href="#main">Nach oben ↑</a></footer>
+<a class="skip" href="#main">Zum Inhalt</a>
+<div class="page">
+<header><a class="brand" href="#main"><img src="icon.png" width="32" height="32" alt="">OpenDictate</a><span class="platform">Für macOS</span><a href="#details">Gut zu wissen ↓</a></header>
+<main id="main">
+<section class="intro" aria-labelledby="headline">
+<p class="margin-note">Eine App für die Menüleiste<span class="development">In Entwicklung</span></p>
+<div><h1 id="headline">Manches ist schneller<br><span>gesagt als getippt.</span></h1><p class="lead">Eine längere Nachricht. Eine Notiz zwischendurch. Der Gedanke, den du gerade nicht ausformulieren magst. Mit OpenDictate sprichst du ihn ein und arbeitest mit dem Text weiter.</p></div>
+</section>
+<section class="example" aria-labelledby="example-heading">
+<div class="example-label"><h2 id="example-heading">Zum Beispiel</h2><span>So könnte ein Diktat aussehen</span></div>
+<div class="dictation">
+<div class="spoken"><span class="label"><span class="record-dot" aria-hidden="true"></span> <span class="desktop-label">Du sprichst</span><span class="mobile-label">Gesprochen → als Text eingefügt</span></span><p>„Ich bin noch unterwegs. Lass uns eine halbe Stunde später anfangen.“</p><span class="mobile-label example-note">Illustratives Beispiel, keine Live-Aufnahme</span></div>
+<div class="written"><span class="label">Im Textfeld</span><p>Ich bin noch unterwegs. Lass uns eine halbe Stunde später anfangen.<span class="cursor" aria-hidden="true"></span></p><span class="example-note">Illustratives Beispiel, keine Live-Aufnahme</span></div>
+</div>
+<div class="shortcut-row"><div class="keys" aria-label="Option, Umschalt und Leertaste"><kbd>⌥</kbd><kbd>⇧</kbd><kbd>Leertaste</kbd></div><p>Einmal drücken zum Aufnehmen.<br>Noch einmal, wenn du fertig bist.</p><a href="#ablauf">Der Ablauf ↓</a></div>
+</section>
+<section class="text-section" id="ablauf" aria-labelledby="flow-heading"><h2 id="flow-heading">Und dann?</h2><div class="prose"><p>OpenDictate schickt die Aufnahme zur Transkription an OpenAI und fügt den fertigen Text über die macOS-Bedienungshilfen direkt in die zuvor aktive App ein. Dein Cursor steht dafür schon dort, wo du schreiben möchtest.</p><p>Wechselst du während der Verarbeitung die App oder unterstützt das Textfeld die direkte Einfügung nicht, landet der Text nur in der Zwischenablage. Du kannst ihn dann selbst einfügen. Das automatische Einfügen lässt sich auch ganz ausschalten.</p><p class="aside">Das Tastenkürzel kannst du in der Menüleiste ändern.</p></div></section>
+<section class="text-section details" id="details" aria-labelledby="details-heading"><h2 id="details-heading">Gut zu wissen</h2><div class="essential"><p class="requirements">Du brauchst einen Mac, Internet und einen eigenen OpenAI API-Schlüssel.</p><p class="cost-note">Die Transkription kostet API-Gebühren bei OpenAI.</p><dl><div><dt>Zugriff auf dem Mac</dt><dd>Mikrofon zum Aufnehmen, Bedienungshilfen zum automatischen Einfügen.</dd></div><div><dt>Schlüssel &amp; Audio</dt><dd>Dein Schlüssel bleibt im macOS-Schlüsselbund. Die Aufnahme geht zur Transkription an OpenAI. OpenDictate enthält kein Tracking.</dd></div><div><dt>Text &amp; Aufnahmen</dt><dd>Text bleibt bis zum Überschreiben in der Zwischenablage. Fehlgeschlagene Aufnahmen kannst du erneut versuchen: bis zu fünf, höchstens 24 Stunden lokal gespeichert.</dd></div></dl></div></section>
+<aside class="status"><span class="status-mark" aria-hidden="true">↳</span><div><h2>Noch in Arbeit.</h2><p>OpenDictate wird weiter geprüft und verbessert. Einen signierten und notarisierten öffentlichen Download gibt es derzeit noch nicht.</p></div></aside>
+</main>
+<footer><span>OpenDictate</span><span>Lokaler Seitenentwurf · September 2026</span><a href="#main">Nach oben ↑</a></footer>
+</div>
 </body>
 </html>

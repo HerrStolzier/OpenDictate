@@ -25,10 +25,14 @@ access existing recordings, settings, clipboard or credentials.
 
 Native debug UI interaction passed on 2026-09-13: first click into an inactive panel, Tab/Shift+Tab, Space through recording/processing/cancel, and passive status display preserving focus in a separate empty test app. These are synthetic-state UI checks; real dictation and VoiceOver acceptance remain open. See `CHECKS.md` for reproduction.
 
-Already evidenced on 2026-09-07 and not to be repeated merely to rebuild the record: one human microphone dictation pasted into TextEdit; conservative no-paste behavior after a foreground-app switch; manual availability of that transcript from the clipboard; cancellation retaining an authenticated, readable AAC recording; and two bounded synthetic live API checks. See `live-acceptance-2026-09-07.md` for the exact scope and limitations.
+The 2026-09-07 candidate proved one human microphone dictation through its then-current `Cmd+V` delivery, conservative no-paste behavior after a foreground-app switch, manual clipboard recovery, cancellation retaining authenticated readable AAC, and two bounded synthetic live API checks. Those microphone, transcription, focus-switch, clipboard and recovery observations remain historical evidence for their exact paths. The successful TextEdit delivery does **not** validate the current direct `AXSelectedText` insertion implementation. See `live-acceptance-2026-09-07.md` for the exact scope and limitations.
+
+The September 13 UI evidence also predates this integration with direct AXSelectedText delivery. It does not establish native end-to-end acceptance of the merged candidate.
 
 Still open:
 
+- Current hardened bundle: direct insertion into TextEdit, clipboard-only fallback when insertion is rejected, and one actually used browser or Electron text control. Confirm that a target switch still prevents insertion. Unsupported controls are allowed to fall back; silent insertion of different clipboard contents is not.
+- Current Keychain state: users of the older helper must save the API key once through the in-app dialog. Confirming the real item's narrowed ACL is a credential-state check and remains separately authorized.
 - Microphone permission denied; built-in versus selected external input; visible elapsed time and low level; native 90-second stop; unplug/interruption.
 - Custom shortcut capture with keyboard-only navigation; collision with another app; original shortcut still works after a failed replacement.
 - Clipboard failure exposes last text. VoiceOver recognizes recording state and controls, including the countdown and cancel/discard distinction.
