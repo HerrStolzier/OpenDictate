@@ -97,6 +97,8 @@ else
   SIGN_ARGS=(--force --deep --options runtime --sign -)
 fi
 
+SIGN_ARGS+=(--entitlements "$ROOT/Assets/OpenDictate.entitlements")
+
 clear_xattrs
 if ! codesign "${SIGN_ARGS[@]}" "$APP" 2>/dev/null; then
   clear_xattrs
@@ -104,9 +106,5 @@ if ! codesign "${SIGN_ARGS[@]}" "$APP" 2>/dev/null; then
 fi
 
 clear_xattrs
-codesign --verify --deep --strict "$APP"
-if ! codesign -d --verbose=4 "$APP" 2>&1 | grep 'flags=.*runtime' >/dev/null; then
-  echo "Signed app is missing Hardened Runtime." >&2
-  exit 1
-fi
+"$ROOT/scripts/verify-app.sh" "$APP"
 echo "$APP"

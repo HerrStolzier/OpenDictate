@@ -7,8 +7,13 @@ changes on rebuild, so development builds may need the grant again.
 
 `scripts/build-app.sh` uses the identity named `OpenDictate Self-Signed` when it
 exists (override with `OPENDICTATE_SIGN_IDENTITY`) and otherwise falls back to an
-ad-hoc signature. The build fails if the final bundle does not report the
-Hardened Runtime flag.
+ad-hoc signature. Every signature includes `Assets/OpenDictate.entitlements`
+with microphone input enabled. The build fails if the final signed bundle
+does not report Hardened Runtime or the required boolean audio-input entitlement.
+Hardened Runtime without that entitlement prevents macOS from granting microphone
+access. This capability does not replace the user's microphone permission.
+Existing microphone and Accessibility grants can refer to an older ad-hoc
+code hash; verify the current candidate through the normal macOS permission UI.
 
 Direct insertion requires the focused control to expose a settable
 `AXSelectedText` attribute. When it does not, OpenDictate leaves the transcript

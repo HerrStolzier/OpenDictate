@@ -6,6 +6,7 @@
 swift format lint --configuration .swift-format --recursive Sources Tests Package.swift
 swift test -Xswiftc -warnings-as-errors
 bash -n scripts/build-app.sh
+bash -n scripts/verify-app.sh
 bash -n scripts/store-api-key.sh
 git diff --check
 ```
@@ -13,6 +14,11 @@ git diff --check
 For release or packaging changes, additionally run `./scripts/build-app.sh` and
 verify the generated Plist and signature. A build does not prove microphone,
 target-field delivery, VoiceOver, installation or publication.
+The build calls `scripts/verify-app.sh`, which checks the final signed bundle's
+Hardened Runtime flag and boolean `com.apple.security.device.audio-input`
+entitlement. Run `./scripts/verify-app.sh /path/to/OpenDictate.app` to repeat
+these checks without rebuilding or launching. A missing or false entitlement
+must fail verification, even when the signature itself is valid.
 
 Documentation-only changes: run `git diff --check`, verify changed local links
 and review ownership, conflicting rules and evidence scope. Include new files

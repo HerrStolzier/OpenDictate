@@ -22,6 +22,20 @@ The source changes and offline tests do not activate the app or prove real dicta
 
 ## Live acceptance
 
+The 2026-09-14 attended attempt on `6401655` reached microphone permission
+checking through the registered Option+Shift+Space shortcut, but macOS denied
+access: the Hardened Runtime bundle lacked the audio-input entitlement. The
+packaging fix adds it and verifies the final signed entitlement during every
+build. Existing local microphone and Accessibility grants matched the previous
+ad-hoc binary, so current-candidate permission and live delivery acceptance
+remain required. No successful recording or transcription was established by
+that attempt.
+The corrected local bundle passed signature, Hardened Runtime and entitlement
+verification and was restarted with the shortcut registered. Separately signed
+temporary bundles with missing, false and string-valued audio-input entitlements
+were all rejected by the verifier. These packaging checks do not establish
+microphone access, transcription or insertion.
+
 The 2026-09-07 candidate proved one human microphone dictation through its then-current `Cmd+V` delivery, conservative no-paste behavior after a foreground-app switch, manual clipboard recovery, cancellation retaining authenticated readable AAC, and two bounded synthetic live API checks. Those microphone, transcription, focus-switch, clipboard and recovery observations remain historical evidence for their exact paths. The successful TextEdit delivery does **not** validate the current direct `AXSelectedText` insertion implementation. See `live-acceptance-2026-09-07.md` for the exact scope and limitations.
 
 Still open:
