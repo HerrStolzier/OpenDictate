@@ -6,7 +6,7 @@ import OpenDictateCore
 /// change takes effect on the next dictation without a restart.
 enum Config {
     static let settings = Settings(
-        store: UserDefaults.standard,
+        store: UserDefaultsStore(UserDefaults.standard),
         environment: ProcessInfo.processInfo.environment
     )
 

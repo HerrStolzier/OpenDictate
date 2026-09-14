@@ -1,0 +1,16 @@
+phase,iteration,milliseconds,bytes
+original,0,0,439465
+analyze,0,22.32175,0
+export,0,11.880125,416287
+analyze,1,15.217167,0
+export,1,5.537916,416287
+analyze,2,15.034625,0
+export,2,5.572667,416287
+analyze,3,15.034042,0
+export,3,5.256166,416287
+analyze,4,14.737542,0
+export,4,5.346208,416287
+analyze,5,15.599375,0
+export,5,6.827125,416287
+analyze,6,16.197708,0
+export,6,6.768708,416287

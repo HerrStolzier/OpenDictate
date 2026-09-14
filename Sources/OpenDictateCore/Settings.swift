@@ -8,8 +8,6 @@ public protocol KeyValueStore: AnyObject, Sendable {
     func removeObject(forKey defaultName: String)
 }
 
-extension UserDefaults: KeyValueStore {}
-
 /// Live settings.
 ///
 /// Precedence is stored value, then environment variable, then built-in default.
