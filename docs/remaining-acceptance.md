@@ -1,5 +1,23 @@
 # Remaining acceptance and optional extensions
 
+This is the single current handoff; no parallel STATUS.md is maintained.
+Product decisions live in [PROJECT.md](../PROJECT.md), approvals in
+[APPROVALS.md](../APPROVALS.md), and procedures in [CHECKS.md](../CHECKS.md).
+
+## Documentation pilot — 2026-09-14
+
+Documentation ownership is implemented and checked against the existing
+Git/acceptance handoff. Local links, diff and preservation of technical invariants
+passed. No new app functionality or live test is part of this task. The next
+product step remains the separately authorized live acceptance below; the documentation
+pilot does not authorize it. Detailed pilot evidence is kept in
+[the dated pilot report](documentation-pilot-2026-09-14.md).
+
+Documentation Git handoff: [PR #2](https://github.com/HerrStolzier/OpenDictate/pull/2)
+tracks upload, CI and merge. The initial upload approval block was resolved by
+direct user authorization. The SDK fix from merged PR #1 is integrated for CI;
+this does not establish any of the live acceptance below.
+
 The source changes and offline tests do not activate the app or prove real dictation quality. Do not install, launch a replacement app, publish a binary or make paid transcription requests without the corresponding authorization.
 
 ## Live acceptance
@@ -15,7 +33,7 @@ Still open:
 - Clipboard failure exposes last text. VoiceOver recognizes recording state and controls, including the countdown and cancel/discard distinction.
 - App end during recording/transcription preserves audio; real failed recovery writes are visible and do not delete the only original.
 - Real speech corpus and reference transcripts, followed by authorized API requests: language options, proper names, mixed languages, short/quiet words, actual request latency and correction effort.
-- GitHub checks only run after a separately authorized push. Notarization/public binary distribution is not part of the local build.
+- GitHub checks run for the triggers in `.github/workflows/checks.yml`; Git routine follows the governing implementation authorization. Notarization/public binary distribution is not part of the local build.
 
 ## Review 26: streaming
 

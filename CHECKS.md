@@ -1,5 +1,25 @@
 # Checks
 
+## Required after source changes
+
+```bash
+swift format lint --configuration .swift-format --recursive Sources Tests Package.swift
+swift test -Xswiftc -warnings-as-errors
+bash -n scripts/build-app.sh
+bash -n scripts/store-api-key.sh
+git diff --check
+```
+
+For release or packaging changes, additionally run `./scripts/build-app.sh` and
+verify the generated Plist and signature. A build does not prove microphone,
+target-field delivery, VoiceOver, installation or publication.
+
+Documentation-only changes: run `git diff --check`, verify changed local links
+and review ownership, conflicting rules and evidence scope. Include new files
+in that review. Do not rerun app tests solely for prose changes.
+
+## Meaning of checks
+
 - `swift test`: offline logic, lifecycle, HTTP stubs, recovery, logging and synthetic audio-file tests. Optional benchmark and live API test are skipped by default.
 - `swift format lint --configuration .swift-format --recursive Sources Tests Package.swift`: project formatting.
 - `./scripts/build-app.sh`: release bundle, Plist, signature and Hardened Runtime verification. Does not launch/install it.
