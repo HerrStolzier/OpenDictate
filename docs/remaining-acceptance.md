@@ -4,6 +4,27 @@ The source changes and offline tests do not activate the app or prove real dicta
 
 ## Live acceptance
 
+Current local follow-up: the installed user app now has the neutral result wording,
+a fixed launch path and directly verified microphone/Accessibility permissions.
+Keyboard actions were exercised with VoiceOver enabled, then VoiceOver was disabled.
+Both processing-focus integration cases now passed with actual TextEdit delivery
+and actual foreground switching, using synthetic transcription. Audible VoiceOver
+status output and full cursor navigation remain a qualification limit of this
+agent-operated check, not a claimed accessibility certification. See the dated report
+for the exact installed executable and narrower evidence boundaries.
+
+See `live-acceptance-2026-09-13.md` for the new user-led TextEdit dictation, repaired Accessibility grant, agent-operated real recording cancellation, focus switching during recording, and retry confirmation. It distinguishes these from transcription-time focus switching and audible VoiceOver acceptance.
+
+The new compact AppKit daily panel and separate settings window require fresh
+native acceptance for actual hotkey recording, target-app focus, transcription,
+manual text, cancellation and confirmed retry selection. Historical evidence
+below does not prove this changed interface. `pasteSent` deliberately renders as
+unconfirmed; confirmed success is reserved for future trustworthy target
+acknowledgment. The isolated debug preview does not contact any provider or
+access existing recordings, settings, clipboard or credentials.
+
+Native debug UI interaction passed on 2026-09-13: first click into an inactive panel, Tab/Shift+Tab, Space through recording/processing/cancel, and passive status display preserving focus in a separate empty test app. These are synthetic-state UI checks; real dictation and VoiceOver acceptance remain open. See `CHECKS.md` for reproduction.
+
 Already evidenced on 2026-09-07 and not to be repeated merely to rebuild the record: one human microphone dictation pasted into TextEdit; conservative no-paste behavior after a foreground-app switch; manual availability of that transcript from the clipboard; cancellation retaining an authenticated, readable AAC recording; and two bounded synthetic live API checks. See `live-acceptance-2026-09-07.md` for the exact scope and limitations.
 
 Still open:

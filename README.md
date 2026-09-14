@@ -23,6 +23,36 @@ The script writes the app bundle to:
 
 ## Run
 
+The menu bar button opens a compact native AppKit dictation panel. Its Settings
+button opens a separate native window retaining the existing settings, recovery
+and diagnostic actions. A submitted paste shortcut is shown as an unconfirmed
+delivery, never as verified insertion. The neutral heading is “Diktat verarbeitet.”
+and the detail explains that automatic insertion was triggered and asks the user
+to check the target program. Text remains selectable in the panel.
+
+Recovery selection now asks for confirmation before resending the selected
+recording. Retried text is copied only; retries never automatically paste into
+another application.
+
+The local daily launcher `./script/build_and_run.sh --daily` opens the existing
+`~/Applications/OpenDictate.app` and reuses its instance. An explicit launch opens
+the daily window; reopening the app brings that window forward. It refuses to
+start alongside a preview or another dictation build.
+
+For an isolated debug-only design preview, run `./script/build_and_run.sh --preview`.
+It launches `OpenDictatePreview.app` with synthetic display states and a separate
+bundle identifier, bypassing microphone, hotkeys, Keychain, clipboard and service
+initialization. It does not replace the installed app. The preview build uses the existing native SwiftPM engine. The installed Swift
+Testing plugin requires an explicit module path for test runs; see `CHECKS.md`.
+
+The separate opt-in `--processing-focus-preview` is an offline integration fixture:
+fixed text and delayed processing replace audio/provider work; production flow,
+panel, clipboard and paste policy remain real. It waits for a disposable TextEdit
+document, then provides 20 seconds to retain or change app focus. It restores the
+previous clipboard on normal exit if no later clipboard change occurred. It never
+reads credentials or existing recordings. This fixture requires its existing
+Accessibility permission to be current; it is not a real dictation test.
+
 ```bash
 ./scripts/store-api-key.sh
 open .build/OpenDictate.app

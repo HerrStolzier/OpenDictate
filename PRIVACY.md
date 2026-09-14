@@ -26,8 +26,9 @@ clipboard write replaces it, preserving a manual recovery path when automatic
 paste is unavailable or ineffective. Clipboard managers may retain their own
 copy; OpenDictate cannot remove that copy.
 
-Automatic paste targets the process that was active when recording started (or
-when retry started), provided it is still frontmost. Otherwise only the clipboard
+Automatic paste targets the process that was active when recording started,
+provided it is still frontmost. Retries require explicit confirmation, copy their
+result, and never automatically paste. Otherwise only the clipboard
 is updated. Automatic paste can also be disabled in the menu. It cannot prove that the same text field remains
 focused inside that process.
 

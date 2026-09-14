@@ -34,6 +34,9 @@ protocol MenuBarControllerDelegate: AnyObject {
 /// user picked.
 @MainActor
 final class MenuBarController: NSObject, NSMenuDelegate {
+    var onShowDaily: ((NSRect?) -> Void)?
+    private var settingsMenu: NSMenu?
+    private let settingsWindow = SettingsWindowController()
     /// The models offered in the menu. Everything else still works through
     /// OPENAI_TRANSCRIBE_MODEL, this is just the short list worth one click.
     private static let offeredModels: [TranscriptionModel] = [.gptTranscribe, .gpt4oMiniTranscribe]
@@ -132,6 +135,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         copyLastMenuItem = actionItem("Letzten Text erneut kopieren", #selector(copyLastText))
         clearLastMenuItem = actionItem("Letzten Text aus Speicher löschen", #selector(clearLastText))
         autoPasteMenuItem = actionItem("Automatisch einfügen", #selector(toggleAutoPaste))
+        autoPasteMenuItem?.identifier = NSUserInterfaceItemIdentifier("autoPaste")
 
         let retryItem = makeActionItem(
             "Letzte Aufnahme wiederholen",
@@ -163,10 +167,24 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         menu.addItem(NSMenuItem(title: "Beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
 
         menu.delegate = self
-        item.menu = menu
+        settingsMenu = menu
+        item.button?.target = self
+        item.button?.action = #selector(showDaily)
         self.statusMenuItem = statusMenuItem
         refresh()
         statusItem = item
+    }
+
+    @objc private func showDaily() {
+        let anchor = statusItem?.button.flatMap { button in
+            button.window?.convertToScreen(button.convert(button.bounds, to: nil))
+        }
+        onShowDaily?(anchor)
+    }
+
+    func showSettings() {
+        refresh()
+        if let settingsMenu { settingsWindow.show(menu: settingsMenu) }
     }
 
     func updateStatus(_ value: String) {
@@ -416,17 +434,20 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         else { return }
         delegate?.menuBarDidSelect(shortcut: preset)
         refreshSelections()
+        if settingsWindow.window?.isVisible == true { showSettings() }
     }
 
     @objc private func selectModel(_ sender: NSMenuItem) {
         guard let raw = sender.representedObject as? String else { return }
         delegate?.menuBarDidSelect(model: TranscriptionModel(rawValue: raw))
         refreshSelections()
+        if settingsWindow.window?.isVisible == true { showSettings() }
     }
 
     @objc private func selectLanguage(_ sender: NSMenuItem) {
         guard let raw = sender.representedObject as? String else { return }
         delegate?.menuBarDidSelect(language: raw == Settings.automaticLanguage ? nil : raw)
         refreshSelections()
+        if settingsWindow.window?.isVisible == true { showSettings() }
     }
 }
