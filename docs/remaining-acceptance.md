@@ -36,6 +36,15 @@ temporary bundles with missing, false and string-valued audio-input entitlements
 were all rejected by the verifier. These packaging checks do not establish
 microphone access, transcription or insertion.
 
+The subsequent attended attempt with the corrected bundle completed audio
+preparation and transcription (request: 2.564 s; stop-to-result: 2.595 s).
+The delivery path copied a nonempty result successfully, then logged
+`accessibility=false, previousApp=TextEdit`. Direct insertion is therefore still
+unverified; the current bundle needs a valid Accessibility grant. The transcript
+content and visible manual clipboard recovery have not yet been checked.
+Packaging fix: [PR #3](https://github.com/HerrStolzier/OpenDictate/pull/3), merged
+after the Swift checks and ad-hoc bundle build passed.
+
 The 2026-09-07 candidate proved one human microphone dictation through its then-current `Cmd+V` delivery, conservative no-paste behavior after a foreground-app switch, manual clipboard recovery, cancellation retaining authenticated readable AAC, and two bounded synthetic live API checks. Those microphone, transcription, focus-switch, clipboard and recovery observations remain historical evidence for their exact paths. The successful TextEdit delivery does **not** validate the current direct `AXSelectedText` insertion implementation. See `live-acceptance-2026-09-07.md` for the exact scope and limitations.
 
 Still open:
