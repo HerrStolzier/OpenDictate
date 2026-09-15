@@ -20,6 +20,23 @@ this does not establish any of the live acceptance below.
 
 The source changes and offline tests do not activate the app or prove real dictation quality. Do not install, launch a replacement app, publish a binary or make paid transcription requests without the corresponding authorization.
 
+## Native recording panel integration — 2026-09-15
+
+The existing central recording panel and separate settings window are integrated
+with the current SDK, direct Accessibility delivery and microphone entitlement
+fixes. The installed candidate `5a672f7` passed 104 offline tests, format/shell
+checks and release bundle verification; GitHub CI also passed.
+
+One attended human microphone → transcription → automatic TextEdit insertion
+passed on September 15. The artificial sentence was visibly correct in the
+prepared target field; user feedback, panel state and matching operational logs
+support the result. The test document was discarded and TextEdit closed. The
+installed daily app remains running. Exact candidate, timing, focus evidence and
+limits: [September 15 acceptance](live-acceptance-2026-09-15.md).
+
+Browser/Electron controls and a live switch-away case remain open. Historical
+September 13 and 14 evidence remains scoped to its original candidates.
+
 ## Live acceptance
 
 The 2026-09-14 attended attempt on `6401655` reached microphone permission
