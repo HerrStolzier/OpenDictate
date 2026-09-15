@@ -7,6 +7,12 @@ zuvor aktiven Mac-Anwendung verfügbar machen. Zielgruppe, aus diesem Ablauf
 abgeleitet: Menschen, die kurze Texte am Mac lieber diktieren als tippen.
 Eine darüber hinaus validierte Marktsegmentierung liegt hier nicht vor.
 
+OpenDictate soll als allgemeines macOS-Produkt in repräsentativen Eingabefeldtypen
+und Nutzungssituationen zuverlässig arbeiten. Die Produktabnahme richtet sich
+daher nach Feldkategorien und Fokuswechseln, nicht nach der persönlichen App-Liste
+einer einzelnen Person. Der aktuelle Plan steht in der
+[Kompatibilitätsmatrix](docs/compatibility-matrix.md).
+
 ## Belegter Produktumfang
 
 - Native Menüleisten-App für macOS 14+, SwiftPM und Swift 6.
@@ -20,7 +26,8 @@ Eine darüber hinaus validierte Marktsegmentierung liegt hier nicht vor.
 ## Grenzen und offene Entscheidungen
 
 - Kein Versprechen fehlerfreier Sprache, garantierter Latenz oder bestätigter
-  Annahme im Zieltextfeld. Zwischenablage bleibt der manuelle Rückweg.
+  Annahme in jedem Zieltextfeld. Repräsentative Programme sind Testbeispiele,
+  keine pauschale Supportzusage. Zwischenablage bleibt der verlustfreie manuelle Rückweg.
 - Streaming und Hold-to-talk sind zurückgestellt, keine aktiven Funktionen.
 - Windows-/Linux-Umfang, künftige Preise, Vertrieb und Firmengründung werden
   hier nicht festgelegt; dieser Dokumentationsauftrag entscheidet sie nicht.
