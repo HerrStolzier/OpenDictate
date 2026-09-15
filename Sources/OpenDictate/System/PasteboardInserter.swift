@@ -22,6 +22,9 @@ struct PasteboardInserter {
             AppLog.write("Auto-paste skipped: user changed the foreground application")
             return false
         }
+        if app.bundleIdentifier?.lowercased() == "com.brave.browser" {
+            return await insert(text, into: app.processIdentifier, useUnicode: true)
+        }
         guard app.activate() else {
             AppLog.write("Auto-paste aborted because the target app could not be activated")
             return false
@@ -30,7 +33,7 @@ struct PasteboardInserter {
         let deadline = ContinuousClock.now.advanced(by: .milliseconds(750))
         while !Task.isCancelled && ContinuousClock.now < deadline {
             if NSWorkspace.shared.frontmostApplication?.processIdentifier == app.processIdentifier {
-                return insert(text, into: app.processIdentifier)
+                return await insert(text, into: app.processIdentifier, useUnicode: false)
             }
             try? await Task.sleep(for: .milliseconds(25))
         }
@@ -39,7 +42,7 @@ struct PasteboardInserter {
         return false
     }
 
-    private func insert(_ text: String, into targetPID: pid_t) -> Bool {
+    private func insert(_ text: String, into targetPID: pid_t, useUnicode: Bool) async -> Bool {
         let application = AXUIElementCreateApplication(targetPID)
         var focusedValue: CFTypeRef?
         guard
@@ -75,6 +78,28 @@ struct PasteboardInserter {
         else {
             AppLog.write("Auto-paste unavailable: focused element does not accept selected text")
             return false
+        }
+
+        if useUnicode {
+            // Brave can accept AXSelectedText without changing a contenteditable editor.
+            // Do not attempt AX first: a delayed edit could otherwise duplicate the text.
+            let sent = await UnicodeTextDelivery.send(text) {
+                guard NSWorkspace.shared.frontmostApplication?.processIdentifier == targetPID else { return false }
+                var current: CFTypeRef?
+                guard
+                    AXUIElementCopyAttributeValue(application, kAXFocusedUIElementAttribute as CFString, &current)
+                        == .success,
+                    let current
+                else { return false }
+                return CFEqual(current, focusedElement)
+            } post: { units in
+                guard let (down, up) = UnicodeTextDelivery.events(units) else { return false }
+                down.postToPid(targetPID)
+                up.postToPid(targetPID)
+                return true
+            }
+            AppLog.write("Brave text delivery submitted=\(sent)")
+            return sent
         }
 
         let status = AXUIElementSetAttributeValue(

@@ -4,6 +4,31 @@ This is the single current handoff; no parallel STATUS.md is maintained.
 Product decisions live in [PROJECT.md](../PROJECT.md), approvals in
 [APPROVALS.md](../APPROVALS.md), and procedures in [CHECKS.md](../CHECKS.md).
 
+## Brave insertion regression — 2026-09-15
+
+The installed candidate replaces ineffective AXSelectedText delivery in Brave
+with exact process-scoped Unicode input, rechecking foreground app and focused
+field before each chunk. Other applications retain their existing AX path.
+110 offline tests and stable signed-bundle verification passed.
+
+Synthetic delivery through the production inserter is visibly confirmed in a
+normal Brave textarea and a contenteditable editor. A longer Unicode sample
+with a line break replaced only the selected text, preserving both surrounding
+parts. No manual paste, microphone or provider request was used for these
+candidate checks. Exact evidence and helper diagnosis:
+[Brave insertion report](brave-insertion-2026-09-15.md).
+
+The original real-app/hotkey failure is recorded in that report. A new
+microphone-to-editor test of the installed fix, actual Proton editor, iframe
+insertion and live interruption between chunks remain unevidenced. The additional
+native helper check was blocked by the foreground guard; the unchanged native
+AX path has not been newly accepted. These limits do not invalidate the observed
+local contenteditable insertion.
+
+Installation, exact executable identity and Git integration status are recorded in the report.
+The test helper was stopped, the exact local test tab was closed, and its
+owned temporary files were removed. Existing browser windows were preserved.
+
 ## Documentation pilot — 2026-09-14
 
 Documentation ownership is implemented and checked against the existing
