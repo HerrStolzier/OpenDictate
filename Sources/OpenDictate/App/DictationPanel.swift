@@ -53,6 +53,7 @@ final class DictationPanel: NSWindowController {
     var onSettings: (() -> Void)?
     var onRecovery: (() -> Void)?
     var onRetry: (() -> Void)?
+    var onActions: ((NSView) -> Void)?
     private(set) var display: Display = .ready
     private var busy = false
     private var showingText = false
@@ -67,6 +68,7 @@ final class DictationPanel: NSWindowController {
     private let textScroll = NSScrollView()
     private let primary = TactileButton(title: "Aufnahme starten", target: nil, action: nil)
     private let secondary = TactileButton(title: "Abbrechen", target: nil, action: nil)
+    private let actions = NSButton(title: "Weitere Aktionen", target: nil, action: nil)
     private let settings = TactileButton(title: "Einstellungen", target: nil, action: nil)
     private var textHeight: NSLayoutConstraint!
     private var currentDetail = "Starte die Aufnahme oder nutze dein Tastenkürzel."
@@ -284,6 +286,11 @@ final class DictationPanel: NSWindowController {
         }
         stack.addArrangedSubview(shortcut)
         shortcut.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
+        actions.target = self
+        actions.action = #selector(openActions)
+        actions.bezelStyle = .rounded
+        actions.setAccessibilityIdentifier("dictation-actions")
+        stack.addArrangedSubview(actions)
         window?.initialFirstResponder = primary
     }
 
@@ -296,7 +303,7 @@ final class DictationPanel: NSWindowController {
         settings.isEnabled = !busy
         primary.isHidden = display == .processing || display == .cancelling
         primary.isEnabled = !busy || display == .recording
-        secondary.isHidden = ![.recording, .processing, .retry, .manual, .unconfirmed].contains(display)
+        secondary.isHidden = ![.recording, .processing, .retry, .manual, .unconfirmed, .failure].contains(display)
         secondary.isEnabled = display != .cancelling && (!busy || display == .recording || display == .processing)
         textScroll.isHidden = !showingText
         switch display {
@@ -304,7 +311,7 @@ final class DictationPanel: NSWindowController {
         case .recording: primary.title = "Aufnahme beenden"
         case .manual: primary.title = "Text kopieren"
         case .unconfirmed: primary.title = showingText ? "Text kopieren" : "Text ansehen"
-        case .failure: primary.title = "Hilfe und Wiederherstellung"
+        case .failure: primary.title = "Aufbewahrte Aufnahmen"
         case .retry: primary.title = "Erneut verarbeiten"
         case .processing, .cancelling: break
         }
@@ -316,6 +323,7 @@ final class DictationPanel: NSWindowController {
         if showingText { keyViews.append(textView) }
         if !primary.isHidden && primary.isEnabled { keyViews.append(primary) }
         if !secondary.isHidden && secondary.isEnabled { keyViews.append(secondary) }
+        keyViews.append(actions)
         for (index, view) in keyViews.enumerated() {
             view.nextKeyView = keyViews[(index + 1) % keyViews.count]
         }
@@ -337,6 +345,7 @@ final class DictationPanel: NSWindowController {
     }
 
     @objc private func openSettings() { onSettings?() }
+    @objc private func openActions() { onActions?(actions) }
 
     private func moveKeyboardFocus(reverse: Bool) -> Bool {
         guard !keyViews.isEmpty, let window else { return false }

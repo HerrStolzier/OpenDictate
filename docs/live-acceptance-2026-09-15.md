@@ -50,3 +50,18 @@ This single run is not broad speech-quality, VoiceOver, browser/Electron, target
 switch, interruption or 90-second-stop acceptance. The new panel target-return
 policy has offline coverage; a live switch-away case remains open. No public app
 or website release occurred. See [remaining acceptance](remaining-acceptance.md).
+
+## Window lifecycle follow-up
+
+On the same installed candidate, the settings close button returned to the
+recording panel. Closing the recording panel left zero visible OpenDictate
+windows, independently checked through WindowServer, while the same process
+remained alive. The UI inspection tool itself reopens the app when selecting it;
+its subsequent window display was not treated as a failure of closing.
+
+The explicit “Beenden” action terminated the process. The normal daily launcher
+then restarted the app and the log confirmed global shortcut registration.
+Basti explicitly confirmed that clicking the menu bar icon reopened the panel.
+Source inspection confirms that window closing neither cancels the flow nor
+unregisters the shortcut. No behavior change was needed for this follow-up.
+A new short recording made during the user's interaction was left untouched.

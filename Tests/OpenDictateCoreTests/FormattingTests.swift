@@ -58,9 +58,22 @@ struct OpenDictateErrorTests {
         #expect(text?.contains("1.0s") == true)
     }
 
-    @Test("The no-speech message names the measured peak")
+    @Test("The low-level message offers microphone guidance without raw measurements")
     func noSpeechMessage() {
         let text = OpenDictateError.noSpeechDetected(peakDb: -63.2).errorDescription
-        #expect(text?.contains("-63 dB") == true)
+        #expect(text?.contains("Mikrofon") == true)
+        #expect(text?.contains("-63") == false)
     }
+    @Test("Framework errors offer a safe next action without leaking raw details")
+    func frameworkMessage() {
+        let error = NSError(
+            domain: "Test", code: 42,
+            userInfo: [NSLocalizedDescriptionKey: "private raw framework details"])
+        let message = OpenDictateError.userMessage(for: error)
+        #expect(!message.contains("private raw"))
+        #expect(message.contains("Hilfe"))
+        let audio = OpenDictateError.audioPreprocessingFailed("raw export details")
+        #expect(!OpenDictateError.userMessage(for: audio).contains("raw export"))
+    }
+
 }

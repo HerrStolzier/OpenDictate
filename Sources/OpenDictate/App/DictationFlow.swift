@@ -50,7 +50,7 @@ final class DictationFlow {
             task = Task { await process(original: original) }
         } catch {
             state = .idle
-            onStatus?("Aufnahmefehler: \(error.localizedDescription)")
+            onStatus?("Aufnahmefehler: \(OpenDictateError.userMessage(for: error))")
             onOutcome?(.failed)
         }
         return true
@@ -80,7 +80,7 @@ final class DictationFlow {
                 onStatus?(
                     Task.isCancelled
                         ? "Abgebrochen – Aufnahme bleibt erhalten"
-                        : "Wiederholen fehlgeschlagen: \(error.localizedDescription)")
+                        : "Wiederholen fehlgeschlagen: \(OpenDictateError.userMessage(for: error))")
                 onOutcome?(Task.isCancelled ? .cancelled : .failed)
             }
         }
@@ -105,7 +105,7 @@ final class DictationFlow {
                 onStatus?(discardRecording ? "Aufnahme verworfen" : "Aufnahme für Wiederholung gesichert")
                 onOutcome?(.cancelled)
             } catch {
-                onStatus?(error.localizedDescription)
+                onStatus?(OpenDictateError.userMessage(for: error))
                 onOutcome?(.failed)
             }
             state = .idle
@@ -158,7 +158,8 @@ final class DictationFlow {
                     onStatus?(
                         Task.isCancelled
                             ? "Abgebrochen – Aufnahme für Wiederholung gesichert"
-                            : "\(error.localizedDescription) – Aufnahme für manuelle Wiederholung gesichert")
+                            : "\(OpenDictateError.userMessage(for: error)) – Aufnahme für manuelle Wiederholung gesichert"
+                    )
                     onOutcome?(Task.isCancelled ? .cancelled : .failed)
                 }
             }

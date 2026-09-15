@@ -37,6 +37,17 @@ limits: [September 15 acceptance](live-acceptance-2026-09-15.md).
 Browser/Electron controls and a live switch-away case remain open. Historical
 September 13 and 14 evidence remains scoped to its original candidates.
 
+## Compact settings — 2026-09-15
+
+The daily settings now show four main options, with collapsible advanced options
+and separate recording/help pages. Native UI, keyboard navigation and compact/
+large windows were checked; 105 offline tests and signed-bundle verification
+passed. Stored preferences and the user's existing short recording were verified
+unchanged by before/after hashes. No new audio or provider request was needed.
+See [settings acceptance](settings-acceptance-2026-09-15.md) for the exact candidate
+and scope. The window-close/menu-bar lifecycle is also confirmed in the earlier
+[September 15 report](live-acceptance-2026-09-15.md#window-lifecycle-follow-up).
+
 ## Live acceptance
 
 The 2026-09-14 attended attempt on `6401655` reached microphone permission
