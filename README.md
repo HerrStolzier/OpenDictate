@@ -131,7 +131,12 @@ macOS will ask for:
 - Accessibility access for inserting the transcript into the focused text control.
 
 Automatic insertion sends the transcript directly to the target's focused
-Accessibility text element; it does not consume the clipboard. The transcript
+Accessibility text element. Brave uses process-scoped Unicode keyboard events
+instead because its web editor can accept the Accessibility setter without
+inserting text. This path rechecks the foreground application and focused field
+between text chunks; it never sends a paste shortcut or consumes the clipboard.
+The Brave candidate's live acceptance is tracked in
+[remaining acceptance](docs/remaining-acceptance.md). The transcript
 also remains on the general clipboard until it is overwritten, preserving
 manual paste when Accessibility, target activation or direct insertion fails.
 Some custom, browser or Electron text controls may not expose a settable

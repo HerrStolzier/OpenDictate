@@ -28,7 +28,12 @@ replaces it, preserving a manual recovery path when automatic insertion is
 unavailable or ineffective. Clipboard managers may retain their own copy;
 OpenDictate cannot remove that copy. Automatic insertion does not read or paste
 from the clipboard: it sends the transcript directly to the focused
-Accessibility text element in the accepted target process.
+Accessibility text element in the accepted target process. For Brave, it instead
+sends the exact transcript as Unicode keyboard events addressed to that process.
+It checks that the application is still frontmost and the same Accessibility
+field is focused before each text chunk. It does not activate Brave, read the
+field's existing contents, or send a paste shortcut. A focus change or cancellation
+stops remaining chunks; already delivered text cannot be rolled back safely.
 
 If the focused control does not expose a settable selected-text Accessibility
 attribute, automatic insertion stops and the transcript remains available only

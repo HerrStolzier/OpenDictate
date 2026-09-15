@@ -78,3 +78,14 @@ Inspect menus/dialog entry points without changing preferences or sending a
 recording. Confirm that cancellation, discard, copy and clear remain accessible
 from the recording panel's “Weitere Aktionen”. Compare preference and recovery
 file integrity before/after; do not delete recordings created by the user.
+
+## Brave insertion candidate
+
+The Unicode event tests construct events without posting them. They check exact
+UTF-16 preservation, modifier-free events, failure, cancellation and stopping
+remaining chunks after a focus change. They do not prove browser editing.
+Before accepting the candidate, check actual plain text, contenteditable and
+iframe fields in a local Brave fixture, including text longer than 20 UTF-16
+units, a selection, accents/emoji and a switch away. Distinguish this synthetic
+system-delivery check from microphone-to-editor acceptance in the installed app.
+Never use a private mail draft as an automated fixture.
