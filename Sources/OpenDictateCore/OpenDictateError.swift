@@ -22,31 +22,43 @@ public enum OpenDictateError: LocalizedError {
         }
     }
 
+    /// User-facing messages deliberately exclude raw provider and framework errors.
+    public static func userMessage(for error: Error) -> String {
+        if let error = error as? OpenDictateError { return error.errorDescription ?? "Bitte versuche es erneut." }
+        if error is URLError {
+            return "OpenAI ist gerade nicht erreichbar. Prüfe die Internetverbindung und versuche es später erneut."
+        }
+        return "Der Vorgang konnte nicht abgeschlossen werden. Versuche es erneut oder öffne die Hilfe."
+    }
+
     public var errorDescription: String? {
         switch self {
-        case .audioPreprocessingFailed(let message):
-            return "Could not prepare the recording for transcription.\n\n\(message)"
+        case .audioPreprocessingFailed:
+            return
+                "Die Aufnahme konnte nicht vorbereitet werden. Öffne die aufbewahrten Aufnahmen oder versuche ein neues Diktat."
         case .apiError(let message):
             return message
-        case .hotKeyRegistrationFailed(let status):
-            return "RegisterEventHotKey failed with status \(status)."
+        case .hotKeyRegistrationFailed:
+            return "Das Tastenkürzel ist nicht verfügbar. Wähle in den Einstellungen ein anderes Kürzel."
         case .invalidResponse:
-            return "The transcription service returned an invalid response."
-        case .keychainStatus(let status):
-            return "Keychain operation failed with status \(status)."
+            return "OpenAI hat keinen verwendbaren Text geliefert. Versuche die Aufnahme später erneut zu verarbeiten."
+        case .keychainStatus:
+            return "Der Schlüsselbund ist nicht zugänglich. Prüfe die Zugriffsabfrage von macOS und versuche es erneut."
         case .missingAPIKey:
-            return "The OpenAI API key is not set."
+            return "Der API-Schlüssel fehlt. Richte ihn unter Einstellungen → Erweitert ein."
         case .noActiveRecording:
-            return "There is no active recording to stop."
+            return "Es läuft keine Aufnahme. Starte zuerst ein neues Diktat."
         case .noAudioFile:
-            return "The recording finished, but no audio file was written."
-        case .noSpeechDetected(let peakDb):
-            return "No speech was detected (peak \(peakDb.formattedDb)), so nothing was sent to OpenAI."
+            return "Die Aufnahme konnte nicht gespeichert werden. Prüfe das Mikrofon und starte ein neues Diktat."
+        case .noSpeechDetected:
+            return
+                "Die Aufnahme war zu leise. Prüfe das Mikrofon und sprich etwas näher hinein. Es wurde nichts an OpenAI gesendet."
         case .recordingCouldNotStart:
-            return "AVAudioRecorder could not start recording."
+            return
+                "Das Mikrofon konnte nicht gestartet werden. Prüfe den Anschluss und den Mikrofonzugriff in den Systemeinstellungen."
         case .recordingTooShort(let actual, let minimum):
             return
-                "Recording skipped: \(actual.formattedSeconds) is too short. Speak for at least \(minimum.formattedSeconds)."
+                "Die Aufnahme war zu kurz (\(actual.formattedSeconds)). Sprich mindestens \(minimum.formattedSeconds) und beende dann die Aufnahme."
         }
     }
 }

@@ -28,8 +28,14 @@ The script writes the app bundle to:
 ## Run
 
 The menu bar button opens a compact native AppKit dictation panel. Its Settings
-button opens a separate native window retaining the existing settings, recovery
-and diagnostic actions. A submitted Accessibility insertion is shown as an unconfirmed
+button opens a compact native window with microphone, shortcut, language and
+automatic insertion. “Erweitert” reveals model, API key and vocabulary. Saved
+recordings and Help have their own secondary pages. Recording/cancel/copy/clear
+and quit actions are available from “Weitere Aktionen” in the recording panel.
+Opening settings hides the recording panel so it cannot cover the controls.
+Reactivating the app keeps an already open settings page in front.
+Closing either window only hides it; the app and global shortcut remain active.
+Click the menu bar icon to reopen the panel. Only “Beenden” quits the app. A submitted Accessibility insertion is shown as an unconfirmed
 delivery, never as verified insertion. The neutral heading is “Diktat verarbeitet.”
 and the detail explains that automatic insertion was triggered and asks the user
 to check the target program. Text remains selectable in the panel.
@@ -73,8 +79,9 @@ Press `Option+Shift+Space` once to start recording, then press it again to stop,
 
 ## Settings
 
-The panel’s Settings window carries the settings that change often. They apply to the next
-dictation, no restart needed.
+The panel’s Settings window groups the four everyday options first. Advanced
+options are collapsed initially; saved recordings and Help open secondary pages.
+Changes apply to the next dictation, no restart needed.
 
 - **Hotkey** — custom modified shortcuts plus `Option+Shift+Space` (default), `Control+Option+D`, or `F5`. Useful
   when another app already claims the default.

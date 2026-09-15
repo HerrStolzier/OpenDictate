@@ -35,6 +35,7 @@ protocol MenuBarControllerDelegate: AnyObject {
 @MainActor
 final class MenuBarController: NSObject, NSMenuDelegate {
     var onShowDaily: ((NSRect?) -> Void)?
+    var onShowSettings: (() -> Void)?
     private var settingsMenu: NSMenu?
     private let settingsWindow = SettingsWindowController()
     /// The models offered in the menu. Everything else still works through
@@ -90,6 +91,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
         let shortcutItem = NSMenuItem(title: "Tastenkombination", action: nil, keyEquivalent: "")
         shortcutItem.submenu = makeShortcutSubmenu()
+        shortcutItem.identifier = NSUserInterfaceItemIdentifier("shortcut")
         menu.addItem(shortcutItem)
         self.shortcutMenuItem = shortcutItem
         let customShortcut = makeActionItem("Eigene Tastenkombination …", action: #selector(configureShortcut))
@@ -98,14 +100,17 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
         let modelItem = NSMenuItem(title: "Modell", action: nil, keyEquivalent: "")
         modelItem.submenu = makeModelSubmenu()
+        modelItem.identifier = NSUserInterfaceItemIdentifier("model")
         menu.addItem(modelItem)
         self.modelMenuItem = modelItem
 
         let languageItem = NSMenuItem(title: "Sprache", action: nil, keyEquivalent: "")
         languageItem.submenu = makeLanguageSubmenu()
+        languageItem.identifier = NSUserInterfaceItemIdentifier("language")
         menu.addItem(languageItem)
         self.languageMenuItem = languageItem
         let vocabulary = makeActionItem("Vokabular und Kontext …", action: #selector(configureVocabulary))
+        vocabulary.identifier = NSUserInterfaceItemIdentifier("vocabulary")
         menu.addItem(vocabulary)
 
         menu.addItem(
@@ -118,6 +123,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             action: #selector(openSoundSettings),
             toolTip: "Aktuelles Systemmikrofon. Klicken öffnet die Toneinstellungen."
         )
+        inputDeviceItem.identifier = NSUserInterfaceItemIdentifier("microphone")
         menu.addItem(inputDeviceItem)
         self.inputDeviceMenuItem = inputDeviceItem
 
@@ -147,6 +153,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         self.retryMenuItem = retryItem
         let recordingsItem = NSMenuItem(title: "Gespeicherte Aufnahmen", action: nil, keyEquivalent: "")
         recordingsItem.submenu = NSMenu()
+        recordingsItem.identifier = NSUserInterfaceItemIdentifier("recordings")
         menu.addItem(recordingsItem)
         recordingsMenuItem = recordingsItem
 
@@ -155,17 +162,23 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             action: #selector(deleteSavedRecordings),
             toolTip: "Aufbewahrte Aufnahmen endgültig löschen."
         )
+        deleteRecordingsItem.identifier = NSUserInterfaceItemIdentifier("deleteRecordings")
         menu.addItem(deleteRecordingsItem)
         self.deleteRecordingsMenuItem = deleteRecordingsItem
 
         let apiKeyItem = makeActionItem("API-Schlüssel einrichten …", action: #selector(setAPIKey))
+        apiKeyItem.identifier = NSUserInterfaceItemIdentifier("apiKey")
         menu.addItem(apiKeyItem)
         let accessibilityItem = makeActionItem("Bedienungshilfen öffnen", action: #selector(openAccessibilitySettings))
+        accessibilityItem.identifier = NSUserInterfaceItemIdentifier("accessibility")
         menu.addItem(accessibilityItem)
         let logItem = makeActionItem("Protokoll öffnen", action: #selector(openLog))
+        logItem.identifier = NSUserInterfaceItemIdentifier("log")
         menu.addItem(logItem)
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "Beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        let quit = NSMenuItem(title: "Beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        quit.identifier = NSUserInterfaceItemIdentifier("quit")
+        menu.addItem(quit)
 
         menu.delegate = self
         settingsMenu = menu
@@ -177,6 +190,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     }
 
     @objc private func showDaily() {
+        settingsWindow.window?.orderOut(nil)
         let anchor = statusItem?.button.flatMap { button in
             button.window?.convertToScreen(button.convert(button.bounds, to: nil))
         }
@@ -184,9 +198,38 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     }
 
     func showSettings() {
+        onShowSettings?()
         refresh()
         if let settingsMenu { settingsWindow.show(menu: settingsMenu) }
     }
+
+    func showRecordings() {
+        onShowSettings?()
+        refresh()
+        if let settingsMenu { settingsWindow.show(menu: settingsMenu, page: .recordings) }
+    }
+
+    func reopenSettingsIfVisible() -> Bool {
+        guard let window = settingsWindow.window, window.isVisible else { return false }
+        window.makeKeyAndOrderFront(nil)
+        return true
+    }
+
+    func showRecordingActions(at view: NSView) {
+        refresh()
+        let menu = NSMenu()
+        menu.autoenablesItems = false
+        for item in [cancelMenuItem, discardMenuItem, copyLastMenuItem, clearLastMenuItem] {
+            if let copy = item?.copy() as? NSMenuItem { menu.addItem(copy) }
+        }
+        menu.addItem(.separator())
+        let recordings = makeActionItem("Aufbewahrte Aufnahmen …", action: #selector(openRecordings))
+        menu.addItem(recordings)
+        menu.addItem(NSMenuItem(title: "Beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: view.bounds.maxY), in: view)
+    }
+
+    @objc private func openRecordings() { showRecordings() }
 
     func updateStatus(_ value: String) {
         statusMenuItem?.title = "Status: \(value)"
@@ -208,6 +251,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             statusItem?.button?.imagePosition = .imageLeading
             renderedState = state
             refreshActions()
+            if let settingsMenu { settingsWindow.refresh(menu: settingsMenu) }
         }
         let title = state == .recording ? " \(Int(elapsed)) s" : ""
         if statusItem?.button?.title != title { statusItem?.button?.title = title }
@@ -220,6 +264,9 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     private func refreshActions() {
         let state = delegate?.menuBarState ?? .idle
+        for id in ["shortcut", "language", "model", "apiKey", "vocabulary", "autoPaste"] {
+            settingsMenu?.items.first { $0.identifier?.rawValue == id }?.isEnabled = state == .idle
+        }
         recordingMenuItem?.title = state == .recording ? "Aufnahme stoppen" : "Aufnahme starten"
         recordingMenuItem?.isEnabled = state == .idle || state == .recording
         cancelMenuItem?.isEnabled = state != .idle
@@ -237,6 +284,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         refreshRetryMenuItem()
         refreshSelections()
         refreshRecordings()
+        if let settingsMenu { settingsWindow.refresh(menu: settingsMenu) }
     }
 
     private func refreshRecordings() {
@@ -244,13 +292,16 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         menu.removeAllItems()
         let available = delegate?.menuBarState == .idle
         for entry in delegate?.menuBarRecordings ?? [] {
-            let duration = entry.duration.map { " · \(Int($0)) s" } ?? ""
+            let duration =
+                entry.duration.map { " · " + String(format: "%.1f s", locale: Locale(identifier: "de_DE"), $0) } ?? ""
             let item = NSMenuItem(
                 title: entry.created.formatted(date: .abbreviated, time: .standard) + duration,
                 action: nil,
                 keyEquivalent: ""
             )
+            item.identifier = NSUserInterfaceItemIdentifier("recording-\(entry.filename)")
             let submenu = NSMenu()
+            submenu.delegate = self
             submenu.autoenablesItems = false
             let retry = makeActionItem(
                 entry.retryable ? "Wiederholen" : "Nicht zur Wiederholung verfügbar",
@@ -280,6 +331,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     private func makeShortcutSubmenu() -> NSMenu {
         let submenu = NSMenu()
+        submenu.delegate = self
         submenu.autoenablesItems = false
         for preset in HotKeyShortcut.presets {
             let item = makeActionItem(preset.displayName, action: #selector(selectShortcut(_:)))
@@ -291,6 +343,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     private func makeModelSubmenu() -> NSMenu {
         let submenu = NSMenu()
+        submenu.delegate = self
         submenu.autoenablesItems = false
         for model in Self.offeredModels {
             let price = model.pricePerMinuteUSD.map { String(format: " ($%.4f/min)", $0) } ?? ""
@@ -303,6 +356,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     private func makeLanguageSubmenu() -> NSMenu {
         let submenu = NSMenu()
+        submenu.delegate = self
         submenu.autoenablesItems = false
         for option in Self.offeredLanguages {
             let item = makeActionItem(option.title, action: #selector(selectLanguage(_:)))
@@ -384,7 +438,9 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
-        refresh()
+        // A popup owns a snapshot. Rebuilding its parent while it opens would
+        // remove the focused control; refresh after closing instead.
+        if menu === settingsMenu { refresh() }
     }
 
     // MARK: - Actions

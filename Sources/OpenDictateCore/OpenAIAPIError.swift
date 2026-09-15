@@ -12,45 +12,33 @@ public enum OpenAIAPIErrorMessage {
     }
 
     public static func humanReadableMessage(from data: Data, statusCode: Int) -> String {
-        let fallback = "OpenAI returned HTTP \(statusCode). Please try again in a moment."
-
-        guard
-            let body = try? JSONDecoder().decode(Body.self, from: data)
-        else {
-            return fallback
+        let fallback: String
+        switch statusCode {
+        case 401, 403:
+            fallback = "OpenAI hat den Zugriff abgelehnt. Prüfe den API-Schlüssel unter Einstellungen → Erweitert."
+        case 413:
+            fallback = "Die Aufnahme ist für OpenAI zu groß. Nimm ein kürzeres Diktat auf."
+        case 429:
+            fallback =
+                "OpenAI nimmt gerade keine weitere Anfrage an. Prüfe dein Guthaben oder versuche es später erneut."
+        case 500...599:
+            fallback = "OpenAI ist gerade nicht verfügbar. Versuche es später erneut."
+        default:
+            fallback = "OpenAI konnte diese Aufnahme nicht verarbeiten. Versuche ein neues Diktat oder öffne die Hilfe."
         }
-
+        guard let body = try? JSONDecoder().decode(Body.self, from: data) else { return fallback }
         switch body.error.code ?? body.error.type {
         case "insufficient_quota":
-            return """
-                Your OpenAI API quota is exhausted.
-
-                OpenAI accepted the request, but the API account or project behind this key has no remaining credit or has reached its usage limit.
-
-                Check your OpenAI billing, project budget, or usage limits, then try again.
-                """
+            return
+                "Dein OpenAI-Guthaben oder Nutzungslimit ist aufgebraucht. Prüfe Guthaben und Budget in deinem OpenAI-Konto."
         case "invalid_api_key":
-            return """
-                The OpenAI API key is not valid.
-
-                Open the OpenDictate menu, choose Set API Key..., and paste a valid API key.
-                """
+            return
+                "Der OpenAI-API-Schlüssel ist ungültig. Prüfe ihn unter Einstellungen → Erweitert → API-Schlüssel einrichten."
         case "billing_not_active":
-            return """
-                OpenAI API billing is not active for this account or project.
-
-                Add a billing method or choose an API key from a project with billing enabled.
-                """
+            return "Die API-Abrechnung ist nicht aktiv. Prüfe die Abrechnung deines OpenAI-Projekts."
         case "rate_limit_exceeded":
-            return """
-                OpenAI is rate limiting this API key right now.
-
-                Wait a moment and try again.
-                """
+            return "Zu viele Anfragen an OpenAI. Warte einen Moment und versuche es erneut."
         default:
-            if let message = body.error.message, !message.isEmpty {
-                return "OpenAI could not transcribe this recording.\n\n\(message)"
-            }
             return fallback
         }
     }

@@ -124,12 +124,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if menuBar?.reopenSettingsIfVisible() == true { return true }
         dictationPanel.showForInteraction()
         return true
     }
 
     private func configureMenuBar() {
         let controller = MenuBarController(delegate: self)
+        controller.onShowSettings = { [weak self] in self?.dictationPanel.window?.orderOut(nil) }
         controller.onShowDaily = { [weak self] anchor in self?.dictationPanel.showForInteraction(near: anchor) }
         controller.install()
         menuBar = controller
@@ -155,9 +157,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         dictationPanel.onCancel = { [weak self] in self?.menuBarDidCancel(discard: false) }
         dictationPanel.onCopy = { [weak self] in self?.menuBarDidCopyLastText() }
         dictationPanel.onSettings = { [weak self] in self?.menuBar?.showSettings() }
+        dictationPanel.onActions = { [weak self] in self?.menuBar?.showRecordingActions(at: $0) }
         dictationPanel.onRecovery = { [weak self] in
             self?.pendingRetryFilename = nil
-            self?.menuBar?.showSettings()
+            self?.menuBar?.showRecordings()
         }
         dictationPanel.onRetry = { [weak self] in
             guard let self, let filename = pendingRetryFilename else { return }
@@ -194,9 +197,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             updateStatus("Tastenkombination nicht verfügbar")
             AppLog.write("Hotkey registration failed: \(error.localizedDescription)")
             AlertPresenter.showWarning(
-                title: "OpenDictate could not register \(shortcut.displayName)",
+                title: "Tastenkürzel nicht verfügbar",
                 message:
-                    "\(error.localizedDescription)\n\nAnother app is probably using this shortcut. Pick a different one from the Hotkey menu."
+                    OpenDictateError.userMessage(for: error)
             )
             return false
         }
@@ -252,7 +255,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 dictationPanel.show()
             }
         } catch {
-            updateStatus("Aufnahme fehlgeschlagen: \(error.localizedDescription)")
+            updateStatus(OpenDictateError.userMessage(for: error))
             dictationPanel.showFailure("Die Aufnahme konnte nicht gestartet werden. Prüfe Mikrofon und Berechtigungen.")
         }
     }
@@ -385,7 +388,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } catch {
             AppLog.write("Could not save API key: \(error.localizedDescription)")
             AlertPresenter.showWarning(
-                title: "API-Schlüssel konnte nicht gespeichert werden", message: error.localizedDescription)
+                title: "API-Schlüssel konnte nicht gespeichert werden",
+                message: OpenDictateError.userMessage(for: error))
         }
     }
 

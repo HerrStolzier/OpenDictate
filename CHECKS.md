@@ -68,3 +68,13 @@ Close and discard test documents afterward; preserve pre-existing user content.
 fixtures, not microphone-to-target acceptance. Historical fixture evidence is in
 [the September 13 report](docs/live-acceptance-2026-09-13.md); it does not establish
 acceptance of the integrated candidate. Also run `bash -n script/build_and_run.sh`.
+
+## Compact settings acceptance
+
+Inspect the actual installed settings at compact and larger window sizes. The
+four main options must be visible without a large leading blank area. Navigate
+with Tab/Shift+Tab and activate “Erweitert”, “Aufnahmen” and “Hilfe” with Space.
+Inspect menus/dialog entry points without changing preferences or sending a
+recording. Confirm that cancellation, discard, copy and clear remain accessible
+from the recording panel's “Weitere Aktionen”. Compare preference and recovery
+file integrity before/after; do not delete recordings created by the user.
