@@ -31,7 +31,9 @@ in that review. Do not rerun app tests solely for prose changes.
 - `./scripts/build-app.sh`: release bundle, Plist, signature and Hardened Runtime verification. Does not launch/install it.
 - `git diff --check` and `bash -n scripts/build-app.sh` before handoff.
 - Real microphone, hotkeys, direct target-field insertion, clipboard fallback and VoiceOver require attended native-app acceptance; an accessibility tree alone is not a VoiceOver listening test.
-- After changing the insertion mechanism, recheck one native text control and one actually used browser or Electron control. A successful historical `Cmd+V` test does not validate direct `AXSelectedText` insertion.
+- After changing the insertion mechanism, recheck the affected categories and
+  scenarios in `docs/compatibility-matrix.md`. A successful historical `Cmd+V`
+  test does not validate direct `AXSelectedText` or Unicode-event insertion.
 - For a legacy API-key item, save the key once through the in-app dialog and inspect or test its resulting ACL separately; never use a real credential in automated checks.
 
 ## Explicit live API check
@@ -79,13 +81,21 @@ recording. Confirm that cancellation, discard, copy and clear remain accessible
 from the recording panel's “Weitere Aktionen”. Compare preference and recovery
 file integrity before/after; do not delete recordings created by the user.
 
-## Brave insertion candidate
+## Repräsentative Kompatibilitätsabnahme
 
 The Unicode event tests construct events without posting them. They check exact
 UTF-16 preservation, modifier-free events, failure, cancellation and stopping
 remaining chunks after a focus change. They do not prove browser editing.
-Before accepting the candidate, check actual plain text, contenteditable and
-iframe fields in a local Brave fixture, including text longer than 20 UTF-16
-units, a selection, accents/emoji and a switch away. Distinguish this synthetic
-system-delivery check from microphone-to-editor acceptance in the installed app.
-Never use a private mail draft as an automated fixture.
+
+Use [the compatibility matrix](docs/compatibility-matrix.md) for product-facing
+acceptance. Exercise native fields, browser `input`/`textarea`, `contenteditable`,
+an editable iframe and an Electron field with controlled non-sensitive content.
+For each relevant category check cursor positions, selection replacement,
+multiline Unicode and app/window/tab switches during recording, processing and
+chunked delivery. Also verify the explicit clipboard fallback for a rejected or
+protected target. Never use a private mail draft or account content as a fixture.
+
+Record the installed candidate and visible before/after result. A synthetic
+production-inserter run, an attended end-to-end dictation and user confirmation
+are distinct evidence. One program does not establish its whole category; the
+Brave-specific Unicode correction does not establish other browsers or Electron.

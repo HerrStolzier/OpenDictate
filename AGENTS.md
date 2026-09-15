@@ -55,6 +55,8 @@ or one successful dictation into a general speech-quality claim.
 - `README.md`: current product behavior and setup.
 - `PRIVACY.md`: complete current data flow and retention behavior.
 - `CHECKS.md`: reproducible verification commands and explicit live-test gates.
+- `docs/compatibility-matrix.md`: current product-wide text-field and focus
+  acceptance plan; programs are representative examples, not blanket support claims.
 - `docs/remaining-acceptance.md`: single current handoff and behavior not yet evidenced.
 - Dated acceptance files: historical evidence for that exact candidate only.
 

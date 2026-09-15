@@ -2,7 +2,8 @@
 
 Project orientation: [product and scope](PROJECT.md), [current handoff and open
 acceptance](docs/remaining-acceptance.md), [project rules](AGENTS.md),
-[recorded approvals](APPROVALS.md), and [verification](CHECKS.md).
+[recorded approvals](APPROVALS.md), [compatibility plan](docs/compatibility-matrix.md),
+and [verification](CHECKS.md).
 
 Small macOS dictation app inspired by the VoiceScribe architecture:
 

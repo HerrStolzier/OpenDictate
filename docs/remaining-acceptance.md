@@ -4,7 +4,36 @@ This is the single current handoff; no parallel STATUS.md is maintained.
 Product decisions live in [PROJECT.md](../PROJECT.md), approvals in
 [APPROVALS.md](../APPROVALS.md), and procedures in [CHECKS.md](../CHECKS.md).
 
-## Brave insertion regression — 2026-09-15
+## Aktueller Produktplan — 2026-09-15
+
+Die nächste Produktphase prüft eine repräsentative
+[Kompatibilitätsmatrix](compatibility-matrix.md) nach Eingabefeldtypen und
+Nutzungssituationen. Einzelne persönliche Programme bestimmen nicht den
+Produktumfang. TextEdit, Browser und Electron-Programme sind Beispiele für
+Kategorien; ein bestandener Lauf belegt nur die konkret geprüfte Kombination.
+
+Priorisierte nächste Schritte:
+
+1. Native Felder, Browser-`input`/`textarea`/`contenteditable`/`iframe` und ein
+   Electron-Feld mit Cursorposition, Auswahl, mehrzeiligem Unicode und
+   App-/Fenster-/Tabwechsel abnehmen. Ablehnung und geschützte Felder müssen einen
+   verständlichen, verlustfreien Zwischenablage-Rückweg zeigen.
+2. Danach Aufnahme-, Geräte-, Abbruch-, Fehler- und Recoveryfälle robust prüfen.
+3. Anschließend VoiceOver, Tastaturbedienung sowie Sprachqualität, Latenz und
+   Korrekturaufwand systematisch prüfen.
+
+Vorhandene Evidenz: Der Produktionseinfüger wurde synthetisch in einem Brave-
+`textarea` und `contenteditable` sichtbar geprüft, ein echter TextEdit-Durchlauf
+wurde beobachtet und ein Proton-Diktat in Brave vom Nutzer ausdrücklich bestätigt.
+Diese drei Nachweisarten sind verschieden. Die Brave-spezifische Unicode-Korrektur
+belegt weder andere Browser noch Electron. Iframe, weitere Browser-Engines,
+Electron, vollständige Fokuswechselmatrix und sichtbarer Fallback bei einem
+abgelehnten Feld bleiben offen.
+
+Die folgenden datierten Abschnitte sind historische Nachweise ihrer jeweiligen
+Kandidaten. Sie ändern diese heutige Priorisierung nicht.
+
+## Historischer Nachweis: Brave insertion regression — 2026-09-15
 
 The installed candidate replaces ineffective AXSelectedText delivery in Brave
 with exact process-scoped Unicode input, rechecking foreground app and focused
@@ -31,7 +60,7 @@ Installation, exact executable identity and Git integration status are recorded 
 The test helper was stopped, the exact local test tab was closed, and its
 owned temporary files were removed. Existing browser windows were preserved.
 
-## Documentation pilot — 2026-09-14
+## Historischer Nachweis: Documentation pilot — 2026-09-14
 
 Documentation ownership is implemented and checked against the existing
 Git/acceptance handoff. Local links, diff and preservation of technical invariants
@@ -45,9 +74,9 @@ tracks upload, CI and merge. The initial upload approval block was resolved by
 direct user authorization. The SDK fix from merged PR #1 is integrated for CI;
 this does not establish any of the live acceptance below.
 
-The source changes and offline tests do not activate the app or prove real dictation quality. Do not install, launch a replacement app, publish a binary or make paid transcription requests without the corresponding authorization.
+The source changes and offline tests did not activate the app or prove real dictation quality. That historical documentation task did not authorize installation, app replacement, publication or paid transcription requests.
 
-## Native recording panel integration — 2026-09-15
+## Historischer Nachweis: Native recording panel integration — 2026-09-15
 
 The existing central recording panel and separate settings window are integrated
 with the current SDK, direct Accessibility delivery and microphone entitlement
@@ -61,10 +90,10 @@ support the result. The test document was discarded and TextEdit closed. The
 installed daily app remains running. Exact candidate, timing, focus evidence and
 limits: [September 15 acceptance](live-acceptance-2026-09-15.md).
 
-Browser/Electron controls and a live switch-away case remain open. Historical
-September 13 and 14 evidence remains scoped to its original candidates.
+Diese damalige Grenze wird heute durch die vollständige Kompatibilitätsmatrix
+konkretisiert. Historische September-13/14-Evidenz bleibt auf ihre Kandidaten begrenzt.
 
-## Compact settings — 2026-09-15
+## Historischer Nachweis: Compact settings — 2026-09-15
 
 The daily settings now show four main options, with collapsible advanced options
 and separate recording/help pages. Native UI, keyboard navigation and compact/
@@ -75,7 +104,7 @@ See [settings acceptance](settings-acceptance-2026-09-15.md) for the exact candi
 and scope. The window-close/menu-bar lifecycle is also confirmed in the earlier
 [September 15 report](live-acceptance-2026-09-15.md#window-lifecycle-follow-up).
 
-## Live acceptance
+## Historische Live-Abnahmen
 
 The 2026-09-14 attended attempt on `6401655` reached microphone permission
 checking through the registered Option+Shift+Space shortcut, but macOS denied
@@ -140,9 +169,8 @@ browser test or general speech-quality assessment was performed.
 
 The 2026-09-07 candidate proved one human microphone dictation through its then-current `Cmd+V` delivery, conservative no-paste behavior after a foreground-app switch, manual clipboard recovery, cancellation retaining authenticated readable AAC, and two bounded synthetic live API checks. Those microphone, transcription, focus-switch, clipboard and recovery observations remain historical evidence for their exact paths. The successful TextEdit delivery does **not** validate the current direct `AXSelectedText` insertion implementation. See `live-acceptance-2026-09-07.md` for the exact scope and limitations.
 
-Still open:
+Weitere offene Robustheits- und Qualitätsnachweise nach der Kompatibilitätsmatrix:
 
-- Current hardened bundle: one actually used browser or Electron text control, and clipboard fallback for a control that rejects insertion. Confirm that a target switch still prevents insertion. TextEdit direct insertion and the earlier missing-permission clipboard fallback are evidenced above. Unsupported controls are allowed to fall back; silent insertion of different clipboard contents is not.
 - Current Keychain state: users of the older helper must save the API key once through the in-app dialog. Confirming the real item's narrowed ACL is a credential-state check and remains separately authorized.
 - Microphone permission denied; built-in versus selected external input; visible elapsed time and low level; native 90-second stop; unplug/interruption.
 - Custom shortcut capture with keyboard-only navigation; collision with another app; original shortcut still works after a failed replacement.
