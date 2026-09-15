@@ -65,8 +65,11 @@ The prior app is preserved under the local Backups directory in
 19:03:51 UTC, registered Option+Shift+Space and visibly showed “Bereit zum
 Diktieren”. Preference export and existing recovery-file hashes matched before
 and after installation. The helper was stopped before installation.
-Git integration follows successful repository CI. No public release.
+Git integration: [PR #6](https://github.com/HerrStolzier/OpenDictate/pull/6), gated by repository CI. No public release.
 Actual Proton and a new microphone-to-editor acceptance are not established.
-The local helper process was stopped; a local-window close attempt was blocked
-by active user browser interaction. Preserve that window until it can be
-identified and closed safely, and preserve all pre-existing browser windows.
+The local helper process was stopped. After an initial user-interaction block,
+the exact local test window was selected through the Window menu and its only
+test tab closed. The changed window state confirmed closure. All agent-created
+helper binaries, fixture files, diagnostic snapshots and temporary logs were
+removed; the installed app and its original backup remain. No pre-existing
+browser window or private Proton content was modified.

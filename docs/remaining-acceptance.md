@@ -26,8 +26,8 @@ AX path has not been newly accepted. These limits do not invalidate the observed
 local contenteditable insertion.
 
 Installation, exact executable identity and Git integration status are recorded in the report.
-The test helper was stopped. Closing the local test window was blocked by active
-user browser interaction; do not close an unrelated or private Brave window.
+The test helper was stopped, the exact local test tab was closed, and its
+owned temporary files were removed. Existing browser windows were preserved.
 
 ## Documentation pilot — 2026-09-14
 
