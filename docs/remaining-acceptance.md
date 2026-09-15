@@ -20,6 +20,24 @@ this does not establish any of the live acceptance below.
 
 The source changes and offline tests do not activate the app or prove real dictation quality. Do not install, launch a replacement app, publish a binary or make paid transcription requests without the corresponding authorization.
 
+## Native recording panel integration — 2026-09-15
+
+The existing central recording panel and separate settings window are
+integrated with the current SDK, direct Accessibility delivery and microphone
+entitlement fixes. September 13 UI evidence and September 14 TextEdit evidence
+apply to their respective candidates; a fresh integrated-candidate microphone-to-target check is pending.
+
+The integrated candidate passed 104 offline tests, formatting, shell syntax and
+release bundle signature/Hardened Runtime/audio-input verification. It is installed
+at `~/Applications/OpenDictate.app` with the same designated certificate requirement
+as the previous copy, which was backed up before replacement. The executable
+SHA-256 is `7df2f0e0cef8a016f2a075714ca5926429b20440a1ee9ceaea6c58fdaaa8d9f6`.
+The real native panel and separate settings window were inspected. These checks
+do not yet establish recording, transcription or automatic insertion for this
+candidate. The central button's target preservation and its refusal to return to
+an older target after an application switch have offline policy coverage.
+
+
 ## Live acceptance
 
 The 2026-09-14 attended attempt on `6401655` reached microphone permission

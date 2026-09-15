@@ -35,8 +35,12 @@ attribute, automatic insertion stops and the transcript remains available only
 through the clipboard. OpenDictate does not fall back to an automatic `Cmd+V`
 because that would again consume mutable global clipboard contents.
 
-Automatic insertion targets the process that was active when recording started (or
-when retry started), provided it is still frontmost. Otherwise only the clipboard
+An explicit recording-panel action may return focus to the most recently used
+application. Stopping through the panel returns only if that application is still
+the most recently selected external app. Passive updates never return focus.
+Automatic insertion targets the process captured when recording started,
+provided it is still frontmost. Retries require explicit confirmation, copy their
+result, and never automatically insert. Otherwise only the clipboard
 is updated. Automatic insertion can also be disabled in the menu. It cannot prove that the same text field remains
 focused inside that process.
 

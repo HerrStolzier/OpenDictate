@@ -26,6 +26,7 @@ final class DictationFlow {
     private(set) var task: Task<Void, Never>?
     var onState: ((DictationState) -> Void)?
     var onStatus: ((String) -> Void)?
+    var onOutcome: ((DictationOutcome) -> Void)?
     private var discardOnCancel = false
 
     init(operations: Operations) { self.operations = operations }
@@ -50,6 +51,7 @@ final class DictationFlow {
         } catch {
             state = .idle
             onStatus?("Aufnahmefehler: \(error.localizedDescription)")
+            onOutcome?(.failed)
         }
         return true
     }
@@ -69,15 +71,17 @@ final class DictationFlow {
                 try Task.checkCancellation()
                 let text = try await operations.transcribeRetry(payload)
                 try Task.checkCancellation()
-                let result = await deliver(text)
+                let result = await deliver(text, allowPaste: false)
                 if result.canRemoveRecoveryAudio { operations.removeRetry(payload) }
             } catch is CancellationError {
                 onStatus?("Abgebrochen – Aufnahme bleibt erhalten")
+                onOutcome?(.cancelled)
             } catch {
                 onStatus?(
                     Task.isCancelled
                         ? "Abgebrochen – Aufnahme bleibt erhalten"
                         : "Wiederholen fehlgeschlagen: \(error.localizedDescription)")
+                onOutcome?(Task.isCancelled ? .cancelled : .failed)
             }
         }
         return true
@@ -94,11 +98,16 @@ final class DictationFlow {
                     operations.clean(audio)
                 } else {
                     onStatus?("Aufnahme konnte nicht gesichert werden: \(audio.path)")
+                    onOutcome?(.failed)
                     state = .idle
                     return
                 }
                 onStatus?(discardRecording ? "Aufnahme verworfen" : "Aufnahme für Wiederholung gesichert")
-            } catch { onStatus?(error.localizedDescription) }
+                onOutcome?(.cancelled)
+            } catch {
+                onStatus?(error.localizedDescription)
+                onOutcome?(.failed)
+            }
             state = .idle
         } else if state.isBusy {
             discardOnCancel = discardRecording
@@ -142,6 +151,7 @@ final class DictationFlow {
             if Task.isCancelled && discardOnCancel {
                 mayCleanOriginal = true
                 onStatus?("Aufnahme verworfen")
+                onOutcome?(.cancelled)
             } else {
                 mayCleanOriginal = preserve(original)
                 if mayCleanOriginal {
@@ -149,6 +159,7 @@ final class DictationFlow {
                         Task.isCancelled
                             ? "Abgebrochen – Aufnahme für Wiederholung gesichert"
                             : "\(error.localizedDescription) – Aufnahme für manuelle Wiederholung gesichert")
+                    onOutcome?(Task.isCancelled ? .cancelled : .failed)
                 }
             }
         }
@@ -158,29 +169,35 @@ final class DictationFlow {
         if operations.keep(url) { return true }
         // Do not destroy the only surviving audio when the recovery store fails.
         onStatus?("Sicherung fehlgeschlagen; Original bleibt unter \(url.path)")
+        onOutcome?(.failed)
         return false
     }
 
-    private func deliver(_ text: String) async -> TranscriptDelivery {
+    private func deliver(_ text: String, allowPaste: Bool = true) async -> TranscriptDelivery {
         let timing = PhaseTiming(phase: "delivery")
         defer { timing.finish() }
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else {
             onStatus?("Kein Text – Aufnahme bleibt zur Wiederholung erhalten")
+            onOutcome?(.failed)
             return .empty
         }
         lastTranscript = text
         state = .delivering
         guard operations.copy(text) else {
             onStatus?("Zwischenablage nicht verfügbar – letzten Text erneut kopieren")
+            onOutcome?(.textAvailable)
             return .clipboardFailed
         }
-        guard !Task.isCancelled else {
+        guard !Task.isCancelled, allowPaste else {
             onStatus?("Text kopiert – automatisches Einfügen abgebrochen")
+            if !allowPaste { onStatus?("Wiederholter Text kopiert – nicht automatisch eingefügt") }
+            onOutcome?(.textAvailable)
             return .copied
         }
         let pasted = await operations.paste(text)
         onStatus?(pasted ? "Einfügebefehl gesendet – Text auch kopiert" : "Text kopiert")
+        onOutcome?(pasted ? .deliveryUnconfirmed : .textAvailable)
         return pasted ? .pasteSent : .copied
     }
 }

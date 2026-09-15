@@ -11,11 +11,14 @@ import OpenDictateCore
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBar: MenuBarController?
+    private lazy var dictationPanel = DictationPanel()
+    private var pendingRetryFilename: String?
     private let hotKey = HotKeyManager()
     private let recorder = AudioRecorder()
     private let transcriber = OpenAITranscriber()
     private let pasteboard = PasteboardInserter()
     private var previousApplication: NSRunningApplication?
+    private var latestExternalApplication: NSRunningApplication?
     private var lastHotKeyAt = Date.distantPast
     private var autoStopTask: Task<Void, Never>?
     private var retentionTask: Task<Void, Never>?
@@ -55,6 +58,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // an inherited legacy value before settings snapshot the environment.
         unsetenv("OPENAI_API_KEY")
         let app = NSApplication.shared
+        #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("--processing-focus-preview") {
+                ProcessingFocusPreview.run(app)
+                return
+            }
+            if ProcessInfo.processInfo.arguments.contains("--focus-fixture") {
+                DesignPreview.runFocusFixture(app)
+                return
+            }
+            if ProcessInfo.processInfo.arguments.contains("--design-preview") {
+                DesignPreview.run(app)
+                return
+            }
+        #endif
         let delegate = AppDelegate()
         app.delegate = delegate
         app.setActivationPolicy(.accessory)
@@ -66,11 +83,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AppLog.write("Transcription model: \(Config.model.rawValue) (from \(Config.settings.modelSource))")
         verifyHotKeyConstants()
         ApplicationMenu.install()
+        latestExternalApplication = currentFrontmostApplication()
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self, selector: #selector(applicationActivated(_:)),
+            name: NSWorkspace.didActivateApplicationNotification, object: nil)
         configureMenuBar()
+        configureDictationPanel()
         flow.onStatus = { [weak self] in self?.updateStatus($0) }
+        flow.onOutcome = { [weak self] outcome in
+            guard let self else { return }
+            dictationPanel.update(outcome: outcome, transcript: flow.lastTranscript)
+            dictationPanel.show()
+        }
         flow.onState = { [weak self] state in
             if state != .recording { self?.cancelAutoStop() }
             self?.menuBar?.updateState(state)
+            self?.dictationPanel.update(state: state)
             if state == .idle {
                 self?.requestOptions = nil
                 self?.refreshSavedRecordings()
@@ -90,12 +118,60 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         requestAccessibilityPermissionIfNeeded()
         warnAboutUnusableModelIfNeeded()
         registerHotKey(announce: true)
+        if ProcessInfo.processInfo.arguments.contains("--show-window") {
+            dictationPanel.showForInteraction()
+        }
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        dictationPanel.showForInteraction()
+        return true
     }
 
     private func configureMenuBar() {
         let controller = MenuBarController(delegate: self)
+        controller.onShowDaily = { [weak self] anchor in self?.dictationPanel.showForInteraction(near: anchor) }
         controller.install()
         menuBar = controller
+    }
+
+    private func configureDictationPanel() {
+        dictationPanel.setShortcut(Config.shortcut.displayName)
+        dictationPanel.onRecord = { [weak self] in
+            guard let self else { return }
+            // Only an explicit panel action may return focus. Passive updates and
+            // delivery never reactivate a target after the user switches apps.
+            let target = flow.state.canStop ? previousApplication : latestExternalApplication
+            if currentFrontmostApplication() == nil,
+                let target, !target.isTerminated,
+                PanelTargetPolicy.canReturnFocus(
+                    target: target.processIdentifier,
+                    latestExternal: latestExternalApplication?.processIdentifier)
+            {
+                target.activate()
+            }
+            Task { @MainActor in await toggleRecording(target: target) }
+        }
+        dictationPanel.onCancel = { [weak self] in self?.menuBarDidCancel(discard: false) }
+        dictationPanel.onCopy = { [weak self] in self?.menuBarDidCopyLastText() }
+        dictationPanel.onSettings = { [weak self] in self?.menuBar?.showSettings() }
+        dictationPanel.onRecovery = { [weak self] in
+            self?.pendingRetryFilename = nil
+            self?.menuBar?.showSettings()
+        }
+        dictationPanel.onRetry = { [weak self] in
+            guard let self, let filename = pendingRetryFilename else { return }
+            pendingRetryFilename = nil
+            retryLastRecording(filename: filename)
+        }
+    }
+
+    private func proposeRetry(filename: String? = nil) {
+        guard flow.state.canRetry, !permissionRequestPending,
+            let entry = savedRecordings.first(where: { $0.retryable && (filename == nil || $0.filename == filename) })
+        else { return }
+        pendingRetryFilename = entry.filename
+        dictationPanel.confirmRetry(description: entry.created.formatted(date: .abbreviated, time: .shortened))
     }
 
     // MARK: - Hotkey
@@ -144,7 +220,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Dictation flow
 
-    private func toggleRecording() async {
+    private func toggleRecording(target: NSRunningApplication? = nil) async {
+        let capturedTarget = target ?? currentFrontmostApplication()
         let now = Date()
         guard now.timeIntervalSince(lastHotKeyAt) > 0.35 else { return }
         lastHotKeyAt = now
@@ -162,14 +239,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         permissionRequestPending = false
         guard permitted else {
             updateStatus("Mikrofonzugriff fehlt – in den Systemeinstellungen erlauben")
+            dictationPanel.showFailure("Mikrofonzugriff fehlt. Öffne die Systemeinstellungen und erlaube den Zugriff.")
             return
         }
         guard flow.state.canStart else { return }
         do {
             requestOptions = try .current()
-            previousApplication = currentFrontmostApplication()
-            if try flow.start() { scheduleAutoStop() }
-        } catch { updateStatus("Aufnahme fehlgeschlagen: \(error.localizedDescription)") }
+            previousApplication = capturedTarget
+            if try flow.start() {
+                pendingRetryFilename = nil
+                scheduleAutoStop()
+                dictationPanel.show()
+            }
+        } catch {
+            updateStatus("Aufnahme fehlgeschlagen: \(error.localizedDescription)")
+            dictationPanel.showFailure("Die Aufnahme konnte nicht gestartet werden. Prüfe Mikrofon und Berechtigungen.")
+        }
     }
 
     private func refreshSavedRecordings() {
@@ -209,6 +294,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func hasAPIKey() -> Bool {
         guard Config.apiKey == nil else { return true }
         updateStatus("API-Schlüssel fehlt – über das Menü einrichten")
+        dictationPanel.showFailure("API-Schlüssel fehlt. Du kannst ihn in den Einstellungen einrichten.")
         return false
     }
 
@@ -250,8 +336,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         cancelAutoStop()
+        NSWorkspace.shared.notificationCenter.removeObserver(self)
         retentionTask?.cancel()
         flow.clearLastTranscript()
+    }
+
+    @objc private func applicationActivated(_ notification: Notification) {
+        guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
+            app.processIdentifier != ProcessInfo.processInfo.processIdentifier
+        else { return }
+        latestExternalApplication = app
     }
 
     private func currentFrontmostApplication() -> NSRunningApplication? {
@@ -275,6 +369,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func updateStatus(_ value: String) {
         menuBar?.updateStatus(value)
+        dictationPanel.setStatus(value)
     }
 
     private func setAPIKey() {
@@ -318,6 +413,7 @@ extension AppDelegate: MenuBarControllerDelegate {
     }
 
     func menuBarDidConfigureVocabulary() {
+        guard flow.state == .idle else { return }
         guard let value = AlertPresenter.promptForVocabulary(initialValue: Config.prompt) else { return }
         guard value.count <= 2000 else {
             updateStatus("Vokabular nicht gespeichert: maximal 2.000 Zeichen")
@@ -328,11 +424,22 @@ extension AppDelegate: MenuBarControllerDelegate {
     }
 
     func menuBarDidCancel(discard: Bool) { flow.cancel(discardRecording: discard) }
-    func menuBarDidCopyLastText() { _ = flow.copyLastTranscript() }
-    func menuBarDidClearLastText() { flow.clearLastTranscript() }
-    func menuBarDidToggleAutoPaste() { Config.settings.autoPaste.toggle() }
+    func menuBarDidCopyLastText() {
+        guard flow.state == .idle else { return }
+        _ = flow.copyLastTranscript()
+    }
+    func menuBarDidClearLastText() {
+        guard flow.state == .idle else { return }
+        flow.clearLastTranscript()
+        dictationPanel.clearText()
+    }
+    func menuBarDidToggleAutoPaste() {
+        guard flow.state == .idle else { return }
+        Config.settings.autoPaste.toggle()
+        menuBar?.showSettings()
+    }
     var menuBarRecordings: [SavedRecording] { savedRecordings }
-    func menuBarDidRetry(filename: String) { retryLastRecording(filename: filename) }
+    func menuBarDidRetry(filename: String) { proposeRetry(filename: filename) }
     func menuBarDidDelete(filename: String) {
         guard flow.state == .idle, AlertPresenter.confirmDeleteSavedRecordings(count: 1) else { return }
         Task { @MainActor in
@@ -352,9 +459,7 @@ extension AppDelegate: MenuBarControllerDelegate {
     }
 
     func menuBarDidTriggerRetry() {
-        Task { @MainActor in
-            retryLastRecording()
-        }
+        proposeRetry()
     }
 
     func menuBarDidTriggerDeleteSavedRecordings() {
@@ -362,23 +467,28 @@ extension AppDelegate: MenuBarControllerDelegate {
     }
 
     func menuBarDidTriggerSetAPIKey() {
+        guard flow.state == .idle else { return }
         setAPIKey()
     }
 
     func menuBarDidSelect(shortcut: HotKeyShortcut) {
+        guard flow.state == .idle else { return }
         guard shortcut != Config.shortcut else { return }
         if registerHotKey(announce: false, shortcut: shortcut) {
             Config.settings.shortcut = shortcut
+            dictationPanel.setShortcut(shortcut.displayName)
         }
     }
 
     func menuBarDidSelect(model: TranscriptionModel) {
+        guard flow.state == .idle else { return }
         guard model != Config.model else { return }
         Config.settings.model = model
         AppLog.write("Transcription model changed to \(model.rawValue)")
     }
 
     func menuBarDidSelect(language: String?) {
+        guard flow.state == .idle else { return }
         guard language != Config.language else { return }
         Config.settings.language = language
         AppLog.write("Transcription language changed to \(language ?? "auto")")

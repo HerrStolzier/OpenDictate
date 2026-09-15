@@ -53,3 +53,18 @@ OPENDICTATE_RESOURCE_BENCHMARK=1 OPENDICTATE_RESOURCE_BENCHMARK_OUTPUT=/path/to/
 ```
 
 The CSV records cleanup wall time, process CPU time and cumulative process peak RSS for empty, normal-size and maximum-size recovery fixtures. Exclude iteration 0 when comparing warm medians. Peak RSS includes fixture generation and runner allocations; it is not a measurement of app RAM saved. Results and remaining gaps: `docs/resource-performance-2026-09-08.md`.
+
+## Native recording panel
+
+The menu bar opens the daily AppKit panel; Settings opens the existing controls
+in a separate window. Check start/stop, cancellation, keyboard navigation and
+passive recording/processing/result updates in the installed candidate.
+The real acceptance path is microphone recording, provider transcription and
+automatic insertion into a fresh target document, without manual paste.
+Close and discard test documents afterward; preserve pre-existing user content.
+
+`./script/build_and_run.sh --daily` reuses the installed app. The explicit
+`--preview`, `--focus-fixture` and `--processing-focus-preview` modes are synthetic
+fixtures, not microphone-to-target acceptance. Historical fixture evidence is in
+[the September 13 report](docs/live-acceptance-2026-09-13.md); it does not establish
+acceptance of the integrated candidate. Also run `bash -n script/build_and_run.sh`.
