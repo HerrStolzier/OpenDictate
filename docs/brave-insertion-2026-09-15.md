@@ -66,7 +66,18 @@ The prior app is preserved under the local Backups directory in
 Diktieren”. Preference export and existing recovery-file hashes matched before
 and after installation. The helper was stopped before installation.
 Git integration: [PR #6](https://github.com/HerrStolzier/OpenDictate/pull/6), gated by repository CI. No public release.
-Actual Proton and a new microphone-to-editor acceptance are not established.
+
+## Attended Proton acceptance
+
+After the installed correction, the user performed a normal dictation with
+OpenDictate into a Proton text field in Brave and confirmed: “Funktioniert”.
+This is the user's confirmation of the end-to-end microphone, transcription
+and automatic-insertion path in the actual intended browser editor. No Proton
+message content was read, recorded or sent, and no separate Proton macOS app
+was involved. The confirmation does not establish an exact transcript,
+selection behavior in Proton, iframe support or handling of an interruption
+between Unicode chunks.
+
 The local helper process was stopped. After an initial user-interaction block,
 the exact local test window was selected through the Window menu and its only
 test tab closed. The changed window state confirmed closure. All agent-created

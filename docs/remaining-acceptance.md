@@ -18,12 +18,14 @@ parts. No manual paste, microphone or provider request was used for these
 candidate checks. Exact evidence and helper diagnosis:
 [Brave insertion report](brave-insertion-2026-09-15.md).
 
-The original real-app/hotkey failure is recorded in that report. A new
-microphone-to-editor test of the installed fix, actual Proton editor, iframe
-insertion and live interruption between chunks remain unevidenced. The additional
-native helper check was blocked by the foreground guard; the unchanged native
-AX path has not been newly accepted. These limits do not invalidate the observed
-local contenteditable insertion.
+The original real-app/hotkey failure and the later attended Proton/Brave
+acceptance are recorded in that report. The user confirmed that a normal
+dictation with the installed correction automatically inserted into the actual
+Proton editor in Brave. Iframe insertion, selection behavior in Proton and a
+live interruption between chunks remain unevidenced. The additional native
+helper check was blocked by the foreground guard; the unchanged native AX path
+has not been newly accepted. These limits do not invalidate the observed local
+contenteditable insertion or the user-confirmed Proton path.
 
 Installation, exact executable identity and Git integration status are recorded in the report.
 The test helper was stopped, the exact local test tab was closed, and its
