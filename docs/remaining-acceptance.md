@@ -6,7 +6,7 @@ Product decisions live in [PROJECT.md](../PROJECT.md), approvals in
 
 ## Brave insertion regression — 2026-09-15
 
-The working candidate replaces ineffective AXSelectedText delivery in Brave
+The installed candidate replaces ineffective AXSelectedText delivery in Brave
 with exact process-scoped Unicode input, rechecking foreground app and focused
 field before each chunk. Other applications retain their existing AX path.
 110 offline tests and stable signed-bundle verification passed.
@@ -25,7 +25,7 @@ native helper check was blocked by the foreground guard; the unchanged native
 AX path has not been newly accepted. These limits do not invalidate the observed
 local contenteditable insertion.
 
-Installation and Git integration are recorded in the report when completed.
+Installation, exact executable identity and Git integration status are recorded in the report.
 The test helper was stopped. Closing the local test window was blocked by active
 user browser interaction; do not close an unrelated or private Brave window.
 

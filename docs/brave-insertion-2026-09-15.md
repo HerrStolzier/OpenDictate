@@ -57,7 +57,15 @@ entitlement verification. No signing identity, grant or credential was changed.
 
 ## Delivery status and limits
 
-Installation and Git integration pending at report creation. No public release.
+Installed source candidate: `3cdef50`, signed by `OpenDictate Self-Signed`.
+The installed executable exactly matches the verified release build, SHA-256:
+`8b127138336aeafb5438a0e9a284f03bee940ad803181914550c9ceaf6f29805`.
+The prior app is preserved under the local Backups directory in
+`before-brave-20260915-210346/OpenDictate.app`. The replacement started at
+19:03:51 UTC, registered Option+Shift+Space and visibly showed “Bereit zum
+Diktieren”. Preference export and existing recovery-file hashes matched before
+and after installation. The helper was stopped before installation.
+Git integration follows successful repository CI. No public release.
 Actual Proton and a new microphone-to-editor acceptance are not established.
 The local helper process was stopped; a local-window close attempt was blocked
 by active user browser interaction. Preserve that window until it can be
