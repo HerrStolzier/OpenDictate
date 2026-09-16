@@ -18,6 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let transcriber = OpenAITranscriber()
     private let pasteboard = PasteboardInserter()
     private var previousApplication: NSRunningApplication?
+    private var insertionTarget: InsertionTarget?
     private var latestExternalApplication: NSRunningApplication?
     private var lastHotKeyAt = Date.distantPast
     private var autoStopTask: Task<Void, Never>?
@@ -48,7 +49,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 copy: { [unowned self] in pasteboard.copy($0) },
                 paste: { [unowned self] text in
                     guard Config.settings.autoPaste else { return false }
-                    return await pasteboard.pasteIntoPreviousApp(previousApplication, text: text)
+                    return await pasteboard.paste(text, into: insertionTarget)
                 }
             ))
     }
@@ -59,18 +60,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         unsetenv("OPENAI_API_KEY")
         let app = NSApplication.shared
         #if DEBUG
+            let executable = Bundle.main.executableURL?.lastPathComponent
+            if ProcessInfo.processInfo.arguments.contains("--matrix-fixture")
+                || executable == "OpenDictateMatrixFixture"
+            {
+                DeliveryMatrixPreview.run(app)
+                return
+            }
+            if ProcessInfo.processInfo.arguments.contains("--matrix-host") || executable == "OpenDictateMatrixHost" {
+                DeliveryMatrixPreview.runHost(app)
+                return
+            }
             if ProcessInfo.processInfo.arguments.contains("--processing-focus-preview") {
                 ProcessingFocusPreview.run(app)
                 return
             }
-            if ProcessInfo.processInfo.arguments.contains("--focus-fixture") {
+            if ProcessInfo.processInfo.arguments.contains("--focus-fixture") || executable == "OpenDictateFocusFixture"
+            {
                 DesignPreview.runFocusFixture(app)
                 return
             }
-            if ProcessInfo.processInfo.arguments.contains("--design-preview") {
+            if ProcessInfo.processInfo.arguments.contains("--design-preview") || executable == "OpenDictatePreview" {
                 DesignPreview.run(app)
                 return
             }
+            // Renamed debug helpers must never fall through into production
+            // services when Launch Services reopens them without arguments.
+            guard executable == "OpenDictate" else { return }
         #endif
         let delegate = AppDelegate()
         app.delegate = delegate
@@ -101,6 +117,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.dictationPanel.update(state: state)
             if state == .idle {
                 self?.requestOptions = nil
+                self?.insertionTarget = nil
                 self?.refreshSavedRecordings()
             }
         }
@@ -237,6 +254,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             warnAboutUnusableModelIfNeeded()
             return
         }
+        let capturedField = pasteboard.captureTarget(in: capturedTarget?.processIdentifier)
         permissionRequestPending = true
         let permitted = await AudioRecorder.requestPermission()
         permissionRequestPending = false
@@ -249,6 +267,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         do {
             requestOptions = try .current()
             previousApplication = capturedTarget
+            insertionTarget = capturedField
             if try flow.start() {
                 pendingRetryFilename = nil
                 scheduleAutoStop()
@@ -290,6 +309,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard flow.state.canRetry, let options = try? TranscriptionOptions.current() else { return }
             requestOptions = options
             previousApplication = target
+            insertionTarget = nil  // Recovery deliberately delivers through the clipboard only.
             _ = flow.retry(payload)
         }
     }
@@ -309,7 +329,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 guard let self, flow.state == .recording else { return }
                 let elapsed = start.duration(to: .now)
                 let seconds = Double(elapsed.components.seconds) + Double(elapsed.components.attoseconds) / 1e18
-                menuBar?.updateState(.recording, elapsed: seconds, level: recorder.level())
+                let level = recorder.level()
+                menuBar?.updateState(.recording, elapsed: seconds, level: level)
+                dictationPanel.updateRecording(elapsed: seconds, level: level)
                 if seconds >= Config.maximumRecordingDuration {
                     _ = flow.stop()
                     return
@@ -348,6 +370,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
             app.processIdentifier != ProcessInfo.processInfo.processIdentifier
         else { return }
+        if flow.state != .idle, app.processIdentifier != previousApplication?.processIdentifier {
+            insertionTarget = nil
+        }
         latestExternalApplication = app
     }
 

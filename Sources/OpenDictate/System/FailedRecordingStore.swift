@@ -23,17 +23,25 @@ enum FailedRecordingStore {
     /// still owns and cleans up the original temporary artifact.
     @discardableResult
     static func keep(_ audioURL: URL, recordedAt: Date) -> URL? {
+        keep(audioURL, recordedAt: recordedAt, in: directory, key: RecordingAuthenticationKeyStore.readOrCreate)
+    }
+
+    /// Explicit storage and key provider keep filesystem checks isolated from
+    /// the user's recovery directory and Keychain.
+    static func keep(
+        _ audioURL: URL, recordedAt: Date, in directoryURL: URL, key: () throws -> SymmetricKey
+    ) -> URL? {
         do {
             guard let audioData = secureRead(audioURL, maximumBytes: maximumAudioBytes),
                 !audioData.isEmpty
             else {
                 throw CocoaError(.fileReadTooLarge)
             }
-            let key = try RecordingAuthenticationKeyStore.readOrCreate()
-            try prepareDirectory()
+            let key = try key()
+            try prepareDirectory(directoryURL)
 
             let filename = "\(timestamp(recordedAt))-\(UUID().uuidString.prefix(8)).m4a"
-            let destination = directory.appendingPathComponent(filename, isDirectory: false)
+            let destination = directoryURL.appendingPathComponent(filename, isDirectory: false)
             let authenticator = authenticationCode(for: audioData, filename: filename, key: key)
 
             do {
@@ -49,7 +57,7 @@ enum FailedRecordingStore {
             }
 
             AppLog.write("Kept an authenticated failed recording at \(destination.path)")
-            prune()
+            prune(now: Date(), in: directoryURL)
             return destination
         } catch {
             AppLog.write("Could not keep the failed recording: \(error.localizedDescription)")

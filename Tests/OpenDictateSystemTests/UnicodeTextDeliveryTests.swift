@@ -30,6 +30,16 @@ struct UnicodeTextDeliveryTests {
         }
     }
 
+    @Test func lineBreakCommandsNeverDiscardFollowingTextInTheSameEvent() {
+        let text = String(repeating: "x", count: 20) + "\nFollowing text\r\n\nEnd 🍏"
+        let chunks = UnicodeTextDelivery.chunks(text, isolateLineBreaks: true)
+        #expect(chunks.map { String(decoding: $0, as: UTF16.self) }.joined() == text)
+        #expect(chunks.contains([10]))
+        #expect(chunks.contains([13, 10]))
+        #expect(chunks.allSatisfy { !$0.contains(10) && !$0.contains(13) || $0.count == 1 || $0 == [13, 10] })
+        #expect(UnicodeTextDelivery.chunks("Before\nAfter") == [Array("Before\nAfter".utf16)])
+    }
+
     @Test func targetSwitchStopsRemainingText() async {
         var focused = true
         var posted: [[UniChar]] = []

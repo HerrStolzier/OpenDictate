@@ -5,8 +5,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 MODE="${1:---daily}"
 case "$MODE" in
-  --daily|--preview|--verify|--focus-fixture|--processing-focus-preview) ;;
-  *) echo "Usage: $0 [--daily|--preview|--verify|--focus-fixture|--processing-focus-preview]" >&2; exit 2 ;;
+  --daily|--preview|--verify|--focus-fixture|--processing-focus-preview|--matrix-fixture|--matrix-host) ;;
+  *) echo "Usage: $0 [--daily|--preview|--verify|--focus-fixture|--processing-focus-preview|--matrix-fixture|--matrix-host]" >&2; exit 2 ;;
 esac
 if [[ "$MODE" == "--daily" ]]; then
   DAILY_APP="$HOME/Applications/OpenDictate.app"
@@ -34,7 +34,17 @@ fi
 if [[ "$MODE" == "--processing-focus-preview" ]]; then
   RUN_ARGUMENT="--processing-focus-preview"
 fi
-if pgrep -x OpenDictate >/dev/null || pgrep -x "$APP_NAME" >/dev/null; then
+if [[ "$MODE" == "--matrix-fixture" ]]; then
+  APP_NAME="OpenDictateMatrixFixture"
+  BUNDLE_ID="local.opendictate.app"
+  RUN_ARGUMENT="$MODE"
+fi
+if [[ "$MODE" == "--matrix-host" ]]; then
+  APP_NAME="OpenDictateMatrixHost"
+  BUNDLE_ID="local.opendictate.matrixhost"
+  RUN_ARGUMENT="$MODE"
+fi
+if { [[ "$MODE" != --matrix-* ]] && pgrep -x OpenDictate >/dev/null; } || pgrep -x "$APP_NAME" >/dev/null; then
   echo "OpenDictate oder diese Vorschau läuft bereits. Vor dem Test regulär beenden." >&2
   exit 1
 fi
@@ -57,9 +67,18 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 PLIST
 plutil -lint "$APP/Contents/Info.plist"
 xattr -cr "$APP"
-codesign --force --sign - "$APP"
+if [[ "$MODE" == "--matrix-fixture" ]]; then
+  # Reuse the explicitly configured existing local identity; never change TCC.
+  codesign --force --options runtime --sign "${OPENDICTATE_SIGN_IDENTITY:-OpenDictate Self-Signed}" "$APP"
+else
+  codesign --force --sign - "$APP"
+fi
 codesign --verify --strict "$APP"
-/usr/bin/open -n "$APP" --args "$RUN_ARGUMENT"
+if [[ "$MODE" == "--matrix-fixture" ]]; then
+  /usr/bin/open -g -n "$APP" --args "$RUN_ARGUMENT"
+else
+  /usr/bin/open -n "$APP" --args "$RUN_ARGUMENT"
+fi
 if [[ "$MODE" == "--verify" ]]; then
   sleep 1
   pgrep -x OpenDictatePreview >/dev/null

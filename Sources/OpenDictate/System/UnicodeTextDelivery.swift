@@ -3,11 +3,23 @@ import AppKit
 /// Sends exact text without consulting the global clipboard. Events stay process-scoped.
 @MainActor
 struct UnicodeTextDelivery {
-    static func chunks(_ text: String) -> [[UniChar]] {
+    static func chunks(_ text: String, isolateLineBreaks: Bool = false) -> [[UniChar]] {
         var result: [[UniChar]] = []
         var chunk: [UniChar] = []
         for scalar in text.unicodeScalars {
             let units = Array(String(scalar).utf16)
+            // WebKit treats a leading newline as a Return command and ignores
+            // trailing text in that event. Keep line breaks in their own events.
+            if isolateLineBreaks && (scalar == "\n" || scalar == "\r") {
+                if scalar == "\n", result.last == [13], chunk.isEmpty {
+                    result[result.count - 1].append(10)  // One CRLF is one Return command.
+                    continue
+                }
+                if !chunk.isEmpty { result.append(chunk) }
+                result.append(units)
+                chunk = []
+                continue
+            }
             if chunk.count + units.count > 20 {
                 result.append(chunk)
                 chunk = []
@@ -32,10 +44,11 @@ struct UnicodeTextDelivery {
 
     static func send(
         _ text: String,
+        isolateLineBreaks: Bool = false,
         stillFocused: () -> Bool,
         post: ([UniChar]) -> Bool
     ) async -> Bool {
-        let parts = chunks(text)
+        let parts = chunks(text, isolateLineBreaks: isolateLineBreaks)
         guard !parts.isEmpty else { return false }
         for (index, part) in parts.enumerated() {
             guard !Task.isCancelled, stillFocused(), post(part) else { return false }

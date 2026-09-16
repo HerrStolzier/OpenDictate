@@ -14,6 +14,7 @@
         private let startButton = NSButton(title: "Test vorbereiten", target: nil, action: nil)
         private let inserter = PasteboardInserter()
         private var target: NSRunningApplication?
+        private var insertionTarget: InsertionTarget?
         private var armTask: Task<Void, Never>?
         private var clipboard: [[NSPasteboard.PasteboardType: Data]] = []
         private var fixtureClipboardChange: Int?
@@ -35,7 +36,7 @@
                         fixtureClipboardChange = NSPasteboard.general.changeCount
                         return copied
                     },
-                    paste: { [unowned self] text in await inserter.pasteIntoPreviousApp(target, text: text) }))
+                    paste: { [unowned self] text in await inserter.paste(text, into: insertionTarget) }))
         }
 
         static func run(_ app: NSApplication) {
@@ -96,6 +97,7 @@
                 for _ in 0..<150 {
                     if let app = NSWorkspace.shared.frontmostApplication, app.bundleIdentifier == "com.apple.TextEdit" {
                         target = app
+                        insertionTarget = inserter.captureTarget(in: app.processIdentifier)
                         _ = try? flow.start()
                         _ = flow.stop()
                         panel.window?.title = "OpenDictate – Verarbeitungstest"

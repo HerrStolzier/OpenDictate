@@ -72,6 +72,7 @@ final class DictationPanel: NSWindowController {
     private let settings = TactileButton(title: "Einstellungen", target: nil, action: nil)
     private var textHeight: NSLayoutConstraint!
     private var currentDetail = "Starte die Aufnahme oder nutze dein Tastenkürzel."
+    private var announcedCountdown: Int?
 
     init() {
         let panel = DictationUtilityPanel(
@@ -97,6 +98,7 @@ final class DictationPanel: NSWindowController {
 
     func show(near anchor: NSRect? = nil) {
         guard let window else { return }
+        let wasVisible = window.isVisible
         if !window.isVisible, let anchor {
             let screen = NSScreen.screens.first { $0.frame.intersects(anchor) } ?? NSScreen.main
             let visible = screen?.visibleFrame ?? anchor
@@ -107,6 +109,11 @@ final class DictationPanel: NSWindowController {
         }
         // This must not activate OpenDictate or change the target application.
         window.orderFrontRegardless()
+        if !wasVisible {
+            NSAccessibility.post(
+                element: headline, notification: .announcementRequested,
+                userInfo: [.announcement: display.title, .priority: NSAccessibilityPriorityLevel.medium.rawValue])
+        }
     }
 
     /// Explicit user entry points may activate the app. Automatic flow updates
@@ -123,12 +130,36 @@ final class DictationPanel: NSWindowController {
         switch state {
         case .recording:
             showingText = false
+            announcedCountdown = nil
             set(.recording, detail: "Sprich in deinem Tempo.")
         case .processing:
             set(.processing, detail: "Bitte warte einen Moment.")
         case .delivering:
             set(.processing, detail: "Die Übergabe wird vorbereitet.")
         case .idle: render()
+        }
+    }
+
+    func updateRecording(elapsed: Double, level: Float) {
+        guard display == .recording else { return }
+        let seconds = max(0, Int(elapsed))
+        let remaining = max(0, Int(ceil(Config.maximumRecordingDuration - elapsed)))
+        let signal = level < Config.silenceThresholdDb ? "Leises Eingangssignal" : "Eingangssignal vorhanden"
+        let countdown =
+            remaining <= 10
+            ? "Noch \(remaining) s bis zum automatischen Stopp."
+            : "Stopp nach \(Int(Config.maximumRecordingDuration)) s."
+        setStatus("\(seconds) s aufgenommen · \(countdown)\n\(signal) (\(Int(level)) dB).")
+        render()
+        let milestone = remaining <= 5 ? 5 : (remaining <= 10 ? 10 : nil)
+        if let milestone, announcedCountdown != milestone, window?.isVisible == true {
+            announcedCountdown = milestone
+            NSAccessibility.post(
+                element: detail, notification: .announcementRequested,
+                userInfo: [
+                    .announcement: "Noch \(remaining) Sekunden bis zum automatischen Stopp.",
+                    .priority: NSAccessibilityPriorityLevel.medium.rawValue
+                ])
         }
     }
 

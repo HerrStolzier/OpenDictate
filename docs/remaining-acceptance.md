@@ -4,9 +4,33 @@ This is the single current handoff; no parallel STATUS.md is maintained.
 Product decisions live in [PROJECT.md](../PROJECT.md), approvals in
 [APPROVALS.md](../APPROVALS.md), and procedures in [CHECKS.md](../CHECKS.md).
 
-## Aktueller Produktplan — 2026-09-15
+## Aktueller Übergabestand — 2026-09-16
 
-Die nächste Produktphase prüft eine repräsentative
+Die Zielbindung erfasst jetzt beim Start das konkrete Feld, Fenster, Web-Dokument
+und die verfügbare Auswahl. Native Felder sowie Safari, Brave und Obsidian wurden
+mit dem Produktionseinfüger und künstlichem Text sichtbar geprüft. Die AX-
+Scheinbestätigung ohne Texteingabe in Safari/Obsidian ist durch deren gezielten
+Unicodepfad korrigiert. Geschützte Felder, nativer Feldwechsel und Brave-Tabwechsel
+zeigen den vollständigen manuellen Rückweg. Tastaturdialog, Countdown/Pegel bei
+Mindestbreite, echte temporäre Recovery-Dateien und native Hotkey-Kollision sind
+ebenfalls geprüft. Kandidat, Prüfarten und Installation:
+[Abnahmebericht vom 16. September](roadmap-acceptance-2026-09-16.md).
+
+Offen bleiben eine neue echte Mikrofon-/Provider-Abnahme dieses Kandidaten,
+physische Gerätewechsel/Abziehen, native 90-Sekunden-Aufnahme, reale
+Berechtigungs-/Keychainfehler, Beenden während echter Aufnahme, menschlicher
+Sprachkorpus samt Latenz/Korrekturaufwand und gehörte VoiceOver-Ausgabe.
+Feld-/Tab-/Fensterwechsel sowie ein App-Wechsel während laufender Unicode-Chunks
+sind sichtbar geprüft, jeweils mit vollständigem Kopiertext. Anfang/Ende sind für
+native Felder, Safari-Feldtypen und Obsidian ergänzend belegt. Safari-Langtext
+(28.199 UTF-16-Zeichen), CRLF und Leerzeilen sind nach einer Korrektur der
+Chunkgrenzen exakt geprüft. Eine vollständige Phasenmatrix ist nicht belegt.
+Chrome verlangt Ersteinrichtung; Firefox fehlt.
+Kein pauschaler Nachweis für sämtliche Browser oder Electron-Apps.
+
+## Produktplan und historische Ausgangsevidenz — 2026-09-15
+
+Die Produktphase prüft eine repräsentative
 [Kompatibilitätsmatrix](compatibility-matrix.md) nach Eingabefeldtypen und
 Nutzungssituationen. Einzelne persönliche Programme bestimmen nicht den
 Produktumfang. TextEdit, Browser und Electron-Programme sind Beispiele für
@@ -22,13 +46,13 @@ Priorisierte nächste Schritte:
 3. Anschließend VoiceOver, Tastaturbedienung sowie Sprachqualität, Latenz und
    Korrekturaufwand systematisch prüfen.
 
-Vorhandene Evidenz: Der Produktionseinfüger wurde synthetisch in einem Brave-
+Damals vorhandene Evidenz: Der Produktionseinfüger wurde synthetisch in einem Brave-
 `textarea` und `contenteditable` sichtbar geprüft, ein echter TextEdit-Durchlauf
 wurde beobachtet und ein Proton-Diktat in Brave vom Nutzer ausdrücklich bestätigt.
 Diese drei Nachweisarten sind verschieden. Die Brave-spezifische Unicode-Korrektur
 belegt weder andere Browser noch Electron. Iframe, weitere Browser-Engines,
 Electron, vollständige Fokuswechselmatrix und sichtbarer Fallback bei einem
-abgelehnten Feld bleiben offen.
+abgelehnten Feld waren damals offen. Der aktuelle Stand steht oben.
 
 Die folgenden datierten Abschnitte sind historische Nachweise ihrer jeweiligen
 Kandidaten. Sie ändern diese heutige Priorisierung nicht.
@@ -169,13 +193,13 @@ browser test or general speech-quality assessment was performed.
 
 The 2026-09-07 candidate proved one human microphone dictation through its then-current `Cmd+V` delivery, conservative no-paste behavior after a foreground-app switch, manual clipboard recovery, cancellation retaining authenticated readable AAC, and two bounded synthetic live API checks. Those microphone, transcription, focus-switch, clipboard and recovery observations remain historical evidence for their exact paths. The successful TextEdit delivery does **not** validate the current direct `AXSelectedText` insertion implementation. See `live-acceptance-2026-09-07.md` for the exact scope and limitations.
 
-Weitere offene Robustheits- und Qualitätsnachweise nach der Kompatibilitätsmatrix:
+Robustheits- und Qualitätsnachweise nach der Kompatibilitätsmatrix:
 
 - Current Keychain state: users of the older helper must save the API key once through the in-app dialog. Confirming the real item's narrowed ACL is a credential-state check and remains separately authorized.
 - Microphone permission denied; built-in versus selected external input; visible elapsed time and low level; native 90-second stop; unplug/interruption.
-- Custom shortcut capture with keyboard-only navigation; collision with another app; original shortcut still works after a failed replacement.
-- Clipboard failure exposes last text. VoiceOver recognizes recording state and controls, including the countdown and cancel/discard distinction.
-- App end during recording/transcription preserves audio; real failed recovery writes are visible and do not delete the only original.
+- Custom shortcut keyboard navigation and real Carbon collision/registration rollback are covered by the September 16 checks. An actual physical shortcut press in the installed candidate remains a separate live check.
+- Clipboard-failure retention is covered by deterministic flow tests, and the complete manual panel/copy action is visibly checked. Heard VoiceOver recognition of recording state, countdown and cancel/discard distinction remains open.
+- App end during a real recording/transcription remains open. Real temporary recovery creation failure on recording/processing cancellation preserves the original and reports failure in the September 16 filesystem checks.
 - Real speech corpus and reference transcripts, followed by authorized API requests: language options, proper names, mixed languages, short/quiet words, actual request latency and correction effort.
 - GitHub checks run for the triggers in `.github/workflows/checks.yml`; Git routine follows the governing implementation authorization. Notarization/public binary distribution is not part of the local build.
 
