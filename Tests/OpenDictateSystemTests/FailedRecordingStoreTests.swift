@@ -7,6 +7,66 @@ import Testing
 
 @Suite("Failed recording store security boundaries")
 struct FailedRecordingStoreTests {
+    @Test func realRecoveryCopyAuthenticatesAndPreservesOriginal() throws {
+        let fixture = try Fixture()
+        let original = fixture.directory.appendingPathComponent("original.m4a")
+        let bytes = Data("synthetic audio bytes".utf8)
+        try bytes.write(to: original)
+        let key = SymmetricKey(data: Data(repeating: 0x42, count: 32))
+        let now = Date()
+        let destination = try #require(
+            FailedRecordingStore.keep(
+                original, recordedAt: now, in: fixture.directory.appendingPathComponent("recovery"), key: { key }))
+        #expect(FailedRecordingStore.payload(at: destination, now: now, key: key)?.data == bytes)
+        #expect(try Data(contentsOf: original) == bytes)
+        let permissions =
+            try FileManager.default.attributesOfItem(atPath: destination.path)[.posixPermissions] as? NSNumber
+        #expect(permissions?.intValue == 0o600)
+    }
+
+    @Test @MainActor func filesystemRecoveryFailurePreservesOriginalOnBothCancellationPaths() async throws {
+        for duringProcessing in [false, true] {
+            let fixture = try Fixture()
+            let original = fixture.directory.appendingPathComponent("original.m4a")
+            let bytes = Data("only surviving synthetic audio".utf8)
+            try bytes.write(to: original)
+            let blockedDirectory = fixture.directory.appendingPathComponent("not-a-directory")
+            try Data("block directory creation".utf8).write(to: blockedDirectory)
+            let key = SymmetricKey(data: Data(repeating: 0x42, count: 32))
+            var uploads = 0
+            var outcomes: [DictationOutcome] = []
+            var status = ""
+            let flow = DictationFlow(
+                operations: .init(
+                    start: {}, stop: { original },
+                    prepare: { PreparedAudio(url: $0, uploadDuration: 1) },
+                    transcribeFile: { _ in
+                        uploads += 1
+                        return "unused"
+                    },
+                    transcribeRetry: { _ in
+                        uploads += 1
+                        return "unused"
+                    },
+                    keep: {
+                        FailedRecordingStore.keep($0, recordedAt: Date(), in: blockedDirectory, key: { key }) != nil
+                    },
+                    removeRetry: { _ in }, clean: { try? FileManager.default.removeItem(at: $0) },
+                    copy: { _ in true }, paste: { _ in true }))
+            flow.onOutcome = { outcomes.append($0) }
+            flow.onStatus = { status = $0 }
+            #expect(try flow.start())
+            if duringProcessing { #expect(flow.stop()) }
+            flow.cancel()
+            await flow.task?.value
+            #expect(flow.state == .idle)
+            #expect(uploads == 0)
+            #expect(outcomes == [.failed])
+            #expect(status.contains(original.path))
+            #expect(try Data(contentsOf: original) == bytes)
+        }
+    }
+
     @Test("Only generated m4a names are eligible")
     func filenamePolicy() {
         #expect(FailedRecordingStore.isExpectedFilename("2026-09-06T20-00-00Z-ABCDEF12.m4a"))

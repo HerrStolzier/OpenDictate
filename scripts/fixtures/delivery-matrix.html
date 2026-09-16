@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<title>OpenDictate Matrix Browser</title>
+<style>
+  body { font: 18px system-ui; max-width: 760px; margin: 24px auto; }
+  label { display: block; margin-top: 16px; }
+  input, textarea, [contenteditable], iframe { font: inherit; width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #777; }
+  textarea, [contenteditable], iframe { min-height: 90px; }
+</style>
+<h1>OpenDictate Matrix Browser</h1>
+<p>Lokale künstliche Testdaten. Keine Netzwerkzugriffe, Formulare oder Speicherung.</p>
+<label for="single">Einzeilige Eingabe</label>
+<input id="single" value="Anfang. Ende.">
+<label for="multi">Mehrzeilige Eingabe</label>
+<textarea id="multi">Anfang. MARKIERUNG Ende.</textarea>
+<label id="rich-label">Formatierter Editor</label>
+<div contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="rich-label">Anfang. MARKIERUNG Ende.</div>
+<label for="frame">Eingebetteter Editor</label>
+<iframe id="frame" title="Eingebetteter Editor" srcdoc="<!doctype html><html lang='de'><meta charset='utf-8'><label for='inner'>Iframe Eingabe</label><textarea id='inner' style='width:90%;height:60px'>Anfang. MARKIERUNG Ende.</textarea></html>"></iframe>
+<label for="protected">Passwortfeld</label>
+<input id="protected" type="password" autocomplete="off">
+<label for="readonly">Nur Lesen</label>
+<input id="readonly" value="Schreibgeschützt." readonly>
+</html>

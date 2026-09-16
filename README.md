@@ -131,17 +131,30 @@ macOS will ask for:
 - Microphone access for recording.
 - Accessibility access for inserting the transcript into the focused text control.
 
-Automatic insertion sends the transcript directly to the target's focused
-Accessibility text element. Brave uses process-scoped Unicode keyboard events
-instead because its web editor can accept the Accessibility setter without
+Automatic insertion captures the target application, window, text element,
+web document (when available) and selection when dictation starts. It only
+delivers while that original target remains focused and its initial selection
+range, when exposed, is unchanged. Protected, disabled and non-writable controls use the manual
+fallback. Switching to another application during a dictation invalidates its
+automatic target, even if you later return.
+
+Insertion sends the transcript directly to the captured Accessibility text
+element. Brave, Safari and Obsidian web editors use process-scoped Unicode keyboard events
+instead because these editors can accept the Accessibility setter without
 inserting text. This path rechecks the foreground application and focused field
 between text chunks; it never sends a paste shortcut or consumes the clipboard.
-The Brave candidate's live acceptance is tracked in
+Safari receives line breaks separately so text following a newline is not lost;
+a CRLF pair remains one line break. Other Unicode editors keep grouped text.
+Candidate-specific acceptance is tracked in
 [remaining acceptance](docs/remaining-acceptance.md). The transcript
 also remains on the general clipboard until it is overwritten, preserving
-manual paste when Accessibility, target activation or direct insertion fails.
+manual paste when Accessibility, target identity or direct insertion fails.
 Some custom, browser or Electron text controls may not expose a settable
 Accessibility selection; those controls receive the clipboard-only fallback.
+
+The recording panel shows elapsed time, the input level and the final countdown
+to its automatic stop. The custom shortcut dialog supports Tab/Shift+Tab,
+Escape and Return without requiring macOS full keyboard access.
 
 See [PRIVACY.md](PRIVACY.md) for the complete data flow and retention behavior,
 [docs/accessibility-signing.md](docs/accessibility-signing.md) for safe local

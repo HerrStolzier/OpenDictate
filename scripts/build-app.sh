@@ -81,7 +81,7 @@ clear_xattrs() {
 # build, which silently invalidates the Accessibility permission. Override the
 # identity with OPENDICTATE_SIGN_IDENTITY; falls back to ad-hoc if it is missing.
 # Note: the self-signed identity is intentionally untrusted (it only exists to
-# keep the code hash stable for TCC), so it appears under "Matching identities"
+# keep the signing identity stable for TCC), so it appears under "Matching identities"
 # but not under "Valid identities only" — match the former, without -v.
 SIGN_IDENTITY="${OPENDICTATE_SIGN_IDENTITY:-OpenDictate Self-Signed}"
 if [[ "$SIGN_IDENTITY" == "-" ]]; then

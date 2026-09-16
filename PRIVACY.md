@@ -27,11 +27,17 @@ OpenDictate leaves the transcript on the clipboard until another clipboard write
 replaces it, preserving a manual recovery path when automatic insertion is
 unavailable or ineffective. Clipboard managers may retain their own copy;
 OpenDictate cannot remove that copy. Automatic insertion does not read or paste
-from the clipboard: it sends the transcript directly to the focused
-Accessibility text element in the accepted target process. For Brave, it instead
+from the clipboard: it sends the transcript directly to the Accessibility text
+element captured at dictation start. It retains only process, window, element,
+web-document identity (when available) and selection range, not the target's
+text or title. These references are cleared when the flow becomes idle. An
+external application switch invalidates the automatic target. For Brave, Safari and Obsidian web
+editors, it instead
 sends the exact transcript as Unicode keyboard events addressed to that process.
 It checks that the application is still frontmost and the same Accessibility
-field is focused before each text chunk. It does not activate Brave, read the
+field, window and web document remain focused before each text chunk. Before
+the first insertion, an available selection range must still match the captured
+range. It does not activate the target during delivery, read the
 field's existing contents, or send a paste shortcut. A focus change or cancellation
 stops remaining chunks; already delivered text cannot be rolled back safely.
 
@@ -43,11 +49,14 @@ because that would again consume mutable global clipboard contents.
 An explicit recording-panel action may return focus to the most recently used
 application. Stopping through the panel returns only if that application is still
 the most recently selected external app. Passive updates never return focus.
-Automatic insertion targets the process captured when recording started,
-provided it is still frontmost. Retries require explicit confirmation, copy their
+Automatic insertion targets the field captured when recording started,
+provided its application is still frontmost and the target remains valid.
+Retries require explicit confirmation, copy their
 result, and never automatically insert. Otherwise only the clipboard
-is updated. Automatic insertion can also be disabled in the menu. It cannot prove that the same text field remains
-focused inside that process.
+is updated. Automatic insertion can also be disabled in the menu. Accessibility
+identity checks cannot atomically lock another application's focus or prove that
+it actually applied an accepted insertion command. The UI therefore asks the
+user to check the target, and preserves the manual text recovery path.
 
 ## Failed recordings
 

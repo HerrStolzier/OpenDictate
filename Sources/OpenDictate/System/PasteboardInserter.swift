@@ -4,112 +4,78 @@ import Foundation
 
 @MainActor
 struct PasteboardInserter {
-    func copy(_ text: String) -> Bool {
-        let board = NSPasteboard.general
+    @MainActor
+    struct Access {
+        var isTrusted: @MainActor () -> Bool
+        var frontmostPID: @MainActor () -> pid_t?
+        var focusedTarget: @MainActor (pid_t) -> InsertionTarget?
+        var needsUnicodeEvents: @MainActor (pid_t) -> Bool
+        var insertSelectedText: @MainActor (AXUIElement, String) -> Bool
+        var postUnicode: @MainActor (pid_t, [UniChar]) -> Bool
+        var isolateUnicodeLineBreaks: @MainActor (pid_t) -> Bool = { _ in false }
+
+        static var live: Access {
+            Access(
+                isTrusted: { AXIsProcessTrusted() },
+                frontmostPID: { NSWorkspace.shared.frontmostApplication?.processIdentifier },
+                focusedTarget: { InsertionTarget.read(pid: $0) },
+                needsUnicodeEvents: {
+                    guard let id = NSRunningApplication(processIdentifier: $0)?.bundleIdentifier else { return false }
+                    return ["com.brave.Browser", "com.apple.Safari", "md.obsidian"].contains(id)
+                },
+                insertSelectedText: {
+                    AXUIElementSetAttributeValue($0, kAXSelectedTextAttribute as CFString, $1 as CFString) == .success
+                },
+                postUnicode: { pid, units in
+                    guard let (down, up) = UnicodeTextDelivery.events(units) else { return false }
+                    down.postToPid(pid)
+                    up.postToPid(pid)
+                    return true
+                },
+                isolateUnicodeLineBreaks: {
+                    NSRunningApplication(processIdentifier: $0)?.bundleIdentifier == "com.apple.Safari"
+                })
+        }
+    }
+
+    var access: Access = .live
+
+    func copy(_ text: String, to board: NSPasteboard = .general) -> Bool {
         board.clearContents()
         return board.setString(text, forType: .string)
     }
 
-    func pasteIntoPreviousApp(_ app: NSRunningApplication?, text: String) async -> Bool {
-        guard !text.isEmpty, !Task.isCancelled, AXIsProcessTrusted(), let app, !app.isTerminated else {
-            AppLog.write(
-                "Auto-paste unavailable. accessibility=\(AXIsProcessTrusted()), previousApp=\(app?.localizedName ?? "none")"
-            )
-            return false
+    /// Capture at the explicit start action, before permission or provider awaits.
+    /// Panel actions may name the last external app while the panel is frontmost.
+    func captureTarget(in pid: pid_t?) -> InsertionTarget? {
+        guard access.isTrusted(), let pid, let target = access.focusedTarget(pid), target.acceptsInsertion else {
+            return nil
         }
-
-        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == app.processIdentifier else {
-            AppLog.write("Auto-paste skipped: user changed the foreground application")
-            return false
-        }
-        if app.bundleIdentifier?.lowercased() == "com.brave.browser" {
-            return await insert(text, into: app.processIdentifier, useUnicode: true)
-        }
-        guard app.activate() else {
-            AppLog.write("Auto-paste aborted because the target app could not be activated")
-            return false
-        }
-
-        let deadline = ContinuousClock.now.advanced(by: .milliseconds(750))
-        while !Task.isCancelled && ContinuousClock.now < deadline {
-            if NSWorkspace.shared.frontmostApplication?.processIdentifier == app.processIdentifier {
-                return await insert(text, into: app.processIdentifier, useUnicode: false)
-            }
-            try? await Task.sleep(for: .milliseconds(25))
-        }
-
-        AppLog.write("Auto-paste aborted because the intended target never became frontmost")
-        return false
+        return target
     }
 
-    private func insert(_ text: String, into targetPID: pid_t, useUnicode: Bool) async -> Bool {
-        let application = AXUIElementCreateApplication(targetPID)
-        var focusedValue: CFTypeRef?
-        guard
-            AXUIElementCopyAttributeValue(
-                application,
-                kAXFocusedUIElementAttribute as CFString,
-                &focusedValue
-            ) == .success,
-            let focusedValue
+    func paste(_ text: String, into target: InsertionTarget?) async -> Bool {
+        guard !text.isEmpty, !Task.isCancelled, access.isTrusted(), let target,
+            remainsFocused(target, checkSelection: true)
         else {
-            AppLog.write("Auto-paste unavailable: target has no accessible focused element")
+            AppLog.write("Auto-paste unavailable: original target is missing, protected or changed")
             return false
         }
-
-        let focusedElement = focusedValue as! AXUIElement
-        var focusedPID: pid_t = 0
-        guard
-            AXUIElementGetPid(focusedElement, &focusedPID) == .success,
-            focusedPID == targetPID
-        else {
-            AppLog.write("Auto-paste aborted: focused element belongs to another process")
-            return false
-        }
-
-        var isSettable = DarwinBoolean(false)
-        guard
-            AXUIElementIsAttributeSettable(
-                focusedElement,
-                kAXSelectedTextAttribute as CFString,
-                &isSettable
-            ) == .success,
-            isSettable.boolValue
-        else {
-            AppLog.write("Auto-paste unavailable: focused element does not accept selected text")
-            return false
-        }
-
-        if useUnicode {
-            // Brave can accept AXSelectedText without changing a contenteditable editor.
-            // Do not attempt AX first: a delayed edit could otherwise duplicate the text.
-            let sent = await UnicodeTextDelivery.send(text) {
-                guard NSWorkspace.shared.frontmostApplication?.processIdentifier == targetPID else { return false }
-                var current: CFTypeRef?
-                guard
-                    AXUIElementCopyAttributeValue(application, kAXFocusedUIElementAttribute as CFString, &current)
-                        == .success,
-                    let current
-                else { return false }
-                return CFEqual(current, focusedElement)
-            } post: { units in
-                guard let (down, up) = UnicodeTextDelivery.events(units) else { return false }
-                down.postToPid(targetPID)
-                up.postToPid(targetPID)
-                return true
+        // These web editors can accept AXSelectedText without applying it. Never retry an
+        // accepted AX command via Unicode: a delayed edit could duplicate text.
+        if target.document != nil && access.needsUnicodeEvents(target.pid) {
+            return await UnicodeTextDelivery.send(text, isolateLineBreaks: access.isolateUnicodeLineBreaks(target.pid))
+            {
+                access.isTrusted() && remainsFocused(target, checkSelection: false)
+            } post: {
+                access.postUnicode(target.pid, $0)
             }
-            AppLog.write("Brave text delivery submitted=\(sent)")
-            return sent
         }
+        return access.insertSelectedText(target.element, text)
+    }
 
-        let status = AXUIElementSetAttributeValue(
-            focusedElement,
-            kAXSelectedTextAttribute as CFString,
-            text as CFString
-        )
-        if status != .success {
-            AppLog.write("Auto-paste failed with AX error \(status.rawValue)")
-        }
-        return status == .success
+    private func remainsFocused(_ target: InsertionTarget, checkSelection: Bool) -> Bool {
+        guard access.frontmostPID() == target.pid, let current = access.focusedTarget(target.pid) else { return false }
+        return target.matches(current, checkSelection: checkSelection)
     }
 }

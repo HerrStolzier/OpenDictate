@@ -83,6 +83,37 @@ file integrity before/after; do not delete recordings created by the user.
 
 ## Repräsentative Kompatibilitätsabnahme
 
+`./script/build_and_run.sh --matrix-host` starts controlled native test fields.
+`./script/build_and_run.sh --matrix-fixture` runs the production flow and inserter
+with fixed artificial text and a unique test pasteboard. Choose the exact target
+app; only its foreground window with an `OpenDictate Matrix` title qualifies.
+The fixture has no microphone, provider, Keychain, preference or recovery access.
+Its build reuses the existing local signing identity; it does not grant TCC access.
+Named debug helper executables select their fixture mode even without CLI flags;
+unknown renamed debug executables exit. Verify parameterless relaunches after
+changing dispatch, including unchanged recovery and preference inventories.
+Use `scripts/fixtures/delivery-matrix.html` for local browser fields. The fixture
+also exposes the real shortcut dialog without saving the choice, and synthetic
+80/85-second recording states at the panel's minimum width. Close all created
+tabs/windows/processes afterward and compare user preferences/recovery files.
+
+The recovery store tests exercise real temporary filesystem writes with a fixed
+test key, including failure to create the recovery directory and preserving the
+only original on both recording and processing cancellation. They do not test
+the user's Keychain or simulate physical microphone removal.
+
+After explicit authorization for temporary native hotkey registration, run:
+
+```bash
+OPENDICTATE_NATIVE_HOTKEY_CHECK=1 swift test --filter NativeHotKeyRegistrationTests
+```
+
+This uses Control+Option+Command+F18/F19 without sending key presses. It verifies
+an actual Carbon registration collision, the original registration surviving,
+and both test combinations becoming available again. It changes no preference;
+an existing environmental conflict fails the check rather than choosing another
+shortcut. This test is skipped by default, including CI.
+
 The Unicode event tests construct events without posting them. They check exact
 UTF-16 preservation, modifier-free events, failure, cancellation and stopping
 remaining chunks after a focus change. They do not prove browser editing.
@@ -98,4 +129,4 @@ protected target. Never use a private mail draft or account content as a fixture
 Record the installed candidate and visible before/after result. A synthetic
 production-inserter run, an attended end-to-end dictation and user confirmation
 are distinct evidence. One program does not establish its whole category; the
-Brave-specific Unicode correction does not establish other browsers or Electron.
+explicit Brave/Safari/Obsidian paths do not establish other browsers or Electron apps.
