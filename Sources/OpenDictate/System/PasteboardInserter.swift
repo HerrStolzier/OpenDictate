@@ -12,7 +12,7 @@ struct PasteboardInserter {
         var needsUnicodeEvents: @MainActor (pid_t) -> Bool
         var insertSelectedText: @MainActor (AXUIElement, String) -> Bool
         var postUnicode: @MainActor (pid_t, [UniChar]) -> Bool
-        var isolateUnicodeLineBreaks: @MainActor (pid_t) -> Bool = { _ in false }
+        var unicodeLineBreakPolicy: @MainActor (pid_t) -> UnicodeTextDelivery.LineBreakPolicy = { _ in .grouped }
 
         static var live: Access {
             Access(
@@ -32,8 +32,9 @@ struct PasteboardInserter {
                     up.postToPid(pid)
                     return true
                 },
-                isolateUnicodeLineBreaks: {
-                    NSRunningApplication(processIdentifier: $0)?.bundleIdentifier == "com.apple.Safari"
+                unicodeLineBreakPolicy: {
+                    UnicodeTextDelivery.policy(
+                        for: NSRunningApplication(processIdentifier: $0)?.bundleIdentifier)
                 })
         }
     }
@@ -64,8 +65,7 @@ struct PasteboardInserter {
         // These web editors can accept AXSelectedText without applying it. Never retry an
         // accepted AX command via Unicode: a delayed edit could duplicate text.
         if target.document != nil && access.needsUnicodeEvents(target.pid) {
-            return await UnicodeTextDelivery.send(text, isolateLineBreaks: access.isolateUnicodeLineBreaks(target.pid))
-            {
+            return await UnicodeTextDelivery.send(text, lineBreakPolicy: access.unicodeLineBreakPolicy(target.pid)) {
                 access.isTrusted() && remainsFocused(target, checkSelection: false)
             } post: {
                 access.postUnicode(target.pid, $0)

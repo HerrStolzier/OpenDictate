@@ -142,13 +142,15 @@ struct InsertionTargetTests {
         #expect(h.unicode.isEmpty)
     }
 
-    @Test func safariLineBreakPolicyDoesNotChangeOtherUnicodeEditors() async {
-        for isolate in [false, true] {
+    @Test func browserLineBreakPoliciesPreserveExactText() async {
+        for policy in [
+            UnicodeTextDelivery.LineBreakPolicy.grouped, .isolated, .trailing
+        ] {
             let h = Harness()
-            h.inserter.access.isolateUnicodeLineBreaks = { _ in isolate }
+            h.inserter.access.unicodeLineBreakPolicy = { _ in policy }
             let target = h.inserter.captureTarget(in: 42)
             #expect(await h.inserter.paste("Before\nAfter", into: target))
-            #expect(h.unicode.count == (isolate ? 3 : 1))
+            #expect(h.unicode.count == (policy == .isolated ? 3 : 1))
             #expect(String(decoding: h.unicode.flatMap { $0 }, as: UTF16.self) == "Before\nAfter")
         }
     }

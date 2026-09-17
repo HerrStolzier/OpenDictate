@@ -5,11 +5,25 @@
 ```bash
 swift format lint --configuration .swift-format --recursive Sources Tests Package.swift
 swift test -Xswiftc -warnings-as-errors
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/tests -p 'test_*.py' -v
 bash -n scripts/build-app.sh
 bash -n scripts/verify-app.sh
 bash -n scripts/store-api-key.sh
 git diff --check
 ```
+
+On the macOS 27 / Swift 6.4 Command Line Tools host, the default build may fail
+to discover `TestingMacros`. The verified local workaround uses the installed
+plugin explicitly (no SDK installation or system setting change):
+
+```bash
+swift test --scratch-path /tmp/opendictate-swift-plugin-final \
+  -Xswiftc -warnings-as-errors -Xswiftc -plugin-path \
+  -Xswiftc /Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing
+```
+
+Use this only when that directory exists and the failure is the missing plugin;
+an unrelated compiler failure still needs investigation.
 
 For release or packaging changes, additionally run `./scripts/build-app.sh` and
 verify the generated Plist and signature. A build does not prove microphone,
@@ -27,6 +41,7 @@ in that review. Do not rerun app tests solely for prose changes.
 ## Meaning of checks
 
 - `swift test`: offline logic, lifecycle, HTTP stubs, recovery, logging and synthetic audio-file tests. Optional benchmark and live API test are skipped by default.
+- `python3 -m unittest discover ...`: offline regression tests for the transcript evaluator and process sampler, including output-file preservation.
 - `swift format lint --configuration .swift-format --recursive Sources Tests Package.swift`: project formatting.
 - `./scripts/build-app.sh`: release bundle, Plist, signature and Hardened Runtime verification. Does not launch/install it.
 - `git diff --check` and `bash -n scripts/build-app.sh` before handoff.
@@ -55,6 +70,34 @@ OPENDICTATE_RESOURCE_BENCHMARK=1 OPENDICTATE_RESOURCE_BENCHMARK_OUTPUT=/path/to/
 ```
 
 The CSV records cleanup wall time, process CPU time and cumulative process peak RSS for empty, normal-size and maximum-size recovery fixtures. Exclude iteration 0 when comparing warm medians. Peak RSS includes fixture generation and runner allocations; it is not a measurement of app RAM saved. Results and remaining gaps: `docs/resource-performance-2026-09-08.md`.
+
+For an explicitly selected running process, sample current RSS and cumulative
+CPU-time deltas over 60–300 seconds:
+
+```bash
+./scripts/measure-process.py --pid "$PID" --executable /exact/path/to/OpenDictate --duration 60 --interval 1 --output /absolute/path/to/new-result.json
+```
+
+The sampler requires the exact PID and executable path, refuses to overwrite
+the output, and stops if the process exits or its start time/path changes. Its
+CPU percentage is cumulative process CPU-time delta divided by elapsed wall
+time, not the averaged `%CPU` shown by `ps`. RSS is sampled current resident
+memory: it can miss peaks between samples and cannot recover a historical peak.
+The script does not measure energy.
+
+## Offline transcript evaluation
+
+`scripts/evaluate-transcripts.py` compares reference and hypothesis text that
+you explicitly provide in a UTF-8 JSON corpus; it does not record or transcribe
+audio and does not use the network. Print the report or write it to a new file:
+
+```bash
+./scripts/evaluate-transcripts.py /path/to/corpus.json --output /path/to/new-report.json
+```
+
+Use an exact reference transcript for each controlled fixture. Word-error and
+expected-term results describe only the supplied pairs; they are not evidence
+of microphone or general speech quality.
 
 ## Native recording panel
 
@@ -94,8 +137,11 @@ unknown renamed debug executables exit. Verify parameterless relaunches after
 changing dispatch, including unchanged recovery and preference inventories.
 Use `scripts/fixtures/delivery-matrix.html` for local browser fields. The fixture
 also exposes the real shortcut dialog without saving the choice, and synthetic
-80/85-second recording states at the panel's minimum width. Close all created
-tabs/windows/processes afterward and compare user preferences/recovery files.
+80/85-second recording states at the panel's minimum width. Its optional
+10-second synthetic recording delay captures the target first: switch apps or
+windows during that delay and verify that delivery is rejected instead of being
+redirected. Close all created tabs, windows and processes afterward and compare
+user preferences/recovery files.
 
 The recovery store tests exercise real temporary filesystem writes with a fixed
 test key, including failure to create the recovery directory and preserving the
@@ -121,6 +167,9 @@ remaining chunks after a focus change. They do not prove browser editing.
 Use [the compatibility matrix](docs/compatibility-matrix.md) for product-facing
 acceptance. Exercise native fields, browser `input`/`textarea`, `contenteditable`,
 an editable iframe and an Electron field with controlled non-sensitive content.
+In the HTML fixture, load its reference probe and use the built-in comparator;
+an `EXAKT` result means the complete value and selection replacement match in
+UTF-16 units, including surrogate pairs, line breaks and trailing whitespace.
 For each relevant category check cursor positions, selection replacement,
 multiline Unicode and app/window/tab switches during recording, processing and
 chunked delivery. Also verify the explicit clipboard fallback for a rejected or
