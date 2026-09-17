@@ -134,6 +134,13 @@ of microphone or general speech quality.
 The menu bar opens the daily AppKit panel; Settings opens the existing controls
 in a separate window. Check start/stop, cancellation, keyboard navigation and
 passive recording/processing/result updates in the installed candidate.
+Start with both windows closed and dictate through the physical hotkey. The
+panel must stay hidden during recording, processing, completion and failure;
+the status bar still shows progress. Open the panel deliberately, close it
+during recording, and verify that later updates do not reopen it. Permission
+and setup failures must remain available when the user opens the panel later.
+Check target capture before a Keychain dialog and before explicit panel focus
+return; a failed capture must not adopt a different field afterward.
 The real acceptance path is microphone recording, provider transcription and
 automatic insertion into a fresh target document, without manual paste.
 Close and discard test documents afterward; preserve pre-existing user content.

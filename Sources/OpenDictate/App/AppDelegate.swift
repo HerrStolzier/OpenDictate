@@ -99,6 +99,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppLog.write("App launched from \(Bundle.main.bundlePath)")
+        AppLog.write("Build identity: \(AppVersionInfo().summary)")
         AppLog.write("Transcription model: \(Config.model.rawValue) (from \(Config.settings.modelSource))")
         verifyHotKeyConstants()
         ApplicationMenu.install()
@@ -297,7 +298,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
         guard permitted else {
             updateStatus("Mikrofonzugriff fehlt – in den Systemeinstellungen erlauben")
-            dictationPanel.updateFailure("Mikrofonzugriff fehlt. Öffne die Systemeinstellungen und erlaube den Zugriff.")
+            dictationPanel.updateFailure(
+                "Mikrofonzugriff fehlt. Öffne die Systemeinstellungen und erlaube den Zugriff.")
             return
         }
         do {
@@ -319,7 +321,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
             updateStatus(OpenDictateError.userMessage(for: error))
-            dictationPanel.updateFailure("Die Aufnahme konnte nicht gestartet werden. Prüfe Mikrofon und Berechtigungen.")
+            dictationPanel.updateFailure(
+                "Die Aufnahme konnte nicht gestartet werden. Prüfe Mikrofon und Berechtigungen.")
         }
     }
 

@@ -101,6 +101,7 @@ final class SettingsWindowController: NSWindowController {
             addButton("Aufnahmen …", id: "recordingsPage", action: #selector(showRecordings), to: links)
             addButton("Hilfe …", id: "helpPage", action: #selector(showHelp), to: links)
             stack.addArrangedSubview(links)
+            addText(AppVersionInfo().versionDescription, to: stack)
         case .recordings:
             window?.title = "OpenDictate – Aufnahmen"
             addText("Aufbewahrte Aufnahmen", to: stack, heading: true)
@@ -119,12 +120,13 @@ final class SettingsWindowController: NSWindowController {
             window?.title = "OpenDictate – Hilfe"
             addText("Diktieren im Alltag", to: stack, heading: true)
             addText(
-                "Wähle ein Textfeld und starte die Aufnahme über das Tastenkürzel oder das Aufnahmefenster. Nach spätestens 90 Sekunden endet die Aufnahme automatisch.",
+                "OpenDictate arbeitet in der Menüleiste. Wähle ein Textfeld und starte die Aufnahme mit deinem Tastenkürzel. Nach spätestens 90 Sekunden endet die Aufnahme automatisch.",
                 to: stack)
             addText(
-                "Der rote Schließknopf blendet nur das Fenster aus. OpenDictate und das Tastenkürzel bleiben aktiv. Das Menüleistensymbol öffnet das Aufnahmefenster wieder.",
+                "Aufnahme, Ergebnis und Fehler öffnen das Bedienfenster nicht automatisch. Das Menüleistensymbol öffnet es bei Bedarf. Der rote Schließknopf blendet nur das Fenster aus; OpenDictate und das Tastenkürzel bleiben aktiv.",
                 to: stack)
-            for id in ["accessibility", "microphone", "log", "quit"] {
+            addText(AppVersionInfo().summary, to: stack)
+            for id in ["about", "accessibility", "microphone", "log", "quit"] {
                 if let item = item(id) { addControl(item, to: stack) }
             }
         }

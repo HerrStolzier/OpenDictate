@@ -7,7 +7,18 @@ Prüfverfahren: [CHECKS.md](../CHECKS.md); belegte frühere Testbudgets:
 
 ## Aktuelle Änderung
 
-[PR #13](https://github.com/HerrStolzier/OpenDictate/pull/13) ergänzt die
+[PR #14](https://github.com/HerrStolzier/OpenDictate/pull/14) korrigiert die
+automatische Fensteröffnung beim Diktieren: Das Panel erscheint nur auf
+ausdrückliche Benutzeraktion. Das ursprüngliche Zieltextfeld wird vor
+asynchroner Vorbereitung, Keychain-Dialogen und einer Fokus-Rückgabe erfasst.
+Einstellungen, Hilfe und „Über OpenDictate …“ zeigen die vorhandene Version,
+Buildnummer und Quellcodeidentität des tatsächlich laufenden Bundles.
+Die gemeldete fehlende Texteingabe im Terminal per Tastenkürzel wird in diesem
+Änderungspaket gesondert untersucht; die installierte Revision des beobachteten
+Fehlers war unbekannt. Die aktuellen CI-Ergebnisse ersetzen keinen sichtbaren
+Terminal-Nachweis.
+
+[PR #13](https://github.com/HerrStolzier/OpenDictate/pull/13) ergänzte die
 Stabilisierung aus [PR #12](https://github.com/HerrStolzier/OpenDictate/pull/12):
 abgebrochene Vorbereitungen bleiben ungültig, Beenden wartet auf laufende Arbeit,
 ein neuer API-Schlüssel wird vor dem Entfernen eines alten Eintrags gespeichert,

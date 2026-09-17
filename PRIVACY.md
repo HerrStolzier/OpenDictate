@@ -63,6 +63,12 @@ attribute, automatic insertion stops and the transcript remains available only
 through the clipboard. OpenDictate does not fall back to an automatic `Cmd+V`
 because that would again consume mutable global clipboard contents.
 
+The recording panel opens only through an explicit user action. Recording,
+results, errors and setup reminders update the menu bar and existing panel
+contents without showing a hidden window or activating OpenDictate.
+The original field is captured before Keychain access, permission waits or
+an explicit panel action's focus return; a missing field is not recaptured later.
+
 An explicit recording-panel action may return focus to the most recently used
 application. Stopping through the panel returns only if that application is still
 the most recently selected external app. Passive updates never return focus.

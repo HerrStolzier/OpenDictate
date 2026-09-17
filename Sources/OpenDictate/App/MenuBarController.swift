@@ -177,6 +177,9 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         let logItem = makeActionItem("Protokoll öffnen", action: #selector(openLog))
         logItem.identifier = NSUserInterfaceItemIdentifier("log")
         menu.addItem(logItem)
+        let aboutItem = makeActionItem("Über OpenDictate …", action: #selector(showAbout))
+        aboutItem.identifier = NSUserInterfaceItemIdentifier("about")
+        menu.addItem(aboutItem)
         menu.addItem(.separator())
         let quit = NSMenuItem(title: "Beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         quit.identifier = NSUserInterfaceItemIdentifier("quit")
@@ -229,11 +232,24 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         menu.addItem(.separator())
         let recordings = makeActionItem("Aufbewahrte Aufnahmen …", action: #selector(openRecordings))
         menu.addItem(recordings)
+        menu.addItem(makeActionItem("Über OpenDictate …", action: #selector(showAbout)))
         menu.addItem(NSMenuItem(title: "Beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: view.bounds.maxY), in: view)
     }
 
     @objc private func openRecordings() { showRecordings() }
+
+    @objc private func showAbout() {
+        let info = AppVersionInfo()
+        let details = info.sourceDescription + (info.sourceRevision.map { "\n\($0)" } ?? "")
+        NSApp.orderFrontStandardAboutPanel(options: [
+            .applicationName: "OpenDictate",
+            .applicationVersion: info.version,
+            .version: info.build,
+            .credits: NSAttributedString(string: details)
+        ])
+        NSApp.activate(ignoringOtherApps: true)
+    }
 
     func updateStatus(_ value: String) {
         statusMenuItem?.title = "Status: \(value)"

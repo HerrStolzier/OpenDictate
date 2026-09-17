@@ -39,8 +39,17 @@ See [privacy and retention](PRIVACY.md) and the
 The menu bar button opens the dictation panel. Settings, saved recordings and
 Help use a separate compact window. **Weitere Aktionen** contains cancel, copy,
 clear and quit actions. Closing either window hides it; **Beenden** exits the app.
+Recording, processing, results, setup reminders and errors never open the panel
+automatically. The menu bar continues to show recording time and status. Open
+the panel explicitly when you want to inspect a result or change settings;
+closing it keeps it hidden through the rest of the dictation. Version and build
+are shown in Settings; **Hilfe** and **Über OpenDictate …** also show the source
+revision when embedded in that build. Older bundles without that information
+show it as unknown.
 
-Choose the target field before starting. An explicit panel recording action can
+Choose the target field before starting. Its identity is captured at the start
+action, before a Keychain dialog, permission wait or panel focus change. An
+explicit panel recording action can
 return focus to the most recently used application; passive status updates never
 activate another application. Switching external applications invalidates the
 captured automatic target, even if you later return.
