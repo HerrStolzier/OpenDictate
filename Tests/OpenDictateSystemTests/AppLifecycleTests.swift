@@ -212,14 +212,15 @@ struct AppLifecycleTests {
     @Test func finishingFlowInsideQuitDialogDoesNotAllowASecondQuit() throws {
         let h = Harness()
         _ = try h.flow.start()
-        #expect(
-            h.quit {
-                h.flow.cancel()
-                #expect(h.flow.state == .idle)
-                #expect(h.quit { true } == .cancel)
-                #expect(h.lifecycle.beginOperation() == nil)
-                return false
-            } == .cancel)
+        let result = h.quit {
+            h.flow.cancel()
+            #expect(h.flow.state == .idle)
+            let nestedResult = h.quit { true }
+            #expect(nestedResult == .cancel)
+            #expect(h.lifecycle.beginOperation() == nil)
+            return false
+        }
+        #expect(result == .cancel)
         #expect(h.confirmations == 1 && h.cancellations == 0 && h.replies == 0)
         #expect(h.lifecycle.canBeginOperation)
     }
@@ -287,7 +288,8 @@ struct AppLifecycleTests {
             #expect(h.lifecycle.beginOperation() == nil)
         }
         _ = try h.flow.start()
-        #expect(h.quit { true } == .later)
+        let result = h.quit { true }
+        #expect(result == .later)
         await h.lifecycle.terminationTask?.value
         #expect(h.confirmations == 1 && h.cancellations == 1 && h.replies == 1)
         #expect(h.kept == [h.original] && h.uploads == 0 && h.stops == 1)
