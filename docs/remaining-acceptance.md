@@ -22,8 +22,9 @@ isolierten Testzwischenablage. Diese Prüfungen verwenden keine Mikrofonaufnahme
 und keinen Providerrequest.
 
 Ergänzt sind drei Offline-Lifecycle-Abbruchtests, ein Transkriptauswerter mit fünf
-Tests und ein Ressourcensampler mit drei Tests. 134 Swift-Tests, acht Python-Tests
-sowie Format-, Shell-, Diff- und Bundleprüfungen bestanden. Der installierte
+Tests und ein Ressourcensampler mit drei Tests. 130 Swift-Tests und acht Python-Tests
+sowie Format-, Shell-, Diff- und Bundleprüfungen bestanden; vier weitere Swift-
+Opt-in-Prüfungen wurden übersprungen. Der installierte
 Kandidat hat die echte Mikrofon-/Provider-/automatische Zielkette in Brave
 `input`, `textarea`, `contenteditable` und iframe sichtbar bestanden, jeweils
 mit vollständiger Auswahlersetzung ohne manuelles Einfügen. Der

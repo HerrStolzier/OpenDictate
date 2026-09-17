@@ -49,8 +49,9 @@ deckt `input`, `textarea` und das eingebettete `textarea` ab, kein
   Prozessidentität vorgesehen. CPU-Zeit und abgetastetes RSS belegen weder
   Energieverbrauch noch eine lückenlose RAM-Spitze oder Langzeitstabilität.
 
-Bestanden: 134 Swift-Tests (65 System-, 69 Core-Tests; vier Opt-in-Prüfungen
-übersprungen), acht Python-Tests sowie Format-, Shell-, Diff- und Bundleprüfungen.
+Swift-Suite: 134 registrierte Tests (65 System-, 69 Core-Tests), davon 130
+bestanden und vier Opt-in-Prüfungen übersprungen. Acht Python-Tests sowie
+Format-, Shell-, Diff- und Bundleprüfungen bestanden ebenfalls.
 Der nötige CLT-TestingMacros-Prüfaufruf ist in [CHECKS](../CHECKS.md) dokumentiert.
 
 Die installierte App wurde im Leerlauf 60,025707 Sekunden gemessen: CPU-Zuwachs
