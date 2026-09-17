@@ -8,6 +8,17 @@ struct KeychainItem {
 
     let account: String
 
+    /// Check only for absence, without returning secret data or requesting UI.
+    /// A locked or inaccessible existing item must not trigger first-run setup.
+    func isMissing(
+        matching: (CFDictionary, UnsafeMutablePointer<CFTypeRef?>?) -> OSStatus = SecItemCopyMatching
+    ) -> Bool {
+        var query = baseQuery
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+        query[kSecUseAuthenticationUI as String] = kSecUseAuthenticationUIFail
+        return matching(query as CFDictionary, nil) == errSecItemNotFound
+    }
+
     func readData() -> Data? {
         var query = baseQuery
         query[kSecReturnData as String] = true

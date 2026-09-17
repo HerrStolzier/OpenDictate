@@ -24,6 +24,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var autoStopTask: Task<Void, Never>?
     private var retentionTask: Task<Void, Never>?
     private var permissionRequestPending = false
+    // Metadata snapshot for UI rendering; no secret is cached here.
+    private var apiKeyNeedsSetup = false
+    private var apiKeyPresenceTask: Task<Void, Never>?
     private let recordingLibrary = RecordingLibrary()
     private var savedRecordings: [SavedRecording] = []
     private var snapshotNeedsRefresh = false
@@ -132,9 +135,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         refreshSavedRecordings()
-        requestAccessibilityPermissionIfNeeded()
         warnAboutUnusableModelIfNeeded()
         registerHotKey(announce: true)
+        checkAPIKeySetupAtLaunch()
         if ProcessInfo.processInfo.arguments.contains("--show-window") {
             dictationPanel.showForInteraction()
         }
@@ -173,6 +176,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         dictationPanel.onCancel = { [weak self] in self?.menuBarDidCancel(discard: false) }
         dictationPanel.onCopy = { [weak self] in self?.menuBarDidCopyLastText() }
+        dictationPanel.onSetup = { [weak self] in self?.setAPIKey() }
         dictationPanel.onSettings = { [weak self] in self?.menuBar?.showSettings() }
         dictationPanel.onActions = { [weak self] in self?.menuBar?.showRecordingActions(at: $0) }
         dictationPanel.onRecovery = { [weak self] in
@@ -316,9 +320,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func hasAPIKey() -> Bool {
         guard Config.apiKey == nil else { return true }
-        updateStatus("API-Schlüssel fehlt – über das Menü einrichten")
-        dictationPanel.showFailure("API-Schlüssel fehlt. Du kannst ihn in den Einstellungen einrichten.")
+        apiKeyPresenceTask?.cancel()
+        apiKeyPresenceTask = nil
+        menuBar?.updateStatus("API-Schlüssel nicht verfügbar")
+        dictationPanel.updateAPIKeySetup(
+            needsSetup: true,
+            message: apiKeyNeedsSetup
+                ? nil
+                : "Der API-Schlüssel fehlt oder ist nicht zugänglich. Prüfe den macOS-Schlüsselbund oder richte den Schlüssel erneut ein.")
+        apiKeyNeedsSetup = true
+        menuBar?.refresh()
+        dictationPanel.show()
         return false
+    }
+
+    private func checkAPIKeySetupAtLaunch() {
+        apiKeyPresenceTask = Task { @MainActor [weak self] in
+            let needsSetup = await Task.detached(priority: .utility) {
+                KeychainAPIKeyStore.needsSetup
+            }.value
+            guard let self, !Task.isCancelled else { return }
+            apiKeyPresenceTask = nil
+            apiKeyNeedsSetup = needsSetup
+            menuBar?.refresh()
+            if needsSetup {
+                menuBar?.updateStatus("API-Schlüssel einrichten")
+                dictationPanel.updateAPIKeySetup(needsSetup: true)
+                if menuBar?.hasVisibleSettings != true { dictationPanel.show() }
+            } else {
+                requestAccessibilityPermissionIfNeeded()
+            }
+        }
     }
 
     private func scheduleAutoStop() {
@@ -363,6 +395,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         cancelAutoStop()
         NSWorkspace.shared.notificationCenter.removeObserver(self)
         retentionTask?.cancel()
+        apiKeyPresenceTask?.cancel()
         flow.clearLastTranscript()
     }
 
@@ -383,7 +416,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func requestAccessibilityPermissionIfNeeded() {
-        guard !AXIsProcessTrusted() else { return }
+        guard flow.state == .idle, Config.settings.autoPaste, !AXIsProcessTrusted() else { return }
         AXIsProcessTrustedWithOptions(["AXTrustedCheckOptionPrompt": true] as CFDictionary)
     }
 
@@ -401,17 +434,55 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setAPIKey() {
-        guard let key = AlertPresenter.promptForAPIKey(initialValue: Config.apiKey) else { return }
+        guard flow.state == .idle, !permissionRequestPending else { return }
+        // The modal runs a nested event loop; a hotkey must not start a dictation
+        // while credential setup has temporarily moved focus away from its target.
+        permissionRequestPending = true
+        defer {
+            permissionRequestPending = false
+            menuBar?.refresh()
+        }
+        apiKeyPresenceTask?.cancel()
+        apiKeyPresenceTask = nil
+        let previousKey = Config.apiKey
+        let settingUp = previousKey == nil || dictationPanel.display == .setup
+        if settingUp {
+            apiKeyNeedsSetup = true
+            dictationPanel.updateAPIKeySetup(needsSetup: true)
+        }
+        guard let key = AlertPresenter.promptForAPIKey(initialValue: previousKey) else {
+            if settingUp {
+                dictationPanel.updateAPIKeySetup(
+                    needsSetup: true,
+                    message: "Einrichtung abgebrochen. Über „API-Schlüssel einrichten“ kannst du sie jederzeit fortsetzen.")
+            }
+            return
+        }
         guard !key.isEmpty else {
+            if settingUp {
+                dictationPanel.updateAPIKeySetup(
+                    needsSetup: true, message: "Das Feld war leer. Gib deinen eigenen OpenAI-API-Schlüssel ein.")
+            }
             AlertPresenter.showWarning(title: "Kein API-Schlüssel gespeichert", message: "Das Feld war leer.")
             return
         }
         do {
             try KeychainAPIKeyStore.save(key)
-            updateStatus("Bereit")
+            apiKeyNeedsSetup = false
+            menuBar?.updateStatus("API-Schlüssel gespeichert")
+            if settingUp {
+                dictationPanel.updateAPIKeySetup(needsSetup: false)
+                menuBar?.showDaily()
+            }
             AppLog.write("API key saved to Keychain")
+            requestAccessibilityPermissionIfNeeded()
         } catch {
             AppLog.write("Could not save API key: \(error.localizedDescription)")
+            if settingUp {
+                dictationPanel.updateAPIKeySetup(
+                    needsSetup: true,
+                    message: "Der Schlüssel konnte nicht gespeichert werden. Über „API-Schlüssel einrichten“ kannst du es erneut versuchen.")
+            }
             AlertPresenter.showWarning(
                 title: "API-Schlüssel konnte nicht gespeichert werden",
                 message: OpenDictateError.userMessage(for: error))
@@ -466,6 +537,7 @@ extension AppDelegate: MenuBarControllerDelegate {
         guard flow.state == .idle else { return }
         Config.settings.autoPaste.toggle()
         menuBar?.showSettings()
+        requestAccessibilityPermissionIfNeeded()
     }
     var menuBarRecordings: [SavedRecording] { savedRecordings }
     func menuBarDidRetry(filename: String) { proposeRetry(filename: filename) }
@@ -479,6 +551,7 @@ extension AppDelegate: MenuBarControllerDelegate {
     var menuBarState: DictationState { flow.state }
     var menuBarHasTranscript: Bool { flow.lastTranscript != nil }
     var menuBarAutoPaste: Bool { Config.settings.autoPaste }
+    var menuBarNeedsAPIKeySetup: Bool { apiKeyNeedsSetup }
 
     func menuBarDidTriggerToggleRecording() {
         AppLog.write("Start/Stop Recording selected from menu")

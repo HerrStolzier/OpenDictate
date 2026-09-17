@@ -16,6 +16,7 @@ protocol MenuBarControllerDelegate: AnyObject {
     var menuBarState: DictationState { get }
     var menuBarHasTranscript: Bool { get }
     var menuBarAutoPaste: Bool { get }
+    var menuBarNeedsAPIKeySetup: Bool { get }
     func menuBarDidTriggerToggleRecording()
     func menuBarDidTriggerRetry()
     func menuBarDidTriggerDeleteSavedRecordings()
@@ -37,7 +38,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     var onShowDaily: ((NSRect?) -> Void)?
     var onShowSettings: (() -> Void)?
     private var settingsMenu: NSMenu?
-    private let settingsWindow = SettingsWindowController()
+    private lazy var settingsWindow = SettingsWindowController(
+        needsAPIKeySetup: { [weak self] in self?.delegate?.menuBarNeedsAPIKeySetup ?? false })
     /// The models offered in the menu. Everything else still works through
     /// OPENAI_TRANSCRIBE_MODEL, this is just the short list worth one click.
     private static let offeredModels: [TranscriptionModel] = [.gptTranscribe, .gpt4oMiniTranscribe]
@@ -189,7 +191,9 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         statusItem = item
     }
 
-    @objc private func showDaily() {
+    var hasVisibleSettings: Bool { settingsWindow.window?.isVisible == true }
+
+    @objc func showDaily() {
         settingsWindow.window?.orderOut(nil)
         let anchor = statusItem?.button.flatMap { button in
             button.window?.convertToScreen(button.convert(button.bounds, to: nil))

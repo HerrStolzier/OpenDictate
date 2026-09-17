@@ -5,11 +5,12 @@ import OpenDictateCore
 @MainActor
 final class DictationPanel: NSWindowController {
     enum Display: String, CaseIterable {
-        case ready, recording, processing, confirmed, manual, unconfirmed, failure, retry, cancelling
+        case ready, setup, recording, processing, confirmed, manual, unconfirmed, failure, retry, cancelling
 
         var title: String {
             switch self {
             case .ready: "Bereit zum Diktieren."
+            case .setup: "API-Schlüssel einrichten."
             case .recording: "Aufnahme läuft."
             case .processing: "Text wird verarbeitet."
             case .confirmed: "Text eingefügt."
@@ -24,6 +25,7 @@ final class DictationPanel: NSWindowController {
         var symbol: String {
             switch self {
             case .ready, .recording: "mic"
+            case .setup: "key"
             case .processing, .cancelling: "text.alignleft"
             case .confirmed: "checkmark"
             case .manual: "doc.text"
@@ -48,6 +50,7 @@ final class DictationPanel: NSWindowController {
     private static let pasteDetail = "Automatisches Einfügen wurde ausgelöst. Prüfe den Text im Zielprogramm."
 
     var onRecord: (() -> Void)?
+    var onSetup: (() -> Void)?
     var onCancel: (() -> Void)?
     var onCopy: (() -> Void)?
     var onSettings: (() -> Void)?
@@ -199,6 +202,24 @@ final class DictationPanel: NSWindowController {
     }
 
     func setShortcut(_ value: String) { shortcut.stringValue = value }
+
+    /// Presence is supplied by the app; this view never reads credentials or
+    /// resumes a dictation after a setup action.
+    func updateAPIKeySetup(needsSetup: Bool, message: String? = nil) {
+        guard !busy else { return }
+        if needsSetup {
+            showingText = false
+            set(
+                .setup,
+                detail: message
+                    ?? "Du brauchst einen eigenen OpenAI-API-Schlüssel. OpenAI berechnet die Transkription separat.")
+        } else if display == .setup {
+            set(
+                .ready,
+                detail: message
+                    ?? "Schlüssel gespeichert. Wähle jetzt dein Zieltextfeld und starte ein neues Diktat.")
+        }
+    }
 
     func showFailure(_ message: String) {
         set(.failure, detail: message)
@@ -353,6 +374,7 @@ final class DictationPanel: NSWindowController {
         textScroll.isHidden = !showingText
         switch display {
         case .ready, .confirmed: primary.title = "Aufnahme starten"
+        case .setup: primary.title = "API-Schlüssel einrichten"
         case .recording: primary.title = "Aufnahme beenden"
         case .manual: primary.title = "Text kopieren"
         case .unconfirmed: primary.title = showingText ? "Text kopieren" : "Text ansehen"
@@ -403,6 +425,7 @@ final class DictationPanel: NSWindowController {
     @objc private func primaryAction() {
         switch display {
         case .ready, .confirmed, .recording: onRecord?()
+        case .setup: onSetup?()
         case .manual: onCopy?()
         case .unconfirmed:
             if showingText {

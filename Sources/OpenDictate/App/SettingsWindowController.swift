@@ -8,8 +8,10 @@ final class SettingsWindowController: NSWindowController {
     private var expanded = false
     private var settingsMenu = NSMenu()
     private var navigation: [NSView] = []
+    private let needsAPIKeySetup: () -> Bool
 
-    init() {
+    init(needsAPIKeySetup: @escaping () -> Bool = { false }) {
+        self.needsAPIKeySetup = needsAPIKeySetup
         let window = SettingsUtilityWindow(
             contentRect: NSRect(x: 0, y: 0, width: 440, height: 280),
             styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
@@ -71,6 +73,14 @@ final class SettingsWindowController: NSWindowController {
         switch page {
         case .settings:
             window?.title = "OpenDictate – Einstellungen"
+            let needsSetup = needsAPIKeySetup()
+            if needsSetup, let apiKey = item("apiKey") {
+                addText("Für dein erstes Diktat", to: stack, heading: true)
+                addText(
+                    "Richte deinen eigenen OpenAI-API-Schlüssel ein. OpenAI berechnet die Transkription separat.",
+                    to: stack)
+                addControl(apiKey, to: stack)
+            }
             addRow("Mikrofon", id: "microphone", to: stack)
             addRow("Tastenkürzel", id: "shortcut", to: stack)
             addRow("Sprache", id: "language", to: stack)
@@ -82,6 +92,7 @@ final class SettingsWindowController: NSWindowController {
             if expanded {
                 addRow("Modell", id: "model", to: stack)
                 for id in ["apiKey", "vocabulary"] {
+                    if id == "apiKey", needsSetup { continue }
                     if let item = item(id) { addControl(item, to: stack) }
                 }
             }

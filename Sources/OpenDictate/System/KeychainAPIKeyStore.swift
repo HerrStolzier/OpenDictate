@@ -5,6 +5,8 @@ import Security
 enum KeychainAPIKeyStore {
     private static let item = KeychainItem(account: "OPENAI_API_KEY")
 
+    static var needsSetup: Bool { item.isMissing() }
+
     static func read() -> String? {
         guard
             let data = item.readData(),
