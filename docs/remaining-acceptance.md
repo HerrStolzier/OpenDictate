@@ -4,7 +4,48 @@ This is the single current handoff; no parallel STATUS.md is maintained.
 Product decisions live in [PROJECT.md](../PROJECT.md), approvals in
 [APPROVALS.md](../APPROVALS.md), and procedures in [CHECKS.md](../CHECKS.md).
 
-## Aktueller Übergabestand — 2026-09-16
+## Aktueller Übergabestand — 2026-09-17
+
+Die Roadmap-Abnahme hat einen zusätzlichen Brave-Langtextfehler
+reproduziert und für die konkrete 600-Wiederholungen-Probe korrigiert: nun exakt
+28.199 UTF-16-Einheiten in 1.500 Chunks statt zuvor 27.154 in 1.419 Chunks.
+Brave verwendet dafür eine eigene Zeilenumbruch-Policy; Safari und Obsidian
+behalten ihre jeweiligen Pfade. Auch kurze LF- und CRLF-/Leerzeilenproben sind
+nach ungestörter GUI-Prüfung exakt bestanden; keine CR-Normalisierung ergänzt.
+Ein nativer Feldwechsel während zehn Sekunden synthetischer Aufnahme wurde
+verlustfrei abgefangen: beide Felder unverändert, vollständiger Text auf der
+isolierten Testzwischenablage. Diese Prüfungen verwenden keine Mikrofonaufnahme
+und keinen Providerrequest.
+
+Ergänzt sind drei Offline-Lifecycle-Abbruchtests, ein Transkriptauswerter mit fünf
+Tests und ein Ressourcensampler mit drei Tests. 134 Swift-Tests, acht Python-Tests
+sowie Format-, Shell-, Diff- und Bundleprüfungen bestanden. Der installierte
+Kandidat hat die echte Mikrofon-/Provider-/automatische Zielkette in Brave
+`input`, `textarea`, `contenteditable` und iframe sichtbar bestanden, jeweils
+mit vollständiger Auswahlersetzung ohne manuelles Einfügen. Der
+90-Sekunden-Aufnahmestopp samt Countdown ist belegt. Sechs Aufnahmen und sechs
+Uploads verbrauchten konservativ höchstens 210 Sekunden; die freigegebene
+Versuchszahl ist ausgeschöpft. Die beabsichtigten nativen Versuche belegen nur
+Fallback beziehungsweise Einfügung im tatsächlich aktiven Brave-iframe, keine
+native E2E-Abnahme. Begrenzte CPU-/RSS-Messungen, Kandidatenidentität, konkrete
+Fälle und instrumentierte Latenzwerte stehen im
+[Abnahmebericht vom 17. September](roadmap-acceptance-2026-09-17.md).
+
+Aktiv offen bleiben reale Zielabnahmen in nativen Feldern, Safari und Electron,
+fehlende Feld-/Fokusphasen der Kompatibilitätsmatrix, physischer Hotkey,
+reale Geräte-/Systemfehler und Beenden während Aufnahme/Upload,
+gehörtes VoiceOver sowie menschliche Sprachqualität samt Latenz und
+Korrekturaufwand. Eine erzeugte Referenz über Lautsprecher und Mikrofon kann die
+technische Kette prüfen, ersetzt aber keinen menschlichen Sprachkorpus. Öffentliche
+Veröffentlichung sowie Streaming und Hold-to-talk bleiben außerhalb dieser Abnahme.
+Lautstärke auf 62,5 Prozent und ursprüngliche Recoverydateien sind wiederhergestellt;
+Dateihashes/-modi und Präferenzhash stimmen. Eigene Testfenster und Prozesse sind
+geschlossen; erzeugte Audio-/Referenzdateien und Fixture-Bundles entfernt, keine
+Live-Tempaufnahmen verblieben. Der Offline-Evaluator bestätigt WER 0 für 70
+Referenzwörter in fünf kurzen synthetisierten Sprachproben, keine menschliche
+Sprachqualität. Energie und langfristiges Speicherwachstum sind nicht gemessen.
+
+## Ausgangsstand — 2026-09-16
 
 Die Zielbindung erfasst jetzt beim Start das konkrete Feld, Fenster, Web-Dokument
 und die verfügbare Auswahl. Native Felder sowie Safari, Brave und Obsidian wurden

@@ -26,6 +26,30 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 Weitere dauerhafte Projektfreigaben sind hier nicht belegt. Frühere einzelne
 Mikrofon-/API-Abnahmen sind Nachweise und keine erneute Ausführungserlaubnis.
 
+## Begrenzte Roadmap-Abnahme — 2026-09-17
+
+- **Umfang:** Direkter Auftrag in Aufgabe `01a0ae15-cb33-7ca2-9c6e-78fd5988f0bd`,
+  ambitionierte Ziele für die offenen macOS-Abnahmen zu erstellen und möglichst
+  autonom umzusetzen. Reversible Korrekturen, passende Prüfungen und der geregelte
+  Git-Abschluss gehören dazu; zurückgestellte Produktfunktionen und Veröffentlichung
+  werden dadurch nicht aktiviert.
+- **Konkrete Live-Freigabe:** Basti bestätigte die vorbereitete Testfrage mit
+  „Ja, diesen begrenzten Live-Test freigeben“: angekündigte Mikrofonprüfungen mit
+  lokal erzeugter Sprachausgabe über Lautsprecher, höchstens sechs Testaufnahmen
+  und sechs Uploads mit insgesamt höchstens vier Minuten Audio über das bestehende OpenAI-Konto,
+  einschließlich einer 90-Sekunden-Aufnahme. Bekannter Testtext: „Dies ist ein
+  kurzer Test. Bitte schreibe die Zahl sieben und das Wort Apfel.“ Auf mögliche
+  Umgebungsgeräusche wurde vor der Zustimmung hingewiesen.
+- **Lautstärke:** Basti erlaubte ergänzend eine nötige Erhöhung der Systemlautstärke.
+  Der Ausgangswert wird nach der Prüfung wiederhergestellt.
+- **Grenzen:** Keine Änderung von Zugangsdaten oder Systemrechten, keine neue
+  Software, kein menschlicher Sprachkorpus aus privaten Aufnahmen und keine
+  öffentliche Veröffentlichung. Diese Zustimmung gilt nur für diesen begrenzten
+  Auftrag; verbrauchte Uploads und Audiozeit werden im datierten Bericht erfasst.
+- **Verbraucht:** Sechs Aufnahmen und sechs Uploads; konservative Obergrenze
+  der aufgenommenen Audiozeit 210 Sekunden. Das Versuchslimit ist ausgeschöpft.
+  Weitere Mikrofon-/Providerläufe sind durch diese Zustimmung nicht freigegeben.
+
 ## Konkreter Git-Abschluss — 2026-09-14
 
 - **Umfang:** Dokumentationsstand `956afec` nach `HerrStolzier/OpenDictate`
