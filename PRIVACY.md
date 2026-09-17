@@ -39,7 +39,11 @@ field, window and web document remain focused before each text chunk. Before
 the first insertion, an available selection range must still match the captured
 range. It does not activate the target during delivery, read the
 field's existing contents, or send a paste shortcut. A focus change or cancellation
-stops remaining chunks; already delivered text cannot be rolled back safely.
+stops remaining chunks; already submitted text may have reached the destination
+and cannot be rolled back safely. The panel distinguishes interruption from a
+preflight that never attempted input and keeps the full transcript available.
+A native setter error is treated as an uncertain attempt, not proof that the
+target stayed unchanged. All-submitted input remains unconfirmed as well.
 Brave's event path keeps line breaks with preceding text and complete graphemes
 within the event-size limit. If a transcript cannot satisfy those constraints,
 it falls back before posting any event; the original clipboard text is unchanged.
@@ -70,7 +74,11 @@ and retry accepts only recordings authenticated with a device-local Keychain
 secret. OpenDictate applies the five-file and 24-hour limits to all recognized
 recording files, including legacy files or files whose authentication tag cannot
 be verified. It also deletes a recording after a non-empty retry transcript reaches the clipboard, or when the
-user explicitly deletes it. Expiry is checked before retry and periodic pruning runs while the app is open. Short/quiet recordings are retained for deliberate manual retry; a heuristic skip does not upload them automatically.
+user explicitly deletes it. Expiry is checked before retry. Pruning runs at launch, after a keep, and
+periodically while the app is open. There is no separate background deletion
+service while the app is closed, so an expired file can remain on disk until
+the next pruning pass. The limits describe the managed recovery directory;
+preserved temporary originals and crash leftovers are described below. Short/quiet recordings are retained for deliberate manual retry; a heuristic skip does not upload them automatically.
 
 Recordings created by an older version have no authentication tag and are not
 eligible for upload. They remain available to the explicit delete action.

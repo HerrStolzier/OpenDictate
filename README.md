@@ -1,82 +1,57 @@
 # OpenDictate
 
-Project orientation: [product and scope](PROJECT.md), [current handoff and open
-acceptance](docs/remaining-acceptance.md), [project rules](AGENTS.md),
-[recorded approvals](APPROVALS.md), [compatibility plan](docs/compatibility-matrix.md),
-and [verification](CHECKS.md).
+Native dictation for macOS 14 and newer: press a shortcut, speak, then work with
+text in your chosen application. OpenDictate uses your own OpenAI API key.
+Audio is sent to OpenAI over HTTPS; transcription incurs separate API charges.
 
-Small macOS dictation app inspired by the VoiceScribe architecture:
+## First dictation
 
-1. Register a global hotkey.
-2. Record microphone audio to a temporary `.m4a`.
-3. Transcribe it through OpenAI's `/v1/audio/transcriptions` endpoint.
-4. Copy the resulting text and insert it into the previously active app through Accessibility.
-
-The generated icon source lives at `Assets/OpenDictateIcon.png`. The build script converts it into `OpenDictate.icns` and also uses it for the menu bar item.
-
-## Build
+You need a Mac, internet access and an OpenAI API key. The current distribution
+is source-only; a public signed and notarized download is not available yet.
+Build with Swift 6 on macOS:
 
 ```bash
 ./scripts/build-app.sh
-```
-
-The script writes the app bundle to:
-
-```text
-.build/OpenDictate.app
-```
-
-## Run
-
-The menu bar button opens a compact native AppKit dictation panel. Its Settings
-button opens a compact native window with microphone, shortcut, language and
-automatic insertion. “Erweitert” reveals model, API key and vocabulary. Saved
-recordings and Help have their own secondary pages. Recording/cancel/copy/clear
-and quit actions are available from “Weitere Aktionen” in the recording panel.
-Opening settings hides the recording panel so it cannot cover the controls.
-Reactivating the app keeps an already open settings page in front.
-Closing either window only hides it; the app and global shortcut remain active.
-Click the menu bar icon to reopen the panel. Only “Beenden” quits the app. A submitted Accessibility insertion is shown as an unconfirmed
-delivery, never as verified insertion. The neutral heading is “Diktat verarbeitet.”
-and the detail explains that automatic insertion was triggered and asks the user
-to check the target program. Text remains selectable in the panel.
-
-The recording button returns focus to the most recently used application. Stopping
-through the panel returns only to that same target if no other application was
-selected meanwhile. Automatic status updates never take focus. Choose the target
-text field before starting; the global shortcut remains available.
-
-Recovery selection now asks for confirmation before resending the selected
-recording. Retried text is copied only; retries never automatically paste into
-another application.
-
-The local daily launcher `./script/build_and_run.sh --daily` opens the existing
-`~/Applications/OpenDictate.app` and reuses its instance. An explicit launch opens
-the daily window; reopening the app brings that window forward. It refuses to
-start alongside a preview or another dictation build.
-
-For an isolated debug-only design preview, run `./script/build_and_run.sh --preview`.
-It launches `OpenDictatePreview.app` with synthetic display states and a separate
-bundle identifier, bypassing microphone, hotkeys, Keychain, clipboard and service
-initialization. It does not replace the installed app. The preview build uses the existing native SwiftPM engine. The installed Swift
-Testing plugin requires an explicit module path for test runs; see `CHECKS.md`.
-
-The separate opt-in `--processing-focus-preview` is an offline integration fixture:
-fixed text and delayed processing replace audio/provider work; production flow,
-panel, clipboard and paste policy remain real. It waits for a disposable TextEdit
-document, then provides 20 seconds to retain or change app focus. It restores the
-previous clipboard on normal exit if no later clipboard change occurred. It never
-reads credentials or existing recordings. This fixture requires its existing
-Accessibility permission to be current; it is not a real dictation test.
-
-```bash
-./scripts/store-api-key.sh
 open .build/OpenDictate.app
 ```
 
-You can also start the app first and choose `API-Schlüssel einrichten …` from the menu bar item. The app stores the key in the macOS Keychain either way. The helper requires the built app, creates only a new item and restricts it to that bundle. It intentionally fails if an item already exists. If an older helper created the item, do not rerun the helper: save the key once through the in-app dialog to recreate it under the app's access policy. The helper asks for the key itself, so do not put an API key in a shell command or environment variable. The API key field supports normal macOS edit shortcuts such as paste, copy, and select-all. Use `API-Schlüssel anzeigen` in the dialog to keep the key visible until you uncheck it again.
+1. Open the menu bar panel. If a key is missing, choose **API-Schlüssel einrichten**
+   to open the Keychain-backed dialog directly. Saving a key does not start a
+   recording or make a paid request.
+2. Choose your microphone and language in **Einstellungen**. Allow microphone
+   access when recording. Automatic insertion additionally needs macOS
+   Accessibility access; clipboard-only use does not need that permission.
+3. Select the destination text field. Press **Option+Shift+Space** to record,
+   speak, then press it again to stop. The maximum recording length is 90 seconds.
+4. Check the destination. The complete transcript also remains available in the
+   panel and on the clipboard. If input was interrupted, part may already be in
+   the destination: inspect it before pasting the full transcript manually.
 
-Press `Option+Shift+Space` once to start recording, then press it again to stop, transcribe, and insert.
+The API key is stored in the macOS Keychain. Never put it in a command, environment
+variable, checked-in file or log. A missing, invalid or inaccessible key receives
+an actionable message; the key dialog supports normal macOS editing shortcuts.
+See [privacy and retention](PRIVACY.md) and the
+[current evidence and limitations](docs/remaining-acceptance.md).
+
+## Daily use
+
+The menu bar button opens the dictation panel. Settings, saved recordings and
+Help use a separate compact window. **Weitere Aktionen** contains cancel, copy,
+clear and quit actions. Closing either window hides it; **Beenden** exits the app.
+
+Choose the target field before starting. An explicit panel recording action can
+return focus to the most recently used application; passive status updates never
+activate another application. Switching external applications invalidates the
+captured automatic target, even if you later return.
+
+Automatic input is always reported as unconfirmed. A rejected preflight, an
+attempt with an uncertain result, an interrupted multi-part submission and a
+complete submission have distinct feedback. Already submitted text cannot be
+safely rolled back. The full transcript stays available after interruption; no
+automatic retry or second insertion method is used to guess the missing text.
+
+A failed transcription keeps a recoverable recording where possible. Retrying
+asks for confirmation and copies the result without automatically inserting it.
 
 ## Settings
 
@@ -94,16 +69,27 @@ Changes apply to the next dictation, no restart needed.
 - **Letzten Text erneut kopieren** — recovers the last transcript without another API request. It is kept in RAM only and can be cleared.
 - Saved recordings can be retried or deleted individually. Retry is disabled during recording and processing.
 
-The menu bar shows recording time and a countdown in the last ten seconds. Cancel keeps the current audio; the separate discard action removes an active recording. The recorder also enforces the 90-second cap natively.
+The menu bar shows recording time and a countdown in the last ten seconds.
+Cancellation before a non-empty transcript reaches the clipboard keeps the audio.
+Once the full transcript is copied, it remains available even if insertion is
+cancelled, and the audio can be removed. The separate discard action removes an
+active recording. The recorder also enforces the 90-second cap natively.
 
 ## If a transcription fails
 
 A failed upload no longer throws the recording away. It keeps a recovery copy in
 `~/Library/Application Support/OpenDictate/failed/`, and `Letzte Aufnahme wiederholen` in
 the menu uploads it again. Recordings are authenticated with a device-local
-Keychain secret before retry. At most five are kept, for at most 24 hours; pruning
-runs at launch, after every keep and periodically while the app is open; expired recordings cannot be retried. A retry deletes the file only after a non-empty transcript has reached the clipboard. Clipboard failures keep both the audio and the last transcript in memory. Use
-`Gespeicherte Aufnahmen löschen …` to delete all retained or legacy recordings.
+Keychain secret before retry. Managed recovery files are limited to five and
+expire after 24 hours. Pruning runs at launch, after every keep and periodically
+while the app is open; expired recordings cannot be retried. Files can remain on
+disk while the app is closed. Temporary originals preserved after a failed
+recovery write and historical crash leftovers are outside that managed store;
+see [PRIVACY.md](PRIVACY.md#last-transcript-and-temporary-originals). A retry deletes
+the file only after a non-empty transcript has reached the clipboard. Clipboard
+failures preserve the audio on disk and the last transcript in memory. Use
+`Gespeicherte Aufnahmen löschen …` to delete the app's managed retained or legacy
+recordings. Temporary originals are outside that action.
 
 Recordings classified as too short or too quiet are retained for a deliberate manual retry. These heuristics do not prove that no speech exists; they never trigger an automatic upload.
 
@@ -129,12 +115,16 @@ menu is not silently ignored for anyone who exports them:
 macOS will ask for:
 
 - Microphone access for recording.
-- Accessibility access for inserting the transcript into the focused text control.
+- Accessibility access when automatic insertion is enabled. It is not requested
+  at launch for clipboard-only use.
 
 Automatic insertion captures the target application, window, text element,
 web document (when available) and selection when dictation starts. It only
-delivers while that original target remains focused and its initial selection
-range, when exposed, is unchanged. Protected, disabled and non-writable controls use the manual
+delivers while that original target remains focused. Before the first insertion,
+the initial selection range, when exposed, must be unchanged. Selection is not
+compared with that original range after each Unicode chunk because input itself
+moves the caret. Manual caret changes inside the same field during chunked input
+remain an open interaction case. Protected, disabled and non-writable controls use the manual
 fallback. Switching to another application during a dictation invalidates its
 automatic target, even if you later return.
 
@@ -176,6 +166,18 @@ distributing binaries.
 
 ## Verification
 
-Run `swift test` for pure logic, lifecycle, HTTP stubs, recovery, logging and synthetic audio-file tests. No microphone or OpenAI calls are part of these tests. `./scripts/build-app.sh` builds and verifies the bundle; `VERSION` controls the marketing version, and `OPENDICTATE_BUILD_NUMBER` can set the numeric build number (default 1). CI runs tests and an ad-hoc bundle build on macOS. This does not publish or install an app.
+Run `swift test -Xswiftc -warnings-as-errors` for pure logic, lifecycle, HTTP stubs, recovery, logging and synthetic audio-file tests. No microphone or OpenAI calls are part of these tests. `./scripts/build-app.sh` builds and verifies the bundle; `VERSION` controls the marketing version, and `OPENDICTATE_BUILD_NUMBER` can set the numeric build number (default 1). CI runs tests and an ad-hoc bundle build on macOS. This does not publish or install an app.
 
 See [CHECKS.md](CHECKS.md), [docs/performance-decisions.md](docs/performance-decisions.md), [docs/audio-quality-fixtures.md](docs/audio-quality-fixtures.md) and [docs/remaining-acceptance.md](docs/remaining-acceptance.md). Live microphone, target-app, VoiceOver and paid API checks remain separate. Streaming and hold-to-talk are not enabled.
+
+## Development and project context
+
+Local launchers, isolated previews and the optional API-key helper are described
+in [development workflows](docs/development.md). Product scope lives in
+[PROJECT.md](PROJECT.md); repository rules and evidenced authorizations live in
+[AGENTS.md](AGENTS.md) and [APPROVALS.md](APPROVALS.md). The
+[compatibility matrix](docs/compatibility-matrix.md) defines the broader testing
+goal, and [CHECKS.md](CHECKS.md) provides reproducible verification commands.
+
+The architecture was inspired by VoiceScribe; attribution is preserved in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

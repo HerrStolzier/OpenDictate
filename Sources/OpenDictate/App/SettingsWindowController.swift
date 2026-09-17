@@ -105,7 +105,9 @@ final class SettingsWindowController: NSWindowController {
             window?.title = "OpenDictate – Aufnahmen"
             addText("Aufbewahrte Aufnahmen", to: stack, heading: true)
             addText(
-                "Bis zu fünf Aufnahmen, höchstens 24 Stunden. Erneutes Verarbeiten sendet die gewählte Aufnahme an OpenAI und fragt vorher nach.",
+                "Bis zu fünf gespeicherte Aufnahmen. Gültige Aufnahmen sind bis zu 24 Stunden wiederholbar. "
+                    + "Bereinigt wird, während die App geöffnet ist. "
+                    + "Erneutes Verarbeiten sendet die gewählte Aufnahme an OpenAI und fragt vorher nach.",
                 to: stack)
             if let recordings = item("recordings")?.submenu, !recordings.items.isEmpty {
                 for recording in recordings.items { addControl(recording, to: stack) }
