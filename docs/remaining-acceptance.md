@@ -6,6 +6,36 @@ Product decisions live in [PROJECT.md](../PROJECT.md), approvals in
 
 ## Aktueller Übergabestand — 2026-09-17
 
+Die [ergänzende Zielabnahme](target-acceptance-2026-09-17.md) belegt jetzt auf
+unveränderter Produktionsbinärdatei echte Mikrofon-/Provider-/automatische
+Auswahlersetzung in TextEdit, allen vier Safari-Feldtypen und Obsidian im
+isolierten Vault, jeweils mit erhaltenem Anfang/Ende und ohne manuelles Einfügen.
+Ein erster Safari-`textarea`-Versuch zeigte den vollständigen manuellen Rückweg;
+der anschließende Lauf bestand, die Ursache des ersten Fallbacks bleibt ungeklärt.
+Der geplante echte Safari→TextEdit-Wechsel wurde nicht nachgewiesen und zählt
+weder als bestandener negativer Fokusfall noch als belegter Produktfehler.
+
+Dieser neue Liveblock verbrauchte acht Aufnahmen/Uploads und konservativ höchstens
+170 von 180 Sekunden; seine Versuchszahl ist ausgeschöpft. Alle verwenden eine
+erzeugte Referenz, keinen menschlichen Sprachkorpus. 130 Swift-Tests (vier weitere
+Opt-in-Prüfungen übersprungen), acht Python-Tests, Format-, vier Shell- und
+Diffprüfungen bestanden. Die DEBUG-Fixture wurde um reine Zielerfassung und
+TextEdit ergänzt; die installierte Produktionsbinärdatei bleibt unverändert.
+
+Aktiv offen bleiben reale negative Appwechsel und übrige Feld-/Fokusphasen,
+physischer Hotkey, Geräte-/Systemfehler, Beenden während Aufnahme/Upload,
+gehörtes VoiceOver sowie menschliche Sprachqualität und Korrekturaufwand.
+Zusätzliche synthetische Unicode-Fälle sowie Safari-Tabwechsel während simulierter
+Aufnahme und Verarbeitung bestanden: kein gesendeter Chunk, unverändertes Feld,
+vollständiger Kopiertext. Appwechsel sind dadurch nicht belegt. Die eigenen
+Testfenster, Prozesse, Audio-/Textdateien, der Testvault und das Helper-Bundle
+sind bereinigt. Die Lautstärkebaseline von 68,75 Prozent und ursprünglichen
+Recoverydateien mit exakten Hashes/Modi sind wiederhergestellt; Präferenzexport
+und Obsidian-Vaultregistrierung stimmen mit dem Ausgangsstand überein.
+Details und Nachweisgrenzen stehen im neuen Bericht.
+
+## Vorherige Roadmap-Abnahme — 2026-09-17
+
 Korrektur und Prüfmittel sind über [PR #10](https://github.com/HerrStolzier/OpenDictate/pull/10)
 nach bestandener CI in `main` integriert; der installierte Kandidat ist im
 datierten Abnahmebericht identifiziert.
@@ -36,7 +66,7 @@ native E2E-Abnahme. Begrenzte CPU-/RSS-Messungen, Kandidatenidentität, konkrete
 Fälle und instrumentierte Latenzwerte stehen im
 [Abnahmebericht vom 17. September](roadmap-acceptance-2026-09-17.md).
 
-Aktiv offen bleiben reale Zielabnahmen in nativen Feldern, Safari und Electron,
+Zum damaligen Abschluss offen blieben reale Zielabnahmen in nativen Feldern, Safari und Electron,
 fehlende Feld-/Fokusphasen der Kompatibilitätsmatrix, physischer Hotkey,
 reale Geräte-/Systemfehler und Beenden während Aufnahme/Upload,
 gehörtes VoiceOver sowie menschliche Sprachqualität samt Latenz und

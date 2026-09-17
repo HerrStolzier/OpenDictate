@@ -8,7 +8,7 @@
     final class DeliveryMatrixPreview: NSObject, NSApplicationDelegate {
         static let sample = "Äpfel 🍏 und Grüße.\nZweite Zeile: e\u{301}, 👩🏽‍💻."
         private let window = NSWindow(
-            contentRect: NSRect(x: 100, y: 100, width: 500, height: 530),
+            contentRect: NSRect(x: 100, y: 100, width: 500, height: 570),
             styleMask: [.titled, .closable], backing: .buffered, defer: false)
         private let panel = DictationPanel()
         private let result = NSTextField(wrappingLabelWithString: "Bereit; nur lokale Matrix-Testfenster.")
@@ -20,8 +20,12 @@
             checkboxWithTitle: "Lange Unicode-Probe (600 Wiederholungen)", target: nil, action: nil)
         private let lineProbe = NSButton(checkboxWithTitle: "CRLF und Leerzeilen prüfen", target: nil, action: nil)
         private let start = NSButton(title: "Lokales Testfeld erfassen", target: nil, action: nil)
+        private let captureOnly = NSButton(
+            checkboxWithTitle: "Nur Ziel prüfen (ohne Texteingabe)", target: nil, action: nil)
         private let targetApp = NSPopUpButton(frame: .zero, pullsDown: false)
-        private let targetIDs = ["local.opendictate.matrixhost", "com.apple.Safari", "com.brave.Browser", "md.obsidian"]
+        private let targetIDs = [
+            "local.opendictate.matrixhost", "com.apple.Safari", "com.brave.Browser", "md.obsidian", "com.apple.TextEdit"
+        ]
         private let board = NSPasteboard.withUniqueName()
         private lazy var inserter: PasteboardInserter = {
             var access = PasteboardInserter.Access.live
@@ -76,13 +80,14 @@
             start.action = #selector(arm)
             let quit = NSButton(title: "Prüfung beenden", target: NSApp, action: #selector(NSApplication.terminate(_:)))
             let shortcut = NSButton(title: "Tastaturdialog prüfen", target: self, action: #selector(checkShortcut))
-            targetApp.addItems(withTitles: ["Native Testfelder", "Safari", "Brave", "Obsidian"])
+            targetApp.addItems(withTitles: ["Native Testfelder", "Safari", "Brave", "Obsidian", "TextEdit"])
             targetApp.setAccessibilityLabel("Erwartete Test-App")
             let progress = NSButton(title: "Aufnahmestatus simulieren", target: self, action: #selector(checkProgress))
             let inspect = NSButton(title: "Ergebnis ansehen", target: self, action: #selector(inspectResult))
             for view in [
-                targetApp, singleLine, longProbe, lineProbe, recordingDelay, delay, start, shortcut, progress, inspect,
-                result, quit
+                targetApp, captureOnly, singleLine, longProbe, lineProbe, recordingDelay, delay, start, shortcut,
+                progress,
+                inspect, result, quit
             ] {
                 stack.addArrangedSubview(view)
             }
@@ -129,6 +134,7 @@
             start.isEnabled = false
             simulateDelay = delay.state == .on
             let simulateRecording = recordingDelay.state == .on
+            let inspectOnly = captureOnly.state == .on
             sampleText = singleLine.state == .on ? Self.sample.replacingOccurrences(of: "\n", with: " ") : Self.sample
             if lineProbe.state == .on { sampleText = "Erste\r\n\r\nZweite\n\nDritte" }
             if longProbe.state == .on { sampleText = Array(repeating: sampleText, count: 600).joined(separator: " ") }
@@ -155,6 +161,11 @@
                             observed.map {
                                 "Ziel erfasst: \(target != nil); \($0.role); aktiviert: \(String(describing: $0.enabled)); Auswahl schreibbar: \($0.acceptsSelectedText)"
                             } ?? "Keine gültige lokale AX-Zielidentität."
+                        if inspectOnly {
+                            result.stringValue =
+                                "Vordergrund bestätigt: \(expectedID)\n\(captureDetail)\nKeine Texteingabe."
+                            return
+                        }
                         _ = try? flow.start()
                         if simulateRecording {
                             result.stringValue = "Ziel erfasst: \(target != nil). 10 Sekunden synthetische Aufnahme."

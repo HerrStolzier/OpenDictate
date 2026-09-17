@@ -5,21 +5,23 @@ die Textübergabe. Programme dienen als repräsentative Beispiele ihrer Kategori
 ein bestandener Lauf ist kein Versprechen für alle Programme derselben Kategorie.
 Datierte Berichte bleiben die Quelle für den jeweils tatsächlich geprüften Kandidaten.
 
-Die ergänzende synthetische und reale Mikrofon-/Provider-Abnahme steht im
+Die neueste [Zielabnahme](target-acceptance-2026-09-17.md) ergänzt echte
+Auswahlersetzung in TextEdit, Safari und Obsidian; der negative reale Appwechsel
+bleibt unbelegt. Die vorausgehende synthetische und reale Abnahme steht im
 [Bericht vom 17. September](roadmap-acceptance-2026-09-17.md). Sie ergänzt den
 [Ausgangsstand vom 16. September](roadmap-acceptance-2026-09-16.md), dessen
 Feldnachweise in der folgenden Tabelle historisch zusammengefasst sind.
-Die reale Kette ist für vier Brave-Feldtypen belegt, nicht für jede Kategorie.
+Die jeweiligen Einzelfälle belegen keine vollständige Kategorie oder Phasenmatrix.
 
 ## Abdeckungsziel
 
 | Kategorie | Repräsentative Beispiele | Zu prüfende Felder | Aktuelle Evidenz |
 |---|---|---|---|
-| Native macOS-App | TextEdit; kontrollierter AppKit-Host | ein- und mehrzeiliges editierbares Feld | Aktuell synthetisch: Cursor in NSTextField, Auswahlersetzung/Unicode in NSTextView; früherer echter TextEdit-Durchlauf bleibt historisch. |
-| Browser, einfaches Formular | Safari und Brave | `input`, `textarea` | Am 17. September echte Mikrofon-/Provider-/automatische Auswahlersetzung in Brave bestanden, textarea einschließlich 90-Sekunden-Autostopp. Safari bisher synthetisch; Chrome-Ersteinrichtung unverändert, Firefox fehlt. Keine allgemeine Browserzusage. |
-| Browser, Rich-Text | lokale Testseite; historische Proton-Abnahme | `contenteditable`, Auswahl und mehrzeiliger Inhalt | Am 17. September echte Mikrofon-/Provider-/automatische Auswahlersetzung in Brave bestanden. Safari synthetisch geprüft; echte Proton-Bestätigung gilt dem älteren Kandidaten. |
-| Browser, eingebetteter Editor | lokale kontrollierte Testseite | editierbares Feld in einem `iframe` | Am 17. September echte Mikrofon-/Provider-/automatische Auswahlersetzung in Brave bestanden. Safari synthetisch: Auswahl exakt ersetzt, Umfeld erhalten. |
-| Electron-App | Obsidian 1.13.7, temporärer separater Vault | Editorfeld | Aktuell synthetisch: Anfang/Mitte/Ende und Auswahl/Unicode exakt; gespeicherte Testdatei bytegenau geprüft. Keine Zusage für andere Electron-Apps. |
+| Native macOS-App | TextEdit; kontrollierter AppKit-Host | ein- und mehrzeiliges editierbares Feld | Neue echte Auswahlersetzung in TextEdit AXTextArea bestanden. Einzeilige native Felder und weitere Positionen bleiben synthetisch belegt. |
+| Browser, einfaches Formular | Safari und Brave | `input`, `textarea` | Echte Auswahlersetzung in beiden Browsern bestanden; Brave textarea einschließlich 90-Sekunden-Autostopp. Safari textarea zunächst verlustfreier Fallback ungeklärter Ursache, Wiederholung bestanden. Chrome-Ersteinrichtung unverändert, Firefox fehlt. |
+| Browser, Rich-Text | lokale Testseite; historische Proton-Abnahme | `contenteditable`, Auswahl und mehrzeiliger Inhalt | Echte Auswahlersetzung in Safari und Brave bestanden; Unicode-/Mehrzeilenfälle zusätzlich synthetisch. Echte Proton-Bestätigung gilt dem älteren Kandidaten. |
+| Browser, eingebetteter Editor | lokale kontrollierte Testseite | editierbares Feld in einem `iframe` | Echte Auswahlersetzung in Safari und Brave bestanden; synthetisch auch Unicode/Umfeld geprüft. |
+| Electron-App | Obsidian 1.13.7, temporärer separater Vault | Editorfeld | Neue echte Auswahlersetzung in Obsidian CodeMirror mit erhaltenem Anfang/Ende bestanden. Anfang/Mitte/Ende und Unicode zusätzlich synthetisch belegt. Keine Zusage für andere Electron-Apps. |
 | Geschütztes oder nicht unterstütztes Feld | native und Brave-Testfelder | Passwortfeld, schreibgeschütztes Feld | Sichtbar abgelehnt, Felder unverändert; vollständiger Text im manuellen Panel und auf isolierter Testzwischenablage. Fehlende Berechtigung zusätzlich offline geprüft, kein TCC-Eingriff. |
 
 ## Gemeinsame Szenarien
@@ -44,9 +46,16 @@ sind zusätzlich offline geprüft. Alle Phasen-/Kategorie-Kombinationen sind dam
 nicht vollständig abgenommen. Reale Aufnahme/Provider sind am 17. September für
 die vier Brave-Feldtypen mit erzeugter Referenz über Lautsprecher und Mikrofon
 belegt; damit ist weder ein menschlicher Sprachkorpus noch jede Fokusphase belegt.
-Native E2E-Versuche lieferten keinen Nachweis: einmal manueller Rückweg, einmal
-blieb tatsächlich Brave im Vordergrund und erhielt korrekt den Text. Safari und
-Electron bleiben ohne neue reale Abnahme dieses Kandidaten.
+Die damaligen nativen Fehlversuche sind durch eine spätere echte TextEdit-Abnahme
+ergänzt; ebenso bestehen nun konkrete reale Safari- und Obsidian-Fälle. Der neue
+beabsichtigte Safari→TextEdit-Wechsel während Aufnahme war dagegen nicht als
+tatsächlicher Vordergrundwechsel nachweisbar: Safari erhielt Text, TextEdit blieb
+unverändert. Das schließt den negativen Fokusfall nicht und belegt keinen
+Produktfehler. Zusätzlich bestanden zwei synthetische Safari-Tabwechsel zur
+sichtbaren Startseite während zehn Sekunden simulierter Aufnahme und fünf
+Sekunden Verarbeitung: `textAvailable`, vollständiger Kopiertext, 0/4 Chunks und
+unverändertes Ausgangsfeld. Weitere versuchte synthetische Appwechsel waren nicht
+zuverlässig aktiviert und werden nicht als bestanden gewertet.
 
 Jede unterstützte Feldkategorie wird nicht nur mit einem leeren Feld geprüft:
 
@@ -86,6 +95,9 @@ Windows-/Linux-Version und keine öffentliche Veröffentlichung zu.
 
 ## Bestehende Nachweise
 
+- [Ergänzende Zielabnahme vom 17. September](target-acceptance-2026-09-17.md):
+  TextEdit, vier Safari-Feldtypen und Obsidian real geprüft, samt ungeklärtem
+  Safari-Fallback und nicht nachgewiesenem echten Appwechsel.
 - [Abnahme vom 17. September](roadmap-acceptance-2026-09-17.md): Brave-Langtextkorrektur,
   synthetischer Feldwechsel in der Aufnahmephase, vier reale Brave-Feldtypen,
   90-Sekunden-Autostopp und begrenzte CPU-/RSS-Messungen samt offenen Grenzen.
