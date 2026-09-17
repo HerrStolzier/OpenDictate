@@ -63,6 +63,14 @@ struct DictationFlowTests {
         var payload: FailedRecordingStore.RetryPayload {
             .init(url: original, data: Data([1]))
         }
+
+        func waitForUploadToStart() async throws -> Bool {
+            for _ in 0..<1_000 {
+                if uploads > 0 { return true }
+                try await Task.sleep(for: .milliseconds(1))
+            }
+            return false
+        }
     }
 
     @Test func retryCannotOverlapRecordingOrDisableStop() async throws {
@@ -186,6 +194,58 @@ struct DictationFlowTests {
         await h.flow.task?.value
         #expect(h.uploads == 0)
         #expect(h.kept == [h.original])
+        #expect(h.flow.state == .idle)
+    }
+
+    @Test func cancellationDuringUploadPreservesOriginalAndCleansTemporaryAudio() async throws {
+        let h = Harness()
+        h.suspendUpload = true
+        var outcomes: [DictationOutcome] = []
+        h.flow.onOutcome = { outcomes.append($0) }
+        _ = try h.flow.start()
+        _ = h.flow.stop()
+        #expect(try await h.waitForUploadToStart())
+
+        h.flow.cancel()
+        await h.flow.task?.value
+
+        #expect(h.kept == [h.original])
+        #expect(Set(h.cleaned) == Set([h.original, h.trimmed]))
+        #expect(outcomes == [.cancelled])
+        #expect(h.flow.state == .idle)
+    }
+
+    @Test func failedRecoveryDuringUploadCancellationKeepsOnlyOriginal() async throws {
+        let h = Harness()
+        h.suspendUpload = true
+        h.keepSucceeds = false
+        var outcomes: [DictationOutcome] = []
+        h.flow.onOutcome = { outcomes.append($0) }
+        _ = try h.flow.start()
+        _ = h.flow.stop()
+        #expect(try await h.waitForUploadToStart())
+
+        h.flow.cancel()
+        await h.flow.task?.value
+
+        #expect(h.kept == [h.original])
+        #expect(h.cleaned == [h.trimmed])
+        #expect(outcomes == [.failed])
+        #expect(h.flow.state == .idle)
+    }
+
+    @Test func explicitDiscardDuringUploadDeletesOriginalWithoutRecoveryCopy() async throws {
+        let h = Harness()
+        h.suspendUpload = true
+        _ = try h.flow.start()
+        _ = h.flow.stop()
+        #expect(try await h.waitForUploadToStart())
+
+        h.flow.cancel(discardRecording: true)
+        await h.flow.task?.value
+
+        #expect(h.kept.isEmpty)
+        #expect(Set(h.cleaned) == Set([h.original, h.trimmed]))
         #expect(h.flow.state == .idle)
     }
 
