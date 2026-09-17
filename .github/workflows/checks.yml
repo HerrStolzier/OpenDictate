@@ -13,6 +13,8 @@ jobs:
   test-and-build:
     runs-on: macos-15
     timeout-minutes: 15
+    env:
+      OPENDICTATE_BUILD_NUMBER: ${{ github.run_number }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -35,9 +37,33 @@ jobs:
           bash -n scripts/build-app.sh
           bash -n scripts/verify-app.sh
           bash -n scripts/store-api-key.sh
+          bash -n scripts/package-ci-app.sh
+          bash -n scripts/tests/test-verify-app.sh
           bash -n script/build_and_run.sh
           git diff --check HEAD^ HEAD
       - name: Build and verify local ad-hoc bundle
         env:
           OPENDICTATE_SIGN_IDENTITY: '-'
         run: ./scripts/build-app.sh
+      - name: Check bundle verifier regressions
+        run: bash scripts/tests/test-verify-app.sh .build/OpenDictate.app
+      - name: Package and verify development artifact
+        id: package
+        run: |
+          bash scripts/package-ci-app.sh .build/OpenDictate.app "$RUNNER_TEMP/opendictate-artifact"
+          printf 'source_revision=%s\n' "$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Upload development artifact
+        if: ${{ success() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: OpenDictate-dev-${{ steps.package.outputs.source_revision }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/opendictate-artifact/OpenDictate-dev-*.zip
+            ${{ runner.temp }}/opendictate-artifact/manifest.json
+            ${{ runner.temp }}/opendictate-artifact/SHA256SUMS
+            ${{ runner.temp }}/opendictate-artifact/README.txt
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+          include-hidden-files: false
+          overwrite: false

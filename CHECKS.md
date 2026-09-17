@@ -10,10 +10,12 @@ bash -n scripts/build-app.sh
 bash -n scripts/verify-app.sh
 bash -n scripts/store-api-key.sh
 bash -n script/build_and_run.sh
+bash -n scripts/package-ci-app.sh
+bash -n scripts/tests/test-verify-app.sh
 git diff --check
 ```
 
-CI uses the same strict formatting, warnings-as-errors tests and four shell
+CI uses the same strict formatting, warnings-as-errors tests and six shell
 syntax checks. It records the macOS, architecture, Swift and formatter versions
 so runner updates are visible without changing the selected toolchain. Its
 whitespace check compares the checked-out commit with its first parent
@@ -42,6 +44,20 @@ entitlement. Run `./scripts/verify-app.sh /path/to/OpenDictate.app` to repeat
 these checks without rebuilding or launching. A missing or false entitlement
 must fail verification, even when the signature itself is valid.
 
+After bundle or packaging changes, run the controlled failure fixtures against
+the built app:
+
+```bash
+bash scripts/tests/test-verify-app.sh .build/OpenDictate.app
+```
+
+The fixtures use temporary copies and ad-hoc signing. They verify rejection of
+missing, false and wrongly typed audio-input entitlements, missing Hardened
+Runtime and broken signatures. The original bundle must remain unchanged. The
+tests do not launch the app, access a microphone or change a user's signing
+identity, Keychain or permissions. CI runs them before packaging its development
+archive and verifies the archive again after extraction.
+
 Documentation-only changes: run `git diff --check`, verify changed local links
 and review ownership, conflicting rules and evidence scope. Include new files
 in that review. Do not rerun app tests solely for prose changes.
@@ -52,12 +68,18 @@ in that review. Do not rerun app tests solely for prose changes.
 - `python3 -m unittest discover ...`: offline regression tests for the transcript evaluator and process sampler, including output-file preservation.
 - `swift format lint --strict --configuration .swift-format --recursive Sources Tests Package.swift`: project formatting; lint warnings cause a failed check.
 - `./scripts/build-app.sh`: release bundle, Plist, signature and Hardened Runtime verification. Does not launch/install it.
-- `git diff --check` and `bash -n` for all four scripts listed above before handoff.
+- `git diff --check` and `bash -n` for all six scripts listed above before handoff.
 - Real microphone, hotkeys, direct target-field insertion, clipboard fallback and VoiceOver require attended native-app acceptance; an accessibility tree alone is not a VoiceOver listening test.
 - After changing the insertion mechanism, recheck the affected categories and
   scenarios in `docs/compatibility-matrix.md`. A successful historical `Cmd+V`
   test does not validate direct `AXSelectedText` or Unicode-event insertion.
-- For a legacy API-key item, save the key once through the in-app dialog and inspect or test its resulting ACL separately; never use a real credential in automated checks.
+- The lifecycle tests use controlled callbacks and a fake recorder/transcriber to
+  exercise cancellation, delayed permission results and quit/drain ordering. They
+  do not execute native permission dialogs or prove microphone/device behavior.
+- The API-key tests inject Keychain results without accessing the real Keychain.
+  For a legacy API-key item, save the key through the in-app dialog and inspect
+  or test the new item's ACL separately. If legacy cleanup reports a warning,
+  saving again retries it; never use a real credential in automated checks.
 
 ## Explicit live API check
 

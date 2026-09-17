@@ -7,9 +7,13 @@ Prüfverfahren: [CHECKS.md](../CHECKS.md); belegte frühere Testbudgets:
 
 ## Aktuelle Änderung
 
-[PR #12](https://github.com/HerrStolzier/OpenDictate/pull/12) enthält die
-Stabilisierung von Rückmeldung, Einrichtung und CI. Die genaue Quellcodeidentität
-und die tatsächlich ausgeführten macOS-CI-Prüfungen sind am PR nachvollziehbar.
+[PR #13](https://github.com/HerrStolzier/OpenDictate/pull/13) ergänzt die
+Stabilisierung aus [PR #12](https://github.com/HerrStolzier/OpenDictate/pull/12):
+abgebrochene Vorbereitungen bleiben ungültig, Beenden wartet auf laufende Arbeit,
+ein neuer API-Schlüssel wird vor dem Entfernen eines alten Eintrags gespeichert,
+und erfolgreiche CI-Läufe stellen überprüfte Entwicklungsarchive bereit.
+Die genaue Quellcodeidentität und die tatsächlich ausgeführten macOS-CI-Prüfungen
+sind am PR beziehungsweise am zugehörigen Workflow-Lauf nachvollziehbar.
 Die Implementierung wurde in einer Linux-Arbeitsumgebung vorbereitet; die
 installierte macOS-App wurde damit weder ersetzt noch gestartet. Ergebnisse
 früherer installierter Kandidaten gelten nicht als neue Laufzeitabnahme.
@@ -17,17 +21,21 @@ früherer installierter Kandidaten gelten nicht als neue Laufzeitabnahme.
 | Paket | Quellcode / Vorbereitung | Weiter benötigter Nachweis |
 |---|---|---|
 | A: Texteingabe | Kein Versuch, unklarer nativer Versuch, unterbrochene und vollständig angestoßene Übergabe werden unterschieden; Teilübertragung lässt den vollständigen Text sichtbar | Sichtbare Unterbrechung im tatsächlichen Zielprogramm auf dem neuen Kandidaten |
-| B: CI | Strikter Formatter, Compilerwarnungen als Fehler, Plattform-/Toolchainprotokoll, vier Shell- und Commit-Diffprüfungen | Ergebnisse des exakten Kandidaten im verlinkten PR; keine macOS-14-Laufzeitabnahme |
-| C: Einrichtung | Direkter Einrichtungsweg bei fehlendem Schlüssel; Speichern startet keine Aufnahme; Bedienungshilfen passend zum automatischen Einfügen | Frische Einrichtung, Abbrechen und Fehler mit tatsächlichem Keychain-/Berechtigungszustand |
+| B: CI und Archive | Strikter Formatter, Compilerwarnungen als Fehler, Plattformprotokoll, sechs Shellprüfungen; sieben kontrollierte Bundle-Fälle; Archiv nach Entpacken erneut überprüft, mit Revision und Prüfsummen | Ergebnisse und Artefakt des exakten Workflow-Laufs; echte Installation und macOS-14-Laufzeitabnahme bleiben offen |
+| C: Einrichtung und Beenden | Vorgangsgebundene Rückmeldungen für Start, Retry und Einrichtung; Abbruch und Quit gegen verschachtelte Aktionen geschützt; verlustarme Keychain-Migration mit explizitem Hinweis bei unvollständiger Altbereinigung | Frische Einrichtung, verzögerte Berechtigungen, tatsächliche Keychain-Zugriffsrichtlinie und Beenden während Aufnahme/Upload auf einem Mac |
 | D: Menschlicher Pilot | Zwölf begrenzte Fälle und Messgrößen vorbereitet | Tatsächlich gesprochene Diktate und physisches Tastenkürzel; noch keine neuen Messwerte |
-| E: Integrationsfälle | Begrenzte erste Fallliste vorbereitet | Reale Fokuswechsel, Beenden/Abbruch, Gerätefehler und Safari-Fallback untersuchen |
+| E: Integrationsfälle | Begrenzte erste Fallliste; Offline-Tests für verspätete Rückmeldungen, Abbruch und Quit mit kontrolliertem Aufnahme-/Transkriptionsablauf | Reale Fokuswechsel, Beenden/Abbruch, Gerätefehler und Safari-Fallback untersuchen |
 | F: Dokumentation | Einstieg verkürzt, Entwicklerverfahren ausgelagert, aktuelle Übergabe und Aufbewahrungsangaben präzisiert | Nach D/E über begrenzten Betatest entscheiden |
 
 ## Nächster ausführbarer Mac-Schritt
 
 Die vorbereitete [Pilot- und Integrationsliste](audio-quality-fixtures.md#prepared-first-human-pilot)
 verwendet vorhandene Prüfmittel. Zuerst einen identifizierten Kandidaten auf dem
-Mac bauen und einen kleinen sichtbaren Eingabetest mit unkritischem Text prüfen:
+Mac mit der vorhandenen lokalen Signatur bauen oder ein überprüftes
+[CI-Entwicklungsarchiv](development.md#ci-development-archives) für einen bewusst
+gewählten Test vorbereiten. Die ad-hoc Signatur des Archivs übernimmt vorhandene
+Bedienungshilfen-/Keychain-Zugriffe nicht automatisch; Gatekeeper kann es sperren.
+Danach einen kleinen sichtbaren Eingabetest mit unkritischem Text prüfen:
 vollständige Eingabe, Unterbrechung zwischen Unicode-Abschnitten und nativer
 Normalfall. Ein Ereigniszähler belegt gesendete Befehle, nicht übernommene Zeichen.
 Danach frühes menschliches Nutzerfeedback sammeln; die komplette
@@ -54,8 +62,10 @@ verwendet. Beim tatsächlichen Pilot Umfang und Audiozeit vorher festlegen.
   Zeitgewinn sind offen. Die neue Fallliste enthält keine gemessenen Ergebnisse.
 - Gehörte VoiceOver-Ausgabe und macOS 14 als Laufzeitplattform bleiben offen.
   macOS-15-CI, synthetische Fixtures und AX-Baumprüfungen ersetzen diese Nachweise nicht.
-- Wer den alten API-Key-Helfer verwendet hat, speichert den Schlüssel einmal über
-  den App-Dialog neu; die bestehende reale Zugriffsrichtlinie ist separat zu prüfen.
+- Wer den alten API-Key-Helfer verwendet hat, speichert den Schlüssel über den
+  App-Dialog neu. Der neue Account erhält die normale App-Zugriffsrichtlinie;
+  die reale Migration und gegebenenfalls eine angezeigte Altbereinigung sind
+  separat zu prüfen. Der Shell-Helfer schreibt keine Schlüssel mehr.
 
 Bekannte Fehler mit falschem Ziel, beschädigtem vorhandenem Text oder Verlust der
 einzigen Aufnahme/des einzigen Transkripts verhindern eine Ausweitung des betroffenen
@@ -91,5 +101,5 @@ Historische temporäre Audiooriginale werden nicht blind gelöscht, weil sie die
 letzte überlebende Aufnahme sein können. Eine künftige Crash-Recovery muss
 Eigentum und Wiederherstellung klären. Für öffentliche Verteilung sind außerdem
 reproduzierbare Erstinstallation, geeignete Signierung/Notarisierung und Prüfung
-der zugesagten Plattformen erforderlich. Ein öffentlicher Download wurde durch
-diese Quellcodeänderung nicht veröffentlicht.
+der zugesagten Plattformen erforderlich. Die CI-Entwicklungsarchive sind keine
+öffentliche signierte und notarisierte Produktveröffentlichung.

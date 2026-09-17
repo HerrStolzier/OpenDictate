@@ -12,11 +12,21 @@ returned transcript is handled locally. OpenAI's own data handling terms apply
 to this transfer.
 
 The OpenAI API key is stored as a generic password in the macOS Keychain under
-service `OpenDictate` and account `OPENAI_API_KEY`. OpenDictate does not support
+service `OpenDictate` and account `OPENAI_API_KEY_APP`. OpenDictate does not support
 supplying the key through a command-line argument or environment variable.
-The optional shell helper restricts a new item to the built OpenDictate bundle.
-Saving through the in-app dialog deletes and recreates an existing item under
-the app's access policy, including items created by an older helper.
+The app reads the older `OPENAI_API_KEY` account only when the new account is
+confirmed absent. Access errors or unusable data in the new account do not cause
+a fallback to an older key. On an explicit save, the app creates its own new
+entry or updates that entry's value, then removes the older account only after
+the new value has been stored successfully. It does not delete the active entry
+before attempting replacement. If removal of the older entry fails, the app
+reports that the new key was saved but cleanup remains pending; both entries can
+then remain in the Keychain until a later successful cleanup.
+
+New entries use the app's default Keychain access policy. Older helper-created
+entries may have a different policy; saving through the app migrates them without
+copying that policy onto the new entry. The retired `store-api-key.sh` helper only
+directs users to the app dialog and performs no Keychain operation.
 
 ## Clipboard and automatic insertion
 
