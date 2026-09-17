@@ -24,7 +24,8 @@
             checkboxWithTitle: "Nur Ziel prüfen (ohne Texteingabe)", target: nil, action: nil)
         private let targetApp = NSPopUpButton(frame: .zero, pullsDown: false)
         private let targetIDs = [
-            "local.opendictate.matrixhost", "com.apple.Safari", "com.brave.Browser", "md.obsidian", "com.apple.TextEdit"
+            "local.opendictate.matrixhost", "com.apple.Safari", "com.brave.Browser", "md.obsidian",
+            "com.apple.TextEdit"
         ]
         private let board = NSPasteboard.withUniqueName()
         private lazy var inserter: PasteboardInserter = {
