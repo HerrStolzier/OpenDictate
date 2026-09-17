@@ -144,7 +144,11 @@ instead because these editors can accept the Accessibility setter without
 inserting text. This path rechecks the foreground application and focused field
 between text chunks; it never sends a paste shortcut or consumes the clipboard.
 Safari receives line breaks separately so text following a newline is not lost;
-a CRLF pair remains one line break. Other Unicode editors keep grouped text.
+a CRLF pair remains one line break. Brave binds line breaks to preceding text
+and keeps complete graphemes together within each event. Text that cannot fit
+this rule (for example a leading line break or an unusually long grapheme)
+uses the full clipboard fallback before sending any event. Obsidian retains
+grouped text. These policies do not establish compatibility with every editor.
 Candidate-specific acceptance is tracked in
 [remaining acceptance](docs/remaining-acceptance.md). The transcript
 also remains on the general clipboard until it is overwritten, preserving

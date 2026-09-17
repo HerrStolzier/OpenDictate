@@ -8,11 +8,13 @@
     final class DeliveryMatrixPreview: NSObject, NSApplicationDelegate {
         static let sample = "Äpfel 🍏 und Grüße.\nZweite Zeile: e\u{301}, 👩🏽‍💻."
         private let window = NSWindow(
-            contentRect: NSRect(x: 100, y: 100, width: 500, height: 490),
+            contentRect: NSRect(x: 100, y: 100, width: 500, height: 530),
             styleMask: [.titled, .closable], backing: .buffered, defer: false)
         private let panel = DictationPanel()
         private let result = NSTextField(wrappingLabelWithString: "Bereit; nur lokale Matrix-Testfenster.")
         private let delay = NSButton(checkboxWithTitle: "5 Sekunden Verarbeitung simulieren", target: nil, action: nil)
+        private let recordingDelay = NSButton(
+            checkboxWithTitle: "10 Sekunden Aufnahme simulieren (ohne Mikrofon)", target: nil, action: nil)
         private let singleLine = NSButton(checkboxWithTitle: "Einzeiligen Testtext verwenden", target: nil, action: nil)
         private let longProbe = NSButton(
             checkboxWithTitle: "Lange Unicode-Probe (600 Wiederholungen)", target: nil, action: nil)
@@ -79,7 +81,8 @@
             let progress = NSButton(title: "Aufnahmestatus simulieren", target: self, action: #selector(checkProgress))
             let inspect = NSButton(title: "Ergebnis ansehen", target: self, action: #selector(inspectResult))
             for view in [
-                targetApp, singleLine, longProbe, lineProbe, delay, start, shortcut, progress, inspect, result, quit
+                targetApp, singleLine, longProbe, lineProbe, recordingDelay, delay, start, shortcut, progress, inspect,
+                result, quit
             ] {
                 stack.addArrangedSubview(view)
             }
@@ -95,7 +98,6 @@
                     "Ergebnis: \(outcome); Test-Zwischenablage vollständig: \(board.string(forType: .string) == sampleText)\n\(captureDetail)\nUnicode-Chunks: \(postedChunks) / \(expectedChunks)"
                 panel.update(outcome: outcome, transcript: flow.lastTranscript)
                 panel.window?.title = "OpenDictate – synthetisches Übergabeergebnis"
-                panel.show()
             }
         }
 
@@ -126,13 +128,16 @@
             guard flow.state.canStart, armTask == nil else { return }
             start.isEnabled = false
             simulateDelay = delay.state == .on
+            let simulateRecording = recordingDelay.state == .on
             sampleText = singleLine.state == .on ? Self.sample.replacingOccurrences(of: "\n", with: " ") : Self.sample
             if lineProbe.state == .on { sampleText = "Erste\r\n\r\nZweite\n\nDritte" }
             if longProbe.state == .on { sampleText = Array(repeating: sampleText, count: 600).joined(separator: " ") }
             postedChunks = 0
             let expectedID = targetIDs[targetApp.indexOfSelectedItem]
             expectedChunks =
-                UnicodeTextDelivery.chunks(sampleText, isolateLineBreaks: expectedID == "com.apple.Safari").count
+                UnicodeTextDelivery.chunks(
+                    sampleText, lineBreakPolicy: UnicodeTextDelivery.policy(for: expectedID)
+                ).count
             result.stringValue = "Warte höchstens 60 Sekunden auf ein lokales Matrix-Fenster …"
             armTask = Task { @MainActor in
                 defer {
@@ -150,8 +155,12 @@
                             observed.map {
                                 "Ziel erfasst: \(target != nil); \($0.role); aktiviert: \(String(describing: $0.enabled)); Auswahl schreibbar: \($0.acceptsSelectedText)"
                             } ?? "Keine gültige lokale AX-Zielidentität."
-                        result.stringValue = "Ziel erfasst: \(target != nil). Verarbeitung läuft."
                         _ = try? flow.start()
+                        if simulateRecording {
+                            result.stringValue = "Ziel erfasst: \(target != nil). 10 Sekunden synthetische Aufnahme."
+                            do { try await Task.sleep(for: .seconds(10)) } catch { return }
+                        }
+                        result.stringValue = "Ziel erfasst: \(target != nil). Verarbeitung läuft."
                         _ = flow.stop()
                         await flow.task?.value
                         return

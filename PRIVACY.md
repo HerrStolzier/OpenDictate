@@ -40,6 +40,9 @@ the first insertion, an available selection range must still match the captured
 range. It does not activate the target during delivery, read the
 field's existing contents, or send a paste shortcut. A focus change or cancellation
 stops remaining chunks; already delivered text cannot be rolled back safely.
+Brave's event path keeps line breaks with preceding text and complete graphemes
+within the event-size limit. If a transcript cannot satisfy those constraints,
+it falls back before posting any event; the original clipboard text is unchanged.
 
 If the focused control does not expose a settable selected-text Accessibility
 attribute, automatic insertion stops and the transcript remains available only

@@ -22,4 +22,56 @@
 <input id="protected" type="password" autocomplete="off">
 <label for="readonly">Nur Lesen</label>
 <input id="readonly" value="Schreibgeschützt." readonly>
+<section aria-label="Exakter lokaler Textvergleich">
+<h2>Exakter lokaler Textvergleich</h2>
+<p>Vergleicht nur die künstlichen Eingaben dieser Testseite. Kein Zugriff auf die Zwischenablage.</p>
+<label for="probe">Prüftext</label>
+<select id="probe">
+  <option value="multiline">Mehrzeilige Unicode-Probe</option>
+  <option value="single">Einzeilige Unicode-Probe</option>
+  <option value="long">Lange Unicode-Probe (600 Wiederholungen)</option>
+  <option value="lines">CRLF und Leerzeilen</option>
+</select>
+<label for="verify-target">Vergleichsfeld</label>
+<select id="verify-target">
+  <option value="multi">Mehrzeilige Eingabe</option>
+  <option value="single">Einzeilige Eingabe</option>
+  <option value="frame">Iframe Eingabe</option>
+</select>
+<button id="remember" type="button">Referenz aus Cursor und Auswahl vorbereiten</button>
+<button id="verify" type="button">Ergebnis exakt vergleichen</button>
+<output id="comparison" aria-live="polite">Noch keine Referenz vorbereitet.</output>
+</section>
+<script>
+  // A local acceptance fixture only: no network, storage or clipboard access.
+  const sample = 'Äpfel 🍏 und Grüße.\nZweite Zeile: e\u0301, 👩🏽‍💻.';
+  let reference;
+  document.getElementById('remember').addEventListener('click', () => {
+    const id = document.getElementById('verify-target').value;
+    const field = id === 'frame'
+      ? document.getElementById('frame').contentDocument.getElementById('inner')
+      : document.getElementById(id);
+    const mode = document.getElementById('probe').value;
+    const text = mode === 'long' ? Array(600).fill(sample).join(' ')
+      : mode === 'single' ? sample.replace('\n', ' ')
+      : mode === 'lines' ? 'Erste\n\nZweite\n\nDritte' : sample;
+    const start = field.selectionStart;
+    const end = field.selectionEnd;
+    reference = {field, expected: field.value.slice(0, start) + text + field.value.slice(end)};
+    document.getElementById('comparison').textContent =
+      `Referenz bereit: ${reference.expected.length} UTF-16-Einheiten; Auswahl ${start}–${end}.`;
+    field.focus();
+    field.setSelectionRange(start, end);
+  });
+  document.getElementById('verify').addEventListener('click', () => {
+    if (!reference) return;
+    const actual = reference.field.value;
+    const expected = reference.expected;
+    let mismatch = 0;
+    while (mismatch < Math.min(actual.length, expected.length) && actual[mismatch] === expected[mismatch]) mismatch++;
+    document.getElementById('comparison').textContent = actual === expected
+      ? `EXAKT: ${actual.length} UTF-16-Einheiten stimmen vollständig überein.`
+      : `ABWEICHUNG: Ist ${actual.length}, Soll ${expected.length} UTF-16-Einheiten; erste Abweichung bei ${mismatch}.`;
+  });
+</script>
 </html>

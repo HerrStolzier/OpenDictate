@@ -32,12 +32,54 @@ struct UnicodeTextDeliveryTests {
 
     @Test func lineBreakCommandsNeverDiscardFollowingTextInTheSameEvent() {
         let text = String(repeating: "x", count: 20) + "\nFollowing text\r\n\nEnd 🍏"
-        let chunks = UnicodeTextDelivery.chunks(text, isolateLineBreaks: true)
+        let chunks = UnicodeTextDelivery.chunks(text, lineBreakPolicy: .isolated)
         #expect(chunks.map { String(decoding: $0, as: UTF16.self) }.joined() == text)
         #expect(chunks.contains([10]))
         #expect(chunks.contains([13, 10]))
         #expect(chunks.allSatisfy { !$0.contains(10) && !$0.contains(13) || $0.count == 1 || $0 == [13, 10] })
         #expect(UnicodeTextDelivery.chunks("Before\nAfter") == [Array("Before\nAfter".utf16)])
+    }
+
+    @Test func browserPoliciesPreserveLongTextWithoutChangingGroupedEditors() {
+        let sample = "Äpfel 🍏 und Grüße.\nZweite Zeile: e\u{301}, 👩🏽‍💻."
+        let text = Array(repeating: sample, count: 600).joined(separator: " ")
+        let safari = UnicodeTextDelivery.chunks(text, lineBreakPolicy: .isolated)
+        #expect(safari.map { String(decoding: $0, as: UTF16.self) }.joined() == text)
+        #expect(safari.count == 2_400)
+        #expect(safari.allSatisfy { !$0.contains(10) || $0 == [10] })
+
+        let brave = UnicodeTextDelivery.chunks(text, lineBreakPolicy: .trailing)
+        #expect(brave.map { String(decoding: $0, as: UTF16.self) }.joined() == text)
+        #expect(brave.allSatisfy { !$0.isEmpty && $0.count <= 20 })
+        #expect(brave.dropFirst().allSatisfy { $0.first != 10 && $0.first != 13 })
+        #expect(UnicodeTextDelivery.policy(for: "com.apple.Safari") == .isolated)
+        #expect(UnicodeTextDelivery.policy(for: "com.brave.Browser") == .trailing)
+        #expect(UnicodeTextDelivery.policy(for: "md.obsidian") == .grouped)
+        #expect(UnicodeTextDelivery.policy(for: nil) == .grouped)
+    }
+
+    @Test func trailingPolicyKeepsCRLFAndBlankLinesBehindText() {
+        let text = "Erste\r\n\r\nZweite\n\nDritte"
+        let chunks = UnicodeTextDelivery.chunks(text, lineBreakPolicy: .trailing)
+        #expect(chunks.map { String(decoding: $0, as: UTF16.self) }.joined() == text)
+        #expect(chunks.allSatisfy { $0.first != 10 && $0.first != 13 })
+        #expect(chunks.allSatisfy { $0.count <= 20 })
+    }
+
+    @Test func trailingPolicyRejectsUnsafeInputBeforePosting() async {
+        let longGrapheme = "a" + String(repeating: "\u{301}", count: 20)
+        #expect(UnicodeTextDelivery.chunks("\nLeading", lineBreakPolicy: .trailing).isEmpty)
+        #expect(UnicodeTextDelivery.chunks(longGrapheme, lineBreakPolicy: .trailing).isEmpty)
+
+        var posts = 0
+        let sent = await UnicodeTextDelivery.send(
+            "\nLeading", lineBreakPolicy: .trailing, stillFocused: { true },
+            post: { _ in
+                posts += 1
+                return true
+            })
+        #expect(!sent)
+        #expect(posts == 0)
     }
 
     @Test func targetSwitchStopsRemainingText() async {
