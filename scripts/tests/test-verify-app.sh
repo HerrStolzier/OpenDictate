@@ -31,8 +31,8 @@ readonly BUNDLE_SOURCE BUNDLE_TEST_DIR
 
 source_manifest() {
   (
-    cd "$BUNDLE_SOURCE"
-    find . -type f -exec shasum -a 256 {} + | sort
+    cd "$BUNDLE_SOURCE" || exit
+    find . -type f -exec shasum -a 256 {} + | sort || exit
     find . -exec stat -f '%N|%Sp' {} + | sort
   )
 }

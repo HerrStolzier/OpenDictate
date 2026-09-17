@@ -22,6 +22,9 @@ einer einzelnen Person. Der aktuelle Plan steht in der
   begrenzte Aufbewahrung und authentifizierte Wiederholung: [PRIVACY](PRIVACY.md).
 - MIT-lizenzierter Quellcode. Das belegt weder eine öffentliche notarisierte
   Binärversion noch eine Entscheidung über spätere Bezahlangebote.
+- Nach erfolgreichen CI-Prüfungen sind zeitlich begrenzte, ad-hoc signierte
+  [Entwicklungsarchive](docs/development.md#ci-development-archives) verfügbar.
+  Sie enthalten ihre genaue Quellcodeidentität und ersetzen keine Produktabnahme.
 
 ## Grenzen und offene Entscheidungen
 

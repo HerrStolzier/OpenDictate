@@ -6,9 +6,10 @@ Audio is sent to OpenAI over HTTPS; transcription incurs separate API charges.
 
 ## First dictation
 
-You need a Mac, internet access and an OpenAI API key. The current distribution
-is source-only; a public signed and notarized download is not available yet.
-Build with Swift 6 on macOS:
+You need a Mac, internet access and an OpenAI API key. A public signed and
+notarized download is not available yet. GitHub CI also retains explicitly
+labelled [development archives](docs/development.md#ci-development-archives)
+for later testing. To build from source, use Swift 6 on macOS:
 
 ```bash
 ./scripts/build-app.sh
