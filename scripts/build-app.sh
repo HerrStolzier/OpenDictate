@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
 APP="$ROOT/.build/OpenDictate.app"
 EXECUTABLE="$ROOT/.build/release/OpenDictate"
 ICON_SOURCE="$ROOT/Assets/OpenDictateIcon.png"
@@ -12,7 +12,38 @@ VERSION="$(cat "$ROOT/VERSION")"
 BUILD_NUMBER="${OPENDICTATE_BUILD_NUMBER:-1}"
 [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid VERSION" >&2; exit 1; }
 [[ "$BUILD_NUMBER" =~ ^[0-9]+$ ]] || { echo "Invalid build number" >&2; exit 1; }
+SOURCE_REVISION="${OPENDICTATE_SOURCE_REVISION:-}"
+SOURCE_STATE="unversioned"
+if [[ -n "$SOURCE_REVISION" && ! "$SOURCE_REVISION" =~ ^[0-9a-f]{40}$ ]]; then
+  echo "Source revision must be a full lowercase Git commit hash." >&2
+  exit 1
+fi
+GIT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [[ "$GIT_ROOT" == "$ROOT" ]]; then
+  CHECKOUT_REVISION="$(git rev-parse --verify 'HEAD^{commit}')"
+  if [[ -n "$SOURCE_REVISION" && "$SOURCE_REVISION" != "$CHECKOUT_REVISION" ]]; then
+    echo "Source revision override does not match the checked-out commit." >&2
+    exit 1
+  fi
+  SOURCE_REVISION="$CHECKOUT_REVISION"
+  SOURCE_STATE="clean"
+  CHECKOUT_STATUS="$(git status --porcelain --untracked-files=normal)"
+  if [[ -n "$CHECKOUT_STATUS" ]]; then SOURCE_STATE="dirty"; fi
+elif [[ -n "$SOURCE_REVISION" ]]; then
+  SOURCE_STATE="unverified"
+else
+  SOURCE_REVISION="unknown"
+fi
 swift build -c release
+if [[ "$GIT_ROOT" == "$ROOT" ]]; then
+  [[ "$(git rev-parse --verify 'HEAD^{commit}')" == "$SOURCE_REVISION" ]] || {
+    echo "Checkout changed during the build; build again from the intended commit." >&2
+    exit 1
+  }
+  CHECKOUT_STATUS="$(git status --porcelain --untracked-files=normal)"
+  if [[ -n "$CHECKOUT_STATUS" ]]; then SOURCE_STATE="dirty"; fi
+fi
+echo "Source revision: $SOURCE_REVISION ($SOURCE_STATE)"
 
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
@@ -56,6 +87,10 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <string>$VERSION</string>
   <key>CFBundleVersion</key>
   <string>$BUILD_NUMBER</string>
+  <key>OpenDictateSourceRevision</key>
+  <string>$SOURCE_REVISION</string>
+  <key>OpenDictateSourceState</key>
+  <string>$SOURCE_STATE</string>
   <key>LSMinimumSystemVersion</key>
   <string>14.0</string>
   <key>LSUIElement</key>
