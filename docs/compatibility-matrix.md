@@ -13,6 +13,14 @@ bleibt unbelegt. Die vorausgehende synthetische und reale Abnahme steht im
 Feldnachweise in der folgenden Tabelle historisch zusammengefasst sind.
 Die jeweiligen Einzelfälle belegen keine vollständige Kategorie oder Phasenmatrix.
 
+Die Stabilisierung in [PR #12](https://github.com/HerrStolzier/OpenDictate/pull/12)
+ändert Rückmeldungen zu versuchter/unterbrochener Texteingabe und die Einrichtung.
+Für diesen neuen Quellcodestand liegen noch keine neuen sichtbaren Mac-Abnahmen
+vor. Eine begrenzte erste Runde und ein früher menschlicher Pilot sind in den
+[vorbereiteten Fällen](audio-quality-fixtures.md#prepared-first-human-pilot)
+beschrieben. Die historische Tabelle unten bleibt auf die dortigen Kandidaten
+begrenzt; diese Vorbereitung erweitert ihre Nachweise nicht.
+
 ## Abdeckungsziel
 
 | Kategorie | Repräsentative Beispiele | Zu prüfende Felder | Aktuelle Evidenz |
@@ -86,9 +94,9 @@ Supportaussage aus einem einzelnen Beispiel.
 
 ## Priorität
 
-1. Breite der Eingabefelder und Fokuswechsel anhand der Matrix schließen.
-2. Aufnahme-, Abbruch-, Geräte-, Fehler- und Recoveryfälle robust live prüfen.
-3. VoiceOver, Tastaturbedienung sowie Sprachqualität, Latenz und Korrekturaufwand messen.
+1. Auf dem neuen Kandidaten vollständige und unterbrochene Texteingabe gezielt sichtbar prüfen; danach früh menschliche Diktate samt physischem Tastenkürzel und Korrekturaufwand auswerten.
+2. Eine begrenzte Runde der offenen Fokus-, Aufnahme-, Abbruch-, Geräte- und Recoveryfälle nach Risiko und Pilotbefund durchführen.
+3. Die breitere Matrix einschließlich VoiceOver und verbleibender Plattform-/Feldkombinationen systematisch ergänzen; fehlende Fälle bleiben ausdrücklich offen.
 
 Streaming und Hold-to-talk bleiben zurückgestellt. Diese Matrix sagt keine
 Windows-/Linux-Version und keine öffentliche Veröffentlichung zu.

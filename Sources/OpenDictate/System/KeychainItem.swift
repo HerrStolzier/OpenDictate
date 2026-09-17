@@ -1,4 +1,5 @@
 import Foundation
+import LocalAuthentication
 import Security
 
 /// Small wrapper around the shared generic-password boilerplate. Individual
@@ -7,6 +8,19 @@ struct KeychainItem {
     private static let service = "OpenDictate"
 
     let account: String
+
+    /// Check only for absence, without returning secret data or requesting UI.
+    /// A locked or inaccessible existing item must not trigger first-run setup.
+    func isMissing(
+        matching: (CFDictionary, UnsafeMutablePointer<CFTypeRef?>?) -> OSStatus = SecItemCopyMatching
+    ) -> Bool {
+        var query = baseQuery
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+        let context = LAContext()
+        context.interactionNotAllowed = true
+        query[kSecUseAuthenticationContext as String] = context
+        return matching(query as CFDictionary, nil) == errSecItemNotFound
+    }
 
     func readData() -> Data? {
         var query = baseQuery

@@ -45,7 +45,8 @@ public enum OpenDictateError: LocalizedError {
         case .keychainStatus:
             return "Der Schlüsselbund ist nicht zugänglich. Prüfe die Zugriffsabfrage von macOS und versuche es erneut."
         case .missingAPIKey:
-            return "Der API-Schlüssel fehlt. Richte ihn unter Einstellungen → Erweitert ein."
+            return "Der API-Schlüssel fehlt. Nutze „API-Schlüssel einrichten“ "
+                + "im Aufnahmefenster oder in den Einstellungen."
         case .noActiveRecording:
             return "Es läuft keine Aufnahme. Starte zuerst ein neues Diktat."
         case .noAudioFile:

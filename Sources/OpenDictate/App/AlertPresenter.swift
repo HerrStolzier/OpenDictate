@@ -56,7 +56,8 @@ enum AlertPresenter {
     static func promptForAPIKey(initialValue: String?) -> String? {
         let alert = NSAlert()
         alert.messageText = "OpenAI-API-Schlüssel einrichten"
-        alert.informativeText = "Der Schlüssel wird im macOS-Schlüsselbund unter OpenDictate gespeichert."
+        alert.informativeText =
+            "Verwende deinen eigenen API-Schlüssel aus der OpenAI-Plattform. OpenAI berechnet die Transkription separat. Der Schlüssel wird im macOS-Schlüsselbund unter OpenDictate gespeichert."
         alert.alertStyle = .informational
         alert.addButton(withTitle: "Speichern")
         alert.addButton(withTitle: "Abbrechen")

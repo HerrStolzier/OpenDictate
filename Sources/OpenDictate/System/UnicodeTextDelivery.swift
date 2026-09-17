@@ -1,4 +1,5 @@
 import AppKit
+import OpenDictateCore
 
 /// Sends exact text without consulting the global clipboard. Events stay process-scoped.
 @MainActor
@@ -90,15 +91,18 @@ struct UnicodeTextDelivery {
         lineBreakPolicy: LineBreakPolicy = .grouped,
         stillFocused: () -> Bool,
         post: ([UniChar]) -> Bool
-    ) async -> Bool {
+    ) async -> InsertionSubmission {
         let parts = chunks(text, lineBreakPolicy: lineBreakPolicy)
-        guard !parts.isEmpty else { return false }
+        guard !parts.isEmpty else { return .notAttempted }
         for (index, part) in parts.enumerated() {
-            guard !Task.isCancelled, stillFocused(), post(part) else { return false }
+            // A false post result means this chunk was not submitted.
+            guard !Task.isCancelled, stillFocused(), post(part) else {
+                return index == 0 ? .notAttempted : .interrupted
+            }
             if index < parts.count - 1 {
-                do { try await Task.sleep(for: .milliseconds(5)) } catch { return false }
+                do { try await Task.sleep(for: .milliseconds(5)) } catch { return .interrupted }
             }
         }
-        return true
+        return .submitted
     }
 }

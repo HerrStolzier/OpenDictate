@@ -20,6 +20,7 @@ struct InsertionTargetTests {
         var settable = true
         var missing = false
         var needsUnicode = true
+        var nativeSucceeds = true
         var native: [String] = []
         var unicode: [[UniChar]] = []
         var afterChunk: (() -> Void)?
@@ -38,7 +39,7 @@ struct InsertionTargetTests {
                 needsUnicodeEvents: { _ in self.needsUnicode },
                 insertSelectedText: { _, text in
                     self.native.append(text)
-                    return true
+                    return self.nativeSucceeds
                 },
                 postUnicode: { pid, units in
                     #expect(pid == 42)
@@ -59,7 +60,7 @@ struct InsertionTargetTests {
             case 2: h.document = 302
             default: h.frontmost = 43
             }
-            #expect(await h.inserter.paste("original transcript", into: target) == false)
+            #expect(await h.inserter.paste("original transcript", into: target) == .notAttempted)
             #expect(h.native.isEmpty && h.unicode.isEmpty)
         }
     }
@@ -71,7 +72,7 @@ struct InsertionTargetTests {
             if change == 0 { h.selection = CFRange(location: 8, length: 0) }
             if change == 1 { h.selection = nil }
             if change == 2 { h.missing = true }
-            #expect(await h.inserter.paste("text", into: target) == false)
+            #expect(await h.inserter.paste("text", into: target) == .notAttempted)
             #expect(h.unicode.isEmpty)
         }
     }
@@ -88,7 +89,7 @@ struct InsertionTargetTests {
             default: h.trusted = false
             }
             #expect(h.inserter.captureTarget(in: 42) == nil)
-            #expect(await h.inserter.paste("text", into: initial) == false)
+            #expect(await h.inserter.paste("text", into: initial) == .notAttempted)
             #expect(h.native.isEmpty && h.unicode.isEmpty)
         }
     }
@@ -98,7 +99,7 @@ struct InsertionTargetTests {
         h.missing = true
         let captured = h.inserter.captureTarget(in: 42)
         h.missing = false
-        #expect(await h.inserter.paste("text", into: captured) == false)
+        #expect(await h.inserter.paste("text", into: captured) == .notAttempted)
         #expect(h.unicode.isEmpty)
     }
 
@@ -106,7 +107,7 @@ struct InsertionTargetTests {
         let h = Harness()
         h.document = nil
         let target = h.inserter.captureTarget(in: 42)
-        #expect(await h.inserter.paste("Äpfel 🍏", into: target))
+        #expect(await h.inserter.paste("Äpfel 🍏", into: target) == .submitted)
         #expect(h.native == ["Äpfel 🍏"])
         #expect(h.unicode.isEmpty)
     }
@@ -117,7 +118,7 @@ struct InsertionTargetTests {
         h.document = nil
         let target = h.inserter.captureTarget(in: 42)
         #expect(target != nil)
-        #expect(await h.inserter.paste("text", into: target))
+        #expect(await h.inserter.paste("text", into: target) == .submitted)
         #expect(h.native == ["text"])
         h.settable = false
         #expect(h.inserter.captureTarget(in: 42) == nil)
@@ -128,7 +129,7 @@ struct InsertionTargetTests {
         let target = h.inserter.captureTarget(in: 42)
         let text = String(repeating: "Grüße 🍏! ", count: 8)
         h.afterChunk = { h.selection = CFRange(location: 99, length: 0) }
-        #expect(await h.inserter.paste(text, into: target))
+        #expect(await h.inserter.paste(text, into: target) == .submitted)
         #expect(String(decoding: h.unicode.flatMap { $0 }, as: UTF16.self) == text)
         #expect(h.native.isEmpty)
     }
@@ -137,7 +138,7 @@ struct InsertionTargetTests {
         let h = Harness()
         h.needsUnicode = false
         let target = h.inserter.captureTarget(in: 42)
-        #expect(await h.inserter.paste("text", into: target))
+        #expect(await h.inserter.paste("text", into: target) == .submitted)
         #expect(h.native == ["text"])
         #expect(h.unicode.isEmpty)
     }
@@ -149,7 +150,7 @@ struct InsertionTargetTests {
             let h = Harness()
             h.inserter.access.unicodeLineBreakPolicy = { _ in policy }
             let target = h.inserter.captureTarget(in: 42)
-            #expect(await h.inserter.paste("Before\nAfter", into: target))
+            #expect(await h.inserter.paste("Before\nAfter", into: target) == .submitted)
             #expect(h.unicode.count == (policy == .isolated ? 3 : 1))
             #expect(String(decoding: h.unicode.flatMap { $0 }, as: UTF16.self) == "Before\nAfter")
         }
@@ -159,7 +160,7 @@ struct InsertionTargetTests {
         let h = Harness()
         let target = h.inserter.captureTarget(in: 42)
         h.afterChunk = { h.field = 102 }
-        #expect(await h.inserter.paste(String(repeating: "x", count: 70), into: target) == false)
+        #expect(await h.inserter.paste(String(repeating: "x", count: 70), into: target) == .interrupted)
         #expect(h.unicode.count == 1)
     }
 
@@ -168,8 +169,18 @@ struct InsertionTargetTests {
         h.frontmost = 999  // OpenDictate panel is currently frontmost.
         let target = h.inserter.captureTarget(in: 42)
         #expect(target != nil)
-        #expect(await h.inserter.paste("text", into: target) == false)
+        #expect(await h.inserter.paste("text", into: target) == .notAttempted)
         h.frontmost = 42
-        #expect(await h.inserter.paste("text", into: target))
+        #expect(await h.inserter.paste("text", into: target) == .submitted)
+    }
+
+    @Test func nativeErrorDoesNotProveNoInsertionAndNeverRetries() async {
+        let h = Harness()
+        h.document = nil
+        h.nativeSucceeds = false
+        let target = h.inserter.captureTarget(in: 42)
+        #expect(await h.inserter.paste("text", into: target) == .uncertain)
+        #expect(h.native == ["text"])
+        #expect(h.unicode.isEmpty)
     }
 }

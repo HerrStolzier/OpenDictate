@@ -3,14 +3,22 @@
 ## Required after source changes
 
 ```bash
-swift format lint --configuration .swift-format --recursive Sources Tests Package.swift
+swift format lint --strict --configuration .swift-format --recursive Sources Tests Package.swift
 swift test -Xswiftc -warnings-as-errors
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/tests -p 'test_*.py' -v
 bash -n scripts/build-app.sh
 bash -n scripts/verify-app.sh
 bash -n scripts/store-api-key.sh
+bash -n script/build_and_run.sh
 git diff --check
 ```
+
+CI uses the same strict formatting, warnings-as-errors tests and four shell
+syntax checks. It records the macOS, architecture, Swift and formatter versions
+so runner updates are visible without changing the selected toolchain. Its
+whitespace check compares the checked-out commit with its first parent
+(`git diff --check HEAD^ HEAD`); on pull requests this covers the merge diff
+against the base branch. Local `git diff --check` checks uncommitted edits.
 
 On the macOS 27 / Swift 6.4 Command Line Tools host, the default build may fail
 to discover `TestingMacros`. The verified local workaround uses the installed
@@ -40,11 +48,11 @@ in that review. Do not rerun app tests solely for prose changes.
 
 ## Meaning of checks
 
-- `swift test`: offline logic, lifecycle, HTTP stubs, recovery, logging and synthetic audio-file tests. Optional benchmark and live API test are skipped by default.
+- `swift test -Xswiftc -warnings-as-errors`: offline logic, lifecycle, HTTP stubs, recovery, logging and synthetic audio-file tests, with compiler warnings treated as failures. Optional benchmark and live API test are skipped by default.
 - `python3 -m unittest discover ...`: offline regression tests for the transcript evaluator and process sampler, including output-file preservation.
-- `swift format lint --configuration .swift-format --recursive Sources Tests Package.swift`: project formatting.
+- `swift format lint --strict --configuration .swift-format --recursive Sources Tests Package.swift`: project formatting; lint warnings cause a failed check.
 - `./scripts/build-app.sh`: release bundle, Plist, signature and Hardened Runtime verification. Does not launch/install it.
-- `git diff --check` and `bash -n scripts/build-app.sh` before handoff.
+- `git diff --check` and `bash -n` for all four scripts listed above before handoff.
 - Real microphone, hotkeys, direct target-field insertion, clipboard fallback and VoiceOver require attended native-app acceptance; an accessibility tree alone is not a VoiceOver listening test.
 - After changing the insertion mechanism, recheck the affected categories and
   scenarios in `docs/compatibility-matrix.md`. A successful historical `Cmd+V`
@@ -112,7 +120,7 @@ Close and discard test documents afterward; preserve pre-existing user content.
 `--preview`, `--focus-fixture` and `--processing-focus-preview` modes are synthetic
 fixtures, not microphone-to-target acceptance. Historical fixture evidence is in
 [the September 13 report](docs/live-acceptance-2026-09-13.md); it does not establish
-acceptance of the integrated candidate. Also run `bash -n script/build_and_run.sh`.
+acceptance of the integrated candidate.
 
 ## Compact settings acceptance
 

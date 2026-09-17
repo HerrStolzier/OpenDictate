@@ -18,9 +18,9 @@ public final class Settings: Sendable {
     public enum Key {
         public static let model = "transcriptionModel"
         public static let language = "transcriptionLanguage"
-        public static let hotKeyCode = "hotKeyCode"
-        public static let hotKeyModifiers = "hotKeyModifiers"
-        public static let hotKeyName = "hotKeyName"
+        public static let shortcutCode = "hotKeyCode"
+        public static let shortcutModifiers = "hotKeyModifiers"
+        public static let shortcutName = "hotKeyName"
         public static let autoPaste = "autoPaste"
         public static let vocabularyPrompt = "vocabularyPrompt"
     }
@@ -86,21 +86,21 @@ public final class Settings: Sendable {
 
     public var shortcut: HotKeyShortcut {
         get {
-            guard let code = store.object(forKey: Key.hotKeyCode) as? Int,
-                let modifiers = store.object(forKey: Key.hotKeyModifiers) as? Int,
+            guard let code = store.object(forKey: Key.shortcutCode) as? Int,
+                let modifiers = store.object(forKey: Key.shortcutModifiers) as? Int,
                 code >= 0, modifiers >= 0, code <= 126, modifiers <= Int(UInt32.max)
             else { return .default }
             if let preset = HotKeyShortcut.preset(keyCode: UInt32(code), modifiers: UInt32(modifiers)) { return preset }
-            guard let name = store.object(forKey: Key.hotKeyName) as? String,
+            guard let name = store.object(forKey: Key.shortcutName) as? String,
                 let custom = HotKeyShortcut.custom(
                     keyCode: UInt32(code), modifiers: UInt32(modifiers), displayName: name)
             else { return .default }
             return custom
         }
         set {
-            store.set(Int(newValue.keyCode), forKey: Key.hotKeyCode)
-            store.set(Int(newValue.modifiers), forKey: Key.hotKeyModifiers)
-            store.set(newValue.displayName, forKey: Key.hotKeyName)
+            store.set(Int(newValue.keyCode), forKey: Key.shortcutCode)
+            store.set(Int(newValue.modifiers), forKey: Key.shortcutModifiers)
+            store.set(newValue.displayName, forKey: Key.shortcutName)
         }
     }
 
@@ -125,9 +125,9 @@ public final class Settings: Sendable {
     public func resetToEnvironment() {
         store.removeObject(forKey: Key.model)
         store.removeObject(forKey: Key.language)
-        store.removeObject(forKey: Key.hotKeyCode)
-        store.removeObject(forKey: Key.hotKeyModifiers)
-        store.removeObject(forKey: Key.hotKeyName)
+        store.removeObject(forKey: Key.shortcutCode)
+        store.removeObject(forKey: Key.shortcutModifiers)
+        store.removeObject(forKey: Key.shortcutName)
         store.removeObject(forKey: Key.autoPaste)
         store.removeObject(forKey: Key.vocabularyPrompt)
     }
