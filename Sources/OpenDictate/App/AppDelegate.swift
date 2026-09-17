@@ -48,7 +48,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 clean: { try? FileManager.default.removeItem(at: $0) },
                 copy: { [unowned self] in pasteboard.copy($0) },
                 paste: { [unowned self] text in
-                    guard Config.settings.autoPaste else { return false }
+                    guard Config.settings.autoPaste else { return .notAttempted }
                     return await pasteboard.paste(text, into: insertionTarget)
                 }
             ))

@@ -1,6 +1,7 @@
 import AppKit
 import ApplicationServices
 import Foundation
+import OpenDictateCore
 
 @MainActor
 struct PasteboardInserter {
@@ -55,12 +56,12 @@ struct PasteboardInserter {
         return target
     }
 
-    func paste(_ text: String, into target: InsertionTarget?) async -> Bool {
+    func paste(_ text: String, into target: InsertionTarget?) async -> InsertionSubmission {
         guard !text.isEmpty, !Task.isCancelled, access.isTrusted(), let target,
             remainsFocused(target, checkSelection: true)
         else {
             AppLog.write("Auto-paste unavailable: original target is missing, protected or changed")
-            return false
+            return .notAttempted
         }
         // These web editors can accept AXSelectedText without applying it. Never retry an
         // accepted AX command via Unicode: a delayed edit could duplicate text.
@@ -71,7 +72,8 @@ struct PasteboardInserter {
                 access.postUnicode(target.pid, $0)
             }
         }
-        return access.insertSelectedText(target.element, text)
+        // An AX error (including a timeout) does not prove the destination was unchanged.
+        return access.insertSelectedText(target.element, text) ? .submitted : .uncertain
     }
 
     private func remainsFocused(_ target: InsertionTarget, checkSelection: Bool) -> Bool {

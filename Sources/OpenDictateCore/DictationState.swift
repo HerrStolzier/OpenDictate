@@ -10,9 +10,12 @@ public enum DictationState: String, Sendable {
 }
 
 public enum TranscriptDelivery: Sendable, Equatable {
-    case empty, clipboardFailed, copied, pasteSent
+    case empty, clipboardFailed
+    case copied(InsertionSubmission)
 
     public var canRemoveRecoveryAudio: Bool {
-        self == .copied || self == .pasteSent
+        // A successful copy preserves the whole transcript even if insertion stops.
+        if case .copied = self { return true }
+        return false
     }
 }

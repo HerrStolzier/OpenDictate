@@ -2,14 +2,18 @@
 public enum DictationOutcome: Equatable, Sendable {
     case textAvailable
     case deliveryUnconfirmed
+    case deliveryInterrupted
+    case deliveryUncertain
     case failed
     case cancelled
 
     public static func delivery(_ result: TranscriptDelivery) -> Self {
         switch result {
         case .empty: .failed
-        case .clipboardFailed, .copied: .textAvailable
-        case .pasteSent: .deliveryUnconfirmed
+        case .clipboardFailed, .copied(.notAttempted): .textAvailable
+        case .copied(.submitted): .deliveryUnconfirmed
+        case .copied(.interrupted): .deliveryInterrupted
+        case .copied(.uncertain): .deliveryUncertain
         }
     }
 }

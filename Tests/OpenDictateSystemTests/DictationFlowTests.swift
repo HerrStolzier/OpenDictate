@@ -14,6 +14,10 @@ struct DictationFlowTests {
         var uploads = 0
         var pasted = 0
         var pastedText: String?
+        var pasteResult: InsertionSubmission = .submitted
+        var pasteOverride: (@MainActor (String) async -> InsertionSubmission)?
+        var copiedTexts: [String] = []
+        var afterCopy: (() -> Void)?
         var copySucceeds = true
         var keepSucceeds = true
         var text = "dictated text"
@@ -52,11 +56,17 @@ struct DictationFlowTests {
                     },
                     removeRetry: { _ in self.removed += 1 },
                     clean: { self.cleaned.append($0) },
-                    copy: { _ in self.copySucceeds },
-                    paste: {
-                        self.pasted += 1
-                        self.pastedText = $0
+                    copy: {
+                        guard self.copySucceeds else { return false }
+                        self.copiedTexts.append($0)
+                        self.afterCopy?()
                         return true
+                    },
+                    paste: { text in
+                        self.pasted += 1
+                        self.pastedText = text
+                        if let pasteOverride = self.pasteOverride { return await pasteOverride(text) }
+                        return self.pasteResult
                     }
                 ))
         }
@@ -274,5 +284,122 @@ struct DictationFlowTests {
         #expect(!h.flow.retry(h.payload))
         await h.flow.task?.value
         #expect(h.starts == 1)
+    }
+
+    @Test func insertionEvidenceReachesStatusWithoutChangingClipboardRecoveryPolicy() async throws {
+        let cases: [(InsertionSubmission, DictationOutcome, String)] = [
+            (.notAttempted, .textAvailable, "nicht automatisch eingefügt"),
+            (.interrupted, .deliveryInterrupted, "möglicherweise teilweise eingefügt"),
+            (.submitted, .deliveryUnconfirmed, "Einfügebefehl gesendet"),
+            (.uncertain, .deliveryUncertain, "Einfügeversuch unbestätigt")
+        ]
+        for (submission, outcome, status) in cases {
+            let h = Harness()
+            h.pasteResult = submission
+            var outcomes: [DictationOutcome] = []
+            var statuses: [String] = []
+            h.flow.onOutcome = { outcomes.append($0) }
+            h.flow.onStatus = { statuses.append($0) }
+            _ = try h.flow.start()
+            _ = h.flow.stop()
+            await h.flow.task?.value
+
+            #expect(outcomes == [outcome])
+            #expect(statuses.last?.contains(status) == true)
+            #expect(h.copiedTexts == [h.text])
+            #expect(h.flow.lastTranscript == h.text)
+            #expect(h.kept.isEmpty)
+            #expect(Set(h.cleaned) == Set([h.original, h.trimmed]))
+            #expect(h.pasted == 1)
+            #expect(h.flow.copyLastTranscript())
+            #expect(h.copiedTexts == [h.text, h.text])
+        }
+    }
+
+    @Test func focusLossOrCancellationAfterFirstChunkKeepsCompleteCopyAndReportsInterruption() async throws {
+        for cancel in [false, true] {
+            let h = Harness()
+            h.text = Array(repeating: "Grüße 🍏!", count: 8).joined(separator: " ")
+            var focused = true
+            var posted: [[UInt16]] = []
+            var outcomes: [DictationOutcome] = []
+            var statuses: [String] = []
+            h.pasteOverride = { text in
+                await UnicodeTextDelivery.send(
+                    text, stillFocused: { focused },
+                    post: {
+                        posted.append($0)
+                        if cancel { h.flow.cancel() } else { focused = false }
+                        return true
+                    })
+            }
+            h.flow.onOutcome = { outcomes.append($0) }
+            h.flow.onStatus = { statuses.append($0) }
+            _ = try h.flow.start()
+            _ = h.flow.stop()
+            await h.flow.task?.value
+
+            #expect(posted.count == 1)
+            #expect(outcomes == [.deliveryInterrupted])
+            #expect(statuses.last?.contains("möglicherweise teilweise eingefügt") == true)
+            #expect(h.copiedTexts == [h.text])
+            #expect(h.flow.lastTranscript == h.text)
+            #expect(h.flow.state == .idle)
+            #expect(h.kept.isEmpty)
+            #expect(Set(h.cleaned) == Set([h.original, h.trimmed]))
+            #expect(h.flow.copyLastTranscript())
+            #expect(h.copiedTexts == [h.text, h.text])
+        }
+    }
+
+    @Test func cancellationAfterCopyBeforeInsertionLeavesTextAvailable() async throws {
+        let h = Harness()
+        var outcomes: [DictationOutcome] = []
+        var statuses: [String] = []
+        h.afterCopy = { h.flow.cancel() }
+        h.flow.onOutcome = { outcomes.append($0) }
+        h.flow.onStatus = { statuses.append($0) }
+        _ = try h.flow.start()
+        _ = h.flow.stop()
+        await h.flow.task?.value
+
+        #expect(h.pasted == 0)
+        #expect(outcomes == [.textAvailable])
+        #expect(statuses.last == "Text kopiert – automatisches Einfügen abgebrochen")
+        #expect(h.copiedTexts == [h.text])
+        #expect(h.flow.lastTranscript == h.text)
+        #expect(h.kept.isEmpty)
+        #expect(Set(h.cleaned) == Set([h.original, h.trimmed]))
+        #expect(h.flow.state == .idle)
+    }
+
+    @Test func cancellationAfterLastChunkStillReportsCompleteUnconfirmedSubmission() async throws {
+        let h = Harness()
+        h.text = String(repeating: "x", count: 45)
+        let chunks = UnicodeTextDelivery.chunks(h.text)
+        var posted: [[UInt16]] = []
+        var outcomes: [DictationOutcome] = []
+        var statuses: [String] = []
+        h.pasteOverride = { text in
+            await UnicodeTextDelivery.send(
+                text, stillFocused: { true },
+                post: {
+                    posted.append($0)
+                    if posted.count == chunks.count { h.flow.cancel() }
+                    return true
+                })
+        }
+        h.flow.onOutcome = { outcomes.append($0) }
+        h.flow.onStatus = { statuses.append($0) }
+        _ = try h.flow.start()
+        _ = h.flow.stop()
+        await h.flow.task?.value
+
+        #expect(posted == chunks)
+        #expect(outcomes == [.deliveryUnconfirmed])
+        #expect(statuses.last == "Einfügebefehl gesendet – Text auch kopiert")
+        #expect(h.copiedTexts == [h.text])
+        #expect(h.kept.isEmpty)
+        #expect(Set(h.cleaned) == Set([h.original, h.trimmed]))
     }
 }

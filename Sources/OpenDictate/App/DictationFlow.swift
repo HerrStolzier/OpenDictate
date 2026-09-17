@@ -15,7 +15,7 @@ final class DictationFlow {
         var removeRetry: @MainActor (FailedRecordingStore.RetryPayload) -> Void
         var clean: @MainActor (URL) -> Void
         var copy: @MainActor (String) -> Bool
-        var paste: @MainActor (String) async -> Bool
+        var paste: @MainActor (String) async -> InsertionSubmission
     }
 
     private let operations: Operations
@@ -194,11 +194,21 @@ final class DictationFlow {
             onStatus?("Text kopiert – automatisches Einfügen abgebrochen")
             if !allowPaste { onStatus?("Wiederholter Text kopiert – nicht automatisch eingefügt") }
             onOutcome?(.textAvailable)
-            return .copied
+            return .copied(.notAttempted)
         }
-        let pasted = await operations.paste(text)
-        onStatus?(pasted ? "Einfügebefehl gesendet – Text auch kopiert" : "Text kopiert")
-        onOutcome?(pasted ? .deliveryUnconfirmed : .textAvailable)
-        return pasted ? .pasteSent : .copied
+        let submission = await operations.paste(text)
+        switch submission {
+        case .notAttempted:
+            onStatus?("Text kopiert – nicht automatisch eingefügt")
+        case .interrupted:
+            onStatus?("Einfügen unterbrochen – möglicherweise teilweise eingefügt; vollständiger Text kopiert")
+        case .submitted:
+            onStatus?("Einfügebefehl gesendet – Text auch kopiert")
+        case .uncertain:
+            onStatus?("Einfügeversuch unbestätigt – Ziel prüfen; vollständiger Text kopiert")
+        }
+        let result = TranscriptDelivery.copied(submission)
+        onOutcome?(.delivery(result))
+        return result
     }
 }

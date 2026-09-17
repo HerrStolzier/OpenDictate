@@ -78,7 +78,7 @@ struct UnicodeTextDeliveryTests {
                 posts += 1
                 return true
             })
-        #expect(!sent)
+        #expect(sent == .notAttempted)
         #expect(posts == 0)
     }
 
@@ -92,7 +92,7 @@ struct UnicodeTextDeliveryTests {
                 focused = false
                 return true
             })
-        #expect(!sent)
+        #expect(sent == .interrupted)
         #expect(posted.count == 1)
     }
 
@@ -104,7 +104,7 @@ struct UnicodeTextDeliveryTests {
                 attempts += 1
                 return true
             })
-        #expect(!unfocused)
+        #expect(unfocused == .notAttempted)
         #expect(attempts == 0)
         let failed = await UnicodeTextDelivery.send(
             String(repeating: "x", count: 45), stillFocused: { true },
@@ -112,7 +112,7 @@ struct UnicodeTextDeliveryTests {
                 attempts += 1
                 return false
             })
-        #expect(!failed)
+        #expect(failed == .notAttempted)
         #expect(attempts == 1)
     }
 
@@ -127,7 +127,69 @@ struct UnicodeTextDeliveryTests {
                     return true
                 })
         }
-        #expect(await task.value == false)
+        #expect(await task.value == .interrupted)
         #expect(posted == 1)
+    }
+
+    @Test func postingFailureAfterFirstChunkPreservesEvidenceOfEarlierSubmission() async {
+        var attempts = 0
+        var posted: [[UniChar]] = []
+        let result = await UnicodeTextDelivery.send(
+            String(repeating: "x", count: 45), stillFocused: { true },
+            post: {
+                attempts += 1
+                guard attempts == 1 else { return false }
+                posted.append($0)
+                return true
+            })
+        #expect(result == .interrupted)
+        #expect(attempts == 2)
+        #expect(posted.count == 1)
+    }
+
+    @Test func cancellationBeforeFirstChunkSubmitsNothing() async {
+        var posted = 0
+        let task = Task { @MainActor in
+            await UnicodeTextDelivery.send(
+                String(repeating: "x", count: 45), stillFocused: { true },
+                post: { _ in
+                    posted += 1
+                    return true
+                })
+        }
+        task.cancel()
+        #expect(await task.value == .notAttempted)
+        #expect(posted == 0)
+    }
+
+    @Test func completeSubmissionPreservesEveryChunkWithoutConfirmingInsertion() async {
+        let text = String(repeating: "Grüße 🍏! ", count: 8)
+        var posted: [[UniChar]] = []
+        let result = await UnicodeTextDelivery.send(
+            text, stillFocused: { true },
+            post: {
+                posted.append($0)
+                return true
+            })
+        #expect(result == .submitted)
+        #expect(posted == UnicodeTextDelivery.chunks(text))
+        #expect(String(decoding: posted.flatMap { $0 }, as: UTF16.self) == text)
+    }
+
+    @Test func cancellationAfterFinalChunkCannotUndoCompleteSubmission() async {
+        let text = String(repeating: "x", count: 45)
+        let chunks = UnicodeTextDelivery.chunks(text)
+        var posted: [[UniChar]] = []
+        let task = Task { @MainActor in
+            await UnicodeTextDelivery.send(
+                text, stillFocused: { true },
+                post: {
+                    posted.append($0)
+                    if posted.count == chunks.count { withUnsafeCurrentTask { $0?.cancel() } }
+                    return true
+                })
+        }
+        #expect(await task.value == .submitted)
+        #expect(posted == chunks)
     }
 }

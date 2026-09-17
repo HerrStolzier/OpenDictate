@@ -52,7 +52,7 @@ struct FailedRecordingStoreTests {
                         FailedRecordingStore.keep($0, recordedAt: Date(), in: blockedDirectory, key: { key }) != nil
                     },
                     removeRetry: { _ in }, clean: { try? FileManager.default.removeItem(at: $0) },
-                    copy: { _ in true }, paste: { _ in true }))
+                    copy: { _ in true }, paste: { _ in .submitted }))
             flow.onOutcome = { outcomes.append($0) }
             flow.onStatus = { status = $0 }
             #expect(try flow.start())
