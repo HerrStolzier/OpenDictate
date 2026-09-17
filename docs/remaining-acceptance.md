@@ -6,6 +6,10 @@ Product decisions live in [PROJECT.md](../PROJECT.md), approvals in
 
 ## Aktueller Übergabestand — 2026-09-17
 
+Korrektur und Prüfmittel sind über [PR #10](https://github.com/HerrStolzier/OpenDictate/pull/10)
+nach bestandener CI in `main` integriert; der installierte Kandidat ist im
+datierten Abnahmebericht identifiziert.
+
 Die Roadmap-Abnahme hat einen zusätzlichen Brave-Langtextfehler
 reproduziert und für die konkrete 600-Wiederholungen-Probe korrigiert: nun exakt
 28.199 UTF-16-Einheiten in 1.500 Chunks statt zuvor 27.154 in 1.419 Chunks.
@@ -237,7 +241,7 @@ The 2026-09-07 candidate proved one human microphone dictation through its then-
 Robustheits- und Qualitätsnachweise nach der Kompatibilitätsmatrix:
 
 - Current Keychain state: users of the older helper must save the API key once through the in-app dialog. Confirming the real item's narrowed ACL is a credential-state check and remains separately authorized.
-- Microphone permission denied; built-in versus selected external input; visible elapsed time and low level; native 90-second stop; unplug/interruption.
+- Microphone permission denied; built-in versus selected external input; unplug/interruption remain open. Visible elapsed time, low level, countdown and the native 90-second stop are evidenced by the September 17 live checks.
 - Custom shortcut keyboard navigation and real Carbon collision/registration rollback are covered by the September 16 checks. An actual physical shortcut press in the installed candidate remains a separate live check.
 - Clipboard-failure retention is covered by deterministic flow tests, and the complete manual panel/copy action is visibly checked. Heard VoiceOver recognition of recording state, countdown and cancel/discard distinction remains open.
 - App end during a real recording/transcription remains open. Real temporary recovery creation failure on recording/processing cancellation preserves the original and reports failure in the September 16 filesystem checks.
