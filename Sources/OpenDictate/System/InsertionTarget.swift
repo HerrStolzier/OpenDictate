@@ -13,15 +13,24 @@ struct InsertionTarget {
     let subrole: String?
     let enabled: Bool?
     let acceptsSelectedText: Bool
+    let bundleIdentifier: String?
+
+    var requiresTerminalEvents: Bool {
+        bundleIdentifier == "com.apple.Terminal" && role == kAXTextAreaRole && document == nil
+    }
 
     var acceptsInsertion: Bool {
-        enabled != false && acceptsSelectedText
-            && [kAXTextFieldRole, kAXTextAreaRole, kAXComboBoxRole].contains(role)
-            && subrole != kAXSecureTextFieldSubrole
+        guard enabled != false, subrole != kAXSecureTextFieldSubrole else { return false }
+        if requiresTerminalEvents {
+            // A Terminal selection is display/scrollback text, not a replaceable
+            // shell input range. Never imply that dictation replaces it.
+            return selection == nil || selection?.length == 0
+        }
+        return acceptsSelectedText && [kAXTextFieldRole, kAXTextAreaRole, kAXComboBoxRole].contains(role)
     }
 
     func matches(_ other: InsertionTarget, checkSelection: Bool) -> Bool {
-        guard pid == other.pid, other.acceptsInsertion,
+        guard pid == other.pid, requiresTerminalEvents == other.requiresTerminalEvents, other.acceptsInsertion,
             CFEqual(window, other.window), CFEqual(element, other.element)
         else { return false }
         switch (document, other.document) {
@@ -61,7 +70,8 @@ struct InsertionTarget {
             pid: pid, window: window, element: field, document: document, selection: selection,
             role: role, subrole: attribute(field, kAXSubroleAttribute) as? String,
             enabled: attribute(field, kAXEnabledAttribute) as? Bool,
-            acceptsSelectedText: status == .success && settable.boolValue)
+            acceptsSelectedText: status == .success && settable.boolValue,
+            bundleIdentifier: NSRunningApplication(processIdentifier: pid)?.bundleIdentifier)
     }
 
     private static func attribute(_ element: AXUIElement, _ name: String) -> CFTypeRef? {

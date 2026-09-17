@@ -30,6 +30,7 @@ begrenzt; diese Vorbereitung erweitert ihre Nachweise nicht.
 | Browser, Rich-Text | lokale Testseite; historische Proton-Abnahme | `contenteditable`, Auswahl und mehrzeiliger Inhalt | Echte Auswahlersetzung in Safari und Brave bestanden; Unicode-/Mehrzeilenfälle zusätzlich synthetisch. Echte Proton-Bestätigung gilt dem älteren Kandidaten. |
 | Browser, eingebetteter Editor | lokale kontrollierte Testseite | editierbares Feld in einem `iframe` | Echte Auswahlersetzung in Safari und Brave bestanden; synthetisch auch Unicode/Umfeld geprüft. |
 | Electron-App | Obsidian 1.13.7, temporärer separater Vault | Editorfeld | Neue echte Auswahlersetzung in Obsidian CodeMirror mit erhaltenem Anfang/Ende bestanden. Anfang/Mitte/Ende und Unicode zusätzlich synthetisch belegt. Keine Zusage für andere Electron-Apps. |
+| Apple Terminal, enger Unicode-Pfad | macOS Terminal (`com.apple.Terminal`) | Fokussierte `AXTextArea` ohne erfassten `AXWebArea`-Vorfahren; keine nichtleere Display-Auswahl | Implementierung und zwölf neue Offline-Testfälle vorhanden. Tatsächliche AX-Struktur, Unicode-Eventannahme und native Fokus-/Tabfälle noch offen; kein neuer Terminal-Laufzeitnachweis. Keine Zusage für iTerm2 oder Editor-Terminals. |
 | Geschütztes oder nicht unterstütztes Feld | native und Brave-Testfelder | Passwortfeld, schreibgeschütztes Feld | Sichtbar abgelehnt, Felder unverändert; vollständiger Text im manuellen Panel und auf isolierter Testzwischenablage. Fehlende Berechtigung zusätzlich offline geprüft, kein TCC-Eingriff. |
 
 ## Gemeinsame Szenarien
@@ -65,7 +66,9 @@ Sekunden Verarbeitung: `textAvailable`, vollständiger Kopiertext, 0/4 Chunks un
 unverändertes Ausgangsfeld. Weitere versuchte synthetische Appwechsel waren nicht
 zuverlässig aktiviert und werden nicht als bestanden gewertet.
 
-Jede unterstützte Feldkategorie wird nicht nur mit einem leeren Feld geprüft:
+Die normalen editierbaren Feldkategorien werden nicht nur mit einem leeren Feld
+geprüft. Für Apple Terminal gelten die gesonderten Grenzen im nächsten Abschnitt;
+Auswahlersetzung und mehrzeilige Eingabe sind dort keine Abnahmekriterien.
 
 1. Einfügen an Anfang, Mitte und Ende der aktuellen Cursorposition.
 2. Eine bestehende Auswahl ersetzen, ohne Text davor oder danach zu verändern.
@@ -78,6 +81,36 @@ Jede unterstützte Feldkategorie wird nicht nur mit einem leeren Feld geprüft:
    kein stiller Verlust und keine Einfügung in ein anderes Ziel. Das vollständige
    Transkript bleibt auf der Zwischenablage und die Oberfläche erklärt den manuellen
    Rückweg verständlich.
+
+## Apple Terminal
+
+Die Anwendung ist Apple Terminal; die installierte Revision des gemeldeten
+Fehlers ist weiterhin unbekannt. Die neue Ausnahme lockert ausschließlich hier
+die sonstige Voraussetzung eines setzbaren `AXSelectedText`. Sie verwendet
+Unicode-Events, auch wenn das Attribut setzbar wäre. Ein als deaktiviert oder
+geschützt gemeldetes Feld, nichtleere Display-Auswahl und aktives Secure Input
+verhindern diese Übergabe. Vor dem ersten Event wird eine bei Aufnahmebeginn
+erfasste Auswahlposition erneut verglichen; während der Übergabe darf sich eine
+leere Display-Position bewegen, eine nichtleere Auswahl stoppt weitere Chunks.
+App, Fenster, AX-Feld, Berechtigung und Secure Input werden weiter geprüft.
+Ob Terminal seine Tabs durch unterscheidbare AX-Felder abbildet, ist noch offen.
+
+Der vollständige einzufügende Text wird vor dem ersten Chunk auf Zeilenumbrüche,
+Steuerzeichen und AppKit-Funktionstastenzeichen geprüft und gegebenenfalls
+abgelehnt. Das ist keine Erkennung eines Shell-Prompts oder laufenden Programms:
+Auch gewöhnliche Zeichen können in interaktiven Programmen Aktionen auslösen.
+Gesendete Events bestätigen noch keine sichtbare Eingabe.
+
+Die neue native Abnahme bleibt offen und führt **keine Befehle aus**. In einem
+eigens vorbereiteten lokalen Terminal-Fenster an einer bekannten leeren
+Eingabezeile nur einen unkritischen einzeiligen Text wie „OpenDictate Probe
+Apfel 42“ verwenden; keine Return-Taste drücken und den Text nicht absenden.
+Zuerst Kandidat/Version und die tatsächliche AX-Zielstruktur feststellen, danach
+sichtbare Eingabe und verlustfreien Rückweg prüfen. Eine Kontrollprobe in einem
+neuen TextEdit-Dokument kann den allgemeinen Diktierweg eingrenzen, belegt aber
+keine Terminal-Unterstützung. Den begrenzten Ablauf und seine Voraussetzungen
+beschreibt [CHECKS](../CHECKS.md#apple-terminal). Die bisherige Matrix-Fixture hat
+Apple Terminal nicht als auswählbares Ziel; sie ist kein fertiger Terminal-Test.
 
 ## Abnahmekriterium je Zelle
 

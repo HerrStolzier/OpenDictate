@@ -39,8 +39,17 @@ See [privacy and retention](PRIVACY.md) and the
 The menu bar button opens the dictation panel. Settings, saved recordings and
 Help use a separate compact window. **Weitere Aktionen** contains cancel, copy,
 clear and quit actions. Closing either window hides it; **Beenden** exits the app.
+Recording, processing, results, setup reminders and errors never open the panel
+automatically. The menu bar continues to show recording time and status. Open
+the panel explicitly when you want to inspect a result or change settings;
+closing it keeps it hidden through the rest of the dictation. Version and build
+are shown in Settings; **Hilfe** and **Über OpenDictate …** also show the source
+revision when embedded in that build. Older bundles without that information
+show it as unknown.
 
-Choose the target field before starting. An explicit panel recording action can
+Choose the target field before starting. Its identity is captured at the start
+action, before a Keychain dialog, permission wait or panel focus change. An
+explicit panel recording action can
 return focus to the most recently used application; passive status updates never
 activate another application. Switching external applications invalidates the
 captured automatic target, even if you later return.
@@ -125,9 +134,10 @@ delivers while that original target remains focused. Before the first insertion,
 the initial selection range, when exposed, must be unchanged. Selection is not
 compared with that original range after each Unicode chunk because input itself
 moves the caret. Manual caret changes inside the same field during chunked input
-remain an open interaction case. Protected, disabled and non-writable controls use the manual
-fallback. Switching to another application during a dictation invalidates its
-automatic target, even if you later return.
+remain an open interaction case. Protected and disabled controls use the manual
+fallback. Non-writable controls also use that fallback, except for the narrowly
+defined Apple Terminal input path below. Switching to another application during
+a dictation invalidates its automatic target, even if you later return.
 
 Insertion sends the transcript directly to the captured Accessibility text
 element. Brave, Safari and Obsidian web editors use process-scoped Unicode keyboard events
@@ -146,6 +156,18 @@ also remains on the general clipboard until it is overwritten, preserving
 manual paste when Accessibility, target identity or direct insertion fails.
 Some custom, browser or Electron text controls may not expose a settable
 Accessibility selection; those controls receive the clipboard-only fallback.
+
+Apple's Terminal app has a separate Unicode-event path for its focused text area,
+whose Accessibility selection describes terminal display text rather than a
+normal editable field. It remains bound to the original process, window and field.
+A known non-empty display selection or enabled Secure Keyboard Entry prevents
+automatic input. Insertion text containing line breaks, control characters or
+function-key characters also falls back before any event is sent; OpenDictate
+does not send Return automatically. The full text remains on the clipboard.
+Missing selection metadata alone does not prevent input, so it cannot establish
+the absence of a display selection. This path is limited to Apple Terminal;
+its actual Accessibility structure and acceptance of events still need a visible
+Mac test. It does not establish support for iTerm2 or terminals inside editors.
 
 The recording panel shows elapsed time, the input level and the final countdown
 to its automatic stop. The custom shortcut dialog supports Tab/Shift+Tab,

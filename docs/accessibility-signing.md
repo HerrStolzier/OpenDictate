@@ -1,7 +1,8 @@
 # Accessibility permission and local code signing
 
-OpenDictate inserts the transcript into the focused text element through the
-macOS Accessibility API. macOS associates that permission with the app's code
+OpenDictate uses the macOS Accessibility API to identify and recheck the focused
+target, then submits text through AXSelectedText or Unicode events. macOS
+associates the required Accessibility permission with the app's code
 signature. Every build enables Hardened Runtime; an ad-hoc signature still
 changes on rebuild, so development builds may need the grant again.
 
@@ -15,9 +16,29 @@ access. This capability does not replace the user's microphone permission.
 Existing microphone and Accessibility grants can refer to an older ad-hoc
 code hash; verify the current candidate through the normal macOS permission UI.
 
-Direct insertion requires the focused control to expose a settable
-`AXSelectedText` attribute. When it does not, OpenDictate leaves the transcript
-on the clipboard for manual paste instead of sending an automatic `Cmd+V`.
+Ordinary editor targets must expose a settable `AXSelectedText` attribute,
+including editors whose delivery path uses Unicode events. Missing support
+normally leaves the transcript on the clipboard for manual paste; OpenDictate
+does not send an automatic `Cmd+V`.
+
+The narrow exception is **Apple Terminal** (`com.apple.Terminal`): a focused
+`AXTextArea` without a captured `AXWebArea` ancestor may receive Unicode events
+without settable `AXSelectedText`. The control must not report disabled or
+secure-text status, its display-selection range must be absent or empty, and
+Secure Input must be off. This path never writes Terminal's `AXSelectedText`,
+even when it reports writable, and does not replace selected scrollback text.
+Accessibility permission and the original app/window/field checks still apply.
+Before sending any chunk, the insertion text is rejected if it contains line
+breaks, control characters or AppKit function-key scalars. Focus, eligibility,
+permission and Secure Input are rechecked for every chunk.
+
+This does not identify the shell or program running inside Terminal; ordinary
+characters can still have effects in an interactive program. The exception does
+not establish support for iTerm2 or terminals inside editors. The actual Terminal
+AX structure and acceptance of these events still need an attended check on the
+identified candidate; offline tests do not prove native insertion. See the
+[Terminal checks](../CHECKS.md#apple-terminal) and
+[compatibility scope](compatibility-matrix.md#apple-terminal).
 
 ## Create a local development identity
 

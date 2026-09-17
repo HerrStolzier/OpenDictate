@@ -119,8 +119,8 @@ final class DictationPanel: NSWindowController {
         }
     }
 
-    /// Explicit user entry points may activate the app. Automatic flow updates
-    /// always use show(), which only orders the window without taking focus.
+    /// Only explicit user entry points present the panel. Flow, setup and error
+    /// updates change its contents without ordering a window or taking focus.
     func showForInteraction(near anchor: NSRect? = nil) {
         show(near: anchor)
         NSApp.activate(ignoringOtherApps: true)
@@ -221,9 +221,8 @@ final class DictationPanel: NSWindowController {
         }
     }
 
-    func showFailure(_ message: String) {
+    func updateFailure(_ message: String) {
         set(.failure, detail: message)
-        show()
     }
 
     func clearText() {

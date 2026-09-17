@@ -1,5 +1,6 @@
 import AppKit
 import ApplicationServices
+import Carbon
 import Foundation
 import OpenDictateCore
 
@@ -14,6 +15,7 @@ struct PasteboardInserter {
         var insertSelectedText: @MainActor (AXUIElement, String) -> Bool
         var postUnicode: @MainActor (pid_t, [UniChar]) -> Bool
         var unicodeLineBreakPolicy: @MainActor (pid_t) -> UnicodeTextDelivery.LineBreakPolicy = { _ in .grouped }
+        var isSecureInputEnabled: @MainActor () -> Bool = { IsSecureEventInputEnabled() }
 
         static var live: Access {
             Access(
@@ -53,6 +55,10 @@ struct PasteboardInserter {
         guard access.isTrusted(), let pid, let target = access.focusedTarget(pid), target.acceptsInsertion else {
             return nil
         }
+        guard !target.requiresTerminalEvents || !access.isSecureInputEnabled() else {
+            AppLog.write("Auto-paste capture unavailable: terminal secure input is enabled")
+            return nil
+        }
         return target
     }
 
@@ -62,6 +68,23 @@ struct PasteboardInserter {
         else {
             AppLog.write("Auto-paste unavailable: original target is missing, protected or changed")
             return .notAttempted
+        }
+        if target.requiresTerminalEvents {
+            guard !access.isSecureInputEnabled() else {
+                AppLog.write("Auto-paste unavailable: terminal secure input is enabled")
+                return .notAttempted
+            }
+            guard TerminalInputPolicy.permits(text) else {
+                AppLog.write("Auto-paste unavailable: terminal text contains a control or function-key scalar")
+                return .notAttempted
+            }
+            // Terminal's AX text area describes its display, including scrollback.
+            // Even a settable AXSelectedText is not the shell's editable buffer.
+            return await UnicodeTextDelivery.send(text) {
+                access.isTrusted() && remainsFocused(target, checkSelection: false) && !access.isSecureInputEnabled()
+            } post: {
+                access.postUnicode(target.pid, $0)
+            }
         }
         // These web editors can accept AXSelectedText without applying it. Never retry an
         // accepted AX command via Unicode: a delayed edit could duplicate text.

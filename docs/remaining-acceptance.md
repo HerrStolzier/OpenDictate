@@ -7,7 +7,25 @@ Prüfverfahren: [CHECKS.md](../CHECKS.md); belegte frühere Testbudgets:
 
 ## Aktuelle Änderung
 
-[PR #13](https://github.com/HerrStolzier/OpenDictate/pull/13) ergänzt die
+[PR #14](https://github.com/HerrStolzier/OpenDictate/pull/14) korrigiert die
+automatische Fensteröffnung beim Diktieren: Das Panel erscheint nur auf
+ausdrückliche Benutzeraktion. Das ursprüngliche Zieltextfeld wird vor
+asynchroner Vorbereitung, Keychain-Dialogen und einer Fokus-Rückgabe erfasst.
+Einstellungen, Hilfe und „Über OpenDictate …“ zeigen die vorhandene Version,
+Buildnummer und Quellcodeidentität des tatsächlich laufenden Bundles.
+Für Apples Terminal enthält die Änderung einen eigenen Unicode-Eingabepfad:
+Ein fokussiertes `AXTextArea` außerhalb eines Webdokuments benötigt dort kein
+beschreibbares `AXSelectedText`. Das ursprüngliche Ziel bleibt gebunden;
+bekannte nichtleere Markierungen, Secure Event Input und Steuerzeichen im
+einzufügenden Text verhindern automatische Eingabe. Fehlende Auswahlmetadaten allein
+sind kein neuer Ablehnungsgrund. Return wird nicht automatisch gesendet.
+Die gemeldete fehlende Texteingabe erfolgte per Tastenkürzel in Apples Terminal;
+die installierte Revision des beobachteten Fehlers war unbekannt. Der Nutzer hat
+die Terminal-App ausdrücklich bestätigt. Die aktuellen CI-Ergebnisse ersetzen
+weder die Prüfung ihrer tatsächlichen
+AX-Struktur noch einen sichtbaren Eingabenachweis.
+
+[PR #13](https://github.com/HerrStolzier/OpenDictate/pull/13) ergänzte die
 Stabilisierung aus [PR #12](https://github.com/HerrStolzier/OpenDictate/pull/12):
 abgebrochene Vorbereitungen bleiben ungültig, Beenden wartet auf laufende Arbeit,
 ein neuer API-Schlüssel wird vor dem Entfernen eines alten Eintrags gespeichert,
@@ -20,7 +38,7 @@ früherer installierter Kandidaten gelten nicht als neue Laufzeitabnahme.
 
 | Paket | Quellcode / Vorbereitung | Weiter benötigter Nachweis |
 |---|---|---|
-| A: Texteingabe | Kein Versuch, unklarer nativer Versuch, unterbrochene und vollständig angestoßene Übergabe werden unterschieden; Teilübertragung lässt den vollständigen Text sichtbar | Sichtbare Unterbrechung im tatsächlichen Zielprogramm auf dem neuen Kandidaten |
+| A: Texteingabe und Bedienung | Manuell geöffnetes Panel, früh erfasstes Ziel, sichtbare Buildidentität; begrenzter Apple-Terminal-Pfad und klare Rückmeldungen bei unbestätigter oder unterbrochener Übergabe | Geschlossenes Panel beim Hotkey-Diktat, sichtbare Terminaleingabe und Unterbrechung im tatsächlichen Zielprogramm auf dem neuen Kandidaten |
 | B: CI und Archive | Strikter Formatter, Compilerwarnungen als Fehler, Plattformprotokoll, sechs Shellprüfungen; sieben kontrollierte Bundle-Fälle; Archiv nach Entpacken erneut überprüft, mit Revision und Prüfsummen | Ergebnisse und Artefakt des exakten Workflow-Laufs; echte Installation und macOS-14-Laufzeitabnahme bleiben offen |
 | C: Einrichtung und Beenden | Vorgangsgebundene Rückmeldungen für Start, Retry und Einrichtung; Abbruch und Quit gegen verschachtelte Aktionen geschützt; verlustarme Keychain-Migration mit explizitem Hinweis bei unvollständiger Altbereinigung | Frische Einrichtung, verzögerte Berechtigungen, tatsächliche Keychain-Zugriffsrichtlinie und Beenden während Aufnahme/Upload auf einem Mac |
 | D: Menschlicher Pilot | Zwölf begrenzte Fälle und Messgrößen vorbereitet | Tatsächlich gesprochene Diktate und physisches Tastenkürzel; noch keine neuen Messwerte |
@@ -35,9 +53,15 @@ Mac mit der vorhandenen lokalen Signatur bauen oder ein überprüftes
 [CI-Entwicklungsarchiv](development.md#ci-development-archives) für einen bewusst
 gewählten Test vorbereiten. Die ad-hoc Signatur des Archivs übernimmt vorhandene
 Bedienungshilfen-/Keychain-Zugriffe nicht automatisch; Gatekeeper kann es sperren.
-Danach einen kleinen sichtbaren Eingabetest mit unkritischem Text prüfen:
-vollständige Eingabe, Unterbrechung zwischen Unicode-Abschnitten und nativer
-Normalfall. Ein Ereigniszähler belegt gesendete Befehle, nicht übernommene Zeichen.
+Danach Version und Build in Einstellungen beziehungsweise „Über OpenDictate …“
+ablesen. Mit geschlossenem Panel einen kleinen sichtbaren Eingabetest mit
+unkritischem Text prüfen: vollständige Eingabe, Unterbrechung zwischen
+Unicode-Abschnitten und nativer Normalfall. Für Apples Terminal zuerst die
+tatsächliche App und AX-Zielstruktur identifizieren, dann einzeiligen Testtext
+ohne Return prüfen und anschließend aus der Eingabe entfernen. Die Terminalfälle
+in [CHECKS](../CHECKS.md) erfassen außerdem Markierung, Secure Event Input und
+mehrzeiligen Fallback. Ein Ereigniszähler belegt gesendete Befehle, nicht
+übernommene Zeichen.
 Danach frühes menschliches Nutzerfeedback sammeln; die komplette
 [Kompatibilitätsmatrix](compatibility-matrix.md) bleibt das breitere Produktziel.
 
@@ -49,6 +73,11 @@ verwendet. Beim tatsächlichen Pilot Umfang und Audiozeit vorher festlegen.
 
 ## Bekannte offene Grenzen
 
+- Der gemeldete Terminalfehler ist auf dem installierten Kandidaten nicht
+  reproduziert. Der neue Apple-Terminal-Pfad ist durch kontrollierte Tests
+  begrenzt; echte Terminaleingabe, unbekannte Auswahlmetadaten und das Verhalten
+  konkreter Terminalprogramme brauchen sichtbare Prüfung. iTerm2 und Terminals
+  innerhalb von Editoren werden durch diesen Sonderpfad nicht abgedeckt.
 - Reale negative Appwechsel müssen als tatsächlich erfolgte Vordergrundwechsel
   belegt werden. Ein misslungener Testwechsel zählt weder als Pass noch als Fehler.
 - Der erste Safari-textarea-Fallback im jüngsten historischen Zieltest bleibt

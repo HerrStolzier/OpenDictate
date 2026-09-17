@@ -18,6 +18,8 @@ struct InsertionTargetTests {
         var subrole: String?
         var enabled: Bool? = true
         var settable = true
+        var bundleIdentifier: String?
+        var secureInput = false
         var missing = false
         var needsUnicode = true
         var nativeSucceeds = true
@@ -30,7 +32,15 @@ struct InsertionTargetTests {
             return InsertionTarget(
                 pid: 42, window: AXUIElementCreateApplication(window), element: AXUIElementCreateApplication(field),
                 document: document.map(AXUIElementCreateApplication), selection: selection,
-                role: role, subrole: subrole, enabled: enabled, acceptsSelectedText: settable)
+                role: role, subrole: subrole, enabled: enabled, acceptsSelectedText: settable,
+                bundleIdentifier: bundleIdentifier)
+        }
+
+        func useTerminal() {
+            bundleIdentifier = "com.apple.Terminal"
+            document = nil
+            selection = CFRange(location: 3, length: 0)
+            settable = false
         }
 
         lazy var inserter = PasteboardInserter(
@@ -46,7 +56,7 @@ struct InsertionTargetTests {
                     self.unicode.append(units)
                     self.afterChunk?()
                     return true
-                }))
+                }, isSecureInputEnabled: { self.secureInput }))
     }
 
     @Test func sameApplicationFieldWindowAndTabSwitchesNeverRedirect() async {
@@ -181,6 +191,144 @@ struct InsertionTargetTests {
         let target = h.inserter.captureTarget(in: 42)
         #expect(await h.inserter.paste("text", into: target) == .uncertain)
         #expect(h.native == ["text"])
+        #expect(h.unicode.isEmpty)
+    }
+
+    @Test func terminalDisplayUsesUnicodeRegardlessOfAXWritability() async {
+        for settable in [false, true] {
+            let h = Harness()
+            h.useTerminal()
+            h.settable = settable
+            let target = h.inserter.captureTarget(in: 42)
+            #expect(target != nil)
+            let text = String(repeating: "Grüße 🍏 e\u{301} 👩🏽‍💻 ", count: 3)
+            h.afterChunk = { h.selection = CFRange(location: 99, length: 0) }
+            #expect(await h.inserter.paste(text, into: target) == .submitted)
+            #expect(String(decoding: h.unicode.flatMap { $0 }, as: UTF16.self) == text)
+            #expect(h.native.isEmpty)
+        }
+    }
+
+    @Test func terminalExceptionDoesNotAdmitOtherReadonlyOrProtectedControls() async {
+        for change in 0..<8 {
+            let h = Harness()
+            h.useTerminal()
+            switch change {
+            case 0: h.bundleIdentifier = nil
+            case 1: h.bundleIdentifier = "com.googlecode.iterm2"
+            case 2: h.bundleIdentifier = "com.apple.TextEdit"
+            case 3: h.role = kAXTextFieldRole
+            case 4: h.subrole = kAXSecureTextFieldSubrole
+            case 5: h.enabled = false
+            case 6: h.document = 301
+            default: h.selection = CFRange(location: 3, length: 1)
+            }
+            let target = h.inserter.captureTarget(in: 42)
+            #expect(target == nil)
+            #expect(await h.inserter.paste("text", into: target) == .notAttempted)
+            #expect(h.native.isEmpty && h.unicode.isEmpty)
+        }
+    }
+
+    @Test func terminalMayOmitDisplaySelectionRange() async {
+        let h = Harness()
+        h.useTerminal()
+        h.selection = nil
+        let target = h.inserter.captureTarget(in: 42)
+        #expect(target != nil)
+        #expect(await h.inserter.paste("text", into: target) == .submitted)
+        #expect(h.unicode == [Array("text".utf16)])
+        #expect(h.native.isEmpty)
+    }
+
+    @Test func terminalSecureInputAtCaptureCannotAdoptALaterTarget() async {
+        let h = Harness()
+        h.useTerminal()
+        h.secureInput = true
+        let target = h.inserter.captureTarget(in: 42)
+        #expect(target == nil)
+        h.secureInput = false
+        #expect(await h.inserter.paste("text", into: target) == .notAttempted)
+        #expect(h.native.isEmpty && h.unicode.isEmpty)
+    }
+
+    @Test func terminalSecureInputAfterCapturePreventsAllEvents() async {
+        let h = Harness()
+        h.useTerminal()
+        let target = h.inserter.captureTarget(in: 42)
+        h.secureInput = true
+        #expect(await h.inserter.paste("text", into: target) == .notAttempted)
+        #expect(h.native.isEmpty && h.unicode.isEmpty)
+    }
+
+    @Test func terminalPreflightRemainsBoundToOriginalAppWindowFieldAndSelection() async {
+        for change in 0..<5 {
+            let h = Harness()
+            h.useTerminal()
+            let target = h.inserter.captureTarget(in: 42)
+            switch change {
+            case 0: h.frontmost = 43
+            case 1: h.window = 202
+            case 2: h.field = 102
+            case 3: h.bundleIdentifier = "other.application"
+            default: h.selection = CFRange(location: 4, length: 0)
+            }
+            #expect(await h.inserter.paste("text", into: target) == .notAttempted)
+            #expect(h.native.isEmpty && h.unicode.isEmpty)
+        }
+    }
+
+    @Test func terminalFocusProtectionOrDisplaySelectionStopsRemainingChunks() async {
+        for change in 0..<6 {
+            let h = Harness()
+            h.useTerminal()
+            let target = h.inserter.captureTarget(in: 42)
+            h.afterChunk = {
+                switch change {
+                case 0: h.secureInput = true
+                case 1: h.frontmost = 43
+                case 2: h.window = 202
+                case 3: h.field = 102
+                case 4: h.document = 301
+                default: h.selection = CFRange(location: 3, length: 1)
+                }
+            }
+            #expect(await h.inserter.paste(String(repeating: "x", count: 65), into: target) == .interrupted)
+            #expect(h.unicode.count == 1)
+            #expect(h.native.isEmpty)
+        }
+    }
+
+    @Test func terminalRechecksSecureInputAfterReadingFocusMetadata() async {
+        let h = Harness()
+        h.useTerminal()
+        let target = h.inserter.captureTarget(in: 42)
+        h.inserter.access.focusedTarget = { _ in
+            if !h.unicode.isEmpty { h.secureInput = true }
+            return h.snapshot
+        }
+        #expect(await h.inserter.paste(String(repeating: "x", count: 65), into: target) == .interrupted)
+        #expect(h.unicode.count == 1)
+        #expect(h.native.isEmpty)
+    }
+
+    @Test func terminalChecksTheWholeTranscriptBeforePostingAnyPrefix() async {
+        for unsafe in ["\r", "\n", "\t", "\u{1B}", "\u{7F}", "\u{85}", "\u{2028}", "\u{2029}", "\u{F700}"] {
+            let h = Harness()
+            h.useTerminal()
+            let target = h.inserter.captureTarget(in: 42)
+            let text = String(repeating: "x", count: 65) + unsafe + "after"
+            #expect(await h.inserter.paste(text, into: target) == .notAttempted)
+            #expect(h.native.isEmpty && h.unicode.isEmpty)
+        }
+    }
+
+    @Test func terminalControlCharacterPolicyDoesNotChangeOrdinaryEditors() async {
+        let h = Harness()
+        h.document = nil
+        let target = h.inserter.captureTarget(in: 42)
+        #expect(await h.inserter.paste("Before\nAfter\tText", into: target) == .submitted)
+        #expect(h.native == ["Before\nAfter\tText"])
         #expect(h.unicode.isEmpty)
     }
 }

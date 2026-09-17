@@ -99,6 +99,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppLog.write("App launched from \(Bundle.main.bundlePath)")
+        AppLog.write("Build identity: \(AppVersionInfo().summary)")
         AppLog.write("Transcription model: \(Config.model.rawValue) (from \(Config.settings.modelSource))")
         verifyHotKeyConstants()
         ApplicationMenu.install()
@@ -112,7 +113,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         flow.onOutcome = { [weak self] outcome in
             guard let self, !lifecycle.isTerminating else { return }
             dictationPanel.update(outcome: outcome, transcript: flow.lastTranscript)
-            if lifecycle.phase == .running { dictationPanel.show() }
         }
         flow.onState = { [weak self] state in
             guard let self else { return }
@@ -166,18 +166,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         dictationPanel.setShortcut(Config.shortcut.displayName)
         dictationPanel.onRecord = { [weak self] in
             guard let self, lifecycle.canBeginOperation else { return }
-            // Only an explicit panel action may return focus. Passive updates and
-            // delivery never reactivate a target after the user switches apps.
             let target = flow.state.canStop ? previousApplication : latestExternalApplication
-            if currentFrontmostApplication() == nil,
-                let target, !target.isTerminated,
-                PanelTargetPolicy.canReturnFocus(
-                    target: target.processIdentifier,
-                    latestExternal: latestExternalApplication?.processIdentifier)
-            {
-                target.activate()
-            }
-            toggleRecording(target: target)
+            toggleRecording(target: target, returnPanelFocus: true)
         }
         dictationPanel.onCancel = { [weak self] in self?.menuBarDidCancel(discard: false) }
         dictationPanel.onCopy = { [weak self] in self?.menuBarDidCopyLastText() }
@@ -261,21 +251,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Dictation flow
 
-    private func toggleRecording(target: NSRunningApplication? = nil) {
+    private func toggleRecording(target: NSRunningApplication? = nil, returnPanelFocus: Bool = false) {
         guard lifecycle.canBeginOperation else { return }
         let capturedTarget = target ?? currentFrontmostApplication()
         let now = Date()
         guard now.timeIntervalSince(lastHotKeyAt) > 0.35 else { return }
         lastHotKeyAt = now
         if flow.state.canStop {
+            if returnPanelFocus { returnFocusFromPanel(to: capturedTarget) }
             if flow.stop() { cancelAutoStop() }
             return
         }
         guard flow.state.canStart, let operation = lifecycle.beginOperation() else { return }
-        Task { @MainActor in await prepareRecording(target: capturedTarget, operation: operation) }
+        // Capture the field before scheduling work, reading Keychain or returning
+        // focus from the panel. A missing snapshot must never adopt a later field.
+        let capturedField = pasteboard.captureTarget(in: capturedTarget?.processIdentifier)
+        guard lifecycle.isCurrent(operation) else { return }
+        if returnPanelFocus { returnFocusFromPanel(to: capturedTarget) }
+        Task { @MainActor in
+            await prepareRecording(target: capturedTarget, field: capturedField, operation: operation)
+        }
     }
 
-    private func prepareRecording(target: NSRunningApplication?, operation: AppLifecycle.Operation) async {
+    private func returnFocusFromPanel(to target: NSRunningApplication?) {
+        // Only an explicit panel action may return focus. Passive updates and
+        // delivery never reactivate a target after the user switches apps.
+        guard currentFrontmostApplication() == nil, let target, !target.isTerminated,
+            PanelTargetPolicy.canReturnFocus(
+                target: target.processIdentifier,
+                latestExternal: latestExternalApplication?.processIdentifier)
+        else { return }
+        target.activate()
+    }
+
+    private func prepareRecording(
+        target: NSRunningApplication?, field: InsertionTarget?, operation: AppLifecycle.Operation
+    ) async {
         defer { lifecycle.finish(operation) }
         guard lifecycle.isCurrent(operation), !Task.isCancelled, flow.state.canStart else { return }
         guard hasAPIKey(for: operation) else { return }
@@ -283,13 +294,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             warnAboutUnusableModelIfNeeded()
             return
         }
-        let capturedField = pasteboard.captureTarget(in: target?.processIdentifier)
-        guard lifecycle.isCurrent(operation) else { return }
         let permitted = await AudioRecorder.requestPermission()
         guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
         guard permitted else {
             updateStatus("Mikrofonzugriff fehlt – in den Systemeinstellungen erlauben")
-            dictationPanel.showFailure("Mikrofonzugriff fehlt. Öffne die Systemeinstellungen und erlaube den Zugriff.")
+            dictationPanel.updateFailure(
+                "Mikrofonzugriff fehlt. Öffne die Systemeinstellungen und erlaube den Zugriff.")
             return
         }
         do {
@@ -298,11 +308,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 guard flow.state.canStart else { return }
                 requestOptions = options
                 previousApplication = target
-                insertionTarget = capturedField
+                insertionTarget = field
                 if try flow.start() {
                     pendingRetryFilename = nil
                     scheduleAutoStop()
-                    dictationPanel.show()
                 }
             }
         } catch {
@@ -312,7 +321,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
             updateStatus(OpenDictateError.userMessage(for: error))
-            dictationPanel.showFailure("Die Aufnahme konnte nicht gestartet werden. Prüfe Mikrofon und Berechtigungen.")
+            dictationPanel.updateFailure(
+                "Die Aufnahme konnte nicht gestartet werden. Prüfe Mikrofon und Berechtigungen.")
         }
     }
 
@@ -381,7 +391,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         dictationPanel.updateAPIKeySetup(needsSetup: true, message: apiKeyNeedsSetup ? nil : message)
         apiKeyNeedsSetup = true
         menuBar?.refresh()
-        dictationPanel.show()
         return false
     }
 
@@ -397,7 +406,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if needsSetup {
                 menuBar?.updateStatus("API-Schlüssel einrichten")
                 dictationPanel.updateAPIKeySetup(needsSetup: true)
-                if menuBar?.hasVisibleSettings != true { dictationPanel.show() }
             } else {
                 requestAccessibilityPermissionIfNeeded()
             }
