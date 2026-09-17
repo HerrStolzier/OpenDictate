@@ -167,13 +167,19 @@ distributing binaries.
 
 ## Verification
 
-Run `swift test -Xswiftc -warnings-as-errors` for pure logic, lifecycle, HTTP stubs, recovery, logging and synthetic audio-file tests. No microphone or OpenAI calls are part of these tests. `./scripts/build-app.sh` builds and verifies the bundle; `VERSION` controls the marketing version, and `OPENDICTATE_BUILD_NUMBER` can set the numeric build number (default 1). CI runs tests and an ad-hoc bundle build on macOS. This does not publish or install an app.
+Run `swift test -Xswiftc -warnings-as-errors` for pure logic, lifecycle, HTTP stubs,
+recovery, logging and synthetic audio-file tests. No microphone or OpenAI calls
+are part of these tests. `./scripts/build-app.sh` builds and verifies the bundle;
+`VERSION` controls the marketing version, and `OPENDICTATE_BUILD_NUMBER` can set
+the numeric build number (default 1). CI runs tests and an ad-hoc bundle build on
+macOS, then uploads a verified development archive. It does not install an app
+or publish a notarized product release.
 
 See [CHECKS.md](CHECKS.md), [docs/performance-decisions.md](docs/performance-decisions.md), [docs/audio-quality-fixtures.md](docs/audio-quality-fixtures.md) and [docs/remaining-acceptance.md](docs/remaining-acceptance.md). Live microphone, target-app, VoiceOver and paid API checks remain separate. Streaming and hold-to-talk are not enabled.
 
 ## Development and project context
 
-Local launchers, isolated previews and the optional API-key helper are described
+Local launchers, isolated previews and API-key setup for older installations are described
 in [development workflows](docs/development.md). Product scope lives in
 [PROJECT.md](PROJECT.md); repository rules and evidenced authorizations live in
 [AGENTS.md](AGENTS.md) and [APPROVALS.md](APPROVALS.md). The
