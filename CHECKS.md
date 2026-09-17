@@ -132,6 +132,11 @@ with fixed artificial text and a unique test pasteboard. Choose the exact target
 app; only its foreground window with an `OpenDictate Matrix` title qualifies.
 The fixture has no microphone, provider, Keychain, preference or recovery access.
 Its build reuses the existing local signing identity; it does not grant TCC access.
+The “Nur Ziel prüfen” option reports the actual `NSWorkspace` foreground app and
+captured AX field without starting the synthetic flow, writing the clipboard or
+sending text. TextEdit is also selectable; use an owned document whose filename
+starts with `OpenDictate Matrix`. Selecting an app in a UI automation tool does
+not itself prove that the app became the actual foreground target.
 Named debug helper executables select their fixture mode even without CLI flags;
 unknown renamed debug executables exit. Verify parameterless relaunches after
 changing dispatch, including unchanged recovery and preference inventories.

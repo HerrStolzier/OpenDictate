@@ -50,6 +50,28 @@ Mikrofon-/API-Abnahmen sind Nachweise und keine erneute Ausführungserlaubnis.
   der aufgenommenen Audiozeit 210 Sekunden. Das Versuchslimit ist ausgeschöpft.
   Weitere Mikrofon-/Providerläufe sind durch diese Zustimmung nicht freigegeben.
 
+## Zweiter begrenzter Zielprogramm-Testblock — 2026-09-17
+
+- **Auftrag:** Direkte Nutzernachricht „nächstes Ziel und go“; anschließend
+  ausdrücklicher Wunsch nach einem Agenten für Commit, Push und Merge.
+- **Live-Freigabe:** Direkte Antwort „Ja, diesen neuen Testblock freigeben“ zur
+  vorbereiteten Frage in derselben Aufgabe: höchstens acht angekündigte
+  Mikrofonaufnahmen und acht OpenAI-Uploads mit insgesamt höchstens drei Minuten
+  Audio über das bestehende Konto. Ziele: native Felder, vier Safari-Feldtypen,
+  Obsidian und Fokuswechsel. Der bekannte Testsatz wird lokal über Lautsprecher
+  abgespielt: „Dies ist ein kurzer Test. Bitte schreibe die Zahl sieben und das
+  Wort Apfel.“ Mögliche Umgebungsgeräusche waren Teil der Freigabefrage.
+- **Lautstärke:** Vorübergehend höchstens 75 Prozent; den unmittelbar vor diesem
+  Block gemessenen Ausgangswert anschließend wiederherstellen.
+- **Grenzen:** Dieser neue Testblock erweitert weder Systemrechte noch
+  Zugangsdaten, Softwareinstallation oder Veröffentlichung. Keine privaten
+  Audioinhalte als Referenz und kein unbegrenztes Wiederholen. Verbrauch und
+  Aufräumen werden im zugehörigen Abnahmebericht festgehalten.
+- **Verbraucht:** Acht Aufnahmen und acht Uploads, konservativ höchstens
+  170 Sekunden. Das Versuchslimit ist ausgeschöpft; die Lautstärke wurde auf
+  die gemessenen 68,75 Prozent zurückgestellt. Ergebnisse, Bereinigung und
+  verbleibende Nachweisgrenzen: [ergänzende Zielabnahme](docs/target-acceptance-2026-09-17.md).
+
 ## Konkreter Git-Abschluss — 2026-09-14
 
 - **Umfang:** Dokumentationsstand `956afec` nach `HerrStolzier/OpenDictate`
