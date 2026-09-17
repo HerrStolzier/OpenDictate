@@ -205,6 +205,16 @@ shortcut. This test is skipped by default, including CI.
 The Unicode event tests construct events without posting them. They check exact
 UTF-16 preservation, modifier-free events, failure, cancellation and stopping
 remaining chunks after a focus change. They do not prove browser editing.
+`TerminalInputPolicyTests` and the Terminal cases in `InsertionTargetTests` use
+injected focus/Secure Input results and collect chunks without posting events.
+They cover the narrow Apple Terminal eligibility exception, both AX-writability
+values, missing or changed selection metadata, Secure Input and focus changes,
+rejection before any prefix is sent, and unchanged ordinary-editor behavior.
+The policy tests enumerate all rejected scalars: U+0000–001F, U+007F–009F,
+U+2028–2029 and U+F700–F8FF. This applies to the insertion string after the
+production flow's existing outer-whitespace trimming, not the raw provider text.
+These tests are part of the normal offline Swift suite; they do not inspect a
+running Terminal, execute commands or establish native event acceptance.
 
 Use [the compatibility matrix](docs/compatibility-matrix.md) for product-facing
 acceptance. Exercise native fields, browser `input`/`textarea`, `contenteditable`,
@@ -221,3 +231,39 @@ Record the installed candidate and visible before/after result. A synthetic
 production-inserter run, an attended end-to-end dictation and user confirmation
 are distinct evidence. One program does not establish its whole category; the
 explicit Brave/Safari/Obsidian paths do not establish other browsers or Electron apps.
+
+## Apple Terminal
+
+The new exception applies only to `com.apple.Terminal` and the conditions in
+[the compatibility matrix](docs/compatibility-matrix.md#apple-terminal).
+Ordinary editor targets still require settable `AXSelectedText`; Terminal uses
+Unicode events without replacing a display selection. Native Terminal acceptance
+is still open. Its actual focused AX role, window/field identity, reported
+selection range, tab behavior and acceptance of Unicode events must be observed
+on the identified installed candidate. The existing matrix fixture does not
+offer Terminal as a target. Offline success is not a Terminal runtime result.
+
+For a separately authorized native dictation check:
+
+1. Record the installed OpenDictate version/build/revision, macOS version and
+   Apple Terminal version. Use a disposable local Terminal window with a known,
+   empty shell input line and no interactive program or pending command. If the
+   input context is unclear, use a new TextEdit document as a control and leave
+   the Terminal case open; ordinary printable keys can affect other programs.
+2. Inspect the actual focused AX target before attempting input. Start with a
+   short, harmless single line such as “OpenDictate Probe Apfel 42”. End dictation
+   with the recording shortcut; **do not press Return, submit the line or run a
+   command**. Compare the displayed input with the retained transcript and note
+   whether all text arrived. Do not infer success from a submitted-event count.
+3. With the same controlled input context, check rejection after a real target
+   switch or when display text is selected; preserve the complete transcript
+   and verify that no different target received it. A tab test counts only if
+   the observed AX identity and actual foreground tab are recorded. Keep these
+   outcomes separate from the initial single-line result.
+4. Remove only the owned, unsubmitted test input or close the disposable window
+   without submitting it. A TextEdit control result, missing AX capture or a
+   clipboard fallback must not be reported as successful Terminal insertion.
+
+No return/control-key test should be sent to a live shell to exercise the text
+filter; its rejection cases belong in the offline tests above. This procedure
+does not establish support for iTerm2 or terminals embedded in editors.
