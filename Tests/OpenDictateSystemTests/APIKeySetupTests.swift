@@ -1,4 +1,5 @@
 import AppKit
+import LocalAuthentication
 import OpenDictateCore
 import Security
 import Testing
@@ -13,8 +14,8 @@ struct APIKeyPresenceTests {
             let attributes = query as NSDictionary
             #expect(attributes[kSecReturnData as String] == nil)
             #expect(attributes[kSecValueData as String] == nil)
-            #expect(
-                attributes[kSecUseAuthenticationUI as String] as? String == kSecUseAuthenticationUIFail as String)
+            let context = attributes[kSecUseAuthenticationContext as String] as? LAContext
+            #expect(context?.interactionNotAllowed == true)
             #expect(result == nil)
             return errSecItemNotFound
         }

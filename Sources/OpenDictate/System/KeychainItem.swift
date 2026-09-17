@@ -1,4 +1,5 @@
 import Foundation
+import LocalAuthentication
 import Security
 
 /// Small wrapper around the shared generic-password boilerplate. Individual
@@ -15,7 +16,9 @@ struct KeychainItem {
     ) -> Bool {
         var query = baseQuery
         query[kSecMatchLimit as String] = kSecMatchLimitOne
-        query[kSecUseAuthenticationUI as String] = kSecUseAuthenticationUIFail
+        let context = LAContext()
+        context.interactionNotAllowed = true
+        query[kSecUseAuthenticationContext as String] = context
         return matching(query as CFDictionary, nil) == errSecItemNotFound
     }
 
