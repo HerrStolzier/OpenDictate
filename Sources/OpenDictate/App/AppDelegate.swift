@@ -319,15 +319,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func hasAPIKey() -> Bool {
-        guard Config.apiKey == nil else { return true }
         apiKeyPresenceTask?.cancel()
         apiKeyPresenceTask = nil
+        if Config.apiKey != nil {
+            if apiKeyNeedsSetup { menuBar?.updateStatus("Bereit") }
+            apiKeyNeedsSetup = false
+            dictationPanel.updateAPIKeySetup(needsSetup: false, message: "Der API-Schlüssel ist verfügbar.")
+            menuBar?.refresh()
+            return true
+        }
         menuBar?.updateStatus("API-Schlüssel nicht verfügbar")
-        dictationPanel.updateAPIKeySetup(
-            needsSetup: true,
-            message: apiKeyNeedsSetup
-                ? nil
-                : "Der API-Schlüssel fehlt oder ist nicht zugänglich. Prüfe den macOS-Schlüsselbund oder richte den Schlüssel erneut ein.")
+        let message =
+            "Der API-Schlüssel fehlt oder ist nicht zugänglich. "
+            + "Prüfe den macOS-Schlüsselbund oder richte den Schlüssel erneut ein."
+        dictationPanel.updateAPIKeySetup(needsSetup: true, message: apiKeyNeedsSetup ? nil : message)
         apiKeyNeedsSetup = true
         menuBar?.refresh()
         dictationPanel.show()
@@ -454,7 +459,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if settingUp {
                 dictationPanel.updateAPIKeySetup(
                     needsSetup: true,
-                    message: "Einrichtung abgebrochen. Über „API-Schlüssel einrichten“ kannst du sie jederzeit fortsetzen.")
+                    message:
+                        "Einrichtung abgebrochen. Über „API-Schlüssel einrichten“ "
+                        + "kannst du sie jederzeit fortsetzen.")
             }
             return
         }
@@ -481,7 +488,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if settingUp {
                 dictationPanel.updateAPIKeySetup(
                     needsSetup: true,
-                    message: "Der Schlüssel konnte nicht gespeichert werden. Über „API-Schlüssel einrichten“ kannst du es erneut versuchen.")
+                    message:
+                        "Der Schlüssel konnte nicht gespeichert werden. "
+                        + "Über „API-Schlüssel einrichten“ kannst du es erneut versuchen.")
             }
             AlertPresenter.showWarning(
                 title: "API-Schlüssel konnte nicht gespeichert werden",
