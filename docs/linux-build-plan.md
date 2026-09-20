@@ -1,98 +1,76 @@
 # Linux-App-Plan (OpenDictate)
 
-Stand: 20. September 2026. **Nur Planung** — keine Implementierung in diesem Dokument.
-macOS bleibt das belegte Produkt; Linux ist hier ein vorgeschlagener Parallelpfad.
-Nach Freigabe müsste `PROJECT.md` den Linux-Umfang erst ausdrücklich aufnehmen.
+Stand: 20. September 2026 (finale Planfassung). **Nur Planung** — keine App-Implementierung
+in diesem PR.
 
-## Ziel
+## Ziel (fest)
 
-Gesprochenen Text per globalem Shortcut aufnehmen, mit dem eigenen OpenAI-API-Schlüssel
-transkribieren und in der zuvor fokussierten Linux-Anwendung verfügbar machen
-(Zwischenablage + optional automatisches Einfügen). Nutzenparität zu macOS,
-kein 1:1-Port von AppKit/Accessibility.
+Linux-Desktop-App mit **Nutzenparität** zu macOS:
 
-## Stack-Entscheidung
+Shortcut → Aufnahme → Transkription mit **eigenem OpenAI-API-Key** → Text in der
+**zuvor fokussierten** Anwendung (Zwischenablage + optional automatisches Einfügen).
+
+Kein 1:1-Port von AppKit/Accessibility. **Linux als Ziel wird nicht aufgegeben.**
+
+macOS bleibt das bisher belegte Produkt. `PROJECT.md` nimmt Linux erst nach
+bewusster Freigabe als Produktumfang auf — **nicht** in diesem Plan-PR.
+Die macOS-Abnahme in `docs/remaining-acceptance.md` bleibt unverändert und gilt
+durch diesen Plan nicht als erledigt.
+
+## Confidence / Recherchestand
+
+| Aussage | Status |
+|---|---|
+| Richtung Tray-Utility, eigener Key, Clipboard-first, kein Swift-UI-Port | belastbar |
+| Stack **Tauri 2 + Rust** als Arbeitshypothese | begründet, **nicht** spike-verifiziert |
+| Global Hotkey, Mic, Keyring, Clipboard auf **dieser** omarchy/Wayland-Session | erst nach Spike belegt |
+| Auto-Insert unter Wayland | bewusst unsicher; eigene Phase + Fallbacks |
+| Packaging auf Arch/omarchy | erst in Packaging-Phase belegt |
+
+Dieser Plan ist eine **begründete Hypothese**. Sicher wird die Wegwahl erst durch
+den Spike auf der Zielmaschine.
+
+## Stack (Arbeitshypothese)
 
 ### Alternativen
 
 | Option | Stärken | Schwächen für OpenDictate |
 |---|---|---|
-| **A: Tauri 2 + Rust** (UI: WebView leicht / oder schlankes HTML) | Kleines Binary; `global-hotkey`, `arboard`, `keyring`; guter Fit für Tray-Utility; klare Trennung Shell vs. Logik | Wayland-Hotkey/Insert bleibt OS-schwer; UI weniger „nativ“ als GTK |
-| **B: Electron + TypeScript** | Schnelle UI; viel Clipboard-/Tray-Ökosystem | Schwer; schwächere Systemintegration; größeres Supply-Chain-/Update-Thema |
-| **C: Flutter (Linux)** | Gute UI-Konsistenz | Global Hotkey, Keyring, Insert in Fremd-Apps auf Linux schwächer / mehr Plugins; wenig Synergie zum Swift-Repo |
-| (verworfen) SwiftPM-App auf Linux | `OpenDictateCore` könnte theoretisch mit Swift-Linux gebaut werden | Kein AppKit; Audio/Hotkey/Insert/Keyring trotzdem neu; Toolchain auf Arch/omarchy aufwendig; hilft der Desktop-App kaum |
+| **A: Tauri 2 + Rust** | Kleines Binary; Hotkey/Clipboard/Keyring-Ökosystem; gut für Tray-Utility | Wayland-Hotkey/Insert OS-schwer; UI weniger „nativ“ als GTK |
+| **B: Electron + TypeScript** | Schnelle UI; viel Tray/Clipboard-Material | Schwer; schwächere Systemnähe; größeres Supply-Chain-Thema |
+| **C: Flutter (Linux)** | UI-Konsistenz | Hotkey/Keyring/Insert auf Linux oft plugin-lastig; wenig Synergie zum Swift-Repo |
+| SwiftPM-App auf Linux | Core theoretisch baubar | Kein AppKit; Audio/Hotkey/Insert/Keyring trotzdem neu; Toolchain-Aufwand; hilft der Desktop-App kaum |
 
 ### Empfehlung: **Tauri 2 + Rust**
 
-**Begründung (Kriterien):**
+Arbeitshypothese nach Kriterien: Aufnahme-Latenz, globaler Hotkey, Clipboard,
+Keyring (Secret Service, kein Key in Env/Datei/Logs), Packaging (Arch/omarchy
+zuerst), Wartbarkeit **neben** unverändertem macOS-SwiftPM, schlankere
+Supply-Chain als Electron.
 
-1. **Aufnahme / Latenz:** Native Capture (z. B. `cpal` / PipeWire-fähig) ohne Electron-Runtime.
-2. **Global Hotkey:** Rust-Crates + Distro-Fallbacks; ehrlich als Spike-Risiko unter Wayland führen.
-3. **Clipboard:** Robust und ausreichend für MVP (verlustfreier manueller Rückweg, analog macOS).
-4. **Auto-Insert:** Schwerster Teil — X11 (`xdotool`/XTST) vs. Wayland (Portal/Accessibility, oft unmöglich ohne Kompositor-Hilfe). Tauri zwingt uns nicht zu falscher Sicherheit; Insert bleibt eigene Phase.
-5. **Keyring:** `keyring`-crate → Secret Service / kwallet — entspricht der macOS-Keychain-Invariante (kein Key in Env/Datei/Logs).
-6. **Packaging:** `.deb`/Arch-`PKGBUILD`/AppImage machbar; Ziel zuerst **Arch/omarchy**, zweites Smoke-Ziel z. B. Ubuntu LTS.
-7. **Wartbarkeit neben SwiftPM:** macOS-Code unangetastet; Linux unter `linux/` (Monorepo). `OpenDictateCore` (Swift) wird **nicht** in die Linux-App gelinkt — Wiederverwendung als **Spezifikation** (Zustände, Retention, Modelle, Fehlertexte/Politik), Logik in Rust nachgezogen oder dünn gehalten.
-8. **Lizenz / Supply-Chain:** Weniger JS-Transitivität als Electron; Rust-Lockfile reviewbar.
+Electron/Flutter bleiben im Plan **nachrangig dokumentiert**. Stack-Wechsel nur,
+wenn der Spike eine **Technikvariante** unbrauchbar macht — nicht weil das
+Linux-Produkt wackelt.
 
-Electron nur wählen, wenn UI-Geschwindigkeit wichtiger ist als Binary-Größe und Systemnähe.
-Flutter nicht empfohlen für dieses Tray/Hotkey-Produkt.
+## Spike = Wegwahl, kein Produkt-No-Go
 
-## Was aus OpenDictateCore wiederverwendbar ist
+Der Spike (Phase 0) klärt **welchen Weg** wir nehmen, nicht ob Linux kommt.
 
-| Bereich | Wiederverwendung |
-|---|---|
-| Zustandsmodell, Outcomes, Retention-Politik, Modellliste, Trim-/Level-Politik, Fehlerklassen | **Konzepte / Tests als Orakel** — in Rust nachbilden, wo sinnvoll |
-| Swift-Quellen selbst | **Nicht** in der Linux-App; optional später Linux-CI nur für Core-Tests, falls Swift-Toolchain bewusst eingeführt wird |
-| Audio-Capture, Hotkey, Insert, Keychain/Keyring, UI | **Neu** (plattformspezifisch) |
-| OpenAI-Upload-Vertrag | Neu in Rust, Verhaltensparität zu macOS-Client (gleiche Modelle/Limits laut Settings-Politik) |
+Auf omarchy prüfen: Hotkey, Mikrofon, Keyring, Clipboard. **Insert bewusst danach.**
 
-## Phasen
+Scheitert eine Technikvariante, wählen wir Fallback — z. B. Clipboard-MVP zuerst,
+anderer Hotkey-Weg (Session-Agent, X11-Session, app-fokussierter Hotkey) — und
+liefern trotzdem. Abbruch gilt nur für eine konkrete Variante, **nicht** fürs Projekt.
 
-### Phase 0 — Spike (1–3 Tage)
+## Architektur
 
-- Tauri-2-Skeleton unter `linux/`
-- Nachweis: Global Hotkey auf **dieser** omarchy/Wayland-Session (oder dokumentierter Fallback: nur X11 / nur App-fokussierter Hotkey)
-- Mikrofon-Capture → WAV/Temp-Datei; Keyring set/get (Dummy-Secret)
-- Clipboard schreiben
-
-**Done:** Kurzer Spike-Report in PR/Issue; Go/No-Go für Hotkey+Capture auf Zielmaschine.
-
-### Phase 1 — MVP Clipboard-only
-
-- Shortcut → aufnehmen → stoppen → Upload mit Key aus Keyring → Text in Clipboard + Tray/Panel-Status
-- Settings: Key, Modell, Sprache, Hotkey; deutsche UI-Texte wo nutzerseitig
-- Kein Auto-Insert; Panel öffnet nicht ungefragt während Aufnahme (Parität zur macOS-Korrektur)
-
-**Done:** Ein manueller Durchstich auf omarchy mit unkritischem Testsatz; Key nie in Logs.
-
-### Phase 2 — Auto-Insert (best effort)
-
-- Fokus-App zum Start merken; Insert nur wenn noch sinnvoll; sonst Clipboard-Fallback mit klarer Meldung
-- X11-Pfad und Wayland-Grenzen getrennt dokumentieren; keine pauschale „jede App“-Zusage
-
-**Done:** Mindestens eine belegte X11-App + ehrlicher Wayland-Status; Abbruch/Focus-Verlust getestet.
-
-### Phase 3 — Packaging
-
-- Debug-Build-Skript; Arch-Paket oder dokumentierte `cargo tauri build`-Schritte
-- Kein Public Publish/Notarize-Äquivalent in v1
-
-**Done:** Zweite Maschine/Distro Smoke oder klar „nur Arch/omarchy belegt“.
-
-## Risiken
-
-- **Wayland:** Global Shortcuts und Insert sind kompositorabhängig; Spike kann MVP auf Clipboard+manuellen Hotkey-Fallback reduzieren.
-- **Privacy:** Nur Secret Service; keine `.env`; Logs ohne Key/Transcript/Audioinhalt (macOS-Invariante).
-- **Doppelpflege:** Zwei Clients — Politikänderungen (Modelle, Retention) bewusst syncen.
-- **Erwartung:** Linux-v1 ≠ Feature-Parität zu jedem macOS-AX-Sonderpfad (Terminal, Browser-Unicode, …).
-
-## Nicht-Ziele v1
-
-Streaming, Hold-to-talk, Windows, öffentliches Store-/Signatur-Publish, Ersetzen der macOS-App,
-iOS/Android, garantiertes Insert unter jedem Wayland-Compositor.
-
-## Repo-Layout (Vorschlag)
+- macOS-Swift-Code (`Sources/OpenDictate*`) bleibt unangetastet.
+- Linux-App neu unter `linux/` (Tauri 2 + Rust).
+- `OpenDictateCore` (Swift): **Spezifikation / Orakel** (Zustände, Retention,
+  Modelle, Fehlerpolitik) — **kein** Link in die Linux-App. Logik in Rust
+  nachziehen, wo nötig.
+- API-Key nur im Keyring (Secret Service / kwallet). Logs ohne Key, Transcript
+  oder Audioinhalt.
 
 ```text
 linux/                 # Tauri 2 + Rust (neu)
@@ -102,18 +80,54 @@ Sources/OpenDictate*   # macOS unverändert
 docs/linux-build-plan.md
 ```
 
-Kein Zwang, Swift-Targets jetzt multipplattform zu machen.
+## Phasen
 
-## PROJECT.md nach Freigabe
+### Phase 0 — Spike (Weg klären, 1–3 Tage)
 
-Wenn Basti Linux als Produktumfang will: in `PROJECT.md` unter Umfang/Grenzen einen
-kurzen Linux-Absatz + Verweis auf diesen Plan; offene Entscheidung „Windows-/Linux-Umfang“
-entsprechend anpassen. **Nicht** in diesem Plan-PR.
+- Tauri-2-Skeleton unter `linux/`
+- Hotkey, Mic → Datei, Keyring Dummy, Clipboard auf **dieser** Session
+- Insert noch nicht Pflicht
 
-## Offene Fragen an Basti (max. 5)
+**Done:** Kurzer Spike-Report mit gewähltem Weg + Fallbacks; Linux-Ziel bleibt.
 
-1. Ist **Clipboard-only-MVP** akzeptabel, falls Wayland-Insert/Hotkey im Spike scheitert?
-2. Primärer Compositor/Desktop auf omarchy (für Spike-Fokus)?
-3. UI-Minimum: nur Tray + kleines Panel, oder Settings-Fenster wie macOS?
-4. Soll Swift-`OpenDictateCore` später zusätzlich unter Linux getestet werden, oder reicht Rust-Parität?
+### Phase 1 — MVP Clipboard-only
+
+- Shortcut → Aufnahme → Stop → Upload (Key aus Keyring) → Clipboard + Tray/Status
+- Settings: Key, Modell, Sprache, Hotkey; UI deutsch wo nutzerseitig
+- Kein Auto-Insert; Panel öffnet nicht ungefragt während Aufnahme
+
+**Done:** Manueller Durchstich auf omarchy; Key nie in Logs.
+
+### Phase 2 — Auto-Insert (best effort)
+
+- Ziel-App zum Start merken; Insert nur wenn sinnvoll; sonst Clipboard + klare Meldung
+- X11 und Wayland getrennt und ehrlich dokumentieren; keine „jede App“-Zusage
+
+**Done:** Mindestens ein belegter Insert-Pfad **oder** begründeter Clipboard-only-Ship
+mit klarem Wayland-Status.
+
+### Phase 3 — Packaging
+
+- Build-Dokumentation; Arch/omarchy zuerst; optional zweites Distro-Smoke
+- Kein öffentliches Store-/Signatur-Publish in v1
+
+**Done:** Installierbarer Debug/Release-Weg auf der Zielmaschine dokumentiert.
+
+## Risiken (ehrlich)
+
+- Wayland: Hotkey/Insert kompositorabhängig → Fallbacks, kein Projektstopp
+- Doppelpflege zweier Clients → Politik (Modelle, Retention) bewusst syncen
+- Linux-v1 ≠ jeder macOS-AX-Sonderpfad
+
+## Nicht-Ziele v1
+
+Streaming, Hold-to-talk, Windows, öffentliches Publish, macOS ersetzen,
+iOS/Android, garantiertes Insert unter jedem Wayland-Compositor.
+
+## Offene Fragen (max. 5)
+
+1. Clipboard-only-MVP als erster Ship akzeptabel?
+2. Primärer Compositor/Desktop auf omarchy für den Spike?
+3. UI-Minimum: nur Tray + kleines Panel, oder Settings wie macOS?
+4. Swift-`OpenDictateCore` später unter Linux testen, oder reicht Rust-Parität?
 5. Zweites Distro-Ziel neben Arch/omarchy für Phase 3?
