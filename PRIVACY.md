@@ -129,3 +129,17 @@ API keys, transcript text, or audio contents. Logging is serialized and rotated 
 ## Last transcript and temporary originals
 
 The most recent non-empty transcript is also held in memory until replaced, cleared from the menu or the app exits. No persistent text history is created. If a recovery-store write fails, the original temporary audio is deliberately not deleted and its path is shown in the error status. Historical crash leftovers are not swept automatically because they may contain the only surviving recording.
+
+## Linux spike (not product scope)
+
+The in-repo Linux Phase-0 CLI is not the macOS product and does not upload
+audio. On an explicit toggle it records the default PipeWire/Pulse input into
+`$XDG_STATE_HOME/opendictate/spike/` (typically `~/.local/state/opendictate/spike/`)
+as a WAV with owner-only mode. Stopping copies a German status line to the
+Wayland clipboard (`wl-copy`); that line is not a transcript. Secret Service
+items use attributes `service=opendictate` and `key=api-key` or
+`recording-auth`. The API key is accepted only on stdin. A probe item is written,
+read and deleted to test the service. There is no file, environment or argument
+fallback. The spike log under `$XDG_STATE_HOME/opendictate/spike.log` records
+operational events (start/save/clipboard failure, captured window class) and
+must not contain keys, clipboard text or audio.

@@ -46,8 +46,10 @@ früherer installierter Kandidaten gelten nicht als neue Laufzeitabnahme.
 | F: Dokumentation | Einstieg verkürzt, Entwicklerverfahren ausgelagert, aktuelle Übergabe und Aufbewahrungsangaben präzisiert | Nach D/E über begrenzten Betatest entscheiden |
 
 Linux-Planung steht in [linux-build-plan.md](linux-build-plan.md) ([PR #15](https://github.com/HerrStolzier/OpenDictate/pull/15)).
-Sie nimmt Linux nicht in den Produktumfang auf und ändert die macOS-Pakete A–F
-sowie den nächsten Mac-Schritt nicht.
+Der Phase-0-Spike liegt unter [`linux/`](../linux/README.md); Session-Nachweis:
+[linux-spike-2026-09-20.md](linux-spike-2026-09-20.md). Er nimmt Linux nicht in
+den Produktumfang auf und ändert die macOS-Pakete A–F sowie den nächsten
+Mac-Schritt nicht.
 
 ## Nächster ausführbarer Mac-Schritt
 

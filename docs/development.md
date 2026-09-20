@@ -61,6 +61,21 @@ before replacing a daily app; the archive does not reset permissions or bypass
 macOS trust checks. Source installation with the existing local signing identity
 is documented in [local signing](accessibility-signing.md).
 
+## Linux Phase-0 spike
+
+The crate under [`linux/`](../linux/README.md) is a Hyprland/omarchy CLI spike,
+not a product build. It is absent from the macOS Swift CI workflow. On a Linux
+host:
+
+```bash
+cargo test --manifest-path linux/Cargo.toml
+cargo build --release --manifest-path linux/Cargo.toml
+```
+
+`opendictate toggle` records without a window. Do not put an API key on the
+command line or in the environment. Live microphone, Secret Service and
+clipboard checks are attended and are not implied by `cargo test`.
+
 ## Isolated design preview
 
 `./script/build_and_run.sh --preview` launches `OpenDictatePreview.app` with

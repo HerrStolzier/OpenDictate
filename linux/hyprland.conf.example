@@ -1,0 +1,5 @@
+# Example Hyprland bind for the OpenDictate Linux spike.
+# Copy a chosen line into your Hyprland config; do not take this file as-is.
+# Point exec at a PATH binary or an absolute path to linux/target/release/opendictate.
+
+bind = SUPER SHIFT, D, exec, opendictate toggle

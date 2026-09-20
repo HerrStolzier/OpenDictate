@@ -1,7 +1,8 @@
 # Linux-App-Plan (OpenDictate)
 
-Stand: 20. September 2026. **Nur Planung** — keine App-Implementierung in diesem
-PR. Die offenen Fragen sind hier beantwortet.
+Stand: 20. September 2026. Phase-0-Spike liegt unter `linux/` in diesem Repo.
+Kein Produktumfang, kein Upload, macOS-CI unverändert. Die offenen Fragen sind
+hier beantwortet.
 
 ## Ziel (fest)
 
@@ -37,8 +38,8 @@ unverändert und gilt durch diesen Plan nicht als erledigt.
 | Aussage | Status |
 |---|---|
 | Richtung Tray-Utility, eigener Key, Clipboard-first, kein Swift-UI-Port | belastbar |
-| v1-Pfad: Rust-Daemon/CLI plus Hyprland-Bind | begründet, **nicht** spike-verifiziert |
-| Hotkey, Mic, Keyring, Clipboard auf **dieser** omarchy/Hyprland-Session | erst nach Spike belegt |
+| v1-Pfad: Rust-Daemon/CLI plus Hyprland-Bind | Spike-Code in `linux/`; Session-Nachweis im Spike-Bericht |
+| Hotkey, Mic, Keyring, Clipboard auf **dieser** omarchy/Hyprland-Session | Mic, Keyring, Clipboard und fokusneutraler CLI-Toggle belegt; Hyprland-Bind nur als Beispiel |
 | Auto-Insert unter Wayland | bewusst unsicher; eigene Phase; Default ist Clipboard-only |
 | Packaging auf Arch/omarchy | erst in Packaging-Phase belegt |
 | Tauri 2 als App-Shell | nachrangige UI-Option **nach** bewiesenem OS-Pfad |
@@ -82,9 +83,8 @@ Abbruch gilt nur für eine konkrete Variante, **nicht** fürs Projekt.
 ## Architektur
 
 - macOS-Swift-Code (`Sources/OpenDictate*`) bleibt unangetastet.
-- Spike **out-of-tree** oder wegwerfbar, bis der OS-Pfad auf dieser Session
-  steht. Kein `linux/` in diesem SwiftPM-Repo, das macOS-CI Node/WebKit verstehen
-  muss. Landeort nach Phase 0.
+- Spike unter `linux/` in diesem Repo: Rust-CLI `opendictate`, kein Tauri,
+  kein Node/WebKit. macOS-CI bleibt Swift-only.
 - `OpenDictateCore` (Swift): **Spezifikation / Orakel** — kein Link in die
   Linux-App. Pflichtpolitik in Rust nachbauen und testen (Tabelle unten), nicht
   „wo nötig“.
@@ -92,8 +92,7 @@ Abbruch gilt nur für eine konkrete Variante, **nicht** fürs Projekt.
   nie Env, Datei oder Logs. Logs ohne Key, Transkript oder Audioinhalt.
 
 ```text
-# Spike nicht in diesem Repo, bis Phase 0 Done ist
-opendictate toggle     # Rust CLI/Daemon
+linux/                 # Phase-0 Rust CLI (opendictate toggle)
 Sources/OpenDictate*   # macOS unverändert
 docs/linux-build-plan.md
 ```
@@ -133,7 +132,7 @@ Auf **dieser** omarchy/Hyprland-Session, ohne Insert:
 **Nicht Done:** Skeleton kompiliert, Keyring-Dummy, Nachweis nur auf X11.
 
 **Done:** Kurzer Spike-Report mit gewähltem Weg, was nicht ging, und Fallbacks.
-Linux-Ziel bleibt.
+Linux-Ziel bleibt. Bericht: [linux-spike-2026-09-20.md](linux-spike-2026-09-20.md).
 
 ### Phase 1 — MVP Clipboard-only
 
@@ -174,7 +173,7 @@ begründeter Clipboard-only-Ship mit klarem Wayland-Status.
 - Build-Dokumentation; Arch/omarchy zuerst
 - kein zweites Distro-Ziel in v1
 - kein öffentliches Store-/Signatur-Publish in v1
-- [CHECKS.md](../CHECKS.md) erst erweitern, wenn Linux-Code in diesem Repo landet
+- Linux-Checks in [CHECKS.md](../CHECKS.md) nur lokal; nicht in die macOS-CI
 
 **Done:** Installierbarer Debug/Release-Weg auf der Zielmaschine dokumentiert.
 

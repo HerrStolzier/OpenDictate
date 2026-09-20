@@ -4,6 +4,7 @@
 DerivedData/
 *.xcuserdata/
 *.xcuserstate
+linux/target/
 
 # Local secrets or environment experiments.
 .env

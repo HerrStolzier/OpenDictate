@@ -1,0 +1,15 @@
+[package]
+name = "opendictate"
+version = "0.0.0"
+edition = "2021"
+publish = false
+license = "MIT"
+description = "Linux Phase-0 spike CLI for OpenDictate. Not product scope."
+
+[[bin]]
+name = "opendictate"
+path = "src/main.rs"
+
+[dependencies]
+cpal = "0.15"
+hound = "3.5"
