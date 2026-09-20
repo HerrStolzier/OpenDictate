@@ -45,6 +45,10 @@ früherer installierter Kandidaten gelten nicht als neue Laufzeitabnahme.
 | E: Integrationsfälle | Begrenzte erste Fallliste; Offline-Tests für verspätete Rückmeldungen, Abbruch und Quit mit kontrolliertem Aufnahme-/Transkriptionsablauf | Reale Fokuswechsel, Beenden/Abbruch, Gerätefehler und Safari-Fallback untersuchen |
 | F: Dokumentation | Einstieg verkürzt, Entwicklerverfahren ausgelagert, aktuelle Übergabe und Aufbewahrungsangaben präzisiert | Nach D/E über begrenzten Betatest entscheiden |
 
+Linux-Planung steht in [linux-build-plan.md](linux-build-plan.md) ([PR #15](https://github.com/HerrStolzier/OpenDictate/pull/15)).
+Sie nimmt Linux nicht in den Produktumfang auf und ändert die macOS-Pakete A–F
+sowie den nächsten Mac-Schritt nicht.
+
 ## Nächster ausführbarer Mac-Schritt
 
 Die vorbereitete [Pilot- und Integrationsliste](audio-quality-fixtures.md#prepared-first-human-pilot)
