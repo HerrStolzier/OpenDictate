@@ -2,7 +2,8 @@
 
 Stand: 20. September 2026. Phase-0-Spike liegt unter `linux/` in diesem Repo.
 Kein Produktumfang, kein Upload, macOS-CI unverändert. Die offenen Fragen sind
-hier beantwortet.
+hier beantwortet. Aktuelle Übergabe und nächster Agent-Schritt:
+[remaining-acceptance.md](remaining-acceptance.md).
 
 ## Ziel (fest)
 

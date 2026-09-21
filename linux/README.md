@@ -1,5 +1,8 @@
 # Linux-Spike (Phase 0)
 
+Fortsetzung für Agents: [docs/remaining-acceptance.md](../docs/remaining-acceptance.md)
+(einzige aktuelle Übergabe), Plan: [docs/linux-build-plan.md](../docs/linux-build-plan.md).
+
 Kein Produktumfang. Kleines Rust-CLI für diese omarchy/Hyprland-Session:
 Toggle ohne Fenster, Mikrofon in eine lokale WAV, Secret Service, Wayland-Zwischenablage.
 

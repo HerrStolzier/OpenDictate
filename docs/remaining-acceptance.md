@@ -1,11 +1,28 @@
 # Aktueller Stand und verbleibende Abnahme
 
-Stand: 17. September 2026. Dies ist die einzige aktuelle Übergabedatei.
+Stand: 20. September 2026. Dies ist die einzige aktuelle Übergabedatei.
 Produktziel: [PROJECT.md](../PROJECT.md); Regeln: [AGENTS.md](../AGENTS.md);
 Prüfverfahren: [CHECKS.md](../CHECKS.md); belegte frühere Testbudgets:
-[APPROVALS.md](../APPROVALS.md).
+[APPROVALS.md](../APPROVALS.md). Linux-Plan:
+[linux-build-plan.md](linux-build-plan.md).
+
+Zwei parallele Arbeitspfade: **macOS-Produktabnahme** (unverändert offen) und
+**Linux Phase 0→1** (Spike-Code, noch nicht in `PROJECT.md`). Linux markiert
+macOS nicht als erledigt.
 
 ## Aktuelle Änderung
+
+[PR #16](https://github.com/HerrStolzier/OpenDictate/pull/16) (`linux/phase-0-spike`,
+Kopf `f7572a6`, Swift-CI grün, noch nicht gemerged) legt den Phase-0-Spike unter
+[`linux/`](../linux/README.md) an: Rust-CLI `opendictate toggle` nimmt ohne Fenster
+über cpal/PipeWire auf, spricht gnome-keyring nur über `secret-tool` (fail-closed,
+kein Env-/Datei-Fallback) und schreibt einen Statustext mit `wl-copy`. Kein Upload,
+kein Tray, kein Auto-Insert, kein Eintrag in `.github/workflows/checks.yml`.
+Session-Nachweis: [linux-spike-2026-09-20.md](linux-spike-2026-09-20.md).
+
+[PR #15](https://github.com/HerrStolzier/OpenDictate/pull/15) ist auf `main`
+(`a611f27`): Plan mit beantworteten Fragen, Hyprland-Daemon als Spike-Pfad,
+Pflichtpolitik für Phase 1, Tauri nur als spätere UI-Option.
 
 [PR #14](https://github.com/HerrStolzier/OpenDictate/pull/14) korrigiert die
 automatische Fensteröffnung beim Diktieren: Das Panel erscheint nur auf
@@ -45,11 +62,132 @@ früherer installierter Kandidaten gelten nicht als neue Laufzeitabnahme.
 | E: Integrationsfälle | Begrenzte erste Fallliste; Offline-Tests für verspätete Rückmeldungen, Abbruch und Quit mit kontrolliertem Aufnahme-/Transkriptionsablauf | Reale Fokuswechsel, Beenden/Abbruch, Gerätefehler und Safari-Fallback untersuchen |
 | F: Dokumentation | Einstieg verkürzt, Entwicklerverfahren ausgelagert, aktuelle Übergabe und Aufbewahrungsangaben präzisiert | Nach D/E über begrenzten Betatest entscheiden |
 
-Linux-Planung steht in [linux-build-plan.md](linux-build-plan.md) ([PR #15](https://github.com/HerrStolzier/OpenDictate/pull/15)).
-Der Phase-0-Spike liegt unter [`linux/`](../linux/README.md); Session-Nachweis:
-[linux-spike-2026-09-20.md](linux-spike-2026-09-20.md). Er nimmt Linux nicht in
-den Produktumfang auf und ändert die macOS-Pakete A–F sowie den nächsten
-Mac-Schritt nicht.
+Linux nimmt die macOS-Pakete A–F und den nächsten Mac-Schritt nicht als erledigt.
+`PROJECT.md` nennt Windows/Linux weiter als nicht festgelegt.
+
+## Linux-Fortsetzung (für nachfolgende Agents)
+
+Dies ist der Einstieg, wenn der Chatverlauf fehlt. Zuerst diese Datei, dann
+[linux-build-plan.md](linux-build-plan.md), [AGENTS.md](../AGENTS.md) und
+[linux/README.md](../linux/README.md). Checkout-Stand prüfen, bevor der Bericht
+unten als gegeben gilt.
+
+### Git
+
+| | |
+|---|---|
+| Aktiver Spike-Branch | `linux/phase-0-spike` |
+| PR | [#16](https://github.com/HerrStolzier/OpenDictate/pull/16) offen, mergebar, Swift-CI `test-and-build` grün |
+| Spike-Commit | `f7572a6` |
+| `main` | `a611f27` (Plan aus PR #15, **ohne** `linux/`-Crate) |
+| Nächster Git-Schritt | PR #16 mergen, wenn der Spike so gewollt ist; Phase 1 nicht in denselben PR zwängen, falls der Spike noch Review braucht |
+
+Lokales Release-Binary (nicht im Git): `linux/target/release/opendictate`.
+`linux/target/` ist gitignored. Rustc 1.98.1 liegt unter `~/.cargo` (rustup,
+nicht als Pacman-Paket).
+
+### Entschieden (nicht neu aufmachen)
+
+1. Erster Ship ist Clipboard-only; Recovery/State/authentifizierter Retry gehören
+   in Phase 1, nicht in eine spätere Politur.
+2. Zielsession: omarchy / Hyprland / Wayland / XDPH. Kein X11-Nachweis.
+3. UI-Minimum: Tray plus Panel auf Zuruf, erst nach Toggle/Mic/Keyring/Clipboard.
+   Panel öffnet nie von selbst während der Aufnahme.
+4. Core-Politik in Rust mit Tests nachziehen. Swift-`OpenDictateCore` auf Linux
+   ist ein Plus, kein Spike-Tor.
+5. Kein zweites Distro in v1.
+
+Tauri/Electron/Flutter sind nachrangig. `tauri-plugin-global-shortcut` auf
+Hyprland nicht als „grün“ werten. Hyprland-Bind `exec, opendictate toggle` ist
+der v1-Hotkey; XDPH GlobalShortcuts ist Phase-2-UX.
+
+### Was Phase 0 schon tut
+
+| Datei | Rolle |
+|---|---|
+| `linux/src/main.rs` | CLI: `toggle`, `status`, `copy-status`, `secrets *`, `record --daemon` |
+| `linux/src/record.rs` | cpal Default-Input → mono i16 WAV, 90 s Cap |
+| `linux/src/ipc.rs` | Unix-Socket `$XDG_RUNTIME_DIR/opendictate/spike.sock` |
+| `linux/src/keyring.rs` | `secret-tool`; Attribute `service=opendictate`, `key=api-key` / `recording-auth` / `spike-probe` |
+| `linux/src/clipboard.rs` | `wl-copy --type text/plain`, fail ohne `WAYLAND_DISPLAY` |
+| `linux/src/window.rs` | `hyprctl activewindow -j`: nur `address` und `class`, **kein Title** (Title kann Nutzertext sein) |
+| `linux/src/paths.rs` | XDG runtime/state, Verzeichnisse `0700` |
+| `linux/hyprland.conf.example` | Beispiel-Bind; **nicht** in `~/.config/hypr/` installiert |
+
+Aufnahmen: `$XDG_STATE_HOME/opendictate/spike/` (sonst `~/.local/state/...`),
+Dateien `0600`. Spike-Log: `$XDG_STATE_HOME/opendictate/spike.log` — nur
+Betriebsereignisse. Stopp kopiert `OpenDictate: Aufnahme gespeichert (N s).`,
+kein Transkript. `secrets set-api-key` nur stdin, bricht ab wenn stdin ein TTY ist.
+`OPENAI_API_KEY` / `OPENDICTATE_API_KEY` werden beim Worker-Spawn entfernt.
+
+Session 20. September 2026: Probe ok, `api-key` und `recording-auth` fehlten,
+Clipboard-Rundlauf ok, ~1,3 s WAV 116 648 Bytes, Fokus blieb `foot`. Test-WAV
+gelöscht. `secret-tool --help` endet mit Status 2 — Verfügbarkeit über `PATH`.
+
+### Absichtlich nicht tun
+
+- `PROJECT.md` Linux zum Produkt machen, ohne ausdrückliche Freigabe.
+- macOS-Pakete A–F oder Terminal-Abnahme als erledigt markieren.
+- Cargo/Node/WebKit in `.github/workflows/checks.yml` (macOS-15 Swift-Job).
+- API-Key als Argument, Env, Fixture, Log oder eingecheckte Datei.
+- Datei- oder Env-Fallback, wenn Secret Service fehlt.
+- OpenAI-Upload oder neues Mikrofon-/Provider-Budget ohne Eintrag in
+  [APPROVALS.md](../APPROVALS.md). Die Budgets vom 17. September (6+8) sind
+  **verbraucht**.
+- Automatisches Insert in Phase 1. Retry später nie `allowPaste: true`.
+- `Sources/OpenDictate*` für Linux verbiegen; Core bleibt Orakel, kein Link.
+- Hyprland-Config des Users ohne Auftrag ändern (siehe omarchy-Skill, falls doch).
+- Title-Felder aus `hyprctl` loggen. Sprachqualität aus einer Spike-WAV ableiten.
+
+### Nächster Linux-Schritt: Phase 1 (Clipboard-MVP)
+
+Plan-Done: manueller Durchstich **und** die Pflichtfälle. Zahlen nicht neu
+erfinden — aus dem Swift-Orakel übernehmen:
+
+| Politik | Quelle |
+|---|---|
+| State `idle/recording/processing/delivering`, kein zweiter Start wenn busy | `Sources/OpenDictateCore/DictationState.swift` |
+| Retention 5 Dateien / 24 h | `Sources/OpenDictateCore/RecordingRetention.swift` |
+| 1 s Skip / 90 s Cap, Silence −45 dB, Padding 0,25 s | `Sources/OpenDictate/Support/Config.swift` |
+| Nur nach erfolgreichem Copy löschen | `TranscriptDelivery.canRemoveRecoveryAudio` |
+| Retry kopiert nur | `DictationFlow.deliver(..., allowPaste: false)` |
+| Authentifizierte Bytes, Ablauf beim Zugriff | `Sources/OpenDictate/System/FailedRecordingStore.swift` |
+| Kein realtime-only-Modell | `TranscriptionModel.isUsableForUpload` |
+| HTTP-Form von `POST /v1/audio/transcriptions` | `Sources/OpenDictate/Transcription/OpenAITranscriber.swift` |
+
+Konkrete Bauarbeit, in dieser Reihenfolge:
+
+1. State in der CLI halten: Toggle während `processing` ignorieren; Cancel darf
+   die einzige WAV nicht löschen.
+2. `secrets init-auth` beim ersten echten Keep; Recovery-Kopie HMAC-authentifiziert
+   ablegen; Original behalten, wenn die Kopie scheitert.
+3. Nach Stop: zu kurz/zu still → behalten, **nicht** hochladen. Sonst Key aus
+   Secret Service, Upload, Transkript auf die Zwischenablage. Statustext des
+   Spikes ist dann falsch — Transkript ist die Delivery.
+4. Offline-Tests mit Stub-HTTP (kein Netz in `cargo test`). Live-Upload erst nach
+   neuer, begrenzter Freigabe (Anzahl, Sekunden, bekannter Testsatz).
+5. Tray/Panel und Settings (Key, Modell, Sprache) nur soweit nötig für den
+   Durchstich; Panel nicht ungefragt öffnen.
+6. `PROJECT.md` weiter nicht anfassen, bis Phase 1 wirklich existiert und jemand
+   den Produktumfang bewusst erweitert.
+
+Prüfen nach Linux-Source-Änderungen (nicht Swift-CI):
+
+```bash
+cargo test --manifest-path linux/Cargo.toml
+cargo build --release --manifest-path linux/Cargo.toml
+git diff --check
+```
+
+User-Status deutsch, technische Kommentare englisch. Kein Key/Transkript/Audio
+in Logs.
+
+### Nächster ausführbarer Linux-Git-Schritt
+
+PR #16 mergen (Spike isoliert) oder Phase-1 auf einem Folgebranch nach dem Merge.
+Die optionale Hyprland-Bindung bleibt Nutzersache:
+
+`bind = SUPER SHIFT, D, exec, <absoluter-pfad>/linux/target/release/opendictate toggle`
 
 ## Nächster ausführbarer Mac-Schritt
 
@@ -111,6 +249,7 @@ rechtfertigen keine allgemeine Erfolgsquote oder pauschale Programm-Unterstützu
 
 | Bericht | Aussage für seinen damaligen Kandidaten |
 |---|---|
+| [Linux-Spike 20. September](linux-spike-2026-09-20.md) | Phase-0-CLI auf omarchy/Hyprland: Keyring-Probe, Clipboard, WAV-Capture, Fokus blieb; kein Upload, kein Produktumfang |
 | [Zielabnahme 17. September](target-acceptance-2026-09-17.md) | Echte Auswahlersetzung in TextEdit, Safari und Obsidian mit erzeugter Referenzsprache; Safari-Fallback und tatsächlicher negativer Appwechsel offen |
 | [Roadmap 17. September](roadmap-acceptance-2026-09-17.md) | Brave-Langtextkorrektur, konkrete Mikrofon-/Providerfälle und 90-Sekunden-Stopp |
 | [Roadmap 16. September](roadmap-acceptance-2026-09-16.md) | Synthetische Feld-/Fokus-/Unicodeprüfungen, Recovery-Dateisystemfehler und Hotkey-Registrierung |
