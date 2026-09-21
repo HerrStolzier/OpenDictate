@@ -62,6 +62,20 @@ Documentation-only changes: run `git diff --check`, verify changed local links
 and review ownership, conflicting rules and evidence scope. Include new files
 in that review. Do not rerun app tests solely for prose changes.
 
+Linux spike changes (`linux/`): run these on a Linux host. They are not part of
+the macOS Swift CI workflow.
+
+```bash
+cargo test --manifest-path linux/Cargo.toml
+cargo build --release --manifest-path linux/Cargo.toml
+git diff --check
+```
+
+Do not add this crate to `.github/workflows/checks.yml`. Live microphone,
+Secret Service writes and Wayland clipboard checks are attended spike
+verification, not default tests. Never pass an API key as a command argument
+or environment variable.
+
 ## Meaning of checks
 
 - `swift test -Xswiftc -warnings-as-errors`: offline logic, lifecycle, HTTP stubs, recovery, logging and synthetic audio-file tests, with compiler warnings treated as failures. Optional benchmark and live API test are skipped by default.
