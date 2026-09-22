@@ -254,11 +254,12 @@ explicit Brave/Safari/Obsidian paths do not establish other browsers or Electron
 The new exception applies only to `com.apple.Terminal` and the conditions in
 [the compatibility matrix](docs/compatibility-matrix.md#apple-terminal).
 Ordinary editor targets still require settable `AXSelectedText`; Terminal uses
-Unicode events without replacing a display selection. Native Terminal acceptance
-is still open. Its actual focused AX role, window/field identity, reported
-selection range, tab behavior and acceptance of Unicode events must be observed
-on the identified installed candidate. The existing matrix fixture does not
-offer Terminal as a target. Offline success is not a Terminal runtime result.
+Unicode events without replacing a display selection. One native Terminal
+shell-line check passed on the installed `68ef919` candidate; see
+[the September 22 report](docs/terminal-focus-acceptance-2026-09-22.md).
+Selection, tab and negative-focus cases remain open. The existing matrix
+fixture does not offer Terminal as a target. Offline success is not a Terminal
+runtime result.
 
 For a separately authorized native dictation check:
 
