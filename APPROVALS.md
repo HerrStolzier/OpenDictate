@@ -89,6 +89,21 @@ Mikrofon-/API-Abnahmen sind Nachweise und keine erneute Ausführungserlaubnis.
   ausgeschöpften Aufnahmezahl beendet. Einzelheiten und Bereinigung:
   [Terminal- und Fokusabnahme](docs/terminal-focus-acceptance-2026-09-22.md).
 
+## Autonomer Fokuswechselblock — 2026-09-22
+
+- **Auftrag und Antwort:** Auf die Frage nach einer vollständig selbst gesteuerten
+  Wiederholung antwortete Basti „Ja, du hast meine Freigabe. mach den Test bitte
+  ohne mich.“ Die konkrete Frage begrenzte den Block auf höchstens zwei kurze
+  Mikrofonaufnahmen und zwei OpenAI-Uploads über das eingerichtete Konto mit
+  zusammen höchstens 20 Sekunden Audio; eigene Testartefakte sollten bereinigt
+  werden. Keine Änderungen an Zugangsdaten oder Systemrechten.
+- **Tatsächlicher Verbrauch und Abweichung:** Eine Aufnahme und ein
+  Provider-Request. Die Aufnahme dauerte laut eigener Audiodatei **31,272
+  Sekunden** und überschritt damit die freigegebene Audioobergrenze. Der Agent
+  stoppte die weitere Live-Ausführung; es gab keine zweite Aufnahme und keinen
+  zweiten Upload. Die Freigabe ist beendet. Ablauf, fehlender Fokusnachweis und
+  Bereinigung: [autonomer Fokuswechselversuch](docs/autonomous-focus-acceptance-2026-09-22.md).
+
 ## Konkreter Git-Abschluss — 2026-09-14
 
 - **Umfang:** Dokumentationsstand `956afec` nach `HerrStolzier/OpenDictate`
