@@ -25,6 +25,13 @@ Transkript unentschieden. Diese Nachweise gelten nur für ihre Zielzustände;
 weitere Feldtypen sowie Einrichtung/Abbruch bleiben offen. Alle bisherigen
 Mikrofon-Testblöcke sind verbraucht.
 
+Ein [autonomer Wiederholungsversuch](autonomous-focus-acceptance-2026-09-22.md)
+lieferte ebenfalls keinen negativen Fokusnachweis. Der Agent überschritt dabei
+die neu genehmigte Audio-Obergrenze von 20 Sekunden mit einer 31,272-Sekunden-
+Aufnahme. Er beendete den Live-Block nach einem Upload und bereinigte eigene
+Artefakte. Vor einem weiteren Live-Versuch muss eine Aufnahme-Obergrenze
+technisch erzwungen werden; die aktuelle Freigabe gilt nicht weiter.
+
 ## Aktuelle Änderung
 
 [PR #16](https://github.com/HerrStolzier/OpenDictate/pull/16) ist als `0ae6a49`
