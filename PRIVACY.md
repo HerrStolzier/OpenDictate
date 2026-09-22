@@ -130,16 +130,31 @@ API keys, transcript text, or audio contents. Logging is serialized and rotated 
 
 The most recent non-empty transcript is also held in memory until replaced, cleared from the menu or the app exits. No persistent text history is created. If a recovery-store write fails, the original temporary audio is deliberately not deleted and its path is shown in the error status. Historical crash leftovers are not swept automatically because they may contain the only surviving recording.
 
-## Linux spike (not product scope)
+## Linux Clipboard-MVP core (not product scope)
 
-The in-repo Linux Phase-0 CLI is not the macOS product and does not upload
-audio. On an explicit toggle it records the default PipeWire/Pulse input into
-`$XDG_STATE_HOME/opendictate/spike/` (typically `~/.local/state/opendictate/spike/`)
-as a WAV with owner-only mode. Stopping copies a German status line to the
-Wayland clipboard (`wl-copy`); that line is not a transcript. Secret Service
-items use attributes `service=opendictate` and `key=api-key` or
-`recording-auth`. The API key is accepted only on stdin. A probe item is written,
-read and deleted to test the service. There is no file, environment or argument
-fallback. The spike log under `$XDG_STATE_HOME/opendictate/spike.log` records
-operational events (start/save/clipboard failure, captured window class) and
-must not contain keys, clipboard text or audio.
+The in-repo Linux CLI is not yet the macOS product or a published Linux product.
+On an explicit toggle it records the default PipeWire/Pulse input as an
+owner-only WAV. Recordings below one second or without a 50-ms window above
+−45 dBFS are not uploaded. Other recordings are sent over HTTPS to OpenAI's
+`/v1/audio/transcriptions` endpoint with the selected model and optional
+language. The returned transcript is written to the Wayland clipboard
+(`wl-copy`); there is no automatic target-app insertion.
+
+Secret Service items use attributes `service=opendictate` and `key=api-key` or
+`recording-auth`. The API key is accepted only on stdin. A probe item can be
+written, read and deleted to test the service. There is no file, environment or
+argument fallback. Settings contain only model and language and are stored under
+`$XDG_CONFIG_HOME/opendictate/`.
+
+Pending and recovery audio live under `$XDG_STATE_HOME/opendictate/` (typically
+`~/.local/state/opendictate/`). Directories use owner-only mode. A recovery copy
+is authenticated with HMAC-SHA256 using a device-local Secret Service value and
+binds the file name, creation time and exact bytes. Retry uploads only bytes that
+authenticate at access time. Managed authenticated recovery is limited to five
+files and 24 hours; unknown or modified files are not uploaded automatically.
+Audio is removed only after a non-empty transcript reaches the clipboard.
+
+The operations log under `$XDG_STATE_HOME/opendictate/operations.log` records
+bounded events, durations and the captured window class. It must not contain API
+keys, transcript text, window titles or audio contents. The Phase-1 core has
+offline loopback HTTP evidence only; no live Linux provider request is claimed.
