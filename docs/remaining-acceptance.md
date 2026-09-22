@@ -10,6 +10,17 @@ Zwei parallele Arbeitspfade: **macOS-Produktabnahme** (unverändert offen) und
 **Linux Phase 1** (Kern in `main`, noch nicht in `PROJECT.md`). Linux markiert
 macOS nicht als erledigt.
 
+## Neuer macOS-Nachweis vom 22. September
+
+Die installierte Revision `68ef919` fügte nach gezielter Erneuerung ihrer
+Bedienungshilfen-Freigabe in einem echten Durchlauf mit physischem Kürzel,
+Mikrofon und Provider sichtbaren Text in ein zuvor leeres TextEdit-Dokument ein.
+Kandidat, Ursache der früheren Fehlschläge, Eingriff, Evidenz und Bereinigung
+stehen in der [installierten TextEdit-Abnahme vom 22. September](live-acceptance-2026-09-22.md).
+Das belegt diesen einen Zielprogrammfall; Terminal, reale negative Fokuswechsel,
+weitere Feldtypen und Einrichtung/Abbruch bleiben offen. Die früheren
+Mikrofon-/Upload-Budgets sind verbraucht.
+
 ## Aktuelle Änderung
 
 [PR #16](https://github.com/HerrStolzier/OpenDictate/pull/16) ist als `0ae6a49`
@@ -58,10 +69,10 @@ früherer installierter Kandidaten gelten nicht als neue Laufzeitabnahme.
 
 | Paket | Quellcode / Vorbereitung | Weiter benötigter Nachweis |
 |---|---|---|
-| A: Texteingabe und Bedienung | Manuell geöffnetes Panel, früh erfasstes Ziel, sichtbare Buildidentität; begrenzter Apple-Terminal-Pfad und klare Rückmeldungen bei unbestätigter oder unterbrochener Übergabe | Geschlossenes Panel beim Hotkey-Diktat, sichtbare Terminaleingabe und Unterbrechung im tatsächlichen Zielprogramm auf dem neuen Kandidaten |
+| A: Texteingabe und Bedienung | Manuell geöffnetes Panel, früh erfasstes Ziel, sichtbare Buildidentität; physisches Hotkey-Diktat mit sichtbarer TextEdit-Einfügung auf `68ef919`; begrenzter Apple-Terminal-Pfad und klare Rückmeldungen bei unbestätigter oder unterbrochener Übergabe | Geschlossenes Panel beim Hotkey-Diktat, sichtbare Terminaleingabe und Unterbrechung im tatsächlichen Zielprogramm auf dem neuen Kandidaten |
 | B: CI und Archive | Strikter Formatter, Compilerwarnungen als Fehler, Plattformprotokoll, sechs Shellprüfungen; sieben kontrollierte Bundle-Fälle; Archiv nach Entpacken erneut überprüft, mit Revision und Prüfsummen | Ergebnisse und Artefakt des exakten Workflow-Laufs; echte Installation und macOS-14-Laufzeitabnahme bleiben offen |
 | C: Einrichtung und Beenden | Vorgangsgebundene Rückmeldungen für Start, Retry und Einrichtung; Abbruch und Quit gegen verschachtelte Aktionen geschützt; verlustarme Keychain-Migration mit explizitem Hinweis bei unvollständiger Altbereinigung | Frische Einrichtung, verzögerte Berechtigungen, tatsächliche Keychain-Zugriffsrichtlinie und Beenden während Aufnahme/Upload auf einem Mac |
-| D: Menschlicher Pilot | Zwölf begrenzte Fälle und Messgrößen vorbereitet | Tatsächlich gesprochene Diktate und physisches Tastenkürzel; noch keine neuen Messwerte |
+| D: Menschlicher Pilot | Zwölf begrenzte Fälle und Messgrößen vorbereitet; ein menschlich gesprochener TextEdit-Durchlauf mit physischem Kürzel bestanden | Weitere tatsächlich gesprochene Diktate und Auswertung der Pilot-Messgrößen |
 | E: Integrationsfälle | Begrenzte erste Fallliste; Offline-Tests für verspätete Rückmeldungen, Abbruch und Quit mit kontrolliertem Aufnahme-/Transkriptionsablauf | Reale Fokuswechsel, Beenden/Abbruch, Gerätefehler und Safari-Fallback untersuchen |
 | F: Dokumentation | Einstieg verkürzt, Entwicklerverfahren ausgelagert, aktuelle Übergabe und Aufbewahrungsangaben präzisiert | Nach D/E über begrenzten Betatest entscheiden |
 
