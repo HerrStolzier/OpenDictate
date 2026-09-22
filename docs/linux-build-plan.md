@@ -1,7 +1,7 @@
 # Linux-App-Plan (OpenDictate)
 
 Stand: 22. September 2026. Phase 0 ist über PR #16 in `main`; der Phase-1-Kern
-liegt auf `codex/linux-phase-1`. Er implementiert den offline geprüften
+ist über PR #17 als `83c944f` in `main`. Er implementiert den offline geprüften
 Clipboard-MVP-Pfad, ist aber ohne Live-Upload, Tray und physischen Hotkey noch
 nicht als Phase 1 abgenommen. macOS-CI bleibt unverändert. Aktuelle Übergabe:
 [remaining-acceptance.md](remaining-acceptance.md).
