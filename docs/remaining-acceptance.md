@@ -17,9 +17,13 @@ Bedienungshilfen-Freigabe in einem echten Durchlauf mit physischem Kürzel,
 Mikrofon und Provider sichtbaren Text in ein zuvor leeres TextEdit-Dokument ein.
 Kandidat, Ursache der früheren Fehlschläge, Eingriff, Evidenz und Bereinigung
 stehen in der [installierten TextEdit-Abnahme vom 22. September](live-acceptance-2026-09-22.md).
-Das belegt diesen einen Zielprogrammfall; Terminal, reale negative Fokuswechsel,
-weitere Feldtypen und Einrichtung/Abbruch bleiben offen. Die früheren
-Mikrofon-/Upload-Budgets sind verbraucht.
+Ein weiterer [enger Terminal-Durchlauf](terminal-focus-acceptance-2026-09-22.md)
+fügte per physischem Kürzel und echtem Provider-Request sichtbaren Text in eine
+leere Shellzeile ein, ohne Return oder Befehlsausführung. Der danach versuchte
+reale negative Fokusfall blieb wegen eines 31-Sekunden-Requestfehlers ohne
+Transkript unentschieden. Diese Nachweise gelten nur für ihre Zielzustände;
+weitere Feldtypen sowie Einrichtung/Abbruch bleiben offen. Alle bisherigen
+Mikrofon-Testblöcke sind verbraucht.
 
 ## Aktuelle Änderung
 
@@ -69,7 +73,7 @@ früherer installierter Kandidaten gelten nicht als neue Laufzeitabnahme.
 
 | Paket | Quellcode / Vorbereitung | Weiter benötigter Nachweis |
 |---|---|---|
-| A: Texteingabe und Bedienung | Manuell geöffnetes Panel, früh erfasstes Ziel, sichtbare Buildidentität; physisches Hotkey-Diktat mit sichtbarer TextEdit-Einfügung auf `68ef919`; begrenzter Apple-Terminal-Pfad und klare Rückmeldungen bei unbestätigter oder unterbrochener Übergabe | Geschlossenes Panel beim Hotkey-Diktat, sichtbare Terminaleingabe und Unterbrechung im tatsächlichen Zielprogramm auf dem neuen Kandidaten |
+| A: Texteingabe und Bedienung | Manuell geöffnetes Panel, früh erfasstes Ziel, sichtbare Buildidentität; physisches Hotkey-Diktat mit sichtbarer TextEdit-Einfügung und enger Apple-Terminal-Eingabe auf `68ef919`; klare Rückmeldungen bei unbestätigter oder unterbrochener Übergabe | Geschlossenes Panel beim Hotkey-Diktat, Terminal-Auswahl-/Tabfälle und Unterbrechung im tatsächlichen Zielprogramm |
 | B: CI und Archive | Strikter Formatter, Compilerwarnungen als Fehler, Plattformprotokoll, sechs Shellprüfungen; sieben kontrollierte Bundle-Fälle; Archiv nach Entpacken erneut überprüft, mit Revision und Prüfsummen | Ergebnisse und Artefakt des exakten Workflow-Laufs; echte Installation und macOS-14-Laufzeitabnahme bleiben offen |
 | C: Einrichtung und Beenden | Vorgangsgebundene Rückmeldungen für Start, Retry und Einrichtung; Abbruch und Quit gegen verschachtelte Aktionen geschützt; verlustarme Keychain-Migration mit explizitem Hinweis bei unvollständiger Altbereinigung | Frische Einrichtung, verzögerte Berechtigungen, tatsächliche Keychain-Zugriffsrichtlinie und Beenden während Aufnahme/Upload auf einem Mac |
 | D: Menschlicher Pilot | Zwölf begrenzte Fälle und Messgrößen vorbereitet; ein menschlich gesprochener TextEdit-Durchlauf mit physischem Kürzel bestanden | Weitere tatsächlich gesprochene Diktate und Auswertung der Pilot-Messgrößen |

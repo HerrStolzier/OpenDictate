@@ -72,6 +72,23 @@ Mikrofon-/API-Abnahmen sind Nachweise und keine erneute Ausführungserlaubnis.
   die gemessenen 68,75 Prozent zurückgestellt. Ergebnisse, Bereinigung und
   verbleibende Nachweisgrenzen: [ergänzende Zielabnahme](docs/target-acceptance-2026-09-17.md).
 
+## Begrenzter Terminal- und Fokusblock — 2026-09-22
+
+- **Auftrag und Antwort:** Basti setzte die macOS-Abnahme mit „Okay, dann mach
+  damit weiter“ fort und bestätigte anschließend die konkrete Frage mit „Ja,
+  diesen begrenzten Live-Testblock freigeben“.
+- **Freigabe:** Höchstens drei kurze Mikrofonaufnahmen und drei OpenAI-Uploads
+  über das bereits eingerichtete Konto, zusammen höchstens 45 Sekunden Audio.
+  Ziel: sichtbare Eingabe in einem eigenen Apple-Terminal-Fenster und ein
+  Fokuswechsel nach dem Stoppen; der dritte Lauf durfte einen gezielten
+  Fehlversuch abdecken. Keine Änderung von Zugangsdaten oder Systemrechten.
+- **Verbrauch:** Drei Aufnahmen, zwei Provider-Request-Versuche. Der erste Lauf
+  war zu leise und wurde ohne Upload übersprungen; der zweite Request war
+  erfolgreich, der dritte endete nach 31 Sekunden ohne Transkript. Die
+  Audio-Gesamtdauer wurde nicht instrumentiert. Dieser Block ist wegen der
+  ausgeschöpften Aufnahmezahl beendet. Einzelheiten und Bereinigung:
+  [Terminal- und Fokusabnahme](docs/terminal-focus-acceptance-2026-09-22.md).
+
 ## Konkreter Git-Abschluss — 2026-09-14
 
 - **Umfang:** Dokumentationsstand `956afec` nach `HerrStolzier/OpenDictate`

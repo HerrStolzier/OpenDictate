@@ -1,13 +1,16 @@
 # Kompatibilitätsmatrix für Texteingabe und Fokus
 
-Stand: 2026-09-17. Diese Matrix ist der aktuelle produktweite Abnahmeplan für
+Stand: 2026-09-22. Diese Matrix ist der aktuelle produktweite Abnahmeplan für
 die Textübergabe. Programme dienen als repräsentative Beispiele ihrer Kategorie;
 ein bestandener Lauf ist kein Versprechen für alle Programme derselben Kategorie.
 Datierte Berichte bleiben die Quelle für den jeweils tatsächlich geprüften Kandidaten.
 
-Die neueste [Zielabnahme](target-acceptance-2026-09-17.md) ergänzt echte
-Auswahlersetzung in TextEdit, Safari und Obsidian; der negative reale Appwechsel
-bleibt unbelegt. Die vorausgehende synthetische und reale Abnahme steht im
+Die [Terminal- und Fokusabnahme vom 22. September](terminal-focus-acceptance-2026-09-22.md)
+belegt die sichtbare Eingabe in einer leeren Apple-Terminal-Shellzeile; der
+beabsichtigte negative Fokusfall blieb wegen eines Providerfehlers unentschieden.
+Die [Zielabnahme vom 17. September](target-acceptance-2026-09-17.md) ergänzt echte
+Auswahlersetzung in TextEdit, Safari und Obsidian. Die vorausgehende synthetische
+und reale Abnahme steht im
 [Bericht vom 17. September](roadmap-acceptance-2026-09-17.md). Sie ergänzt den
 [Ausgangsstand vom 16. September](roadmap-acceptance-2026-09-16.md), dessen
 Feldnachweise in der folgenden Tabelle historisch zusammengefasst sind.
@@ -15,8 +18,10 @@ Die jeweiligen Einzelfälle belegen keine vollständige Kategorie oder Phasenmat
 
 Die Stabilisierung in [PR #12](https://github.com/HerrStolzier/OpenDictate/pull/12)
 ändert Rückmeldungen zu versuchter/unterbrochener Texteingabe und die Einrichtung.
-Für diesen neuen Quellcodestand liegen noch keine neuen sichtbaren Mac-Abnahmen
-vor. Eine begrenzte erste Runde und ein früher menschlicher Pilot sind in den
+Auf dem installierten Kandidaten `68ef919` wurden inzwischen die
+[TextEdit-Einfügung](live-acceptance-2026-09-22.md) und der oben genannte enge
+Terminal-Fall sichtbar geprüft. Eine begrenzte erste Runde und ein früher
+menschlicher Pilot sind in den
 [vorbereiteten Fällen](audio-quality-fixtures.md#prepared-first-human-pilot)
 beschrieben. Die historische Tabelle unten bleibt auf die dortigen Kandidaten
 begrenzt; diese Vorbereitung erweitert ihre Nachweise nicht.
@@ -30,7 +35,7 @@ begrenzt; diese Vorbereitung erweitert ihre Nachweise nicht.
 | Browser, Rich-Text | lokale Testseite; historische Proton-Abnahme | `contenteditable`, Auswahl und mehrzeiliger Inhalt | Echte Auswahlersetzung in Safari und Brave bestanden; Unicode-/Mehrzeilenfälle zusätzlich synthetisch. Echte Proton-Bestätigung gilt dem älteren Kandidaten. |
 | Browser, eingebetteter Editor | lokale kontrollierte Testseite | editierbares Feld in einem `iframe` | Echte Auswahlersetzung in Safari und Brave bestanden; synthetisch auch Unicode/Umfeld geprüft. |
 | Electron-App | Obsidian 1.13.7, temporärer separater Vault | Editorfeld | Neue echte Auswahlersetzung in Obsidian CodeMirror mit erhaltenem Anfang/Ende bestanden. Anfang/Mitte/Ende und Unicode zusätzlich synthetisch belegt. Keine Zusage für andere Electron-Apps. |
-| Apple Terminal, enger Unicode-Pfad | macOS Terminal (`com.apple.Terminal`) | Fokussierte `AXTextArea` ohne erfassten `AXWebArea`-Vorfahren; keine nichtleere Display-Auswahl | Implementierung und zwölf neue Offline-Testfälle vorhanden. Tatsächliche AX-Struktur, Unicode-Eventannahme und native Fokus-/Tabfälle noch offen; kein neuer Terminal-Laufzeitnachweis. Keine Zusage für iTerm2 oder Editor-Terminals. |
+| Apple Terminal, enger Unicode-Pfad | macOS Terminal (`com.apple.Terminal`) | Fokussierte `AXTextArea` ohne erfassten `AXWebArea`-Vorfahren; keine nichtleere Display-Auswahl | Ein echter Hotkey-/Mikrofon-/Provider-Lauf fügte eine harmlose Zeile sichtbar und ohne Return ein; AX-Ziel und leere Auswahl geprüft. Tabs, Auswahl und Fokuswechsel bleiben offen. Keine Zusage für iTerm2 oder Editor-Terminals. |
 | Geschütztes oder nicht unterstütztes Feld | native und Brave-Testfelder | Passwortfeld, schreibgeschütztes Feld | Sichtbar abgelehnt, Felder unverändert; vollständiger Text im manuellen Panel und auf isolierter Testzwischenablage. Fehlende Berechtigung zusätzlich offline geprüft, kein TCC-Eingriff. |
 
 ## Gemeinsame Szenarien
@@ -101,16 +106,12 @@ abgelehnt. Das ist keine Erkennung eines Shell-Prompts oder laufenden Programms:
 Auch gewöhnliche Zeichen können in interaktiven Programmen Aktionen auslösen.
 Gesendete Events bestätigen noch keine sichtbare Eingabe.
 
-Die neue native Abnahme bleibt offen und führt **keine Befehle aus**. In einem
-eigens vorbereiteten lokalen Terminal-Fenster an einer bekannten leeren
-Eingabezeile nur einen unkritischen einzeiligen Text wie „OpenDictate Probe
-Apfel 42“ verwenden; keine Return-Taste drücken und den Text nicht absenden.
-Zuerst Kandidat/Version und die tatsächliche AX-Zielstruktur feststellen, danach
-sichtbare Eingabe und verlustfreien Rückweg prüfen. Eine Kontrollprobe in einem
-neuen TextEdit-Dokument kann den allgemeinen Diktierweg eingrenzen, belegt aber
-keine Terminal-Unterstützung. Den begrenzten Ablauf und seine Voraussetzungen
-beschreibt [CHECKS](../CHECKS.md#apple-terminal). Die bisherige Matrix-Fixture hat
-Apple Terminal nicht als auswählbares Ziel; sie ist kein fertiger Terminal-Test.
+Der [echte Ein-Zeilen-Lauf](terminal-focus-acceptance-2026-09-22.md) prüfte
+Kandidat, fokussierte `AXTextArea`, leere Auswahl und sichtbare Eingabe ohne
+Return. Er führte **keinen Befehl aus**. Weitere Terminal-Fälle wie Tabs,
+markierter Text und verlustfreier Rückweg bleiben offen. Dafür gilt weiterhin
+der begrenzte Ablauf in [CHECKS](../CHECKS.md#apple-terminal); die bisherige
+Matrix-Fixture bietet Apple Terminal nicht als Ziel an.
 
 ## Abnahmekriterium je Zelle
 
