@@ -6,6 +6,10 @@ use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use hound::{SampleFormat, WavSpec, WavWriter};
 
 pub const MAX_RECORDING: Duration = Duration::from_secs(90);
+pub const MINIMUM_RECORDING: Duration = Duration::from_secs(1);
+pub const SILENCE_THRESHOLD_DB: f64 = -45.0;
+pub const SILENCE_PADDING: Duration = Duration::from_millis(250);
+const MINIMUM_TRIM_SAVING: Duration = Duration::from_millis(350);
 
 struct Capture {
     writer: Option<WavWriter<std::io::BufWriter<std::fs::File>>>,
@@ -24,6 +28,112 @@ pub struct RecordingHandle {
     capture: Arc<Mutex<Capture>>,
     path: PathBuf,
     sample_rate: u32,
+}
+
+#[derive(Debug)]
+pub struct PreparedAudio {
+    path: PathBuf,
+    temporary: bool,
+}
+
+impl PreparedAudio {
+    pub fn path(&self) -> &Path {
+        &self.path
+    }
+}
+
+impl Drop for PreparedAudio {
+    fn drop(&mut self) {
+        if self.temporary {
+            let _ = std::fs::remove_file(&self.path);
+        }
+    }
+}
+
+pub fn prepare_for_upload(path: &Path) -> Result<PreparedAudio, String> {
+    let mut reader = hound::WavReader::open(path)
+        .map_err(|_| "Aufnahme konnte nicht analysiert werden.".to_string())?;
+    let spec = reader.spec();
+    if spec.sample_format != SampleFormat::Int || spec.bits_per_sample != 16 || spec.channels == 0 {
+        return Err("Aufnahmeformat wird nicht unterstützt.".to_string());
+    }
+    let samples = reader
+        .samples::<i16>()
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|_| "Aufnahme konnte nicht analysiert werden.".to_string())?;
+    let channels = usize::from(spec.channels);
+    let total_frames = samples.len() / channels;
+    let duration = Duration::from_secs_f64(total_frames as f64 / f64::from(spec.sample_rate));
+    if duration < MINIMUM_RECORDING {
+        return Err(
+            "Aufnahme ist kürzer als 1,0 Sekunden und wurde nicht hochgeladen.".to_string(),
+        );
+    }
+    let window_frames = ((f64::from(spec.sample_rate) * 0.05).round() as usize).max(1);
+    let mut first_speech = None;
+    let mut last_speech = None;
+    for start in (0..total_frames).step_by(window_frames) {
+        let end = (start + window_frames).min(total_frames);
+        let mut sum_squares = 0.0f64;
+        let mut count = 0usize;
+        for sample in &samples[start * channels..end * channels] {
+            let normalized = f64::from(*sample) / 32768.0;
+            sum_squares += normalized * normalized;
+            count += 1;
+        }
+        let rms = if count == 0 {
+            0.0
+        } else {
+            (sum_squares / count as f64).sqrt()
+        };
+        let db = 20.0 * rms.max(0.000_000_1).log10();
+        if db >= SILENCE_THRESHOLD_DB {
+            first_speech.get_or_insert(start);
+            last_speech = Some(end);
+        }
+    }
+    let (first_speech, last_speech) = first_speech
+        .zip(last_speech)
+        .ok_or_else(|| "Keine Sprache erkannt; Aufnahme wurde nicht hochgeladen.".to_string())?;
+    let padding_frames = (SILENCE_PADDING.as_secs_f64() * f64::from(spec.sample_rate)) as usize;
+    let start_frame = first_speech.saturating_sub(padding_frames);
+    let end_frame = (last_speech + padding_frames).min(total_frames);
+    let upload_frames = end_frame.saturating_sub(start_frame);
+    let upload_duration =
+        Duration::from_secs_f64(upload_frames as f64 / f64::from(spec.sample_rate));
+    if upload_duration < MINIMUM_RECORDING {
+        return Err(
+            "Sprachabschnitt ist kürzer als 1,0 Sekunden und wurde nicht hochgeladen.".to_string(),
+        );
+    }
+    let saving = duration.saturating_sub(upload_duration);
+    if saving < MINIMUM_TRIM_SAVING {
+        return Ok(PreparedAudio {
+            path: path.to_path_buf(),
+            temporary: false,
+        });
+    }
+    let output = path.with_extension("upload.wav");
+    let write_result = (|| {
+        let mut writer = WavWriter::create(&output, spec)
+            .map_err(|_| "Vorbereitete Aufnahme konnte nicht gespeichert werden.".to_string())?;
+        for sample in &samples[start_frame * channels..end_frame * channels] {
+            writer.write_sample(*sample).map_err(|_| {
+                "Vorbereitete Aufnahme konnte nicht gespeichert werden.".to_string()
+            })?;
+        }
+        writer
+            .finalize()
+            .map_err(|_| "Vorbereitete Aufnahme konnte nicht gespeichert werden.".to_string())
+    })();
+    if let Err(error) = write_result {
+        let _ = std::fs::remove_file(&output);
+        return Err(error);
+    }
+    Ok(PreparedAudio {
+        path: output,
+        temporary: true,
+    })
 }
 
 pub fn start(path: &Path) -> Result<RecordingHandle, String> {
@@ -240,5 +350,50 @@ mod tests {
     #[test]
     fn max_recording_matches_macos_cap() {
         assert_eq!(MAX_RECORDING, Duration::from_secs(90));
+    }
+
+    #[test]
+    fn short_and_silent_recordings_are_not_uploadable() {
+        let short =
+            std::env::temp_dir().join(format!("opendictate-short-{}.wav", std::process::id()));
+        write_silence_fixture(&short, 16_000, 8_000).unwrap();
+        assert!(prepare_for_upload(&short).unwrap_err().contains("kürzer"));
+        let silent =
+            std::env::temp_dir().join(format!("opendictate-silent-{}.wav", std::process::id()));
+        write_silence_fixture(&silent, 16_000, 32_000).unwrap();
+        assert!(prepare_for_upload(&silent)
+            .unwrap_err()
+            .contains("Keine Sprache"));
+        let _ = std::fs::remove_file(short);
+        let _ = std::fs::remove_file(silent);
+    }
+
+    #[test]
+    fn speech_is_padded_and_trimmed_when_saving_is_material() {
+        let path =
+            std::env::temp_dir().join(format!("opendictate-speech-{}.wav", std::process::id()));
+        let spec = WavSpec {
+            channels: 1,
+            sample_rate: 16_000,
+            bits_per_sample: 16,
+            sample_format: SampleFormat::Int,
+        };
+        let mut writer = WavWriter::create(&path, spec).unwrap();
+        for frame in 0..48_000 {
+            let sample = if (16_000..32_000).contains(&frame) {
+                8_000i16
+            } else {
+                0i16
+            };
+            writer.write_sample(sample).unwrap();
+        }
+        writer.finalize().unwrap();
+        let prepared = prepare_for_upload(&path).unwrap();
+        assert_ne!(prepared.path(), path);
+        let reader = hound::WavReader::open(prepared.path()).unwrap();
+        assert_eq!(reader.duration(), 24_000);
+        drop(prepared);
+        assert!(!path.with_extension("upload.wav").exists());
+        let _ = std::fs::remove_file(path);
     }
 }

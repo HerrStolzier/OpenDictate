@@ -30,7 +30,7 @@ fn parse_active_window(json: &str) -> Option<TargetWindow> {
 fn json_string_field(json: &str, field: &str) -> Option<String> {
     let needle = format!("\"{field}\"");
     let rest = json.split(&needle).nth(1)?;
-    let rest = rest.trim_start_matches(|c: char| c == ' ' || c == ':');
+    let rest = rest.trim_start_matches([' ', ':']);
     let rest = rest.trim_start();
     if !rest.starts_with('"') {
         return None;

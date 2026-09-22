@@ -1,24 +1,26 @@
 # Aktueller Stand und verbleibende Abnahme
 
-Stand: 20. September 2026. Dies ist die einzige aktuelle Übergabedatei.
+Stand: 22. September 2026. Dies ist die einzige aktuelle Übergabedatei.
 Produktziel: [PROJECT.md](../PROJECT.md); Regeln: [AGENTS.md](../AGENTS.md);
 Prüfverfahren: [CHECKS.md](../CHECKS.md); belegte frühere Testbudgets:
 [APPROVALS.md](../APPROVALS.md). Linux-Plan:
 [linux-build-plan.md](linux-build-plan.md).
 
 Zwei parallele Arbeitspfade: **macOS-Produktabnahme** (unverändert offen) und
-**Linux Phase 0→1** (Spike-Code, noch nicht in `PROJECT.md`). Linux markiert
+**Linux Phase 1** (Kern auf `codex/linux-phase-1`, noch nicht in `PROJECT.md`). Linux markiert
 macOS nicht als erledigt.
 
 ## Aktuelle Änderung
 
-[PR #16](https://github.com/HerrStolzier/OpenDictate/pull/16) (`linux/phase-0-spike`,
-Kopf `f7572a6`, Swift-CI grün, noch nicht gemerged) legt den Phase-0-Spike unter
-[`linux/`](../linux/README.md) an: Rust-CLI `opendictate toggle` nimmt ohne Fenster
-über cpal/PipeWire auf, spricht gnome-keyring nur über `secret-tool` (fail-closed,
-kein Env-/Datei-Fallback) und schreibt einen Statustext mit `wl-copy`. Kein Upload,
-kein Tray, kein Auto-Insert, kein Eintrag in `.github/workflows/checks.yml`.
-Session-Nachweis: [linux-spike-2026-09-20.md](linux-spike-2026-09-20.md).
+[PR #16](https://github.com/HerrStolzier/OpenDictate/pull/16) ist als `0ae6a49`
+in `main` gemergt. Darauf baut `codex/linux-phase-1` den offline geprüften
+Clipboard-MVP-Kern: Zustandsmaschine, Audio-Prüfung/Trim, HTTPS-Multipart-Client,
+Wayland-Clipboard, HMAC-Recovery, authentifizierter Retry, 5-Dateien/24-Stunden-
+Retention sowie CLI-Einstellungen für Modell und Sprache. 25 Rust-Tests,
+Formatter, Clippy mit `-D warnings` und Release-Build bestanden auf omarchy.
+Es gab keinen Live-Upload, keinen API-Key-Zugriff und keinen Mikrofontest dieses
+Kandidaten. Technischer Nachweis:
+[Linux Phase-1-Kern vom 22. September](linux-phase1-core-2026-09-22.md).
 
 [PR #15](https://github.com/HerrStolzier/OpenDictate/pull/15) ist auf `main`
 (`a611f27`): Plan mit beantworteten Fragen, Hyprland-Daemon als Spike-Pfad,
@@ -76,11 +78,11 @@ unten als gegeben gilt.
 
 | | |
 |---|---|
-| Aktiver Spike-Branch | `linux/phase-0-spike` |
-| PR | [#16](https://github.com/HerrStolzier/OpenDictate/pull/16) offen, mergebar, Swift-CI `test-and-build` grün |
+| Aktiver Arbeitsbranch | `codex/linux-phase-1` |
+| Phase 0 | [PR #16](https://github.com/HerrStolzier/OpenDictate/pull/16) als `0ae6a49` gemergt; Swift-CI grün |
 | Spike-Commit | `f7572a6` |
-| `main` | `a611f27` (Plan aus PR #15, **ohne** `linux/`-Crate) |
-| Nächster Git-Schritt | PR #16 mergen, wenn der Spike so gewollt ist; Phase 1 nicht in denselben PR zwängen, falls der Spike noch Review braucht |
+| `main` | `0ae6a49` mit Phase-0-Crate |
+| Nächster Git-Schritt | Phase-1-Kern als eigenen geprüften Commit/PR abschließen; Live-Abnahme nicht in den Code-Commit vortäuschen |
 
 Lokales Release-Binary (nicht im Git): `linux/target/release/opendictate`.
 `linux/target/` ist gitignored. Rustc 1.98.1 liegt unter `~/.cargo` (rustup,
@@ -101,23 +103,26 @@ Tauri/Electron/Flutter sind nachrangig. `tauri-plugin-global-shortcut` auf
 Hyprland nicht als „grün“ werten. Hyprland-Bind `exec, opendictate toggle` ist
 der v1-Hotkey; XDPH GlobalShortcuts ist Phase-2-UX.
 
-### Was Phase 0 schon tut
+### Aktueller Linux-Code
 
 | Datei | Rolle |
 |---|---|
-| `linux/src/main.rs` | CLI: `toggle`, `status`, `copy-status`, `secrets *`, `record --daemon` |
-| `linux/src/record.rs` | cpal Default-Input → mono i16 WAV, 90 s Cap |
-| `linux/src/ipc.rs` | Unix-Socket `$XDG_RUNTIME_DIR/opendictate/spike.sock` |
+| `linux/src/main.rs` | CLI: Toggle, Status, Cancel, Retry, Settings, Secrets und Worker-Ablauf |
+| `linux/src/record.rs` | cpal-Aufnahme, 1/90-s-Grenzen, −45-dB-Analyse, Padding und WAV-Trim |
+| `linux/src/ipc.rs`, `state.rs` | Exklusiver Unix-Socket, vier Zustände und Abbruchmarker |
 | `linux/src/keyring.rs` | `secret-tool`; Attribute `service=opendictate`, `key=api-key` / `recording-auth` / `spike-probe` |
 | `linux/src/clipboard.rs` | `wl-copy --type text/plain`, fail ohne `WAYLAND_DISPLAY` |
+| `linux/src/transcribe.rs` | HTTPS-Multipart-Upload und begrenzte Fehlerdekodierung; Offline-Stubtests |
+| `linux/src/recovery.rs` | HMAC-SHA256, exakte authentifizierte Bytes, fünf Dateien/24 Stunden |
+| `linux/src/settings.rs` | Owner-only Modell-/Sprachkonfiguration, kein Secret |
 | `linux/src/window.rs` | `hyprctl activewindow -j`: nur `address` und `class`, **kein Title** (Title kann Nutzertext sein) |
-| `linux/src/paths.rs` | XDG runtime/state, Verzeichnisse `0700` |
+| `linux/src/paths.rs` | XDG runtime/state/config, echte Verzeichnisse `0700` |
 | `linux/hyprland.conf.example` | Beispiel-Bind; **nicht** in `~/.config/hypr/` installiert |
 
-Aufnahmen: `$XDG_STATE_HOME/opendictate/spike/` (sonst `~/.local/state/...`),
-Dateien `0600`. Spike-Log: `$XDG_STATE_HOME/opendictate/spike.log` — nur
-Betriebsereignisse. Stopp kopiert `OpenDictate: Aufnahme gespeichert (N s).`,
-kein Transkript. `secrets set-api-key` nur stdin, bricht ab wenn stdin ein TTY ist.
+Pending/Recovery: `$XDG_STATE_HOME/opendictate/` (sonst `~/.local/state/...`),
+Dateien `0600`. Operations-Log: `$XDG_STATE_HOME/opendictate/operations.log` —
+nur Betriebsereignisse. Nach erfolgreichem Upload ist das Transkript die
+Clipboard-Delivery. `secrets set-api-key` nur stdin, bricht ab wenn stdin ein TTY ist.
 `OPENAI_API_KEY` / `OPENDICTATE_API_KEY` werden beim Worker-Spawn entfernt.
 
 Session 20. September 2026: Probe ok, `api-key` und `recording-auth` fehlten,
@@ -139,10 +144,9 @@ gelöscht. `secret-tool --help` endet mit Status 2 — Verfügbarkeit über `PAT
 - Hyprland-Config des Users ohne Auftrag ändern (siehe omarchy-Skill, falls doch).
 - Title-Felder aus `hyprctl` loggen. Sprachqualität aus einer Spike-WAV ableiten.
 
-### Nächster Linux-Schritt: Phase 1 (Clipboard-MVP)
+### Phase-1-Kern und nächste Abnahme
 
-Plan-Done: manueller Durchstich **und** die Pflichtfälle. Zahlen nicht neu
-erfinden — aus dem Swift-Orakel übernehmen:
+Die Pflichtzahlen wurden aus dem Swift-Orakel übernommen:
 
 | Politik | Quelle |
 |---|---|
@@ -155,26 +159,33 @@ erfinden — aus dem Swift-Orakel übernehmen:
 | Kein realtime-only-Modell | `TranscriptionModel.isUsableForUpload` |
 | HTTP-Form von `POST /v1/audio/transcriptions` | `Sources/OpenDictate/Transcription/OpenAITranscriber.swift` |
 
-Konkrete Bauarbeit, in dieser Reihenfolge:
+Implementiert und offline geprüft sind State, Cancel-Marker, Audio-Schwellen und
+Trim, Upload-Request/Antwort, Clipboard-Löschregel, HMAC-Recovery, Retry,
+Retention und CLI-Settings. Der HTTP-Test bindet ausschließlich Loopback. Die
+Recovery-Tests prüfen manipulierte Bytes, falschen Key, umbenannte Dateien,
+Kopierfehler sowie Count-/Altersgrenze.
 
-1. State in der CLI halten: Toggle während `processing` ignorieren; Cancel darf
-   die einzige WAV nicht löschen.
-2. `secrets init-auth` beim ersten echten Keep; Recovery-Kopie HMAC-authentifiziert
-   ablegen; Original behalten, wenn die Kopie scheitert.
-3. Nach Stop: zu kurz/zu still → behalten, **nicht** hochladen. Sonst Key aus
-   Secret Service, Upload, Transkript auf die Zwischenablage. Statustext des
-   Spikes ist dann falsch — Transkript ist die Delivery.
-4. Offline-Tests mit Stub-HTTP (kein Netz in `cargo test`). Live-Upload erst nach
-   neuer, begrenzter Freigabe (Anzahl, Sekunden, bekannter Testsatz).
-5. Tray/Panel und Settings (Key, Modell, Sprache) nur soweit nötig für den
-   Durchstich; Panel nicht ungefragt öffnen.
-6. `PROJECT.md` weiter nicht anfassen, bis Phase 1 wirklich existiert und jemand
-   den Produktumfang bewusst erweitert.
+Als Nächstes, getrennt vom Code-Commit:
+
+1. Branch pushen, CI prüfen und nach erfolgreichem Review mergen; kein Live-
+   Deployment ist an den Repository-Workflow gekoppelt.
+2. Für einen echten Linux-Durchstich ein neues enges Mikrofon-/Upload-Budget
+   festlegen. Erst dann Keyring, Aufnahme, Provider und Clipboard real prüfen.
+3. Reale Abbruch-/Fehler-/leere Antwort-/Clipboard-Fehlerfälle bestätigen. Ein
+   Abbruch während des blockierenden Requests wird derzeit erst nach Rückkehr
+   oder Timeout ausgewertet, bewahrt aber die Aufnahme.
+4. Danach physischen Hyprland-Hotkey und UI-Minimum (Tray, Panel auf Zuruf)
+   implementieren und sichtbar prüfen. Keine Nutzer-Hyprland-Konfiguration ohne
+   eigenen Auftrag ändern.
+5. `PROJECT.md` weiter nicht anfassen, bis Phase 1 wirklich abgenommen ist und
+   jemand den Produktumfang bewusst erweitert.
 
 Prüfen nach Linux-Source-Änderungen (nicht Swift-CI):
 
 ```bash
+cargo fmt --manifest-path linux/Cargo.toml -- --check
 cargo test --manifest-path linux/Cargo.toml
+cargo clippy --manifest-path linux/Cargo.toml --all-targets -- -D warnings
 cargo build --release --manifest-path linux/Cargo.toml
 git diff --check
 ```
@@ -182,10 +193,9 @@ git diff --check
 User-Status deutsch, technische Kommentare englisch. Kein Key/Transkript/Audio
 in Logs.
 
-### Nächster ausführbarer Linux-Git-Schritt
+### Optionale Hyprland-Bindung
 
-PR #16 mergen (Spike isoliert) oder Phase-1 auf einem Folgebranch nach dem Merge.
-Die optionale Hyprland-Bindung bleibt Nutzersache:
+Die Bindung bleibt Nutzersache und wurde nicht installiert:
 
 `bind = SUPER SHIFT, D, exec, <absoluter-pfad>/linux/target/release/opendictate toggle`
 
@@ -209,9 +219,10 @@ mehrzeiligen Fallback. Ein Ereigniszähler belegt gesendete Befehle, nicht
 Danach frühes menschliches Nutzerfeedback sammeln; die komplette
 [Kompatibilitätsmatrix](compatibility-matrix.md) bleibt das breitere Produktziel.
 
-Mikrofon, lokaler Desktop, frischer Benutzerzustand und physisches Eingabegerät
-sind aus der aktuellen Linux-Umgebung nicht verfügbar. Die entsprechenden
-Prüfungen stehen aus. Die früher dokumentierten sechs beziehungsweise acht
+Mac-spezifischer lokaler Desktop, frischer macOS-Benutzerzustand und physisches
+Mac-Eingabegerät sind von der Linux-Umgebung aus nicht prüfbar. Auf omarchy sind
+Mikrofon und Hyprland-Sitzung erreichbar, wurden für Phase 1 aber mangels neuer
+Live-Freigabe nicht verwendet. Die früher dokumentierten sechs beziehungsweise acht
 Mikrofon-/Provider-Versuche sind verbraucht; sie werden nicht als neues Budget
 verwendet. Beim tatsächlichen Pilot Umfang und Audiozeit vorher festlegen.
 

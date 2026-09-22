@@ -29,10 +29,45 @@ pub fn status() -> Result<(bool, bool), String> {
 
 pub fn store_api_key(value: &str) -> Result<(), String> {
     require_secret_tool()?;
-    if value.is_empty() {
-        return Err("API-Schlüssel fehlt (stdin war leer).".to_string());
-    }
+    validate_api_key(value)?;
     store(API_KEY, "OpenDictate API key", value)
+}
+
+pub fn api_key() -> Result<String, String> {
+    require_secret_tool()?;
+    if !exists(API_KEY)? {
+        return Err("API-Schlüssel fehlt.".to_string());
+    }
+    let value = lookup(API_KEY)?;
+    validate_api_key(&value)?;
+    Ok(value)
+}
+
+pub fn recording_auth() -> Result<Vec<u8>, String> {
+    require_secret_tool()?;
+    if !exists(RECORDING_AUTH)? {
+        return Err("Recording-Auth fehlt.".to_string());
+    }
+    let encoded = lookup(RECORDING_AUTH)?;
+    let key = hex::decode(encoded).map_err(|_| "Recording-Auth ist ungültig.".to_string())?;
+    if key.len() != 32 {
+        return Err("Recording-Auth ist ungültig.".to_string());
+    }
+    Ok(key)
+}
+
+fn validate_api_key(value: &str) -> Result<(), String> {
+    let valid = (8..=512).contains(&value.len())
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_graphic() && !byte.is_ascii_whitespace());
+    if valid {
+        Ok(())
+    } else if value.is_empty() {
+        Err("API-Schlüssel fehlt (stdin war leer).".to_string())
+    } else {
+        Err("API-Schlüssel hat ein ungültiges Format.".to_string())
+    }
 }
 
 pub fn ensure_recording_auth() -> Result<(), String> {
@@ -181,5 +216,12 @@ mod tests {
             b"The name org.freedesktop.secrets was not provided by any .service files",
         );
         assert_eq!(error, "Keyring nicht verfügbar.");
+    }
+
+    #[test]
+    fn api_key_rejects_header_controls_and_whitespace() {
+        assert!(validate_api_key("sk-test-value").is_ok());
+        assert!(validate_api_key("sk-test\nInjected: value").is_err());
+        assert!(validate_api_key("short").is_err());
     }
 }

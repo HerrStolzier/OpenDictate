@@ -1,8 +1,9 @@
 # Linux-App-Plan (OpenDictate)
 
-Stand: 20. September 2026. Phase-0-Spike liegt unter `linux/` in diesem Repo.
-Kein Produktumfang, kein Upload, macOS-CI unverändert. Die offenen Fragen sind
-hier beantwortet. Aktuelle Übergabe und nächster Agent-Schritt:
+Stand: 22. September 2026. Phase 0 ist über PR #16 in `main`; der Phase-1-Kern
+liegt auf `codex/linux-phase-1`. Er implementiert den offline geprüften
+Clipboard-MVP-Pfad, ist aber ohne Live-Upload, Tray und physischen Hotkey noch
+nicht als Phase 1 abgenommen. macOS-CI bleibt unverändert. Aktuelle Übergabe:
 [remaining-acceptance.md](remaining-acceptance.md).
 
 ## Ziel (fest)
@@ -39,7 +40,7 @@ unverändert und gilt durch diesen Plan nicht als erledigt.
 | Aussage | Status |
 |---|---|
 | Richtung Tray-Utility, eigener Key, Clipboard-first, kein Swift-UI-Port | belastbar |
-| v1-Pfad: Rust-Daemon/CLI plus Hyprland-Bind | Spike-Code in `linux/`; Session-Nachweis im Spike-Bericht |
+| v1-Pfad: Rust-Daemon/CLI plus Hyprland-Bind | Phase 0 in `main`; Phase-1-Kern offline auf omarchy geprüft |
 | Hotkey, Mic, Keyring, Clipboard auf **dieser** omarchy/Hyprland-Session | Mic, Keyring, Clipboard und fokusneutraler CLI-Toggle belegt; Hyprland-Bind nur als Beispiel |
 | Auto-Insert unter Wayland | bewusst unsicher; eigene Phase; Default ist Clipboard-only |
 | Packaging auf Arch/omarchy | erst in Packaging-Phase belegt |
@@ -76,7 +77,7 @@ nicht.
 
 ## Spike = Wegwahl, kein Produkt-No-Go
 
-Phase 0 klärt **welchen Weg** wir auf dieser Session nehmen, nicht ob Linux kommt.
+Phase 0 klärte **welchen Weg** wir auf dieser Session nehmen, nicht ob Linux kommt.
 Insert bewusst danach. Scheitert eine Technikvariante, wählen wir Fallback auf
 dieser Session (anderer Capture-Weg, anderer Clipboard-Weg) und liefern trotzdem.
 Abbruch gilt nur für eine konkrete Variante, **nicht** fürs Projekt.
@@ -84,7 +85,7 @@ Abbruch gilt nur für eine konkrete Variante, **nicht** fürs Projekt.
 ## Architektur
 
 - macOS-Swift-Code (`Sources/OpenDictate*`) bleibt unangetastet.
-- Spike unter `linux/` in diesem Repo: Rust-CLI `opendictate`, kein Tauri,
+- Linux-Client unter `linux/` in diesem Repo: Rust-CLI `opendictate`, kein Tauri,
   kein Node/WebKit. macOS-CI bleibt Swift-only.
 - `OpenDictateCore` (Swift): **Spezifikation / Orakel** — kein Link in die
   Linux-App. Pflichtpolitik in Rust nachbauen und testen (Tabelle unten), nicht
@@ -93,7 +94,7 @@ Abbruch gilt nur für eine konkrete Variante, **nicht** fürs Projekt.
   nie Env, Datei oder Logs. Logs ohne Key, Transkript oder Audioinhalt.
 
 ```text
-linux/                 # Phase-0 Rust CLI (opendictate toggle)
+linux/                 # Rust CLI, Phase-0-Pfad plus Phase-1-Kern
 Sources/OpenDictate*   # macOS unverändert
 docs/linux-build-plan.md
 ```
@@ -146,6 +147,12 @@ Linux-Ziel bleibt. Bericht: [linux-spike-2026-09-20.md](linux-spike-2026-09-20.m
 oder undelieferte Transkription behält Audio; unauthentifizierte Dateien werden
 nicht hochgeladen; zweiter Start während Verarbeitung wird ignoriert; Cancel
 während Upload löscht nicht die einzige Kopie; Key nie in Logs.
+
+**Aktueller Zwischenstand:** Zustandsmaschine, Audio-Schwellen/Trim, HTTPS-Client,
+Clipboard-Delivery, HMAC-Recovery, authentifizierter Retry, Retention und
+CLI-Settings sind implementiert und offline auf omarchy geprüft. Der Done-Status
+bleibt offen, bis Live-Durchstich, Fehlerfälle, physischer Hotkey und UI-Minimum
+auf dem Zielsystem belegt sind.
 
 ### Phase 2 — Auto-Insert
 

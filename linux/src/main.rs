@@ -3,7 +3,12 @@ mod ipc;
 mod keyring;
 mod notify;
 mod paths;
+mod policy;
 mod record;
+mod recovery;
+mod settings;
+mod state;
+mod transcribe;
 mod window;
 
 use std::fs::{self, OpenOptions};
@@ -17,16 +22,21 @@ use ipc::Event;
 
 const CLIPBOARD_SPIKE: &str = "OpenDictate: Zwischenablage ok.";
 const USAGE: &str = "\
-opendictate — Linux-Spike (kein Produktumfang)
+opendictate — Linux Clipboard-MVP (kein Produktumfang)
 
 Befehle:
   toggle                 Aufnahme starten oder stoppen
-  status                 idle oder recording
+  status                 idle / recording / processing / delivering
+  cancel                 Aufnahme oder Verarbeitung sicher abbrechen
+  retry                  neueste authentifizierte Aufnahme erneut senden
   copy-status            festen Statustext in die Zwischenablage
   secrets probe          Secret Service schreiben, lesen, löschen
   secrets status         ob API-Key und Recording-Auth existieren
   secrets set-api-key    API-Key von stdin speichern (kein Argument)
   secrets init-auth      Recording-Auth anlegen, falls fehlend
+  settings show          Modell und Sprache anzeigen
+  settings model NAME    Upload-Modell setzen
+  settings language CODE Sprache setzen; `auto` für Erkennung
   record --daemon        interner Aufnahmeprozess
 ";
 
@@ -53,11 +63,16 @@ fn run(args: Vec<String>) -> Result<(), String> {
         }
         ["toggle"] => toggle(),
         ["status"] => status(),
+        ["cancel"] => cancel(),
+        ["retry"] => retry(),
         ["copy-status"] => copy_status(),
         ["secrets", "probe"] => secrets_probe(),
         ["secrets", "status"] => secrets_status(),
         ["secrets", "set-api-key"] => set_api_key(),
         ["secrets", "init-auth"] => init_auth(),
+        ["settings", "show"] => settings_show(),
+        ["settings", "model", model] => settings_model(model),
+        ["settings", "language", language] => settings_language(language),
         ["record", "--daemon"] => worker(),
         _ => Err("Unbekanntes Kommando. `opendictate help` zeigt die Befehle.".to_string()),
     }
@@ -65,20 +80,20 @@ fn run(args: Vec<String>) -> Result<(), String> {
 
 fn toggle() -> Result<(), String> {
     let socket = paths::socket_path().map_err(path_error)?;
-    if socket.exists() {
-        match ipc::send(&socket, ipc::STOP) {
-            Ok(reply) if reply == ipc::OK => {
-                println!("Aufnahme gespeichert.");
+    let state_path = paths::state_path().map_err(path_error)?;
+    match state::read(&state_path, &socket) {
+        state::State::Idle => start_worker(),
+        state::State::Recording => match ipc::send(&socket, ipc::STOP) {
+            Ok(reply) if reply == ipc::PROCESSING => {
+                println!("Aufnahme beendet; Transkription läuft.");
                 Ok(())
-            }
-            Ok(reply) if reply == ipc::NO_CLIPBOARD => {
-                Err("Aufnahme gespeichert, Zwischenablage nicht verfügbar.".to_string())
             }
             Ok(_) => Err("Aufnahme konnte nicht gestoppt werden.".to_string()),
             Err(_) => Err("Aufnahmeprozess hat nicht geantwortet.".to_string()),
+        },
+        state::State::Processing | state::State::Delivering => {
+            Err("OpenDictate verarbeitet bereits eine Aufnahme.".to_string())
         }
-    } else {
-        start_worker()
     }
 }
 
@@ -111,9 +126,10 @@ fn start_worker() -> Result<(), String> {
 
 fn wait_for_socket(timeout: Duration) -> Result<(), String> {
     let socket = paths::socket_path().map_err(path_error)?;
+    let state_path = paths::state_path().map_err(path_error)?;
     let deadline = Instant::now() + timeout;
     while Instant::now() < deadline {
-        if socket.exists() {
+        if state::read(&state_path, &socket) == state::State::Recording {
             return Ok(());
         }
         std::thread::sleep(Duration::from_millis(20));
@@ -123,17 +139,27 @@ fn wait_for_socket(timeout: Duration) -> Result<(), String> {
 
 fn status() -> Result<(), String> {
     let socket = paths::socket_path().map_err(path_error)?;
-    if !socket.exists() {
-        println!("idle");
-        return Ok(());
-    }
-    match ipc::send(&socket, ipc::STATUS) {
-        Ok(reply) if reply == ipc::RECORDING => {
-            println!("recording");
+    let state_path = paths::state_path().map_err(path_error)?;
+    println!("{}", state::read(&state_path, &socket).as_str());
+    Ok(())
+}
+
+fn cancel() -> Result<(), String> {
+    let socket = paths::socket_path().map_err(path_error)?;
+    let state_path = paths::state_path().map_err(path_error)?;
+    let cancel_path = paths::cancel_path().map_err(path_error)?;
+    match state::read(&state_path, &socket) {
+        state::State::Idle => Err("Keine laufende Aufnahme oder Verarbeitung.".to_string()),
+        state::State::Recording => {
+            state::request_cancel(&cancel_path).map_err(path_error)?;
+            ipc::send(&socket, ipc::STOP)
+                .map_err(|_| "Aufnahmeprozess hat nicht geantwortet.".to_string())?;
+            println!("Abbruch angefordert; Aufnahme wird sicher behalten.");
             Ok(())
         }
-        _ => {
-            println!("idle");
+        state::State::Processing | state::State::Delivering => {
+            state::request_cancel(&cancel_path).map_err(path_error)?;
+            println!("Abbruch angefordert; Aufnahme wird sicher behalten.");
             Ok(())
         }
     }
@@ -195,6 +221,41 @@ fn init_auth() -> Result<(), String> {
     Ok(())
 }
 
+fn settings_show() -> Result<(), String> {
+    let path = paths::settings_path().map_err(path_error)?;
+    let settings = settings::Settings::load(&path)?;
+    println!(
+        "model={} language={}",
+        settings.model,
+        settings.language.as_deref().unwrap_or("auto")
+    );
+    Ok(())
+}
+
+fn settings_model(model: &str) -> Result<(), String> {
+    settings::validate_model(model)?;
+    let path = paths::settings_path().map_err(path_error)?;
+    let mut settings = settings::Settings::load(&path)?;
+    settings.model = model.to_string();
+    settings.save(&path)?;
+    println!("Modell gespeichert");
+    Ok(())
+}
+
+fn settings_language(language: &str) -> Result<(), String> {
+    let path = paths::settings_path().map_err(path_error)?;
+    let mut settings = settings::Settings::load(&path)?;
+    settings.language = if language == "auto" {
+        None
+    } else {
+        settings::validate_language(language)?;
+        Some(language.to_string())
+    };
+    settings.save(&path)?;
+    println!("Sprache gespeichert");
+    Ok(())
+}
+
 fn worker() -> Result<(), String> {
     let socket = paths::socket_path().map_err(path_error)?;
     let listener = ipc::bind_socket(&socket).map_err(|error| {
@@ -207,43 +268,143 @@ fn worker() -> Result<(), String> {
     let _guard = SocketGuard {
         path: socket.clone(),
     };
+    let state_guard = state::StateGuard::begin(
+        paths::state_path().map_err(path_error)?,
+        paths::cancel_path().map_err(path_error)?,
+        state::State::Recording,
+    )
+    .map_err(path_error)?;
     if let Some(target) = window::active_window() {
         log_ops(&format!("window-captured class={}", target.class));
     }
-    let path = paths::next_recording_path().map_err(path_error)?;
+    let path = paths::next_pending_path().map_err(path_error)?;
     restrict_file_parent(&path)?;
     let handle = record::start(&path)?;
     log_ops("recording-started");
     let event = ipc::wait_for_stop(&listener, Instant::now() + record::MAX_RECORDING)
         .map_err(|_| "Aufnahme konnte nicht beendet werden.".to_string())?;
-    let recording = handle.stop()?;
-    restrict_file(&recording.path)?;
-    let seconds = recording.duration.as_secs();
-    let status_text = format!("OpenDictate: Aufnahme gespeichert ({seconds} s).");
-    let clipboard_ok = match clipboard::copy_text(&status_text) {
-        Ok(()) => true,
-        Err(error) => {
-            log_ops("clipboard-failed");
-            notify::status(&error);
-            false
-        }
-    };
-    if clipboard_ok {
-        notify::status("Aufnahme gespeichert");
-        log_ops("recording-saved");
-    }
+    state_guard
+        .set(state::State::Processing)
+        .map_err(path_error)?;
     if let Event::Stop(mut stream) = event {
-        let reply = if clipboard_ok {
-            ipc::OK
-        } else {
-            ipc::NO_CLIPBOARD
-        };
-        let _ = ipc::reply(&mut stream, reply);
+        let _ = ipc::reply(&mut stream, ipc::PROCESSING);
     }
-    if clipboard_ok {
+    let recording = handle.stop().map_err(|error| {
+        log_ops("recording-stop-failed");
+        format!("{error} Originalaufnahme blieb erhalten.")
+    })?;
+    restrict_file(&recording.path)?;
+    log_ops(&format!(
+        "recording-stopped milliseconds={}",
+        recording.duration.as_millis()
+    ));
+    process_new_recording(&recording.path, &state_guard)
+}
+
+fn process_new_recording(path: &Path, state_guard: &state::StateGuard) -> Result<(), String> {
+    let result = (|| {
+        ensure_not_cancelled(state_guard)?;
+        let prepared = record::prepare_for_upload(path)?;
+        ensure_not_cancelled(state_guard)?;
+        let api_key = keyring::api_key()?;
+        let settings = settings::Settings::load(&paths::settings_path().map_err(path_error)?)?;
+        log_ops("transcription-started");
+        let transcript =
+            transcribe::Transcriber::new().transcribe(prepared.path(), &api_key, &settings)?;
+        ensure_not_cancelled(state_guard)?;
+        if transcript.is_empty() {
+            return Err("Leere Transkription; Aufnahme wurde behalten.".to_string());
+        }
+        state_guard
+            .set(state::State::Delivering)
+            .map_err(path_error)?;
+        clipboard::copy_text(&transcript)?;
+        if policy::can_delete_audio(&transcript, true) && fs::remove_file(path).is_err() {
+            log_ops("pending-cleanup-failed");
+        }
+        notify::status("Text in Zwischenablage kopiert");
+        log_ops("transcription-copied");
         Ok(())
+    })();
+    match result {
+        Ok(()) => Ok(()),
+        Err(error) => {
+            log_ops("recording-kept");
+            let preservation = preserve_recording(path);
+            notify::status(&error);
+            match preservation {
+                Ok(()) => Err(format!("{error} Aufnahme für Wiederholung behalten.")),
+                Err(preservation_error) => Err(format!(
+                    "{error} {preservation_error} Original blieb erhalten."
+                )),
+            }
+        }
+    }
+}
+
+fn retry() -> Result<(), String> {
+    let socket = paths::socket_path().map_err(path_error)?;
+    let _listener = ipc::bind_socket(&socket).map_err(|error| {
+        if error.kind() == io::ErrorKind::AddrInUse {
+            "OpenDictate ist bereits beschäftigt.".to_string()
+        } else {
+            "Wiederholung konnte nicht starten.".to_string()
+        }
+    })?;
+    let _socket_guard = SocketGuard {
+        path: socket.clone(),
+    };
+    let state_guard = state::StateGuard::begin(
+        paths::state_path().map_err(path_error)?,
+        paths::cancel_path().map_err(path_error)?,
+        state::State::Processing,
+    )
+    .map_err(path_error)?;
+    let auth = keyring::recording_auth()?;
+    let recovery_dir = paths::recovery_dir().map_err(path_error)?;
+    recovery::prune(&recovery_dir, &auth)?;
+    let (entry, authenticated_bytes) = recovery::newest_authenticated(&recovery_dir, &auth)?
+        .ok_or_else(|| "Keine authentifizierte Aufnahme für Wiederholung vorhanden.".to_string())?;
+    ensure_not_cancelled(&state_guard)?;
+    let api_key = keyring::api_key()?;
+    let settings = settings::Settings::load(&paths::settings_path().map_err(path_error)?)?;
+    log_ops("retry-started");
+    let transcript = transcribe::Transcriber::new().transcribe_bytes(
+        &authenticated_bytes,
+        &api_key,
+        &settings,
+    )?;
+    ensure_not_cancelled(&state_guard)?;
+    if transcript.is_empty() {
+        return Err("Leere Transkription; Aufnahme bleibt erhalten.".to_string());
+    }
+    state_guard
+        .set(state::State::Delivering)
+        .map_err(path_error)?;
+    clipboard::copy_text(&transcript)?;
+    recovery::delete(&entry)?;
+    notify::status("Wiederholung in Zwischenablage kopiert");
+    log_ops("retry-copied");
+    println!("Wiederholung in Zwischenablage kopiert");
+    Ok(())
+}
+
+fn preserve_recording(path: &Path) -> Result<(), String> {
+    if !path.exists() {
+        return Ok(());
+    }
+    keyring::ensure_recording_auth()?;
+    let auth = keyring::recording_auth()?;
+    let recovery_dir = paths::recovery_dir().map_err(path_error)?;
+    recovery::preserve(path, &recovery_dir, &auth)?;
+    Ok(())
+}
+
+fn ensure_not_cancelled(state_guard: &state::StateGuard) -> Result<(), String> {
+    if state_guard.is_cancelled() {
+        Err("Verarbeitung abgebrochen.".to_string())
     } else {
-        Err("Aufnahme gespeichert, Zwischenablage nicht verfügbar.".to_string())
+        Ok(())
     }
 }
 
@@ -306,6 +467,7 @@ mod tests {
     #[test]
     fn usage_lists_toggle() {
         assert!(USAGE.contains("toggle"));
+        assert!(USAGE.contains("retry"));
         assert!(USAGE.contains("secrets probe"));
     }
 

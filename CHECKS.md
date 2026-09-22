@@ -62,19 +62,22 @@ Documentation-only changes: run `git diff --check`, verify changed local links
 and review ownership, conflicting rules and evidence scope. Include new files
 in that review. Do not rerun app tests solely for prose changes.
 
-Linux spike changes (`linux/`): run these on a Linux host. They are not part of
+Linux changes (`linux/`): run these on a Linux host. They are not part of
 the macOS Swift CI workflow.
 
 ```bash
+cargo fmt --manifest-path linux/Cargo.toml -- --check
 cargo test --manifest-path linux/Cargo.toml
+cargo clippy --manifest-path linux/Cargo.toml --all-targets -- -D warnings
 cargo build --release --manifest-path linux/Cargo.toml
 git diff --check
 ```
 
 Do not add this crate to `.github/workflows/checks.yml`. Live microphone,
-Secret Service writes and Wayland clipboard checks are attended spike
-verification, not default tests. Never pass an API key as a command argument
-or environment variable.
+Secret Service writes, OpenAI requests and Wayland clipboard checks require
+separate attended verification and are not default tests. The transcription
+tests may use loopback stub HTTP only. Never pass an API key as a command
+argument or environment variable.
 
 ## Meaning of checks
 

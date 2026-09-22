@@ -6,8 +6,9 @@ use std::time::{Duration, Instant};
 pub const STOP: &str = "stop";
 pub const STATUS: &str = "status";
 pub const RECORDING: &str = "recording";
+pub const PROCESSING: &str = "processing";
+#[cfg(test)]
 pub const OK: &str = "ok";
-pub const NO_CLIPBOARD: &str = "no-clipboard";
 
 pub enum Event {
     Stop(UnixStream),
