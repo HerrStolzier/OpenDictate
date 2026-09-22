@@ -7,14 +7,15 @@ Prüfverfahren: [CHECKS.md](../CHECKS.md); belegte frühere Testbudgets:
 [linux-build-plan.md](linux-build-plan.md).
 
 Zwei parallele Arbeitspfade: **macOS-Produktabnahme** (unverändert offen) und
-**Linux Phase 1** (Kern auf `codex/linux-phase-1`, noch nicht in `PROJECT.md`). Linux markiert
+**Linux Phase 1** (Kern in `main`, noch nicht in `PROJECT.md`). Linux markiert
 macOS nicht als erledigt.
 
 ## Aktuelle Änderung
 
 [PR #16](https://github.com/HerrStolzier/OpenDictate/pull/16) ist als `0ae6a49`
-in `main` gemergt. Darauf baut `codex/linux-phase-1` den offline geprüften
-Clipboard-MVP-Kern: Zustandsmaschine, Audio-Prüfung/Trim, HTTPS-Multipart-Client,
+in `main` gemergt. [PR #17](https://github.com/HerrStolzier/OpenDictate/pull/17)
+ergänzt als `83c944f` den offline geprüften Clipboard-MVP-Kern: Zustandsmaschine,
+Audio-Prüfung/Trim, HTTPS-Multipart-Client,
 Wayland-Clipboard, HMAC-Recovery, authentifizierter Retry, 5-Dateien/24-Stunden-
 Retention sowie CLI-Einstellungen für Modell und Sprache. 25 Rust-Tests,
 Formatter, Clippy mit `-D warnings` und Release-Build bestanden auf omarchy.
@@ -78,11 +79,11 @@ unten als gegeben gilt.
 
 | | |
 |---|---|
-| Aktiver Arbeitsbranch | `codex/linux-phase-1` |
 | Phase 0 | [PR #16](https://github.com/HerrStolzier/OpenDictate/pull/16) als `0ae6a49` gemergt; Swift-CI grün |
+| Phase-1-Kern | [PR #17](https://github.com/HerrStolzier/OpenDictate/pull/17), Kerncommit `e17d37c`, Merge `83c944f`; Swift-CI grün |
 | Spike-Commit | `f7572a6` |
-| `main` | `0ae6a49` mit Phase-0-Crate |
-| Nächster Git-Schritt | Phase-1-Kern als eigenen geprüften Commit/PR abschließen; Live-Abnahme nicht in den Code-Commit vortäuschen |
+| `main` | `83c944f` mit Phase-1-Kern |
+| Nächster Schritt | Live-Abnahme separat und nur mit neu begrenzter Freigabe; danach Tray/Panel und physischer Hotkey |
 
 Lokales Release-Binary (nicht im Git): `linux/target/release/opendictate`.
 `linux/target/` ist gitignored. Rustc 1.98.1 liegt unter `~/.cargo` (rustup,

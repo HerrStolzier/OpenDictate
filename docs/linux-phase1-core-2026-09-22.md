@@ -2,7 +2,8 @@
 
 ## Umfang
 
-Branch `codex/linux-phase-1`, Basis `main`/`0ae6a49`. Kein Produktumfang, keine
+Kerncommit `e17d37c`, über [PR #17](https://github.com/HerrStolzier/OpenDictate/pull/17)
+als `83c944f` in `main`, Basis `0ae6a49`. Kein Produktumfang, keine
 Hyprland-Konfigurationsänderung, kein API-Key-Zugriff, kein Mikrofontest und kein
 OpenAI-Request. Die installierte macOS-App blieb unverändert.
 
