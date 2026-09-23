@@ -79,7 +79,10 @@ Changes apply to the next dictation, no restart needed.
   price next to each.
 - **Language** — Auto, German, or English. Auto lets the API detect it.
 - **Vokabular und Kontext** — local prompt setting (up to 2,000 characters in the editor), sent with each dictation. A stored value overrides the legacy environment variable.
-- **Automatisch einfügen** — disable for clipboard-only delivery. Switching foreground applications while a dictation is processing causes a clipboard-only fallback.
+- **Automatisch einfügen** — disable for clipboard-only delivery. At delivery,
+  the app captured when dictation began is brought forward if it is still
+  running. Paste uses whichever field is then focused there. If that app cannot
+  be verified as frontmost, the transcript remains on the clipboard.
 - **Letzten Text erneut kopieren** — recovers the last transcript without another API request. It is kept in RAM only and can be cleared.
 - Saved recordings can be retried or deleted individually. Retry is disabled during recording and processing.
 

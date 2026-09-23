@@ -57,6 +57,7 @@
     .menu-row { display: flex; align-items: center; gap: 12px; min-height: 63px; border-bottom: 1px solid #e4e9f0; font-size: 13px; }
     .menu-row:last-child { border: 0; }
     .menu-row .state-icon { display: grid; place-items: center; flex: 0 0 33px; height: 33px; border-radius: 10px; background: #edf2f8; color: #3868a5; font-size: 17px; }
+    .menu-row .state-icon svg, .new .gear svg { width: 17px; height: 17px; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
     .menu-row .state-icon.red { background: #fff0ed; color: #b64231; }
     .menu-row .state-icon.blue { background: #eaf1fb; color: #2d6bc2; }
     .menu-row strong { display: block; font-size: 13px; margin-bottom: 2px; }
@@ -99,7 +100,7 @@
       <div class="comparison proposed new">
         <p class="eyebrow">Vorschlag · dieselben Zustände</p>
         <div class="window"><div class="windowbar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>OpenDictate</span></div><div class="body">
-          <div class="menu-row"><span class="state-icon">🎙</span><div><strong>Bereit</strong><small>⌥⇧Leertaste startet</small></div></div>
+          <div class="menu-row"><span class="state-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 11a6 6 0 0 0 12 0m-6 6v4m-4 0h8"/></svg></span><div><strong>Bereit</strong><small>⌥⇧Leertaste startet</small></div></div>
           <div class="menu-row"><span class="state-icon red">●</span><div><strong>Aufnahme läuft</strong><small>Eingangssignal vorhanden</small></div><span class="right">00:08</span></div>
           <div class="menu-row"><span class="state-icon blue">···</span><div><strong>Text wird verarbeitet</strong><small>Du kannst im Textfeld bleiben</small></div></div>
         </div></div>
@@ -124,7 +125,7 @@
       <div class="comparison proposed new">
         <p class="eyebrow">Vorschlag · auf Zuruf geöffnet</p>
         <div class="window"><div class="windowbar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>OpenDictate</span></div><div class="body">
-          <div class="top"><span class="brand">OpenDictate</span><span class="gear" aria-label="Einstellungen">⚙</span></div>
+          <div class="top"><span class="brand">OpenDictate</span><span class="gear" aria-label="Einstellungen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M10 2h4l.5 2.1 2 .9 1.9-1.1 2.8 2.8-1.1 1.9.9 2L23 11v3l-2.1.5-.9 2 1.1 1.9-2.8 2.8-1.9-1.1-2 .9L14 23h-4l-.5-2.1-2-.9-1.9 1.1-2.8-2.8 1.1-1.9-.9-2L1 14v-3l2.1-.5.9-2-1.1-1.9 2.8-2.8 1.9 1.1 2-.9L10 2Z"/></svg></span></div>
           <div class="state"><span class="badge"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="16" rx="2"/><path d="M9 3h6M9 10h6M9 14h6"/></svg></span><span class="headline">Text bereit</span></div>
           <p class="detail">Einfügen wurde ausgelöst. Prüfe den Text im Zielprogramm.</p>
           <div class="transcript">Wir besprechen den Entwurf am Montag.</div>

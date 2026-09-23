@@ -65,9 +65,10 @@ eingebetteten Feld nicht zuverlässig. Nach sichtbar gesetztem Fokus bestand
 [wiederholte Produktions-Fixture](release-plans/evidence/2026-09-23-offline-matrix.md#wiederholung-mit-der-produktions-fixture)
 fügte danach in beide Felder sichtbar mehrzeiligen künstlichen Text ein.
 Der exakte DOM-Rohvergleich und die übrigen Matrixpositionen bleiben offen.
-Die frische zehnminütige [Build-3-Leerlaufmessung](release-plans/evidence/2026-09-23-plan1-status.md)
-bestand das CPU-Ziel, überschritt das festgelegte RSS-Ziel von 100 MiB jedoch
-stabil um etwa 0,4 MiB. Die Ursache bleibt vor der Plan-1-Abnahme zu klären.
+Die frische zehnminütige [Build-4-Leerlaufmessung](release-plans/evidence/2026-09-23-plan1-status.md)
+bestand CPU- und RSS-Ziel mit 0,0017 Prozent und höchstens 97,219 MiB.
+Build 3 hatte das RSS-Ziel zuvor stabil um etwa 0,4 MiB überschritten;
+die Abweichung bleibt als diagnostischer Befund erhalten.
 
 ## macOS-Nachweise vom 22. und 23. September (älterer Kandidat)
 
@@ -295,7 +296,11 @@ verwendet vorhandene Prüfmittel. Für den installierten älteren Kandidaten
 `68ef919` sind TextEdit, eine leere Terminal-Shellzeile und der negative
 TextEdit→Finder-Wechsel sichtbar geprüft. Der neue ⌘V-Build `bd3630f` hat nun
 eigene echte TextEdit-, Safari-, Brave-, Obsidian- und Terminal-Nachweise
-im [Plan-1-Bericht](release-plans/evidence/2026-09-23-plan1-status.md).
+im [Plan-1-Bericht](release-plans/evidence/2026-09-23-plan1-status.md). Der
+inzwischen installierte Build 4 enthält die UX-Änderung; seine erneute
+Mikrofon- und Einfügeprüfung ist noch offen. Beim ersten Startversuch über den
+Panel-Button wartete der neue Build vor der Aufnahme im macOS-Schlüsselbund;
+der geschützte Dialog benötigt eine Bestätigung direkt am Mac.
 Die vollständige Feld-/Fokusmatrix, Einrichtung im frischen Benutzerzustand,
 Störfälle und die Prüfung der überarbeiteten UX am installierten Build bleiben
 offen. Bastis erste Designrückmeldung und die gewählte Richtung stehen im
@@ -305,7 +310,7 @@ frühes menschliches Nutzerfeedback sammeln; die komplette
 
 Die aktuelle Arbeit läuft am Mac mini mit physischem Eingabegerät. Ein frischer
 macOS-14-Benutzerzustand ist hier nicht vorhanden. Der neue native
-macOS-14-CI-Job kann Offline-Tests und Bundle-Builds prüfen, aber keine
+macOS-14-CI-Job bestand mit 158 Offline-Tests und Bundle-Build, kann aber keine
 interaktive Diktatabnahme ersetzen. Bastis Plan-1-Freigabe erlaubt weitere
 kurze Live-Aufnahmen und Provider-Uploads ohne festes Stückkontingent;
 automatische Wiederholungen bleiben ausgeschlossen. Frühere Testzahlen sind
@@ -330,8 +335,9 @@ Verbrauchsnachweise und kein künftiges Limit.
   praktische Prüfungen. Zwei Beenden-Versuche wurden vom Provider überholt.
 - Menschliche Sprachqualität, Zahlen-/Namensfehler, Korrekturzeit und tatsächlicher
   Zeitgewinn sind offen. Die neue Fallliste enthält keine gemessenen Ergebnisse.
-- Gehörte VoiceOver-Ausgabe und macOS 14 als Laufzeitplattform bleiben offen.
-  macOS-15-CI, synthetische Fixtures und AX-Baumprüfungen ersetzen diese Nachweise nicht.
+- Gehörte VoiceOver-Ausgabe und die interaktive Diktatabnahme auf macOS 14
+  bleiben offen. Der bestandene macOS-14-CI-Lauf prüft native Offline-Tests
+  und Bundle-Build, aber keine Berechtigungen, Aufnahme oder Einfügung.
 - Wer den alten API-Key-Helfer verwendet hat, speichert den Schlüssel über den
   App-Dialog neu. Der neue Account erhält die normale App-Zugriffsrichtlinie;
   die reale Migration und gegebenenfalls eine angezeigte Altbereinigung sind

@@ -3,7 +3,42 @@
 Dieser Stand ist noch **keine Produktabnahme**. Er trennt lokale Prüfungen von
 den ausstehenden sichtbaren Diktat-, UX- und Plattformnachweisen.
 
-**Neuer installierter Kandidat:** Build 3 aus Quellrevision
+**Aktuell installierter Kandidat:** Build 4 aus Quellrevision
+`79f5cee4ea8c30b5b8cc079d235cd0a76debd17d` liegt unter `/Applications`
+und `~/Applications`; beide Programmdateien haben SHA-256
+`1981e79b2d91a82bcf1fc35ebde348a5c1fa11eaa5d27a985434a1d568104994`.
+Beide vorherigen Build-3-Bundles liegen unverändert unter
+`.build/plan1-rollbacks-20260923-build3/`. Der installierte Build wurde aus
+`~/Applications` gestartet. Das tatsächliche Bereit-Panel wurde sichtbar
+geprüft; Tab verschob den Tastaturfokus von „Aufnahme starten“ zu „Weitere
+Aktionen“. Eine erneute Mikrofon- und Einfügeprüfung auf Build 4 ist damit
+noch nicht belegt. Der Dateivergleich zwischen den installierten
+Quellrevisionen Build 3 und Build 4 zeigt als einzige Änderung unter
+`Sources/OpenDictate/App` und `Sources/OpenDictate/System` das Panel;
+`PasteboardInserter` und der allgemeine ⌘V-Pfad blieben unverändert.
+
+Der [PR-CI-Lauf](https://github.com/HerrStolzier/OpenDictate/actions/runs/35903565835)
+bestand auf macOS 15 und auf dem macOS-14-Runner. Dessen Log meldet macOS
+14.8.9, Xcode 16.2 und Swift 6.0.3; 158 Offline-Tests sowie Signatur,
+Hardened Runtime und Mikrofon-Entitlement des gebauten Bundles bestanden.
+Das ist ein echter macOS-14-Prozesslauf der Tests, aber kein interaktiver
+Diktat-, TCC-, VoiceOver- oder Einfügenachweis.
+
+Der erste Build-4-Liveversuch auf einem eigenen leeren TextEdit-Dokument ist
+noch **nicht bestanden**. Die Computersteuerung erzeugte mit der simulierten
+Tastenkombination nur ein geschütztes Leerzeichen im Feld; die App blieb
+bereit. Das Zeichen und das eigene Dokument wurden verworfen, die
+vorübergehend von 25 auf 80 Prozent erhöhte Ausgabelautstärke wurde auf 25
+Prozent zurückgestellt. Dieser Tastaturweg ist kein Ersatz für den physischen
+Hotkey. Der anschließende Klick auf „Aufnahme starten“ blockierte vor dem
+Recorder im macOS-Schlüsselbund. Ein lesender Prozessmitschnitt zeigte den
+Pfad `prepareRecording` → `hasAPIKey` → `KeychainItem.readResult` →
+`SecKeychainItemCopyContent`. Weder Aufnahme noch Provider-Anfrage wurden
+für diesen Versuch ausgelöst. Die geschützte Systemabfrage wartet auf Bastis
+Eingabe direkt am Mac; danach muss der echte Weg auf Build 4 erneut geprüft
+werden. Die Computersteuerung kann diesen Sicherheitsdialog nicht bedienen.
+
+**Vorheriger installierter Kandidat:** Build 3 aus Quellrevision
 `7621a7f18345a25c178c286e06e56a9558fc0d1a` liegt unter `/Applications`
 und `~/Applications`; beide Programmdateien haben SHA-256
 `a6204f3c07c68ca22587dd658aeda7c636e10cf42255971796a48bf6d7da765e`.
@@ -160,9 +195,18 @@ Python-Tests, Swift-Format, Shell-Syntax und einen Release-Build samt sieben
 Bundle-Prüffällen. Diese Vorschau nutzt weder Mikrofon noch Provider und ist
 kein Test des installierten Kandidaten. Die ⌘V-Einfügelogik blieb unberührt.
 
-Für den noch ausstehenden CI-Lauf wurde ein nativer macOS-14-Job mit Xcode
+Die App weicht bewusst in drei Details vom statischen Entwurf ab:
+„Einstellungen“ bleibt als ausgeschriebener, tastaturfokussierbarer Button
+statt eines alleinstehenden Zahnradzeichens sichtbar. Die festen
+Einrichtungsschritte werden im Panel nicht als dauerhaft offen angezeigt,
+weil bereits erteilte Berechtigungen sonst falsch wirken würden. Der Fehlerzustand
+behauptet nicht pauschal „Aufnahme gesichert“, weil diese Aussage erst nach
+einem geprüften Dateistatus zulässig ist; der konkrete Grund steht im
+Zustandstext und der Rückweg führt zu den Aufnahmen.
+
+Für den CI-Lauf wurde ein nativer macOS-14-Job mit Xcode
 16.2 ergänzt. Er führt die Offline-Swift-Tests und einen verifizierten
-Bundle-Build aus. Ein bestandener Lauf belegt nur diese Teilmenge, nicht die
+Bundle-Build aus. Der bestandene Lauf belegt nur diese Teilmenge, nicht die
 interaktiven Berechtigungs-, VoiceOver- oder Einfügeprüfungen.
 
 **Fortsetzung:** Basti hat die Fortsetzung von Plan 1 ohne festes
@@ -210,7 +254,7 @@ bereits stundenlang laufenden Prozess bleibt als diagnostische Beobachtung
 erhalten; sie ist durch den frischen Lauf nicht erklärt. Der Sampler erfasst
 keine Spitzen zwischen Sekundenabfragen und keine Energieaufnahme.
 
-Für den aktuell installierten **Build 3** wurde die App anschließend erneut
+Für den damals installierten **Build 3** wurde die App anschließend erneut
 frisch aus `~/Applications` gestartet und ohne App-Bedienung gemessen.
 [Teil 1](2026-09-23-idle-build3-12111-part1.json) und
 [Teil 2](2026-09-23-idle-build3-12111-part2.json) umfassen denselben Prozess
@@ -223,3 +267,14 @@ aber vorerst nicht das festgelegte RSS-Kriterium. Die frühere frische Messung
 stammt von einem anderen, zuvor installierten Kandidaten und ersetzt diesen
 Build-3-Nachweis nicht. Die Ursache der etwa 2,3 MiB Differenz zwischen den
 beiden frischen Messungen ist noch nicht geklärt.
+
+Für den frisch gestarteten installierten **Build 4** wurde die Messung am
+selben Prozess PID 41365 wiederholt. [Teil 1](2026-09-23-idle-build4-41365-part1.json)
+und [Teil 2](2026-09-23-idle-build4-41365-part2.json) enthalten 600,079
+Sekunden Beobachtung mit sekündlichen Samples; die Lücke zwischen den Teilen
+betrug 0,071 Sekunden. Die mittlere Prozess-CPU betrug 0,0017 Prozent, das
+höchste abgetastete RSS 99.552 KiB (97,219 MiB). Beide Plan-1-Ziele sind
+auf diesem Mac für diesen frischen Build damit erfüllt. Spitzen zwischen
+Samples und andere Hardware bleiben ungemessen. Ein erster Messversuch
+desselben Builds hatte 45 Sekunden ungesampelte Zeit zwischen den Teilen;
+er ist nicht der Abnahmenachweis und liegt nur als Diagnose unter `.build/`.
