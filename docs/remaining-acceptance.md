@@ -20,14 +20,19 @@ geprüft. Fenster und Feld sind nicht mehr gebunden: Ein Fokuswechsel kann Text
 in ein anderes Feld derselben ursprünglichen App lenken; ein Appwechsel kann
 durch die Reaktivierung rückgängig gemacht werden. Der Terminal-Sonderpfad und
 seine Zeilenumbruchfilter sind entfallen. Offline-Tests belegen die
-Entscheidungslogik, keinen sichtbaren Text in einer installierten App. Die
-historischen Live-Nachweise unten gelten nur für ihre damaligen Kandidaten.
+Entscheidungslogik. Der neue Build `bd3630f` ist in beiden lokalen App-Pfaden
+installiert und neu gestartet; ein
+[begrenzter sichtbarer TextEdit-Test](installed-command-v-2026-09-23.md)
+bestätigte normales ⌘V ohne Mikrofon, Provider oder automatischen
+OpenDictate-Aufruf. Ein vollständiger Diktatdurchlauf dieses Builds ist offen.
+Die historischen Live-Nachweise unten gelten nur für ihre damaligen Kandidaten.
 
-Nächster Mac-Nachweis: den identifizierten neuen Build in einem eigenen leeren
-TextEdit-Dokument und in repräsentativen Browser-/Electron-Feldern sichtbar
-prüfen. Fokuswechsel und Terminal nur mit klarer Erwartung an die Reaktivierung
-und einem harmlosen Ziel prüfen; vorherige Negativtests sind keine Sollvorgabe
-mehr. Mikrofon/Provider und Installation bleiben separate Live-Gates.
+Nächster Mac-Nachweis: den installierten neuen Build mit Mikrofon und Provider
+in einem eigenen leeren TextEdit-Dokument und gezielt in zuvor problematischen
+Browser-/Electron-Feldern prüfen. Fokuswechsel und Terminal nur mit klarer
+Erwartung an die Reaktivierung und einem harmlosen Ziel prüfen; vorherige
+Negativtests sind keine Sollvorgabe mehr. Live-Aufnahme und Provider brauchen
+eine separate konkrete Freigabe.
 
 ## macOS-Nachweise vom 22. und 23. September (älterer Kandidat)
 
@@ -254,11 +259,10 @@ Die vorbereitete [Pilot- und Integrationsliste](audio-quality-fixtures.md#prepar
 verwendet vorhandene Prüfmittel. Für den installierten älteren Kandidaten
 `68ef919` sind TextEdit, eine leere Terminal-Shellzeile und der negative
 TextEdit→Finder-Wechsel sichtbar geprüft. Diese Einfügenachweise gelten nicht
-für den neuen ⌘V-Pfad. Zuerst einen identifizierten Kandidaten mit vorhandener
-lokaler Signatur bauen oder ein überprüftes
-[CI-Entwicklungsarchiv](development.md#ci-development-archives) bewusst wählen.
-Die ad-hoc Signatur eines neuen Archivs übernimmt vorhandene
-Bedienungshilfen-/Keychain-Zugriffe nicht automatisch. Danach frühes
+für den neuen ⌘V-Pfad. Der identifizierte Build `bd3630f` ist nun mit der
+vorhandenen lokalen Signatur installiert. Als Nächstes seine automatische
+Einfügung in einem echten Diktat und weitere repräsentative Felder prüfen;
+Bedienungshilfen- und Keychain-Zugriff sind noch nicht live bestätigt. Danach frühes
 menschliches Nutzerfeedback sammeln; die komplette
 [Kompatibilitätsmatrix](compatibility-matrix.md) bleibt das breitere Produktziel.
 

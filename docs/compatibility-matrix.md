@@ -9,8 +9,11 @@ Datierte Berichte bleiben die Quelle für den jeweils tatsächlich geprüften Ka
 Zwischenablage und ⌘V in der zu Beginn erfassten App. Sie wird vor dem
 Einfügebefehl aktiviert. Ein Feldwechsel kann den Einfügeort ändern; ein
 Appwechsel nach dem Stoppen wird durch die Reaktivierung zurückgenommen.
-Die folgenden historischen AX-/Unicode-Nachweise gelten für ältere Kandidaten
-und müssen für den neuen Einfügeweg sichtbar wiederholt werden.
+Der neue Build `bd3630f` ist lokal installiert. Ein
+[manueller TextEdit-⌘V-Test](installed-command-v-2026-09-23.md) bestand;
+OpenDictates automatischer Diktatpfad ist damit nicht geprüft. Die folgenden
+historischen AX-/Unicode-Nachweise gelten für ältere Kandidaten und müssen
+für den neuen Einfügeweg sichtbar wiederholt werden.
 
 Die [Terminal- und Fokusabnahme vom 22. September](terminal-focus-acceptance-2026-09-22.md)
 belegt die sichtbare Eingabe in einer leeren Apple-Terminal-Shellzeile; der
