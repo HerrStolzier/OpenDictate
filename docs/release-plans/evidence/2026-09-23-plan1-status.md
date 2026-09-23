@@ -140,7 +140,8 @@ beschreibt nur den ersten Block. Die Offline-Tests für gesperrte Audiodateien,
 Recorder- und Providerfehler bestehen auf dem neuen Quellstand. Beim Pruning
 bleibt die Authentifizierungsdatei jetzt erhalten, wenn macOS die Audiodatei
 nicht löschen kann; nur tatsächlich entfernte Dateien werden als entfernt
-gezählt. Das ist noch kein installierter Live-Nachweis dieses neuen Builds.
+gezählt. Der oben dokumentierte Start von Build 3 bestätigte diesen
+gesperrten Dateifall auch am installierten Bundle.
 Die [Matrix-Fortsetzung](2026-09-23-offline-matrix.md#fortsetzung-mit-der-lokalen-safari-seite)
 zeigte Safari-`textarea` mit derselben Normalisierung sowie zwei zunächst
 erfolglose Browserfelder.
