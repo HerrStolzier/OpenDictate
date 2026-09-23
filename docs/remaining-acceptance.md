@@ -38,8 +38,15 @@ Safari normalisierte im `input` einen kombinierenden Akzent. Nächster
 Mac-Nachweis: die übrige sichtbare Feldmatrix mit kontrollierten künstlichen
 Texten prüfen. Der Abbruch während Aufnahme bestand;
 Providerfehler und tatsächlich unterbrochene Verarbeitung bleiben offen.
-Das neue Freigabekontingent von acht Aufnahmen ist verbraucht. Ein weiterer
-echter Aufnahmelauf braucht eine neue konkrete Freigabe.
+Der erste Live-Testblock mit acht Aufnahmen ist verbraucht. Basti hat die
+Fortsetzung von Plan 1 ohne festes Kontingent ausdrücklich freigegeben;
+Details stehen in [APPROVALS.md](../APPROVALS.md).
+Die Quellkorrektur zur Aufbewahrung einer Authentifizierungsdatei bei gesperrter
+Audiodatei ist offline getestet, aber noch nicht in einem neu installierten
+Live-Kandidaten abgenommen. Safari-`iframe` und `contenteditable` blieben in
+der fortgesetzten künstlichen Matrix ohne sichtbare Einfügung; die
+[Fallnotizen](release-plans/evidence/2026-09-23-offline-matrix.md) zählen sie
+nicht als bestanden.
 
 ## macOS-Nachweise vom 22. und 23. September (älterer Kandidat)
 

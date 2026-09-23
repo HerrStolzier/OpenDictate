@@ -183,7 +183,30 @@
             else { return false }
             var title: CFTypeRef?
             _ = AXUIElementCopyAttributeValue(window as! AXUIElement, kAXTitleAttribute as CFString, &title)
-            return (title as? String)?.hasPrefix("OpenDictate Matrix") == true
+            if (title as? String)?.hasPrefix("OpenDictate Matrix") == true { return true }
+
+            // Safari can show a local file with an untitled window. Confirm its
+            // exact on-disk fixture URL instead of trusting the page title.
+            let fixtureURL = Bundle.main.bundleURL.deletingLastPathComponent().deletingLastPathComponent()
+                .appendingPathComponent("scripts/fixtures/delivery-matrix.html").standardizedFileURL
+            var pending = [window as! AXUIElement]
+            var inspected = 0
+            while let element = pending.popLast(), inspected < 160 {
+                inspected += 1
+                var value: CFTypeRef?
+                if AXUIElementCopyAttributeValue(element, "AXURL" as CFString, &value) == .success,
+                    let url = value as? URL, url.standardizedFileURL == fixtureURL
+                {
+                    return true
+                }
+                var children: CFTypeRef?
+                if AXUIElementCopyAttributeValue(element, kAXChildrenAttribute as CFString, &children) == .success,
+                    let elements = children as? [AXUIElement]
+                {
+                    pending.append(contentsOf: elements.prefix(40))
+                }
+            }
+            return false
         }
 
         func applicationWillTerminate(_ notification: Notification) {

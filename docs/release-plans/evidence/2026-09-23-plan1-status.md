@@ -74,13 +74,24 @@ und zwischen zwei Apps. Der Safari-`input`-Vergleich meldete eine
 Unicode-Normalisierung (`e` + Akzent zu `é`); die strikte Zeichenfolgen-
 Abnahme ist dafür nicht bestanden. Der allgemeine ⌘V-Pfad blieb unverändert.
 
-Die übrige sichtbare Feldermatrix, Providerfehler, tatsächlich
+Die übrige sichtbare Feldermatrix, ein echter Providerfehler, tatsächlich
 unterbrochene Verarbeitung, Feedbackentscheidung und anschließende
 UI-Änderungen, gehörtes VoiceOver, macOS-14-Laufzeit und lokale Statuszeiten
-sind noch nicht abgeschlossen. Das konkrete Live-Aufnahmekontingent ist
-ausgeschöpft; es wird nicht still erweitert. Für macOS 14 ist auf dem aktuellen
+sind noch nicht abgeschlossen. Der erste konkrete Live-Testblock war zu diesem
+Zeitpunkt ausgeschöpft. Für macOS 14 ist auf dem aktuellen
 Mac kein Laufzeitnachweis möglich; der konfigurierte MacBook-SSH-Host antwortete
 nicht innerhalb von fünf Sekunden.
+
+**Fortsetzung:** Basti hat die Fortsetzung von Plan 1 ohne festes
+Aufnahmekontingent ausdrücklich freigegeben; die ältere Verbrauchsangabe oben
+beschreibt nur den ersten Block. Die Offline-Tests für gesperrte Audiodateien,
+Recorder- und Providerfehler bestehen auf dem neuen Quellstand. Beim Pruning
+bleibt die Authentifizierungsdatei jetzt erhalten, wenn macOS die Audiodatei
+nicht löschen kann; nur tatsächlich entfernte Dateien werden als entfernt
+gezählt. Das ist noch kein installierter Live-Nachweis dieses neuen Builds.
+Die [Matrix-Fortsetzung](2026-09-23-offline-matrix.md#fortsetzung-mit-der-lokalen-safari-seite)
+zeigt Safari-`textarea` mit derselben Normalisierung sowie zwei bisher
+erfolglose Browserfelder. Diese Fälle werden nicht als bestanden gezählt.
 
 Eine diagnostische Leerlaufmessung des seit 08:45 Uhr laufenden, installierten
 Prozesses ist abgeschlossen: zwei unmittelbar aufeinanderfolgende

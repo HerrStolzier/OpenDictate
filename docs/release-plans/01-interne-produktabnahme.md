@@ -152,9 +152,10 @@ Release, noch keine gemessenen Eigenschaften der installierten App.
   Rückmeldung. Jeder später geänderte Einfüge- oder Recovery-Pfad bekommt
   erneut die betroffenen Prüfungen.
 
-**Freigabegrenze:** Die fünf normalen und drei Störfall-Aufnahmen sowie bis zu
-acht OpenAI-Uploads benötigen vor Ausführung eine neue konkrete Live-Freigabe.
-Historische Testbudgets sind verbraucht. Keine automatische Wiederholung.
+**Live-Freigabe:** Basti hat nach Verbrauch des ersten Testblocks die
+Fortsetzung der Plan-1-Abnahme ohne feste Kontingentgrenze ausdrücklich
+freigegeben; siehe [APPROVALS.md](../../APPROVALS.md). Weiterhin keine
+automatische Wiederholung.
 
 **Übergabe an [Plan 2](02-verteilbares-mac-paket.md):** Datierter Bericht,
 Quellrevision, offene Grenzen und keine ungeklärten Fehler mit Text- oder

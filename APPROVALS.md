@@ -26,7 +26,7 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 Weitere dauerhafte Projektfreigaben sind hier nicht belegt. Frühere einzelne
 Mikrofon-/API-Abnahmen sind Nachweise und keine erneute Ausführungserlaubnis.
 
-## Plan 1: begrenzter Live-Testblock — 2026-09-23
+## Plan 1: Live-Tests — 2026-09-23
 
 - **Auftrag:** Basti beauftragte die Umsetzung von
   [Plan 1](docs/release-plans/01-interne-produktabnahme.md) mit „Dann leg los mit dem ersten Plan“.
@@ -43,10 +43,16 @@ Mikrofon-/API-Abnahmen sind Nachweise und keine erneute Ausführungserlaubnis.
   77,2 Prozent. Die acht realen Mikrofonaufnahmen mit lokal abgespielter
   Referenzsprache erreichten danach Spitzen zwischen −34 und −33 dB. Das
   belegt ein Eingangssignal, keine allgemeine Qualität menschlicher Sprache.
-- **Verbrauch:** Acht Aufnahmen und sieben OpenAI-Uploads. Die Ereignisse und
-  Ergebnisse stehen im [Live-Ledger](docs/release-plans/evidence/2026-09-23-live-ledger.json).
-  Eine weitere Aufnahme benötigt eine neue konkrete Freigabe. Es gab keine
-  automatische Wiederholung.
+- **Verbrauch des ersten Blocks:** Acht Aufnahmen und sieben OpenAI-Uploads. Die
+  Ereignisse und Ergebnisse stehen im
+  [Live-Ledger](docs/release-plans/evidence/2026-09-23-live-ledger.json).
+  Es gab keine automatische Wiederholung.
+- **Fortsetzung:** Basti sagte anschließend ausdrücklich: „Es gibt kein
+  begrenztes Kontingent. Du kannst arbeiten, bis die Aufgabe beendet ist. Bitte
+  stell Plan 1 fertig.“ Weitere kurze Live-Aufnahmen und OpenAI-Uploads zur
+  Abnahme von Plan 1 sind damit ohne feste Stückzahl autorisiert. Das erweitert
+  weder den Produktumfang noch erlaubt es automatische Wiederholungen,
+  Änderungen an Zugangsdaten oder Systemrechten oder eine Veröffentlichung.
 
 ## Begrenzte Roadmap-Abnahme — 2026-09-17
 

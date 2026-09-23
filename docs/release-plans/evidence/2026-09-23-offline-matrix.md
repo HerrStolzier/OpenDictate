@@ -26,3 +26,21 @@ Anfang/Mitte/Ende je Kategorie) sind mit dieser Sitzung noch nicht vollständig
 abgenommen. Der Safari-Zeichenfolgenbefund muss für die Release-Abnahme
 ausdrücklich bewertet werden; die Paste-Implementierung wurde hier nicht
 verändert.
+
+## Fortsetzung mit der lokalen Safari-Seite
+
+Die Debug-Fixture erkennt nach einem Safari-Neustart das exakt erwartete lokale
+Dateifenster auch dann über dessen `AXURL`, wenn Safari zeitweilig keinen
+Fenstertitel liefert. Der reine Zielcheck bestätigte `com.apple.Safari`, ohne
+Text zu senden. Der Produktionspfad für ⌘V blieb unverändert.
+
+| Fall | Beobachtung | Einordnung |
+|---|---|
+| Safari-`textarea`, vollständige Auswahl | Die Seite meldete vor der Übergabe `Auswahl 0–24`. Danach stand der ganze künstliche Text im Feld. Der exakte lokale Vergleich meldete Ist 45, Soll 46 UTF-16-Einheiten, erste Abweichung 34. | Sichtbare Ersetzung bestanden; strikter Rohvergleich wegen `e` + Akzent → `é` nicht bestanden. |
+| Safari-`iframe` mit `textarea` | Die Seite meldete eine vorbereitete Einfügeposition 1–1. Die Fixture meldete `deliveryUnconfirmed` und vollständigen Prüftext in ihrer Zwischenablage; der iframe-Feldwert blieb unverändert. Auch ein gesondert über Cua Driver ausgelöstes ⌘V veränderte das Feld nicht. | Nicht bestanden. Die direkte Kontrollaktion grenzt den Befund ein, belegt aber noch keine allgemeine Ursache. |
+| Safari-`contenteditable` | Die Fixture meldete den gesendeten Einfügebefehl; der AX-Feldwert blieb unverändert. [Sichtbarer Zustand](2026-09-23-matrix-safari-contenteditable-after.png). | Nicht bestanden. Die fokussierte Seite und der Eingabeweg müssen gezielt weiter untersucht werden. |
+
+Die eingebettete Seite und der formatierte Editor wurden nur mit künstlichem
+Text geprüft. Ein früheres echtes Diktat im Brave-`contenteditable` bleibt ein
+eigener positiver Nachweis für dessen damaligen installierten Kandidaten und
+ersetzt diese Safari-Fälle nicht.

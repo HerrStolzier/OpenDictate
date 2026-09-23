@@ -185,6 +185,9 @@ file integrity before/after; do not delete recordings created by the user.
 with fixed artificial text and the general clipboard, restored on exit only if
 it still contains the fixture's value. Choose the exact target
 app; only its foreground window with an `OpenDictate Matrix` title qualifies.
+For Safari's local file fixture, the exact `AXURL` of
+`scripts/fixtures/delivery-matrix.html` also qualifies when Safari exposes no
+window title.
 The fixture has no microphone, provider, Keychain, preference or recovery access.
 Its build reuses the existing local signing identity; it does not grant TCC access.
 The “Nur Ziel prüfen” option reports the actual `NSWorkspace` foreground app and
