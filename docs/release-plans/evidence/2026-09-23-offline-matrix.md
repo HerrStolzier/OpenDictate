@@ -44,3 +44,19 @@ Die eingebettete Seite und der formatierte Editor wurden nur mit künstlichem
 Text geprüft. Ein früheres echtes Diktat im Brave-`contenteditable` bleibt ein
 eigener positiver Nachweis für dessen damaligen installierten Kandidaten und
 ersetzt diese Safari-Fälle nicht.
+
+### Direkte Safari-Kontrolle nach dem Fehlversuch
+
+In einem neuen Fenster derselben lokalen Seite wurden beide betroffenen Felder
+über ihren jeweiligen Accessibility-Eintrag gezielt fokussiert und anschließend
+mit einem gesonderten ⌘V befüllt. Der vorherige Feldwert war jeweils
+`Anfang. MARKIERUNG Ende.`; danach enthielten sowohl das `contenteditable` als
+auch das `iframe`-`textarea` den vollständigen Text der Zwischenablage vor dem
+unveränderten Anfangstext. Das [sichtbare Ergebnis](2026-09-23-safari-direct-paste.png)
+und beide AX-Feldwerte stimmen für diese direkte Kontrolle überein. Das andere
+`textarea` blieb unverändert. Die Zwischenablage wurde dabei nicht geändert.
+
+Damit ist ein generelles Safari-Verbot für ⌘V in diesen beiden Feldarten
+widerlegt. Der frühere Fixture-Fehlversuch bleibt offen: Die direkte Kontrolle
+beweist nicht, welches Feld während dessen App-Aktivierung fokussiert war, und
+sie ersetzt keinen Lauf durch `DictationFlow` und `PasteboardInserter`.

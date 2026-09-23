@@ -25,6 +25,17 @@ eigene Recovery-Aufnahme wurde einzeln über die App gelöscht und ihr Dateipaar
 war danach nicht mehr vorhanden. Eine weitere Berechtigungsabfrage nach einer
 App-Änderung bleibt möglich.
 
+Der installierte Build wurde anschließend regulär beendet und erneut aus
+`~/Applications` gestartet. Das globale Kürzel war wieder registriert; ein
+erneuter Lauf erreichte den Provider und dessen Antwort ohne neuen sichtbaren
+Schlüsselbunddialog. Dieser Neustart prüft die gespeicherte Freigabe für genau
+dieses Bundle, nicht für zukünftige Signaturen. Die 46,9 Sekunden lange
+Testaufnahme enthielt keinen erkannten Text und blieb korrekt als
+authentifizierte Wiederholungsdatei erhalten. Sie wurde einzeln im
+Aufnahmen-Fenster gelöscht; Audio und `.auth` sind danach nicht mehr vorhanden.
+Die zwei älteren Aufnahmen blieben bestehen. Für diesen Neustarttest fiel ein
+Provider-Request an.
+
 Ein anschließender echter Build-3-Durchlauf startete mit dem physischen
 Kürzel in einem leeren eigenen TextEdit-Dokument. Die lokale Systemstimme
 Anna spielte einen harmlosen Testsatz über den Mac-Lautsprecher in das
@@ -133,6 +144,10 @@ gezählt. Das ist noch kein installierter Live-Nachweis dieses neuen Builds.
 Die [Matrix-Fortsetzung](2026-09-23-offline-matrix.md#fortsetzung-mit-der-lokalen-safari-seite)
 zeigt Safari-`textarea` mit derselben Normalisierung sowie zwei bisher
 erfolglose Browserfelder. Diese Fälle werden nicht als bestanden gezählt.
+Eine anschließende [direkte Safari-Kontrolle](2026-09-23-offline-matrix.md#direkte-safari-kontrolle-nach-dem-fehlversuch)
+fügte per ⌘V in beide gezielt fokussierten Felder vollständig ein. Das grenzt
+die früheren Fixture-Fehler auf deren Ablauf oder Fokuszustand ein, ohne die
+Produktions-Fixture nachträglich als bestanden zu bewerten.
 
 Eine diagnostische Leerlaufmessung des seit 08:45 Uhr laufenden, installierten
 Prozesses ist abgeschlossen: zwei unmittelbar aufeinanderfolgende

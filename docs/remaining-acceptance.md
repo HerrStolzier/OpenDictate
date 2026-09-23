@@ -20,11 +20,10 @@ geprüft. Fenster und Feld sind nicht mehr gebunden: Ein Fokuswechsel kann Text
 in ein anderes Feld derselben ursprünglichen App lenken; ein Appwechsel kann
 durch die Reaktivierung rückgängig gemacht werden. Der Terminal-Sonderpfad und
 seine Zeilenumbruchfilter sind entfallen. Offline-Tests belegen die
-Entscheidungslogik. Der neue Build `bd3630f` ist in beiden lokalen App-Pfaden
-installiert und neu gestartet; ein
+Entscheidungslogik. Ein
 [begrenzter sichtbarer TextEdit-Test](installed-command-v-2026-09-23.md)
-bestätigte normales ⌘V ohne Mikrofon, Provider oder automatischen
-OpenDictate-Aufruf. Die anschließende
+am damaligen Build `bd3630f` bestätigte normales ⌘V ohne Mikrofon, Provider
+oder automatischen OpenDictate-Aufruf. Die anschließende
 [Plan-1-Liverunde](release-plans/evidence/2026-09-23-plan1-status.md) belegte
 am selben installierten Build automatische Einfügung nach fünf echten
 Diktaten in TextEdit, Safari, Brave, Obsidian und eine nicht abgeschickte
@@ -56,10 +55,14 @@ geschalteter Systemausgabe ohne Text; die App erhielt dessen Aufnahme zur
 Wiederholung. Nach vorübergehendem Einschalten der Ausgabe bestand der zweite
 Versuch. Ausgabe und Testartefakte wurden wieder bereinigt; Einzelheiten im
 [Plan-1-Bericht](release-plans/evidence/2026-09-23-plan1-status.md).
-Safari-`iframe` und `contenteditable` blieben in
-der fortgesetzten künstlichen Matrix ohne sichtbare Einfügung; die
-[Fallnotizen](release-plans/evidence/2026-09-23-offline-matrix.md) zählen sie
-nicht als bestanden.
+Nach einem regulären Neustart las genau dieses installierte Bundle den
+API-Schlüssel erneut ohne sichtbare Rückfrage und erreichte einen
+Provider-Request. Seine eigene leere Wiederholungsaufnahme wurde danach
+einzeln gelöscht. Safari-`iframe` und `contenteditable` blieben in der
+fortgesetzten Produktions-Fixture ohne sichtbare Einfügung; ein anschließendes
+direktes ⌘V in beiden gezielt fokussierten Feldern bestand. Die
+[Fallnotizen](release-plans/evidence/2026-09-23-offline-matrix.md) trennen diese
+beiden Nachweise und zählen den Fixture-Lauf weiter nicht als bestanden.
 
 ## macOS-Nachweise vom 22. und 23. September (älterer Kandidat)
 
