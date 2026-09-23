@@ -42,8 +42,11 @@ Der erste Live-Testblock mit acht Aufnahmen ist verbraucht. Basti hat die
 Fortsetzung von Plan 1 ohne festes Kontingent ausdrücklich freigegeben;
 Details stehen in [APPROVALS.md](../APPROVALS.md).
 Die Quellkorrektur zur Aufbewahrung einer Authentifizierungsdatei bei gesperrter
-Audiodatei ist offline getestet, aber noch nicht in einem neu installierten
-Live-Kandidaten abgenommen. Safari-`iframe` und `contenteditable` blieben in
+Audiodatei ist offline getestet und als Build 3 in beiden lokalen App-Pfaden
+installiert. Beim Start dieses Builds meldete die App den verweigerten
+Löschversuch korrekt; Audio und Authentifizierungsdatei blieben erhalten.
+Der neue Diktierlauf steht noch an einer macOS-Schlüsselbundabfrage.
+Safari-`iframe` und `contenteditable` blieben in
 der fortgesetzten künstlichen Matrix ohne sichtbare Einfügung; die
 [Fallnotizen](release-plans/evidence/2026-09-23-offline-matrix.md) zählen sie
 nicht als bestanden.

@@ -3,7 +3,20 @@
 Dieser Stand ist noch **keine Produktabnahme**. Er trennt lokale Prüfungen von
 den ausstehenden sichtbaren Diktat-, UX- und Plattformnachweisen.
 
-## Kandidat
+**Neuer installierter Kandidat:** Build 3 aus Quellrevision
+`7621a7f18345a25c178c286e06e56a9558fc0d1a` liegt unter `/Applications`
+und `~/Applications`; beide Programmdateien haben SHA-256
+`a6204f3c07c68ca22587dd658aeda7c636e10cf42255971796a48bf6d7da765e`.
+Die Signatur, Hardened Runtime, Mikrofon-Berechtigung im Bundle und sieben
+kontrollierte Bundle-Prüffälle bestanden. Beide bisherigen Build-2-Kopien sind
+unter `.build/plan1-rollbacks-20260923-build2/` gesichert. Der neue Build läuft
+aus `~/Applications` und meldete beim Start die gesperrte alte Audiodatei als
+nicht löschbar, ohne eine falsche Bereinigungserfolgsmeldung; Audio und
+Authentifizierungsdatei sind weiter vorhanden. Beim ersten neuen Diktierlauf
+forderte macOS Zugriff auf den bestehenden Schlüsselbund-Eintrag an. Die
+Systemabfrage ist noch offen und erfordert Bastis Eingabe direkt am Mac.
+
+## Vorheriger Kandidat
 
 | Merkmal | Aktuell geprüft |
 |---|---|
