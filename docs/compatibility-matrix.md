@@ -1,6 +1,6 @@
 # Kompatibilitätsmatrix für Texteingabe und Fokus
 
-Stand: 2026-09-22. Diese Matrix ist der aktuelle produktweite Abnahmeplan für
+Stand: 2026-09-23. Diese Matrix ist der aktuelle produktweite Abnahmeplan für
 die Textübergabe. Programme dienen als repräsentative Beispiele ihrer Kategorie;
 ein bestandener Lauf ist kein Versprechen für alle Programme derselben Kategorie.
 Datierte Berichte bleiben die Quelle für den jeweils tatsächlich geprüften Kandidaten.
@@ -8,6 +8,9 @@ Datierte Berichte bleiben die Quelle für den jeweils tatsächlich geprüften Ka
 Die [Terminal- und Fokusabnahme vom 22. September](terminal-focus-acceptance-2026-09-22.md)
 belegt die sichtbare Eingabe in einer leeren Apple-Terminal-Shellzeile; der
 beabsichtigte negative Fokusfall blieb wegen eines Providerfehlers unentschieden.
+Ein späterer [realer TextEdit→Finder-Wechsel](live-focus-acceptance-2026-09-23.md)
+nach dem Stoppen bestand mit Provider-Transkript, leerem Ausgangsfeld und
+Kopiertext. Er prüft keinen Terminal-spezifischen Fokuswechsel.
 Die [Zielabnahme vom 17. September](target-acceptance-2026-09-17.md) ergänzt echte
 Auswahlersetzung in TextEdit, Safari und Obsidian. Die vorausgehende synthetische
 und reale Abnahme steht im
@@ -20,7 +23,8 @@ Die Stabilisierung in [PR #12](https://github.com/HerrStolzier/OpenDictate/pull/
 ändert Rückmeldungen zu versuchter/unterbrochener Texteingabe und die Einrichtung.
 Auf dem installierten Kandidaten `68ef919` wurden inzwischen die
 [TextEdit-Einfügung](live-acceptance-2026-09-22.md) und der oben genannte enge
-Terminal-Fall sichtbar geprüft. Eine begrenzte erste Runde und ein früher
+Terminal-Fall sowie der negative Appwechsel sichtbar geprüft. Eine begrenzte
+erste Runde und ein früher
 menschlicher Pilot sind in den
 [vorbereiteten Fällen](audio-quality-fixtures.md#prepared-first-human-pilot)
 beschrieben. Die historische Tabelle unten bleibt auf die dortigen Kandidaten
@@ -70,6 +74,13 @@ sichtbaren Startseite während zehn Sekunden simulierter Aufnahme und fünf
 Sekunden Verarbeitung: `textAvailable`, vollständiger Kopiertext, 0/4 Chunks und
 unverändertes Ausgangsfeld. Weitere versuchte synthetische Appwechsel waren nicht
 zuverlässig aktiviert und werden nicht als bestanden gewertet.
+
+Am 23. September bestand ein echter TextEdit→Finder-Wechsel nach dem
+Aufnahmestopp: Finder war während der Provider-Verarbeitung und zur
+Einfügeentscheidung vorne, TextEdit blieb leer und das Transkript wurde
+kopiert. Der erste, zu leise Lauf wurde ohne Upload übersprungen. Der
+[Bericht](live-focus-acceptance-2026-09-23.md) begrenzt diesen Nachweis auf
+genau diese Phase und den installierten Kandidaten.
 
 Die normalen editierbaren Feldkategorien werden nicht nur mit einem leeren Feld
 geprüft. Für Apple Terminal gelten die gesonderten Grenzen im nächsten Abschnitt;
@@ -137,6 +148,9 @@ Windows-/Linux-Version und keine öffentliche Veröffentlichung zu.
 
 ## Bestehende Nachweise
 
+- [Negativer Appwechsel vom 23. September](live-focus-acceptance-2026-09-23.md):
+  echter TextEdit→Finder-Wechsel nach dem Stoppen, Provider-Transkript kopiert,
+  Ausgangsfeld leer, ohne neue Quellcodeänderung.
 - [Ergänzende Zielabnahme vom 17. September](target-acceptance-2026-09-17.md):
   TextEdit, vier Safari-Feldtypen und Obsidian real geprüft, samt ungeklärtem
   Safari-Fallback und nicht nachgewiesenem echten Appwechsel.
