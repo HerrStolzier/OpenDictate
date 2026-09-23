@@ -148,6 +148,10 @@ Eine anschließende [direkte Safari-Kontrolle](2026-09-23-offline-matrix.md#dire
 fügte per ⌘V in beide gezielt fokussierten Felder vollständig ein. Das grenzt
 die früheren Fixture-Fehler auf deren Ablauf oder Fokuszustand ein, ohne die
 Produktions-Fixture nachträglich als bestanden zu bewerten.
+Ein gesonderter Appwechseltest zeigte, dass ein Accessibility-Klick in das
+`iframe`-Feld den sichtbaren Fokus nicht immer bewegt. Nach gezieltem
+Pixelklick blieb der Feldfokus bei einem Appwechsel erhalten und ⌘V landete
+im `iframe`; [Fallnotiz und Bild](2026-09-23-offline-matrix.md#direkte-safari-kontrolle-nach-dem-fehlversuch).
 
 Eine diagnostische Leerlaufmessung des seit 08:45 Uhr laufenden, installierten
 Prozesses ist abgeschlossen: zwei unmittelbar aufeinanderfolgende
@@ -167,3 +171,17 @@ Leerlaufziel auf diesem Mac im frischen Lauf. Die frühere Überschreitung beim
 bereits stundenlang laufenden Prozess bleibt als diagnostische Beobachtung
 erhalten; sie ist durch den frischen Lauf nicht erklärt. Der Sampler erfasst
 keine Spitzen zwischen Sekundenabfragen und keine Energieaufnahme.
+
+Für den aktuell installierten **Build 3** wurde die App anschließend erneut
+frisch aus `~/Applications` gestartet und ohne App-Bedienung gemessen.
+[Teil 1](2026-09-23-idle-build3-12111-part1.json) und
+[Teil 2](2026-09-23-idle-build3-12111-part2.json) umfassen denselben Prozess
+über zusammen 600,087 Sekunden mit nur 0,071 Sekunden Abstand. Die mittlere
+Prozess-CPU betrug 0,025 Prozent. Das höchste abgetastete RSS lag bei 102.816
+KiB (100,406 MiB) und damit **knapp über** dem 100-MiB-Ziel. Es begann bei
+102.512 KiB und blieb in beiden Teilen ungefähr auf diesem Niveau; der Befund
+ist kein einzelner später Ausreißer. Build 3 besteht damit das CPU-Kriterium,
+aber vorerst nicht das festgelegte RSS-Kriterium. Die frühere frische Messung
+stammt von einem anderen, zuvor installierten Kandidaten und ersetzt diesen
+Build-3-Nachweis nicht. Die Ursache der etwa 2,3 MiB Differenz zwischen den
+beiden frischen Messungen ist noch nicht geklärt.

@@ -60,3 +60,18 @@ Damit ist ein generelles Safari-Verbot für ⌘V in diesen beiden Feldarten
 widerlegt. Der frühere Fixture-Fehlversuch bleibt offen: Die direkte Kontrolle
 beweist nicht, welches Feld während dessen App-Aktivierung fokussiert war, und
 sie ersetzt keinen Lauf durch `DictationFlow` und `PasteboardInserter`.
+
+Eine weitere Kontrolle wechselte nach dem Fokussieren des
+`contenteditable` erst zu Codex und dann zurück zu genau demselben
+Safari-Fenster. ⌘V ohne neue Feldauswahl landete im formatierten Editor.
+Beim anschließenden Versuch mit dem eingebetteten `textarea` bewegte ein
+Accessibility-„Klick“ den sichtbaren Fokus **nicht** aus dem formatierten
+Editor; ⌘V landete erneut dort. Erst ein gezielter Pixelklick zeigte die
+Fokusmarkierung im `iframe`-Feld. Nach erneutem Appwechsel landete ⌘V ohne
+weitere Feldauswahl korrekt im `iframe`-Feld; dessen AX-Wert enthielt den
+vollständigen Kopiertext hinter dem Anfangstext, der andere einfache
+`textarea`-Wert blieb unverändert. [Sichtbarer Endzustand](2026-09-23-safari-focus-switch-paste.png).
+Der Fokus eines tatsächlich angeklickten Safari-Felds blieb in diesen
+beiden Kontrollen also über den Appwechsel erhalten. Die AX-Klickaktion
+ist für das eingebettete Feld in dieser Testumgebung kein verlässlicher
+Fokusnachweis. Der frühere Produktions-Fixture-Fall bleibt offen.

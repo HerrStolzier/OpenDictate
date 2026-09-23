@@ -62,7 +62,12 @@ einzeln gelöscht. Safari-`iframe` und `contenteditable` blieben in der
 fortgesetzten Produktions-Fixture ohne sichtbare Einfügung; ein anschließendes
 direktes ⌘V in beiden gezielt fokussierten Feldern bestand. Die
 [Fallnotizen](release-plans/evidence/2026-09-23-offline-matrix.md) trennen diese
-beiden Nachweise und zählen den Fixture-Lauf weiter nicht als bestanden.
+beiden Nachweise: Ein Accessibility-Klick bewegte den Fokus im eingebetteten
+Feld nicht zuverlässig; mit sichtbarem Fokus bestand ⌘V auch nach einem
+Appwechsel. Der Fixture-Lauf zählt weiter nicht als bestanden.
+Die frische zehnminütige [Build-3-Leerlaufmessung](release-plans/evidence/2026-09-23-plan1-status.md)
+bestand das CPU-Ziel, überschritt das festgelegte RSS-Ziel von 100 MiB jedoch
+stabil um etwa 0,4 MiB. Die Ursache bleibt vor der Plan-1-Abnahme zu klären.
 
 ## macOS-Nachweise vom 22. und 23. September (älterer Kandidat)
 
