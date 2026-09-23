@@ -175,13 +175,6 @@ final class DictationPanel: NSWindowController {
             set(.manual, detail: "Nicht automatisch eingefügt. Du kannst den Text kopieren.")
         case .deliveryUnconfirmed:
             set(.unconfirmed, detail: Self.pasteDetail)
-        case .deliveryInterrupted:
-            showingText = true
-            set(
-                .unconfirmed,
-                detail: "Einfügen wurde unterbrochen. "
-                    + "Möglicherweise steht bereits ein Teil des Textes im Zielprogramm. "
-                    + "Prüfe es vor manuellem Einfügen, um eine Doppelung zu vermeiden.")
         case .deliveryUncertain:
             showingText = true
             set(

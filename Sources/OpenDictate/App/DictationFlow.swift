@@ -200,8 +200,6 @@ final class DictationFlow {
         switch submission {
         case .notAttempted:
             onStatus?("Text kopiert – nicht automatisch eingefügt")
-        case .interrupted:
-            onStatus?("Einfügen unterbrochen – möglicherweise teilweise eingefügt; vollständiger Text kopiert")
         case .submitted:
             onStatus?("Einfügebefehl gesendet – Text auch kopiert")
         case .uncertain:

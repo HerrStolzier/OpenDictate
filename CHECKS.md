@@ -88,8 +88,8 @@ argument or environment variable.
 - `git diff --check` and `bash -n` for all six scripts listed above before handoff.
 - Real microphone, hotkeys, direct target-field insertion, clipboard fallback and VoiceOver require attended native-app acceptance; an accessibility tree alone is not a VoiceOver listening test.
 - After changing the insertion mechanism, recheck the affected categories and
-  scenarios in `docs/compatibility-matrix.md`. A successful historical `Cmd+V`
-  test does not validate direct `AXSelectedText` or Unicode-event insertion.
+  scenarios in `docs/compatibility-matrix.md`. Historical checks validate only
+  their installed candidate.
 - The lifecycle tests use controlled callbacks and a fake recorder/transcriber to
   exercise cancellation, delayed permission results and quit/drain ordering. They
   do not execute native permission dialogs or prove microphone/device behavior.
@@ -156,8 +156,8 @@ panel must stay hidden during recording, processing, completion and failure;
 the status bar still shows progress. Open the panel deliberately, close it
 during recording, and verify that later updates do not reopen it. Permission
 and setup failures must remain available when the user opens the panel later.
-Check target capture before a Keychain dialog and before explicit panel focus
-return; a failed capture must not adopt a different field afterward.
+Check application capture before a Keychain dialog and before explicit panel
+focus return. A later focus switch may redirect Paste within that application.
 The real acceptance path is microphone recording, provider transcription and
 automatic insertion into a fresh target document, without manual paste.
 Close and discard test documents afterward; preserve pre-existing user content.
@@ -182,12 +182,13 @@ file integrity before/after; do not delete recordings created by the user.
 
 `./script/build_and_run.sh --matrix-host` starts controlled native test fields.
 `./script/build_and_run.sh --matrix-fixture` runs the production flow and inserter
-with fixed artificial text and a unique test pasteboard. Choose the exact target
+with fixed artificial text and the general clipboard, restored on exit only if
+it still contains the fixture's value. Choose the exact target
 app; only its foreground window with an `OpenDictate Matrix` title qualifies.
 The fixture has no microphone, provider, Keychain, preference or recovery access.
 Its build reuses the existing local signing identity; it does not grant TCC access.
 The “Nur Ziel prüfen” option reports the actual `NSWorkspace` foreground app and
-captured AX field without starting the synthetic flow, writing the clipboard or
+captured application without starting the synthetic flow, writing the clipboard or
 sending text. TextEdit is also selectable; use an owned document whose filename
 starts with `OpenDictate Matrix`. Selecting an app in a UI automation tool does
 not itself prove that the app became the actual foreground target.
@@ -197,9 +198,9 @@ changing dispatch, including unchanged recovery and preference inventories.
 Use `scripts/fixtures/delivery-matrix.html` for local browser fields. The fixture
 also exposes the real shortcut dialog without saving the choice, and synthetic
 80/85-second recording states at the panel's minimum width. Its optional
-10-second synthetic recording delay captures the target first: switch apps or
-windows during that delay and verify that delivery is rejected instead of being
-redirected. Close all created tabs, windows and processes afterward and compare
+10-second synthetic recording delay captures the application first: switch apps
+or windows during that delay and observe where Paste lands after the original
+application is reactivated. Close all created tabs, windows and processes and compare
 user preferences/recovery files.
 
 The recovery store tests exercise real temporary filesystem writes with a fixed
@@ -219,19 +220,9 @@ and both test combinations becoming available again. It changes no preference;
 an existing environmental conflict fails the check rather than choosing another
 shortcut. This test is skipped by default, including CI.
 
-The Unicode event tests construct events without posting them. They check exact
-UTF-16 preservation, modifier-free events, failure, cancellation and stopping
-remaining chunks after a focus change. They do not prove browser editing.
-`TerminalInputPolicyTests` and the Terminal cases in `InsertionTargetTests` use
-injected focus/Secure Input results and collect chunks without posting events.
-They cover the narrow Apple Terminal eligibility exception, both AX-writability
-values, missing or changed selection metadata, Secure Input and focus changes,
-rejection before any prefix is sent, and unchanged ordinary-editor behavior.
-The policy tests enumerate all rejected scalars: U+0000–001F, U+007F–009F,
-U+2028–2029 and U+F700–F8FF. This applies to the insertion string after the
-production flow's existing outer-whitespace trimming, not the raw provider text.
-These tests are part of the normal offline Swift suite; they do not inspect a
-running Terminal, execute commands or establish native event acceptance.
+`PasteboardInserterTests` verifies application activation, clipboard integrity,
+foreground checks and Command-V submission without posting system input. It
+does not prove visible insertion in a real editor.
 
 Use [the compatibility matrix](docs/compatibility-matrix.md) for product-facing
 acceptance. Exercise native fields, browser `input`/`textarea`, `contenteditable`,
@@ -240,26 +231,21 @@ In the HTML fixture, load its reference probe and use the built-in comparator;
 an `EXAKT` result means the complete value and selection replacement match in
 UTF-16 units, including surrogate pairs, line breaks and trailing whitespace.
 For each relevant category check cursor positions, selection replacement,
-multiline Unicode and app/window/tab switches during recording, processing and
-chunked delivery. Also verify the explicit clipboard fallback for a rejected or
-protected target. Never use a private mail draft or account content as a fixture.
+multiline Unicode and app/window/tab switches during recording and processing.
+Observe whether Paste reaches a different field in the original application.
+Never use a private mail draft or account content as a fixture.
 
 Record the installed candidate and visible before/after result. A synthetic
 production-inserter run, an attended end-to-end dictation and user confirmation
-are distinct evidence. One program does not establish its whole category; the
-explicit Brave/Safari/Obsidian paths do not establish other browsers or Electron apps.
+are distinct evidence. One program does not establish its whole category.
 
 ## Apple Terminal
 
-The new exception applies only to `com.apple.Terminal` and the conditions in
-[the compatibility matrix](docs/compatibility-matrix.md#apple-terminal).
-Ordinary editor targets still require settable `AXSelectedText`; Terminal uses
-Unicode events without replacing a display selection. One native Terminal
-shell-line check passed on the installed `68ef919` candidate; see
+The former Terminal-specific Unicode path has been removed. The installed
+`68ef919` candidate passed one shell-line case on that older path; see
 [the September 22 report](docs/terminal-focus-acceptance-2026-09-22.md).
-Selection, tab and negative-focus cases remain open. The existing matrix
-fixture does not offer Terminal as a target. Offline success is not a Terminal
-runtime result.
+The restored Command-V path has no line-break or command filter. Test Terminal
+only with a harmless single-line phrase and a disposable, empty shell prompt.
 
 For a separately authorized native dictation check:
 
@@ -268,20 +254,17 @@ For a separately authorized native dictation check:
    empty shell input line and no interactive program or pending command. If the
    input context is unclear, use a new TextEdit document as a control and leave
    the Terminal case open; ordinary printable keys can affect other programs.
-2. Inspect the actual focused AX target before attempting input. Start with a
+2. Inspect the actual focused Terminal window before attempting input. Start with a
    short, harmless single line such as “OpenDictate Probe Apfel 42”. End dictation
    with the recording shortcut; **do not press Return, submit the line or run a
    command**. Compare the displayed input with the retained transcript and note
    whether all text arrived. Do not infer success from a submitted-event count.
-3. With the same controlled input context, check rejection after a real target
-   switch or when display text is selected; preserve the complete transcript
-   and verify that no different target received it. A tab test counts only if
-   the observed AX identity and actual foreground tab are recorded. Keep these
-   outcomes separate from the initial single-line result.
+3. With the same controlled input context, check what happens after a real
+   target switch or when display text is selected. The old rejection behavior
+   must not be assumed for the restored Command-V path.
 4. Remove only the owned, unsubmitted test input or close the disposable window
-   without submitting it. A TextEdit control result, missing AX capture or a
+   without submitting it. A TextEdit control result or a
    clipboard fallback must not be reported as successful Terminal insertion.
 
-No return/control-key test should be sent to a live shell to exercise the text
-filter; its rejection cases belong in the offline tests above. This procedure
+Do not send a multiline or executable test to a live shell. This procedure
 does not establish support for iTerm2 or terminals embedded in editors.

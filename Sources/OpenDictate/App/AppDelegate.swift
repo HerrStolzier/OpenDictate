@@ -18,7 +18,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let transcriber = OpenAITranscriber()
     private let pasteboard = PasteboardInserter()
     private var previousApplication: NSRunningApplication?
-    private var insertionTarget: InsertionTarget?
     private var latestExternalApplication: NSRunningApplication?
     private var lastHotKeyAt = Date.distantPast
     private var autoStopTask: Task<Void, Never>?
@@ -52,7 +51,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 copy: { [unowned self] in pasteboard.copy($0) },
                 paste: { [unowned self] text in
                     guard Config.settings.autoPaste else { return .notAttempted }
-                    return await pasteboard.paste(text, into: insertionTarget)
+                    return await pasteboard.paste(text, into: previousApplication)
                 }
             ))
     }
@@ -119,7 +118,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if state != .recording { cancelAutoStop() }
             if state == .idle {
                 requestOptions = nil
-                insertionTarget = nil
                 refreshSavedRecordings()
             }
             guard !lifecycle.isTerminating else { return }
@@ -263,13 +261,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         guard flow.state.canStart, let operation = lifecycle.beginOperation() else { return }
-        // Capture the field before scheduling work, reading Keychain or returning
-        // focus from the panel. A missing snapshot must never adopt a later field.
-        let capturedField = pasteboard.captureTarget(in: capturedTarget?.processIdentifier)
         guard lifecycle.isCurrent(operation) else { return }
         if returnPanelFocus { returnFocusFromPanel(to: capturedTarget) }
         Task { @MainActor in
-            await prepareRecording(target: capturedTarget, field: capturedField, operation: operation)
+            await prepareRecording(target: capturedTarget, operation: operation)
         }
     }
 
@@ -285,7 +280,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func prepareRecording(
-        target: NSRunningApplication?, field: InsertionTarget?, operation: AppLifecycle.Operation
+        target: NSRunningApplication?, operation: AppLifecycle.Operation
     ) async {
         defer { lifecycle.finish(operation) }
         guard lifecycle.isCurrent(operation), !Task.isCancelled, flow.state.canStart else { return }
@@ -308,7 +303,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 guard flow.state.canStart else { return }
                 requestOptions = options
                 previousApplication = target
-                insertionTarget = field
                 if try flow.start() {
                     pendingRetryFilename = nil
                     scheduleAutoStop()
@@ -317,7 +311,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } catch {
             if flow.state == .idle {
                 requestOptions = nil
-                insertionTarget = nil
             }
             guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
             updateStatus(OpenDictateError.userMessage(for: error))
@@ -363,7 +356,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 guard flow.state.canRetry else { return }
                 requestOptions = options
                 previousApplication = target
-                insertionTarget = nil  // Recovery deliberately delivers through the clipboard only.
                 _ = flow.retry(payload)
             }
         } catch {
@@ -468,7 +460,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         snapshotTask = nil
         snapshotNeedsRefresh = false
         pendingRetryFilename = nil
-        insertionTarget = nil
         recorder.onUnexpectedStop = nil
     }
 
@@ -484,9 +475,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
             app.processIdentifier != ProcessInfo.processInfo.processIdentifier
         else { return }
-        if flow.state != .idle, app.processIdentifier != previousApplication?.processIdentifier {
-            insertionTarget = nil
-        }
         latestExternalApplication = app
     }
 

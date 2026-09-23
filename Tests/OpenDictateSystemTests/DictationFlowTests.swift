@@ -289,7 +289,6 @@ struct DictationFlowTests {
     @Test func insertionEvidenceReachesStatusWithoutChangingClipboardRecoveryPolicy() async throws {
         let cases: [(InsertionSubmission, DictationOutcome, String)] = [
             (.notAttempted, .textAvailable, "nicht automatisch eingefügt"),
-            (.interrupted, .deliveryInterrupted, "möglicherweise teilweise eingefügt"),
             (.submitted, .deliveryUnconfirmed, "Einfügebefehl gesendet"),
             (.uncertain, .deliveryUncertain, "Einfügeversuch unbestätigt")
         ]
@@ -316,42 +315,6 @@ struct DictationFlowTests {
         }
     }
 
-    @Test func focusLossOrCancellationAfterFirstChunkKeepsCompleteCopyAndReportsInterruption() async throws {
-        for cancel in [false, true] {
-            let h = Harness()
-            h.text = Array(repeating: "Grüße 🍏!", count: 8).joined(separator: " ")
-            var focused = true
-            var posted: [[UInt16]] = []
-            var outcomes: [DictationOutcome] = []
-            var statuses: [String] = []
-            h.pasteOverride = { text in
-                await UnicodeTextDelivery.send(
-                    text, stillFocused: { focused },
-                    post: {
-                        posted.append($0)
-                        if cancel { h.flow.cancel() } else { focused = false }
-                        return true
-                    })
-            }
-            h.flow.onOutcome = { outcomes.append($0) }
-            h.flow.onStatus = { statuses.append($0) }
-            _ = try h.flow.start()
-            _ = h.flow.stop()
-            await h.flow.task?.value
-
-            #expect(posted.count == 1)
-            #expect(outcomes == [.deliveryInterrupted])
-            #expect(statuses.last?.contains("möglicherweise teilweise eingefügt") == true)
-            #expect(h.copiedTexts == [h.text])
-            #expect(h.flow.lastTranscript == h.text)
-            #expect(h.flow.state == .idle)
-            #expect(h.kept.isEmpty)
-            #expect(Set(h.cleaned) == Set([h.original, h.trimmed]))
-            #expect(h.flow.copyLastTranscript())
-            #expect(h.copiedTexts == [h.text, h.text])
-        }
-    }
-
     @Test func cancellationAfterCopyBeforeInsertionLeavesTextAvailable() async throws {
         let h = Harness()
         var outcomes: [DictationOutcome] = []
@@ -373,33 +336,4 @@ struct DictationFlowTests {
         #expect(h.flow.state == .idle)
     }
 
-    @Test func cancellationAfterLastChunkStillReportsCompleteUnconfirmedSubmission() async throws {
-        let h = Harness()
-        h.text = String(repeating: "x", count: 45)
-        let chunks = UnicodeTextDelivery.chunks(h.text)
-        var posted: [[UInt16]] = []
-        var outcomes: [DictationOutcome] = []
-        var statuses: [String] = []
-        h.pasteOverride = { text in
-            await UnicodeTextDelivery.send(
-                text, stillFocused: { true },
-                post: {
-                    posted.append($0)
-                    if posted.count == chunks.count { h.flow.cancel() }
-                    return true
-                })
-        }
-        h.flow.onOutcome = { outcomes.append($0) }
-        h.flow.onStatus = { statuses.append($0) }
-        _ = try h.flow.start()
-        _ = h.flow.stop()
-        await h.flow.task?.value
-
-        #expect(posted == chunks)
-        #expect(outcomes == [.deliveryUnconfirmed])
-        #expect(statuses.last == "Einfügebefehl gesendet – Text auch kopiert")
-        #expect(h.copiedTexts == [h.text])
-        #expect(h.kept.isEmpty)
-        #expect(Set(h.cleaned) == Set([h.original, h.trimmed]))
-    }
 }
