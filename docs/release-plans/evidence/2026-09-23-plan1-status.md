@@ -344,3 +344,15 @@ Das belegt Signaturprüfung und Prozesskommunikation, aber noch keine
 macOS-Freigabe für die bestehenden echten Einträge. Dafür und für einen
 erneuten Zugriff nach Änderung des App-Builds ist die installierte App nötig.
 Die alte API-Key-Position wird bis zu diesem Nachweis nicht gelöscht.
+
+Der saubere Quellstand `78826a3` wurde anschließend in beiden bestehenden
+App-Pfaden installiert; beide vorherigen Bundles liegen als lokales Rollback
+unter `.build/keychain-rollback-20260923/`. Der erste Start legte eine
+signaturgeprüfte Helferkopie an. Ihr Inhalt entsprach dem im installierten
+Bundle, und macOS startete einen SecurityAgent-Zugriffsdialog für einen
+vorhandenen Eintrag. Eine Benutzerfreigabe und ein erfolgreicher Lesezugriff
+liegen noch nicht vor. Der spätere Buildskript-Fix `82de203` erhält die
+Helferkennung auch bei anonymer CI-Signatur. Der macOS-14-Job mit Offline-Tests
+und Bundle-Build sowie der macOS-15-Job mit Tests, Fehler-Fixtures und
+verifiziertem Entwicklungsarchiv bestanden auf diesem Quellstand. Diese
+CI-Ergebnisse belegen keine interaktive Schlüsselbundfreigabe.

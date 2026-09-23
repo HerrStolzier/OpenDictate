@@ -347,10 +347,12 @@ Verbrauchsnachweise und kein künftiges Limit.
   Build-Wechsel erneut Zugriff. Ein bloßes Speichern über den App-Dialog ist
   somit keine belegte dauerhafte Lösung. Der neue, fest installierte signierte
   Schlüsselbundhelfer bestand einen isolierten Aufruf aus einem signierten
-  App-Host; der echte API-Schlüssel wurde dabei nicht gelesen. Installation,
-  einmalige Freigabe der bestehenden Schlüsselbundobjekte und der operative
-  Lesezugriff nach einem weiteren App-Build bleiben am installierten Kandidaten
-  zu prüfen. Den alten Eintrag bis dahin nicht löschen.
+  App-Host; der echte API-Schlüssel wurde dabei nicht gelesen. Der neue Build
+  wurde in beide lokalen App-Kopien installiert, die bisherigen Bundles wurden
+  gesichert. Der installierte Helfer ist signiert und stimmt mit dem Bundle
+  überein. Die einmalige macOS-Freigabe eines bestehenden Objekts ist noch
+  offen; damit bleiben der operative Lesezugriff und ein erneuter Zugriff nach
+  dem nächsten App-Build ungeprüft. Den alten Eintrag bis dahin nicht löschen.
 
 Bekannte Fehler mit falschem Ziel, beschädigtem vorhandenem Text oder Verlust der
 einzigen Aufnahme/des einzigen Transkripts verhindern eine Ausweitung des betroffenen
