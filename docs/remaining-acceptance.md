@@ -49,8 +49,13 @@ Für den bestehenden API-Schlüssel-Eintrag wurde die installierte App gezielt
 als zugriffsberechtigt gespeichert; „alle Programme“ blieb ausgeschaltet.
 Ein neuer Lauf erreichte danach ohne Schlüsselbundabfrage die laufende
 Aufnahme. Die Aufnahme wurde ohne Provider-Upload abgebrochen und ihre eigene
-Recovery-Datei wieder gelöscht. Ein vollständiges neues Diktat mit Build 3
-steht noch aus.
+Recovery-Datei wieder gelöscht. Ein anschließender echter Build-3-Lauf mit
+lokaler Systemstimme, Mikrofon und Provider fügte Text automatisch in ein
+leeres eigenes TextEdit-Dokument ein. Der erste Versuch blieb wegen stumm
+geschalteter Systemausgabe ohne Text; die App erhielt dessen Aufnahme zur
+Wiederholung. Nach vorübergehendem Einschalten der Ausgabe bestand der zweite
+Versuch. Ausgabe und Testartefakte wurden wieder bereinigt; Einzelheiten im
+[Plan-1-Bericht](release-plans/evidence/2026-09-23-plan1-status.md).
 Safari-`iframe` und `contenteditable` blieben in
 der fortgesetzten künstlichen Matrix ohne sichtbare Einfügung; die
 [Fallnotizen](release-plans/evidence/2026-09-23-offline-matrix.md) zählen sie

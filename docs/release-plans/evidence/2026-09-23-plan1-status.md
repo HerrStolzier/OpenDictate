@@ -23,8 +23,26 @@ den Schlüssel vor diesem Zustand in `hasAPIKey` und `TranscriptionOptions.curre
 Dieser Lauf wurde nach 14,9 Sekunden ohne Provider-Upload abgebrochen; die
 eigene Recovery-Aufnahme wurde einzeln über die App gelöscht und ihr Dateipaar
 war danach nicht mehr vorhanden. Eine weitere Berechtigungsabfrage nach einer
-App-Änderung bleibt möglich. Ein vollständiger neuer Diktatdurchlauf mit Build 3
-ist noch nicht belegt.
+App-Änderung bleibt möglich.
+
+Ein anschließender echter Build-3-Durchlauf startete mit dem physischen
+Kürzel in einem leeren eigenen TextEdit-Dokument. Die lokale Systemstimme
+Anna spielte einen harmlosen Testsatz über den Mac-Lautsprecher in das
+JBL-Mikrofon. Der erste Versuch lieferte nach einem Provider-Request keinen
+Text: Die Systemausgabe war stummgeschaltet (Aufnahme: Peak −35 dB,
+Durchschnitt −45 dB). Nach vorübergehendem Aufheben der Stummschaltung und
+Anheben der Ausgabe von 56 auf 80 ergab der zweite Versuch Peak −14 dB und
+Durchschnitt −32 dB. Ein Provider-Request lieferte den vollständigen Text;
+das installierte Build fügte ihn ohne Klick oder manuelles Paste sichtbar in
+das zuvor leere TextEdit-Dokument ein. Der per Accessibility gelesene Feldtext
+stimmte mit dem App-Ergebnistext überein; die Spracherkennung schrieb
+„Build“ als „Bild“ und „sieben“ als „7“. Das belegt den Übertragungsweg,
+keine allgemeine Sprachqualität. Die Lautstärke 56 und Stummschaltung wurden
+wiederhergestellt. Die eigene Aufnahme des leeren Versuchs wurde einzeln
+gelöscht; lokale Audiodatei des erfolgreichen Laufs, Testdokument,
+Screenshots und der letzte Text im App-Speicher wurden bereinigt. Die zwei
+älteren vorgefundenen
+Recovery-Einträge blieben unangetastet.
 
 ## Vorheriger Kandidat
 
