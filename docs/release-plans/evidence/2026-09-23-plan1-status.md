@@ -13,8 +13,18 @@ unter `.build/plan1-rollbacks-20260923-build2/` gesichert. Der neue Build läuft
 aus `~/Applications` und meldete beim Start die gesperrte alte Audiodatei als
 nicht löschbar, ohne eine falsche Bereinigungserfolgsmeldung; Audio und
 Authentifizierungsdatei sind weiter vorhanden. Beim ersten neuen Diktierlauf
-forderte macOS Zugriff auf den bestehenden Schlüsselbund-Eintrag an. Die
-Systemabfrage ist noch offen und erfordert Bastis Eingabe direkt am Mac.
+forderte macOS Zugriff auf den bestehenden Schlüsselbund-Eintrag an.
+Basti bestätigte den Zugriff direkt am Mac. Anschließend wurde die laufende
+installierte App gezielt in die Zugriffsliste genau dieses API-Schlüssel-Eintrags
+aufgenommen; „alle Programme“ blieb aus. Nach dem Speichern war „Änderungen
+sichern“ deaktiviert. Ein neuer Start über das App-Panel erreichte ohne neue
+Schlüsselbundabfrage „Aufnahme läuft“ mit Eingangssignal. Der Quellpfad liest
+den Schlüssel vor diesem Zustand in `hasAPIKey` und `TranscriptionOptions.current`.
+Dieser Lauf wurde nach 14,9 Sekunden ohne Provider-Upload abgebrochen; die
+eigene Recovery-Aufnahme wurde einzeln über die App gelöscht und ihr Dateipaar
+war danach nicht mehr vorhanden. Eine weitere Berechtigungsabfrage nach einer
+App-Änderung bleibt möglich. Ein vollständiger neuer Diktatdurchlauf mit Build 3
+ist noch nicht belegt.
 
 ## Vorheriger Kandidat
 

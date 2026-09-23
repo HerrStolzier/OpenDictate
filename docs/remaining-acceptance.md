@@ -45,7 +45,12 @@ Die Quellkorrektur zur Aufbewahrung einer Authentifizierungsdatei bei gesperrter
 Audiodatei ist offline getestet und als Build 3 in beiden lokalen App-Pfaden
 installiert. Beim Start dieses Builds meldete die App den verweigerten
 Löschversuch korrekt; Audio und Authentifizierungsdatei blieben erhalten.
-Der neue Diktierlauf steht noch an einer macOS-Schlüsselbundabfrage.
+Für den bestehenden API-Schlüssel-Eintrag wurde die installierte App gezielt
+als zugriffsberechtigt gespeichert; „alle Programme“ blieb ausgeschaltet.
+Ein neuer Lauf erreichte danach ohne Schlüsselbundabfrage die laufende
+Aufnahme. Die Aufnahme wurde ohne Provider-Upload abgebrochen und ihre eigene
+Recovery-Datei wieder gelöscht. Ein vollständiges neues Diktat mit Build 3
+steht noch aus.
 Safari-`iframe` und `contenteditable` blieben in
 der fortgesetzten künstlichen Matrix ohne sichtbare Einfügung; die
 [Fallnotizen](release-plans/evidence/2026-09-23-offline-matrix.md) zählen sie

@@ -31,6 +31,12 @@ open .build/OpenDictate.app
 The API key is stored in the macOS Keychain. Never put it in a command, environment
 variable, checked-in file or log. A missing, invalid or inaccessible key receives
 an actionable message; the key dialog supports normal macOS editing shortcuts.
+If macOS asks whether **OpenDictate** may read its existing Keychain password,
+verify the requesting app and choose **Always Allow** to trust that app for this
+item on future dictations. Enter the Mac password only in the macOS dialog.
+Do not enable access for all applications. A changed app may need authorization
+again; the separate code-signing private key must retain its restricted access
+([development signing](docs/accessibility-signing.md#create-a-local-development-identity)).
 See [privacy and retention](PRIVACY.md) and the
 [current evidence and limitations](docs/remaining-acceptance.md).
 
