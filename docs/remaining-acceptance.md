@@ -58,13 +58,13 @@ Versuch. Ausgabe und Testartefakte wurden wieder bereinigt; Einzelheiten im
 Nach einem regulären Neustart las genau dieses installierte Bundle den
 API-Schlüssel erneut ohne sichtbare Rückfrage und erreichte einen
 Provider-Request. Seine eigene leere Wiederholungsaufnahme wurde danach
-einzeln gelöscht. Safari-`iframe` und `contenteditable` blieben in der
-fortgesetzten Produktions-Fixture ohne sichtbare Einfügung; ein anschließendes
-direktes ⌘V in beiden gezielt fokussierten Feldern bestand. Die
-[Fallnotizen](release-plans/evidence/2026-09-23-offline-matrix.md) trennen diese
-beiden Nachweise: Ein Accessibility-Klick bewegte den Fokus im eingebetteten
-Feld nicht zuverlässig; mit sichtbarem Fokus bestand ⌘V auch nach einem
-Appwechsel. Der Fixture-Lauf zählt weiter nicht als bestanden.
+einzeln gelöscht. Safari-`iframe` und `contenteditable` scheiterten zunächst
+in der künstlichen Matrix. Ein Accessibility-Klick bewegte den Fokus im
+eingebetteten Feld nicht zuverlässig. Nach sichtbar gesetztem Fokus bestand
+⌘V auch über einen Appwechsel hinweg. Die
+[wiederholte Produktions-Fixture](release-plans/evidence/2026-09-23-offline-matrix.md#wiederholung-mit-der-produktions-fixture)
+fügte danach in beide Felder sichtbar mehrzeiligen künstlichen Text ein.
+Der exakte DOM-Rohvergleich und die übrigen Matrixpositionen bleiben offen.
 Die frische zehnminütige [Build-3-Leerlaufmessung](release-plans/evidence/2026-09-23-plan1-status.md)
 bestand das CPU-Ziel, überschritt das festgelegte RSS-Ziel von 100 MiB jedoch
 stabil um etwa 0,4 MiB. Die Ursache bleibt vor der Plan-1-Abnahme zu klären.

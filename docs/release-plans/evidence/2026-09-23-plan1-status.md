@@ -142,16 +142,22 @@ bleibt die Authentifizierungsdatei jetzt erhalten, wenn macOS die Audiodatei
 nicht löschen kann; nur tatsächlich entfernte Dateien werden als entfernt
 gezählt. Das ist noch kein installierter Live-Nachweis dieses neuen Builds.
 Die [Matrix-Fortsetzung](2026-09-23-offline-matrix.md#fortsetzung-mit-der-lokalen-safari-seite)
-zeigt Safari-`textarea` mit derselben Normalisierung sowie zwei bisher
-erfolglose Browserfelder. Diese Fälle werden nicht als bestanden gezählt.
+zeigte Safari-`textarea` mit derselben Normalisierung sowie zwei zunächst
+erfolglose Browserfelder.
 Eine anschließende [direkte Safari-Kontrolle](2026-09-23-offline-matrix.md#direkte-safari-kontrolle-nach-dem-fehlversuch)
-fügte per ⌘V in beide gezielt fokussierten Felder vollständig ein. Das grenzt
-die früheren Fixture-Fehler auf deren Ablauf oder Fokuszustand ein, ohne die
-Produktions-Fixture nachträglich als bestanden zu bewerten.
+fügte per ⌘V in beide gezielt fokussierten Felder vollständig ein. Das grenzte
+die früheren Fixture-Fehler auf deren Ablauf oder Fokuszustand ein; dieser
+direkte Kontrolllauf allein war noch kein Produktions-Fixture-Nachweis.
 Ein gesonderter Appwechseltest zeigte, dass ein Accessibility-Klick in das
 `iframe`-Feld den sichtbaren Fokus nicht immer bewegt. Nach gezieltem
 Pixelklick blieb der Feldfokus bei einem Appwechsel erhalten und ⌘V landete
 im `iframe`; [Fallnotiz und Bild](2026-09-23-offline-matrix.md#direkte-safari-kontrolle-nach-dem-fehlversuch).
+Die [erneute Produktions-Fixture](2026-09-23-offline-matrix.md#wiederholung-mit-der-produktions-fixture)
+fügte anschließend in beide sichtbar fokussierten Safari-Felder mehrzeiligen
+künstlichen Text über `DictationFlow` und `PasteboardInserter` ein. Das
+schließt die beiden sichtbaren Einfügefälle, aber weder den exakten
+DOM-Rohvergleich noch andere Feldpositionen und echte Diktate in diesen
+Feldern.
 
 Eine diagnostische Leerlaufmessung des seit 08:45 Uhr laufenden, installierten
 Prozesses ist abgeschlossen: zwei unmittelbar aufeinanderfolgende

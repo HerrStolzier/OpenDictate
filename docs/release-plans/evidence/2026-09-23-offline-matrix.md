@@ -57,7 +57,7 @@ und beide AX-Feldwerte stimmen für diese direkte Kontrolle überein. Das andere
 `textarea` blieb unverändert. Die Zwischenablage wurde dabei nicht geändert.
 
 Damit ist ein generelles Safari-Verbot für ⌘V in diesen beiden Feldarten
-widerlegt. Der frühere Fixture-Fehlversuch bleibt offen: Die direkte Kontrolle
+widerlegt. Der frühere Fixture-Fehlversuch war damit noch offen: Die direkte Kontrolle
 beweist nicht, welches Feld während dessen App-Aktivierung fokussiert war, und
 sie ersetzt keinen Lauf durch `DictationFlow` und `PasteboardInserter`.
 
@@ -74,4 +74,28 @@ vollständigen Kopiertext hinter dem Anfangstext, der andere einfache
 Der Fokus eines tatsächlich angeklickten Safari-Felds blieb in diesen
 beiden Kontrollen also über den Appwechsel erhalten. Die AX-Klickaktion
 ist für das eingebettete Feld in dieser Testumgebung kein verlässlicher
-Fokusnachweis. Der frühere Produktions-Fixture-Fall bleibt offen.
+Fokusnachweis. Der Produktions-Fixture-Fall wurde erst danach wiederholt.
+
+## Wiederholung mit der Produktions-Fixture
+
+Der signierte Debug-Helper `OpenDictateMatrixFixture` wurde mit der
+vorhandenen lokalen Identität erneut gestartet. Er nutzt `DictationFlow`
+und `PasteboardInserter` mit festem künstlichem Text, ohne Mikrofon, Provider,
+Keychain oder globale Tastenkombination. Für beide Fälle wurde das Safari-Feld
+per Pixelklick sichtbar fokussiert und Safari als echte Vordergrund-App
+bestätigt. Der Fixture-Startknopf wurde im Hintergrund betätigt. Die Fixture
+meldete jeweils `App erfasst: com.apple.Safari`, vollständigen Kopiertext und
+`deliveryUnconfirmed` (⌘V gibt keine Erfolgsbestätigung).
+
+| Feld | Sichtbarer Soll/Ist-Nachweis |
+|---|---|
+| `contenteditable` | Vorher `Anfang. MARKIERUNG Ende.`; danach Anfangstext gefolgt vom vollständigen mehrzeiligen Prüftext. Das einfache `textarea` und das `iframe` blieben unverändert. [Nachher](2026-09-23-matrix-safari-rich-after.png) |
+| `iframe`-`textarea` | Vorher `Anfang. MARKIERUNG Ende.`; danach Anfangstext gefolgt vom vollständigen mehrzeiligen Prüftext. Der schon befüllte formatierte Editor blieb unverändert. [Nachher](2026-09-23-matrix-safari-iframe-after.png) |
+
+Beide AX-Feldwerte zeigten `é`, während die Vorlage `e` plus kombinierenden
+Akzent enthält. Sichtbare Einfügung und Zielzuordnung sind damit für diese
+beiden künstlichen Fälle bestanden; ein byte- beziehungsweise
+UTF-16-exakter DOM-Vergleich wurde nicht durchgeführt. Die erste Fehlrunde
+bleibt als Testaufbau-Befund erhalten, ist aber kein bestätigter
+Produktfehler. Nach Ende der Fixture war die vorherige Zwischenablage wieder
+hergestellt; das eigene Safari-Fenster wurde geschlossen.
