@@ -91,7 +91,9 @@ the menu uploads it again. Recordings are authenticated with a device-local
 Keychain secret before retry. Managed recovery files are limited to five and
 expire after 24 hours. Pruning runs at launch, after every keep and periodically
 while the app is open; expired recordings cannot be retried. Files can remain on
-disk while the app is closed. Temporary originals preserved after a failed
+disk while the app is closed or if macOS denies deletion. In that case the app
+logs the failure and retains the authentication file alongside the audio.
+Temporary originals preserved after a failed
 recovery write and historical crash leftovers are outside that managed store;
 see [PRIVACY.md](PRIVACY.md#last-transcript-and-temporary-originals). A retry deletes
 the file only after a non-empty transcript has reached the clipboard. Clipboard

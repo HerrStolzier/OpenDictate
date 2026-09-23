@@ -99,9 +99,7 @@ enum FailedRecordingStore {
 
     @discardableResult
     static func remove(_ payload: RetryPayload) -> Bool {
-        let removed = unlinkFile(payload.url)
-        _ = unlinkFile(authenticationURL(for: payload.url))
-        return removed
+        removeAudioAndAuthentication(at: payload.url)
     }
 
     /// User-requested cleanup also removes legacy files from versions that did
@@ -110,8 +108,7 @@ enum FailedRecordingStore {
     static func removeAll() -> Int {
         var removed = 0
         for url in candidateAudioURLs() {
-            if unlinkFile(url) {
-                _ = unlinkFile(authenticationURL(for: url))
+            if removeAudioAndAuthentication(at: url) {
                 removed += 1
             } else {
                 AppLog.write("Could not delete saved recording \(url.lastPathComponent): errno=\(errno)")
@@ -120,16 +117,18 @@ enum FailedRecordingStore {
         return removed
     }
 
-    static func prune(now: Date = Date()) {
+    @discardableResult
+    static func prune(now: Date = Date()) -> Int {
         prune(now: now, in: directory)
     }
 
-    static func prune(now: Date, in directoryURL: URL) {
+    @discardableResult
+    static func prune(now: Date, in directoryURL: URL) -> Int {
         do {
             try prepareDirectory(directoryURL)
         } catch {
             AppLog.write("Could not secure the failed-recording directory: \(error.localizedDescription)")
-            return
+            return 0
         }
 
         let audioURLs = candidateAudioURLs(in: directoryURL)
@@ -138,14 +137,19 @@ enum FailedRecordingStore {
             date(from: url.lastPathComponent).map { RecordingRetention.Entry(url: url, created: $0) }
         }
         let expired = RecordingRetention.expired(from: entries, now: now)
+        var removed = 0
         for entry in expired {
-            _ = unlinkFile(entry.url)
-            _ = unlinkFile(authenticationURL(for: entry.url))
+            if removeAudioAndAuthentication(at: entry.url) {
+                removed += 1
+            } else {
+                AppLog.write("Could not prune expired failed recording \(entry.url.lastPathComponent): errno=\(errno)")
+            }
         }
         pruneOrphanAuthenticationFiles(in: directoryURL)
-        if !expired.isEmpty {
-            AppLog.write("Pruned \(expired.count) expired failed recording(s)")
+        if removed > 0 {
+            AppLog.write("Pruned \(removed) expired failed recording(s)")
         }
+        return removed
     }
 
     static func candidateAudioURLs(in directoryURL: URL? = nil) -> [URL] {
@@ -284,6 +288,15 @@ enum FailedRecordingStore {
     /// symlink or recursively deletes a directory swapped in after validation.
     static func unlinkFile(_ url: URL) -> Bool {
         Darwin.unlink(url.path) == 0 || errno == ENOENT
+    }
+
+    /// Retain the authentication sidecar when macOS refuses to remove audio.
+    /// Otherwise a protected recording could lose its only retry credential.
+    @discardableResult
+    static func removeAudioAndAuthentication(at audioURL: URL) -> Bool {
+        guard unlinkFile(audioURL) else { return false }
+        _ = unlinkFile(authenticationURL(for: audioURL))
+        return true
     }
 
     private static func authenticationURL(for audioURL: URL) -> URL {

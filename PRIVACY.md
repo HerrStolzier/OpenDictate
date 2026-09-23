@@ -75,7 +75,9 @@ be verified. It also deletes a recording after a non-empty retry transcript reac
 user explicitly deletes it. Expiry is checked before retry. Pruning runs at launch, after a keep, and
 periodically while the app is open. There is no separate background deletion
 service while the app is closed, so an expired file can remain on disk until
-the next pruning pass. The limits describe the managed recovery directory;
+the next pruning pass. If macOS denies deletion, it can remain longer; the app
+logs the failure and retains its authentication file when audio remains.
+Expiry still prevents retry. The limits describe the managed recovery directory;
 preserved temporary originals and crash leftovers are described below. Short/quiet recordings are retained for deliberate manual retry; a heuristic skip does not upload them automatically.
 
 Recordings created by an older version have no authentication tag and are not

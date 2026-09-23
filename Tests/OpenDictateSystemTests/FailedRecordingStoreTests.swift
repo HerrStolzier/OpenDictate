@@ -1,4 +1,5 @@
 import CryptoKit
+import Darwin
 import Foundation
 import OpenDictateCore
 import Testing
@@ -149,7 +150,7 @@ struct FailedRecordingStoreTests {
             try FileManager.default.setAttributes([.posixPermissions: 0o666], ofItemAtPath: url.path)
         }
 
-        FailedRecordingStore.prune(now: now, in: fixture.directory)
+        #expect(FailedRecordingStore.prune(now: now, in: fixture.directory) == 1)
 
         #expect(!FileManager.default.fileExists(atPath: old.path))
         #expect(FileManager.default.fileExists(atPath: recent.path))
@@ -157,6 +158,28 @@ struct FailedRecordingStoreTests {
         #expect(!FileManager.default.fileExists(atPath: orphanTag.path))
         let permissions = try FileManager.default.attributesOfItem(atPath: recent.path)[.posixPermissions] as? NSNumber
         #expect(permissions?.intValue == 0o600)
+    }
+
+    @Test("A protected audio file retains its authentication sidecar during pruning")
+    func protectedAudioKeepsAuthentication() throws {
+        let fixture = try Fixture()
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let audio = fixture.directory.appendingPathComponent(
+            timestamp(now.addingTimeInterval(-RecordingRetention.maximumAge)) + "-ABCDEF12.m4a")
+        let authentication = audio.appendingPathExtension("auth")
+        try Data("fixture audio".utf8).write(to: audio)
+        try Data("fixture authentication".utf8).write(to: authentication)
+        #expect(chflags(audio.path, UInt32(UF_IMMUTABLE)) == 0)
+        defer { _ = chflags(audio.path, 0) }
+
+        #expect(FailedRecordingStore.prune(now: now, in: fixture.directory) == 0)
+        #expect(FileManager.default.fileExists(atPath: audio.path))
+        #expect(FileManager.default.fileExists(atPath: authentication.path))
+
+        #expect(chflags(audio.path, 0) == 0)
+        #expect(FailedRecordingStore.prune(now: now, in: fixture.directory) == 1)
+        #expect(!FileManager.default.fileExists(atPath: audio.path))
+        #expect(!FileManager.default.fileExists(atPath: authentication.path))
     }
 
     private func timestamp(_ date: Date) -> String {
