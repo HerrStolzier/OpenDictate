@@ -1,0 +1,145 @@
+{
+  "candidate_source_revision": "bd3630f605feff1ef64598ccab85511f944662c5",
+  "installed_build": "2",
+  "authorization": {
+    "maximum_microphone_recordings": 8,
+    "maximum_openai_uploads": 8,
+    "automatic_retries": false,
+    "per_recording_app_limit_seconds": 90
+  },
+  "microphone_recordings_used": 8,
+  "openai_uploads_used": 7,
+  "events": [
+    {
+      "number": 1,
+      "target": "TextEdit plain-text document",
+      "input": "local Anna speech played through speakers into JBL Quantum Stream Talk",
+      "recording": true,
+      "openai_upload": true,
+      "audio_peak_db": -34,
+      "audio_average_db": -46,
+      "stop_to_result_ms": 2723.31,
+      "automatic_insertion": "visible in the exact previously empty test document",
+      "observed_text": "Dies ist eine OpenDictate-Probe, Apfel sieben.",
+      "evidence": [
+        "2026-09-23-textedit-before.png",
+        "2026-09-23-textedit-after.png"
+      ]
+    },
+    {
+      "number": 2,
+      "target": "Safari local textarea with all prior text selected",
+      "input": "same local Anna speech through speakers into JBL Quantum Stream Talk",
+      "recording": true,
+      "openai_upload": true,
+      "audio_peak_db": -33,
+      "audio_average_db": -44,
+      "stop_to_result_ms": 1476.85,
+      "automatic_insertion": "visible exact replacement of selected text",
+      "observed_text": "Dies ist eine OpenDictate-Probe, Apfelsieben.",
+      "clipboard_matches_target": true,
+      "speech_quality_note": "Apfel sieben was transcribed as Apfelsieben",
+      "evidence": [
+        "2026-09-23-safari-before.png",
+        "2026-09-23-safari-after.png"
+      ]
+    },
+    {
+      "number": 3,
+      "target": "Brave local contenteditable with all prior text selected",
+      "input": "same local Anna speech through speakers into JBL Quantum Stream Talk",
+      "recording": true,
+      "openai_upload": true,
+      "audio_peak_db": -33,
+      "audio_average_db": -45,
+      "stop_to_result_ms": 1142.08,
+      "automatic_insertion": "visible exact replacement of selected text",
+      "observed_text": "Dies ist eine OpenDictate-Probe, Apfel sieben.",
+      "clipboard_matches_target": true,
+      "evidence": [
+        "2026-09-23-brave-before.png",
+        "2026-09-23-brave-after.png"
+      ]
+    },
+    {
+      "number": 4,
+      "target": "Apple Terminal 2.15, disposable empty zsh prompt",
+      "input": "same local Anna speech through speakers into JBL Quantum Stream Talk",
+      "recording": true,
+      "openai_upload": true,
+      "audio_peak_db": -34,
+      "audio_average_db": -43,
+      "stop_to_result_ms": 1118.35,
+      "automatic_insertion": "visible as one unsubmitted line at the exact previously empty prompt",
+      "observed_text": "Dies ist eine OpenDictate-Probe, Apfel sieben.",
+      "clipboard_matches_target": true,
+      "cleanup": "Ctrl-U cleared the entire unsubmitted line; only the owned window was closed",
+      "evidence": [
+        "2026-09-23-terminal-before.png",
+        "2026-09-23-terminal-after.png",
+        "2026-09-23-terminal-cleared.png"
+      ]
+    },
+    {
+      "number": 5,
+      "target": "Obsidian 1.13.7 CodeMirror editor in an isolated temporary vault",
+      "input": "same local Anna speech through speakers into JBL Quantum Stream Talk",
+      "recording": true,
+      "openai_upload": true,
+      "audio_peak_db": -33,
+      "audio_average_db": -44,
+      "stop_to_result_ms": 1940.29,
+      "automatic_insertion": "visible in the exact previously empty own note; file contents match",
+      "observed_text": "Dies ist eine OpenDictate-Probe, Apfel sieben.",
+      "evidence": [
+        "2026-09-23-obsidian-before.png",
+        "2026-09-23-obsidian-after.png"
+      ]
+    },
+    {
+      "number": 6,
+      "target": "recording cancellation from the OpenDictate panel",
+      "input": "local Anna speech played while recording; cancellation before stopping or upload",
+      "recording": true,
+      "openai_upload": false,
+      "result": "panel showed 'Aufnahme für Wiederholung gesichert'; new authenticated recovery audio and .auth file observed",
+      "owned_recovery_basename": "2026-09-23T10-48-47Z-34215BF4.m4a",
+      "evidence": [
+        "2026-09-23-cancel-recording.png",
+        "2026-09-23-cancel-after.png"
+      ]
+    },
+    {
+      "number": 7,
+      "target": "attempted quit during processing in the installed app",
+      "input": "8.43-second benign local Anna speech through speakers into the JBL microphone",
+      "recording": true,
+      "openai_upload": true,
+      "audio_peak_db": -34,
+      "audio_average_db": -44,
+      "stop_to_result_ms": 1391.64,
+      "observation": "At quit request the menu-bar status said 'Transkribieren …' and the app showed its active-dictation quit confirmation. The provider completed during that modal dialog and the transcript was pasted before the user-facing choice was made. 'Weiterarbeiten' was selected, so this is not a passed quit-interruption test.",
+      "observed_text": "Dies ist die Open-Diktate-Probe für das Beenden während der Verarbeitung. Apfelsieben. Der Text ist harmlos und gehört nur zum Test.",
+      "evidence": [
+        "2026-09-23-quit-race-dialog.png",
+        "2026-09-23-quit-race-target.png"
+      ]
+    },
+    {
+      "number": 8,
+      "target": "second attempted quit during processing in the installed app",
+      "input": "18.05-second benign local Anna speech through speakers into the JBL microphone",
+      "recording": true,
+      "openai_upload": true,
+      "audio_peak_db": -34,
+      "audio_average_db": -43,
+      "stop_to_result_ms": 2306.32,
+      "observation": "The status was 'Transkribieren …' at quit request, but foreground delivery restored TextEdit before Return. Return inserted a leading newline in the owned test document instead of confirming the modal. The provider completed and pasted the transcript while the quit dialog was open. The dialog was then confirmed and the app terminated. This is not a passed quit-interruption test.",
+      "recovery": "No additional recovery recording was created; the cancellation recovery pair and the pre-existing pair remained present.",
+      "evidence": [
+        "2026-09-23-quit-race-second-dialog.png",
+        "2026-09-23-quit-race-second-target.png"
+      ]
+    }
+  ]
+}

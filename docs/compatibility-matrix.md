@@ -11,9 +11,16 @@ Einfügebefehl aktiviert. Ein Feldwechsel kann den Einfügeort ändern; ein
 Appwechsel nach dem Stoppen wird durch die Reaktivierung zurückgenommen.
 Der neue Build `bd3630f` ist lokal installiert. Ein
 [manueller TextEdit-⌘V-Test](installed-command-v-2026-09-23.md) bestand;
-OpenDictates automatischer Diktatpfad ist damit nicht geprüft. Die folgenden
-historischen AX-/Unicode-Nachweise gelten für ältere Kandidaten und müssen
-für den neuen Einfügeweg sichtbar wiederholt werden.
+die anschließende [Plan-1-Liverunde](release-plans/evidence/2026-09-23-plan1-status.md)
+belegte automatische Einfügung nach echten Diktaten in genau einem TextEdit-
+Dokument, Safari-`textarea`, Brave-`contenteditable`, Obsidian-CodeMirror und
+einer nicht abgeschickten Terminal-Zeile. Die weiteren Feld-/Positions-
+Kombinationen bleiben offen. Die [lokale Plan-1-Matrix](release-plans/evidence/2026-09-23-offline-matrix.md)
+belegt zwei native Felder und beide Fokuswechselarten synthetisch; Safari
+normalisierte einen kombinierenden Akzent im `input`. Die folgenden
+historischen AX-/Unicode-Nachweise
+gelten für ältere Kandidaten und müssen für den neuen Einfügeweg sichtbar
+wiederholt werden.
 
 Die [Terminal- und Fokusabnahme vom 22. September](terminal-focus-acceptance-2026-09-22.md)
 belegt die sichtbare Eingabe in einer leeren Apple-Terminal-Shellzeile; der
@@ -110,8 +117,9 @@ Auswahlersetzung und mehrzeilige Eingabe sind dort keine Abnahmekriterien.
 ## Apple Terminal (historischer Sonderpfad)
 
 Die folgenden Details beschreiben den entfernten Unicode-Sonderpfad und gelten
-nicht für den neuen ⌘V-Kandidaten. Dessen Terminal-Verhalten und insbesondere
-Zeilenumbrüche sind ungetestet. Die Anwendung ist Apple Terminal; die installierte Revision des gemeldeten
+nicht für den neuen ⌘V-Kandidaten. Für diesen ist inzwischen eine einzelne
+harmlose Terminal-Zeile sichtbar belegt; Zeilenumbrüche sind ungetestet.
+Die Anwendung ist Apple Terminal; die installierte Revision des gemeldeten
 Fehlers ist weiterhin unbekannt. Die neue Ausnahme lockert ausschließlich hier
 die sonstige Voraussetzung eines setzbaren `AXSelectedText`. Sie verwendet
 Unicode-Events, auch wenn das Attribut setzbar wäre. Ein als deaktiviert oder

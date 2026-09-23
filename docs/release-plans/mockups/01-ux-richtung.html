@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenDictate · UX-Richtung für Plan 1</title>
+  <style>
+    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; color: #243044; background: #e9edf2; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 48px 28px 90px; }
+    main { max-width: 1180px; margin: auto; }
+    h1 { font-size: 32px; letter-spacing: -.035em; margin: 0 0 8px; }
+    h2 { font-size: 23px; letter-spacing: -.025em; margin: 0 0 7px; }
+    p { line-height: 1.48; }
+    .intro { color: #5a6879; max-width: 780px; margin: 0 0 34px; }
+    .group { margin-top: 44px; }
+    .group > p { color: #5a6879; margin: 0 0 20px; max-width: 780px; }
+    .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; align-items: stretch; }
+    .comparison { background: #f7f9fc; border: 1px solid #d8dfe8; border-radius: 24px; padding: 22px; min-height: 390px; }
+    .comparison.proposed { background: #eef4fb; border-color: #b7cdea; }
+    .eyebrow { color: #6a798b; font-size: 12px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; margin: 0 0 15px; }
+    .proposed .eyebrow { color: #3162a0; }
+    .window { max-width: 380px; min-height: 270px; border: 1px solid #d6dde7; border-radius: 18px; overflow: hidden; background: #fff; box-shadow: 0 14px 34px #29394b18, 0 2px 5px #29394b0d; }
+    .windowbar { height: 34px; display: flex; align-items: center; gap: 6px; padding: 0 13px; background: #f8f9fb; border-bottom: 1px solid #e6ebf1; color: #758091; font-size: 11px; font-weight: 600; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; background: #f4a19b; }
+    .dot:nth-child(2) { background: #f2d184; }
+    .dot:nth-child(3) { background: #8bcba8; }
+    .windowbar span:last-child { flex: 1; text-align: center; margin-right: 34px; }
+    .body { padding: 18px 23px 22px; }
+    .old .body { text-align: center; }
+    .old .settings { font-size: 12px; margin: 3px 0 18px; }
+    .old .symbol { display: grid; place-items: center; width: 56px; height: 56px; margin: 0 auto 15px; border: 1px solid #dde4ee; border-radius: 17px; box-shadow: 0 2px 5px #1d355318; color: #2866c2; font-size: 24px; }
+    .old .headline { color: #2866c2; font-size: 19px; font-weight: 700; }
+    .old .detail { color: #5a6879; font-size: 13px; margin: 13px 0; min-height: 42px; }
+    .button { display: block; width: 100%; padding: 11px 14px; border-radius: 12px; text-align: center; font-size: 14px; font-weight: 600; }
+    .button.primary { background: #253449; color: white; box-shadow: 0 3px 7px #20314926; }
+    .button.secondary { background: #edf2f8; color: #29435e; }
+    .old .link { display: block; margin: 19px 0; font-size: 13px; }
+    .old .shortcut { font-size: 12px; color: #667487; }
+    .old .small { display: inline-block; margin-top: 17px; padding: 4px 9px; border: 1px solid #d5dee9; border-radius: 7px; font-size: 11px; }
+    .new .body { padding: 20px; }
+    .new .top { display: flex; align-items: center; justify-content: space-between; color: #718094; font-size: 12px; }
+    .new .brand { font-weight: 700; color: #2a3b50; letter-spacing: -.01em; }
+    .new .gear { border: 1px solid #dfe7f1; border-radius: 8px; padding: 5px 8px; }
+    .new .state { display: flex; align-items: center; gap: 11px; margin: 26px 0 8px; }
+    .new .badge { width: 39px; height: 39px; border-radius: 12px; display: grid; place-items: center; background: #eaf1fb; color: #2d6bc2; font-size: 20px; }
+    .new .badge.record { background: #fff0ed; color: #b64231; }
+    .new .badge.good { background: #e9f7ef; color: #26724b; }
+    .new .badge.warn { background: #fff2e6; color: #ad6634; }
+    .new .headline { font-size: 20px; font-weight: 700; letter-spacing: -.025em; }
+    .new .detail { margin: 0 0 21px; color: #647388; font-size: 13px; line-height: 1.42; }
+    .new .meta { color: #7c8999; font-size: 11px; text-align: center; margin: 13px 0 0; }
+    .new .actions { display: flex; gap: 9px; }
+    .new .actions > * { flex: 1; }
+    .menu-row { display: flex; align-items: center; gap: 12px; min-height: 63px; border-bottom: 1px solid #e4e9f0; font-size: 13px; }
+    .menu-row:last-child { border: 0; }
+    .menu-row .state-icon { display: grid; place-items: center; flex: 0 0 33px; height: 33px; border-radius: 10px; background: #edf2f8; color: #3868a5; font-size: 17px; }
+    .menu-row .state-icon.red { background: #fff0ed; color: #b64231; }
+    .menu-row .state-icon.blue { background: #eaf1fb; color: #2d6bc2; }
+    .menu-row strong { display: block; font-size: 13px; margin-bottom: 2px; }
+    .menu-row small { color: #738095; font-size: 11px; }
+    .menu-row .right { margin-left: auto; color: #63758c; font-size: 12px; white-space: nowrap; }
+    .pill { display: inline-block; padding: 4px 7px; border-radius: 7px; background: #eef2f7; color: #617287; font-size: 11px; }
+    .transcript { padding: 12px 14px; border-radius: 11px; background: #f2f6fa; border: 1px solid #e1e8f0; color: #34485d; font-size: 13px; line-height: 1.45; margin: 14px 0; }
+    .note { font-size: 12px; color: #687789; line-height: 1.45; margin: 15px 0 0; }
+    .source { margin-top: 15px; color: #6a798b; font-size: 12px; line-height: 1.4; }
+    .step { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #ecf0f4; font-size: 13px; }
+    .step:last-of-type { border: 0; }
+    .step b { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; background: #eaf1fb; color: #3869a8; font-size: 11px; }
+    .step em { margin-left: auto; color: #6b7b8d; font-size: 11px; font-style: normal; }
+    @media (max-width: 760px) { body { padding: 24px 15px 60px; } .pair { grid-template-columns: 1fr; } .comparison { min-height: 0; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>OpenDictate · ruhig, klar, sofort da</h1>
+  <p class="intro">Entwurfsstand für Plan 1 · 23. September 2026. Der Normalweg bleibt zweimal ⌥⇧Leertaste im Zieltextfeld. Das Bedienfenster erscheint nur, wenn man es ausdrücklich öffnet. „Ist“ folgt dem installierten Build <code>bd3630f</code>; das Ergebnis-Panel wurde zusätzlich direkt angesehen.</p>
+
+  <section class="group">
+    <h2>1 · Menüleiste</h2>
+    <p>Ein Blick soll reichen: bereit, hörend oder arbeitend. Das Kürzel bleibt die Hauptbedienung; das Menü ist der Rückweg.</p>
+    <div class="pair">
+      <div class="comparison old">
+        <p class="eyebrow">Ist · aktuelle Status-Texte</p>
+        <div class="window"><div class="windowbar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>OpenDictate</span></div><div class="body">
+          <div class="menu-row"><span class="state-icon">🎙</span><div><strong>Bereit</strong><small>Symbol „mic“</small></div><span class="right">Status: Bereit</span></div>
+          <div class="menu-row"><span class="state-icon red">●</span><div><strong>Aufnahme 8 s</strong><small>Pegel −32 dB im Tooltip</small></div><span class="right">Aufnahme stoppen</span></div>
+          <div class="menu-row"><span class="state-icon blue">···</span><div><strong>Verarbeitung</strong><small>Symbol „ellipsis.circle“</small></div><span class="right">Status im Menü</span></div>
+        </div></div>
+        <p class="source">Quellen: <code>MenuBarController.updateState</code> und <code>updateStatus</code>; der Ablauf wurde für den Vergleich vereinfacht.</p>
+      </div>
+      <div class="comparison proposed new">
+        <p class="eyebrow">Vorschlag · dieselben Zustände</p>
+        <div class="window"><div class="windowbar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>OpenDictate</span></div><div class="body">
+          <div class="menu-row"><span class="state-icon">🎙</span><div><strong>Bereit</strong><small>⌥⇧Leertaste startet</small></div></div>
+          <div class="menu-row"><span class="state-icon red">●</span><div><strong>Aufnahme läuft</strong><small>Eingangssignal vorhanden</small></div><span class="right">00:08</span></div>
+          <div class="menu-row"><span class="state-icon blue">···</span><div><strong>Text wird verarbeitet</strong><small>Du kannst im Textfeld bleiben</small></div></div>
+        </div></div>
+        <p class="note">Das Symbol und die Zeit bleiben sichtbar. Der Pegel wird in eine verständliche Aussage übersetzt; der exakte dB-Wert bleibt in den Details. Das Kürzel folgt der gewählten Einstellung.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="group">
+    <h2>2 · Ergebnis und erhaltene Aufnahme</h2>
+    <p>Nach dem Einfügeversuch wird kein Erfolg behauptet, den macOS nicht bestätigt. Ein manuell geöffnetes Fenster macht Text und Wiederholung leicht erreichbar.</p>
+    <div class="pair">
+      <div class="comparison old">
+        <p class="eyebrow">Ist · echtes Ergebnis-Panel</p>
+        <div class="window"><div class="windowbar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>OpenDictate</span></div><div class="body">
+          <div class="settings">Einstellungen</div><div class="symbol">⇪</div><div class="headline">Diktat verarbeitet.</div>
+          <div class="detail">Automatisches Einfügen wurde ausgelöst. Prüfe den Text im Zielprogramm.</div>
+          <span class="button primary">Text ansehen</span><span class="link">Neues Diktat</span><div class="shortcut">Option+Shift+Space</div><span class="small">Weitere Aktionen</span>
+        </div></div>
+        <p class="source">Das echte Panel misst 360 × 458 px. Der Text ist erst nach „Text ansehen“ sichtbar; weitere Aktionen sitzen separat unten.</p>
+      </div>
+      <div class="comparison proposed new">
+        <p class="eyebrow">Vorschlag · auf Zuruf geöffnet</p>
+        <div class="window"><div class="windowbar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>OpenDictate</span></div><div class="body">
+          <div class="top"><span class="brand">OpenDictate</span><span class="gear" aria-label="Einstellungen">⚙</span></div>
+          <div class="state"><span class="badge good">✓</span><span class="headline">Diktat fertig</span></div>
+          <p class="detail">Einfügen wurde ausgelöst. Prüfe den Text im Zielprogramm.</p>
+          <div class="transcript">Wir besprechen den Entwurf am Montag.</div>
+          <div class="actions"><span class="button secondary">Text kopieren</span><span class="button primary">Neues Diktat</span></div>
+          <p class="meta">⌥⇧Leertaste · Aufnahmen und Hilfe unter ⋯</p>
+        </div></div>
+        <p class="note">Die Vorschau zeigt den Text erst, nachdem man das Fenster bewusst geöffnet hat. Vor manuellem Einfügen muss der Zieltext geprüft werden, damit keine Doppelung entsteht.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="group">
+    <h2>3 · Einrichtung und Fehler</h2>
+    <p>Ein einziger nächster Schritt pro Zustand. Der eigene API-Schlüssel bleibt im macOS-Schlüsselbund; Aufnahmen gehen bei einem Fehler nicht still verloren.</p>
+    <div class="pair">
+      <div class="comparison old">
+        <p class="eyebrow">Ist · aktuelle App-Texte</p>
+        <div class="window"><div class="windowbar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>OpenDictate</span></div><div class="body">
+          <div class="settings">Einstellungen</div><div class="symbol">⚿</div><div class="headline">API-Schlüssel einrichten.</div>
+          <div class="detail">Du brauchst einen eigenen OpenAI-API-Schlüssel. OpenAI berechnet die Transkription separat.</div>
+          <span class="button primary">API-Schlüssel einrichten</span>
+          <span class="link">Fehler: Vorgang nicht abgeschlossen.</span>
+          <span class="small">Aufbewahrte Aufnahmen</span>
+        </div></div>
+        <p class="source">Quellen: <code>DictationPanel.Display</code>, <code>updateAPIKeySetup</code> und <code>render</code>. Die beiden Zustände sind hier nur aus Platzgründen kombiniert.</p>
+      </div>
+      <div class="comparison proposed new">
+        <p class="eyebrow">Vorschlag · geführter Rückweg</p>
+        <div class="window"><div class="windowbar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>OpenDictate</span></div><div class="body">
+          <div class="top"><span class="brand">OpenDictate</span><span class="pill">Einrichtung</span></div>
+          <div class="state"><span class="badge">⚿</span><span class="headline">Fast bereit</span></div>
+          <p class="detail">Hinterlege deinen eigenen OpenAI-API-Schlüssel. Die Nutzung wird von OpenAI berechnet.</p>
+          <div class="step"><b>1</b>API-Schlüssel im Schlüsselbund<em>offen</em></div>
+          <div class="step"><b>2</b>Mikrofon und Bedienungshilfen<em>danach</em></div>
+          <span class="button primary" style="margin-top:16px">Schlüssel eingeben</span>
+          <p class="meta">Kein zusätzliches OpenDictate-Konto</p>
+        </div></div>
+        <div class="window" style="margin-top:15px; min-height:0"><div class="body">
+          <div class="state" style="margin-top:0"><span class="badge warn">!</span><span class="headline">Transkription fehlgeschlagen</span></div>
+          <p class="detail">Deine Aufnahme ist aufbewahrt. Prüfe die Verbindung und versuche es erneut.</p>
+          <div class="actions"><span class="button secondary">Aufnahmen öffnen</span><span class="button primary">Erneut versuchen</span></div>
+          <p class="meta">Erneutes Senden kann Kosten verursachen</p>
+        </div></div>
+        <p class="note">Der Fehlerentwurf gilt nur, wenn die Aufnahme tatsächlich gesichert wurde. Bei fehlender Sicherung braucht der reale Zustand einen anderen, wahrheitsgemäßen Text.</p>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

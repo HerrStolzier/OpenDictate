@@ -24,15 +24,22 @@ Entscheidungslogik. Der neue Build `bd3630f` ist in beiden lokalen App-Pfaden
 installiert und neu gestartet; ein
 [begrenzter sichtbarer TextEdit-Test](installed-command-v-2026-09-23.md)
 bestätigte normales ⌘V ohne Mikrofon, Provider oder automatischen
-OpenDictate-Aufruf. Ein vollständiger Diktatdurchlauf dieses Builds ist offen.
-Die historischen Live-Nachweise unten gelten nur für ihre damaligen Kandidaten.
+OpenDictate-Aufruf. Die anschließende
+[Plan-1-Liverunde](release-plans/evidence/2026-09-23-plan1-status.md) belegte
+am selben installierten Build automatische Einfügung nach fünf echten
+Diktaten in TextEdit, Safari, Brave, Obsidian und eine nicht abgeschickte
+Terminal-Zeile. Sie belegt diese konkreten Felder, keine allgemeine
+Feldkompatibilität. Die historischen Live-Nachweise unten gelten nur für ihre
+damaligen Kandidaten.
 
-Nächster Mac-Nachweis: den installierten neuen Build mit Mikrofon und Provider
-in einem eigenen leeren TextEdit-Dokument und gezielt in zuvor problematischen
-Browser-/Electron-Feldern prüfen. Fokuswechsel und Terminal nur mit klarer
-Erwartung an die Reaktivierung und einem harmlosen Ziel prüfen; vorherige
-Negativtests sind keine Sollvorgabe mehr. Live-Aufnahme und Provider brauchen
-eine separate konkrete Freigabe.
+Die [lokale Plan-1-Matrix](release-plans/evidence/2026-09-23-offline-matrix.md)
+zeigt zwei native Feldfälle und beide Fokuswechselarten mit künstlichem Text;
+Safari normalisierte im `input` einen kombinierenden Akzent. Nächster
+Mac-Nachweis: die übrige sichtbare Feldmatrix mit kontrollierten künstlichen
+Texten prüfen. Der Abbruch während Aufnahme bestand;
+Providerfehler und tatsächlich unterbrochene Verarbeitung bleiben offen.
+Das neue Freigabekontingent von acht Aufnahmen ist verbraucht. Ein weiterer
+echter Aufnahmelauf braucht eine neue konkrete Freigabe.
 
 ## macOS-Nachweise vom 22. und 23. September (älterer Kandidat)
 
@@ -46,7 +53,7 @@ fügte per physischem Kürzel und echtem Provider-Request sichtbaren Text in ein
 leere Shellzeile ein, ohne Return oder Befehlsausführung. Der danach versuchte
 reale negative Fokusfall blieb wegen eines 31-Sekunden-Requestfehlers ohne
 Transkript unentschieden. Diese Nachweise gelten nur für ihre Zielzustände;
-weitere Feldtypen sowie Einrichtung/Abbruch bleiben offen. Alle bisherigen
+weitere Feldtypen sowie Einrichtung/Abbruch blieben damals offen. Die damaligen
 Mikrofon-Testblöcke sind verbraucht.
 
 Ein [autonomer Wiederholungsversuch](autonomous-focus-acceptance-2026-09-22.md)
@@ -258,26 +265,28 @@ Die Bindung bleibt Nutzersache und wurde nicht installiert:
 Die vorbereitete [Pilot- und Integrationsliste](audio-quality-fixtures.md#prepared-first-human-pilot)
 verwendet vorhandene Prüfmittel. Für den installierten älteren Kandidaten
 `68ef919` sind TextEdit, eine leere Terminal-Shellzeile und der negative
-TextEdit→Finder-Wechsel sichtbar geprüft. Diese Einfügenachweise gelten nicht
-für den neuen ⌘V-Pfad. Der identifizierte Build `bd3630f` ist nun mit der
-vorhandenen lokalen Signatur installiert. Als Nächstes seine automatische
-Einfügung in einem echten Diktat und weitere repräsentative Felder prüfen;
-Bedienungshilfen- und Keychain-Zugriff sind noch nicht live bestätigt. Danach frühes
-menschliches Nutzerfeedback sammeln; die komplette
+TextEdit→Finder-Wechsel sichtbar geprüft. Der neue ⌘V-Build `bd3630f` hat nun
+eigene echte TextEdit-, Safari-, Brave-, Obsidian- und Terminal-Nachweise
+im [Plan-1-Bericht](release-plans/evidence/2026-09-23-plan1-status.md).
+Die vollständige Feld-/Fokusmatrix, Einrichtung im frischen Benutzerzustand,
+Störfälle und UX-Feedback bleiben offen. Danach frühes menschliches
+Nutzerfeedback sammeln; die komplette
 [Kompatibilitätsmatrix](compatibility-matrix.md) bleibt das breitere Produktziel.
 
 Mac-spezifischer lokaler Desktop, frischer macOS-Benutzerzustand und physisches
 Mac-Eingabegerät sind von der Linux-Umgebung aus nicht prüfbar. Auf omarchy sind
 Mikrofon und Hyprland-Sitzung erreichbar, wurden für Phase 1 aber mangels neuer
-Live-Freigabe nicht verwendet. Die früher dokumentierten sechs beziehungsweise acht
-Mikrofon-/Provider-Versuche sind verbraucht; sie werden nicht als neues Budget
-verwendet. Beim tatsächlichen Pilot Umfang und Audiozeit vorher festlegen.
+Live-Freigabe nicht verwendet. Die früher dokumentierten sechs beziehungsweise
+acht Mikrofon-/Provider-Versuche sowie die acht neuen Plan-1-Aufnahmen sind
+verbraucht; sie werden nicht als neues Budget verwendet. Im neuen Block blieb
+ein Upload ungenutzt. Beim tatsächlichen Pilot Umfang und Audiozeit vorher
+festlegen.
 
 ## Bekannte offene Grenzen
 
-- Der gemeldete Terminalfehler wurde auf dem installierten Kandidaten in einer
-  leeren Shellzeile nicht reproduziert. Der neue ⌘V-Pfad ist dort ungetestet und
-  hat keinen Zeilenumbruchfilter. Terminal-Tabs, Markierung, Secure Input
+- Der neue ⌘V-Pfad fügte eine harmlose einzelne Zeile in einer leeren
+  Apple-Terminal-Shell sichtbar ein, ohne Return oder Befehlsausführung.
+  Er hat keinen Zeilenumbruchfilter. Terminal-Tabs, Markierung, Secure Input
   und das Verhalten interaktiver Programme brauchen noch sichtbare Prüfung.
   iTerm2 und Terminals innerhalb von Editoren sind nicht abgedeckt.
 - Ein echter negativer Appwechsel nach dem Stoppen ist für TextEdit→Finder auf
@@ -288,7 +297,8 @@ verwendet. Beim tatsächlichen Pilot Umfang und Audiozeit vorher festlegen.
 - Eine manuelle Cursor-/Auswahlbewegung kann den Einfügeort ändern. Der neue
   Pfad bindet kein bestimmtes Feld.
 - Reale Gerätewechsel, Abziehen des Mikrofons, Berechtigungs-/Keychainfehler und
-  Beenden während Aufnahme/Upload brauchen passende praktische Prüfungen.
+  tatsächlich unterbrochenes Beenden während Verarbeitung brauchen passende
+  praktische Prüfungen. Zwei Beenden-Versuche wurden vom Provider überholt.
 - Menschliche Sprachqualität, Zahlen-/Namensfehler, Korrekturzeit und tatsächlicher
   Zeitgewinn sind offen. Die neue Fallliste enthält keine gemessenen Ergebnisse.
 - Gehörte VoiceOver-Ausgabe und macOS 14 als Laufzeitplattform bleiben offen.
