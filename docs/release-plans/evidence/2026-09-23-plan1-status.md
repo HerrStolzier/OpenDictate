@@ -38,6 +38,40 @@ für diesen Versuch ausgelöst. Die geschützte Systemabfrage wartet auf Bastis
 Eingabe direkt am Mac; danach muss der echte Weg auf Build 4 erneut geprüft
 werden. Die Computersteuerung kann diesen Sicherheitsdialog nicht bedienen.
 
+**Nachprüfung der wiederkehrenden Schlüsselbundabfrage:** Build 3 und Build 4
+haben dieselbe ausgewiesene Designated Requirement aus Bundle-ID und lokalem
+Zertifikat, aber verschiedene Code-Hashes. Der tatsächlich vorhandene
+API-Schlüssel liegt weiter im älteren Login-Schlüsselbund-Account
+`OPENAI_API_KEY`; der neue Account `OPENAI_API_KEY_APP` ist nicht vorhanden.
+Die Zugriffsliste des alten Eintrags enthält sowohl signaturbasierte
+OpenDictate-App-Einträge als auch eine `partition_id`-Liste einzelner
+Code-Hashes, darunter die beiden jüngsten Builds. Der zuvor nach einem
+Neustart beobachtete promptfreie Zugriff beweist daher keine Freigabe für
+zukünftige Builds. Die genaue interne Entscheidung von macOS wurde nicht
+instrumentiert; die Hash-Liste ist die konkrete updateabhängige Grenze.
+Der separate Schlüssel für authentifizierte Recovery-Aufnahmen
+(`FAILED_RECORDING_AUTH_KEY`) hat ebenfalls eine solche Hash-Liste.
+
+Zwei harmlose, getrennte Testeinträge wurden unter einer lokal selbst
+signierten Probe-App angelegt und wieder gelöscht. Beim üblichen
+dateibasierten Schlüsselbund blockierte das Lesen nach einer neu signierten
+Version der Probe-App erneut, obwohl Bundle-ID und Zertifikat gleich blieben.
+Auch ein ausdrücklich auf diese App begrenzter `SecAccessCreate`-Eintrag
+erhielt eine `partition_id` mit dem Build-Hash. Der moderne Data-Protection-
+Schlüsselbund verweigerte das Anlegen eines Testeintrags mit Status `-34018`
+ohne gültige App-Zugriffsberechtigung, auch mit einer lokal deklarierten
+App-Gruppe. Diese Proben haben den echten API-Schlüssel weder gelesen noch
+verändert. Die beiden Testeinträge und ihre temporären Bundles wurden entfernt.
+Eine alleinige Migration in den bisherigen Dateischlüsselbund ist damit
+keine belegte dauerhafte Lösung.
+
+Eine dritte isolierte Probe hielt den **gleichen** signierten Helfer-Code bei
+einem Austausch und erneuten Signieren der umgebenden App unverändert. Sein
+Code-Hash blieb gleich; der Dummy-Schlüssel war danach ohne Dialog lesbar.
+Auch dieser Testeintrag und das temporäre Bundle wurden entfernt. Das belegt
+die technische Grundidee eines stabilen Helfers, nicht bereits dessen sichere
+Integration oder einen Zugriff auf den echten API-Schlüssel.
+
 **Vorheriger installierter Kandidat:** Build 3 aus Quellrevision
 `7621a7f18345a25c178c286e06e56a9558fc0d1a` liegt unter `/Applications`
 und `~/Applications`; beide Programmdateien haben SHA-256
@@ -278,3 +312,35 @@ auf diesem Mac für diesen frischen Build damit erfüllt. Spitzen zwischen
 Samples und andere Hardware bleiben ungemessen. Ein erster Messversuch
 desselben Builds hatte 45 Sekunden ungesampelte Zeit zwischen den Teilen;
 er ist nicht der Abnahmenachweis und liegt nur als Diagnose unter `.build/`.
+
+## Schlüsselbundzugriff über App-Builds
+
+Der installierte Build 4 nutzt weiterhin den alten API-Key-Eintrag
+`OPENAI_API_KEY`. Seine Zugriffsliste sowie die des separaten
+`FAILED_RECORDING_AUTH_KEY` enthalten einzelne Code-Hashes. Build 3 und Build 4
+hatten zwar dieselbe signierte App-Anforderung, aber unterschiedliche
+Code-Hashes. Ein selbst signierter Probeprozess konnte einen neu angelegten
+Dateischlüsselbund-Eintrag nach einem Build-Wechsel ohne erneute macOS-Freigabe
+nicht lesen. Der lokale Versuch mit der Data-Protection-Keychain scheiterte
+für diese Identität mit `errSecMissingEntitlement`. Die Probeeinträge wurden
+wieder entfernt; der echte API-Schlüssel blieb unberührt.
+
+Ein unverändert signierter Helfer in einer Test-App konnte dagegen denselben
+Probeeintrag auch nach Änderung des App-Hauptprogramms ohne weitere Freigabe
+lesen. Auf dieser Grundlage enthält der neue Quellstand einen separaten
+Schlüsselbundhelfer. Die App kopiert ihn einmal in ihren Application-Support-
+Ordner und erhält diese Datei bei späteren gewöhnlichen App-Updates. Beide
+Seiten prüfen die Signatur des jeweiligen Gegenübers; die App prüft den
+tatsächlich gestarteten Prozess vor Übergabe eines Schlüssels. Der Helfer
+akzeptiert nur die drei bestehenden Schlüsselbund-Accounts, transportiert
+Daten nur durch anonyme Pipes und protokolliert keine Geheimnisse.
+
+Der signierte Bundle-Build, `swift test`, acht Python-Tests, striktes Swift-
+Format, Shell-Syntax und die Bundle-Fehlerprüfungen bestanden. Ein signierter
+synthetischer App-Host erhielt vom echten gebündelten Helfer eine erfolgreiche
+geheimnisfreie Antwort. Der Direktaufruf des Helfers aus dem Terminal wurde
+abgewiesen; die bei der Probe angelegte Helferkopie wurde danach entfernt.
+Das belegt Signaturprüfung und Prozesskommunikation, aber noch keine
+macOS-Freigabe für die bestehenden echten Einträge. Dafür und für einen
+erneuten Zugriff nach Änderung des App-Builds ist die installierte App nötig.
+Die alte API-Key-Position wird bis zu diesem Nachweis nicht gelöscht.

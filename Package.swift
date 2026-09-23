@@ -8,7 +8,8 @@ let package = Package(
         .macOS(.v14)
     ],
     products: [
-        .executable(name: "OpenDictate", targets: ["OpenDictate"])
+        .executable(name: "OpenDictate", targets: ["OpenDictate"]),
+        .executable(name: "OpenDictateKeychainHelper", targets: ["OpenDictateKeychainHelper"])
     ],
     targets: [
         // Pure logic: no AppKit, no AVFoundation, no network, no globals.
@@ -25,6 +26,10 @@ let package = Package(
                 .linkedFramework("ApplicationServices"),
                 .linkedFramework("Security")
             ]
+        ),
+        .executableTarget(
+            name: "OpenDictateKeychainHelper",
+            linkerSettings: [.linkedFramework("Security")]
         ),
         .testTarget(
             name: "OpenDictateCoreTests",

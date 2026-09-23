@@ -23,10 +23,20 @@ before attempting replacement. If removal of the older entry fails, the app
 reports that the new key was saved but cleanup remains pending; both entries can
 then remain in the Keychain until a later successful cleanup.
 
-New entries use the app's default Keychain access policy. Older helper-created
-entries may have a different policy; saving through the app migrates them without
-copying that policy onto the new entry. The retired `store-api-key.sh` helper only
-directs users to the app dialog and performs no Keychain operation.
+The signed Keychain helper handles these operations for the installed app. The
+app copies the helper once from its bundle to
+`~/Library/Application Support/OpenDictate/KeychainHelper-v1` and verifies its
+signature before each launch. The app also checks the running helper's signing
+identity before sending a request. The helper accepts requests only from the
+signed OpenDictate app with the same signing certificate. Keychain data travels
+between the app and helper through private process pipes, never through command
+arguments, environment variables or a file. The installed helper stays
+unchanged across ordinary app updates, so an existing item can continue to
+trust the same executable after a one-time macOS approval. Replacing the helper
+or signing certificate may require another approval. The API and recovery keys
+are separate Keychain items and may each require approval. Newly saved entries
+use the helper's default Keychain access policy. The retired `store-api-key.sh`
+script only directs users to the app dialog and performs no Keychain operation.
 
 ## Clipboard and automatic insertion
 

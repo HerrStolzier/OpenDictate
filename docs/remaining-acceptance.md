@@ -308,10 +308,11 @@ offen. Bastis erste Designrückmeldung und die gewählte Richtung stehen im
 frühes menschliches Nutzerfeedback sammeln; die komplette
 [Kompatibilitätsmatrix](compatibility-matrix.md) bleibt das breitere Produktziel.
 
-Die aktuelle Arbeit läuft am Mac mini mit physischem Eingabegerät. Ein frischer
-macOS-14-Benutzerzustand ist hier nicht vorhanden. Der neue native
-macOS-14-CI-Job bestand mit 158 Offline-Tests und Bundle-Build, kann aber keine
-interaktive Diktatabnahme ersetzen. Bastis Plan-1-Freigabe erlaubt weitere
+Die aktuelle Arbeit läuft am Mac mini mit physischem Eingabegerät. Für macOS 14
+ist nur der native CI-Nachweis mit 158 Offline-Tests und Bundle-Build vorgesehen;
+eine macOS-14-VM oder ein zweiter Mac stehen nicht zur Verfügung. Die
+interaktive Diktatabnahme erfolgt auf dem vorhandenen Mac und wird nicht als
+macOS-14-Nachweis bezeichnet. Bastis Plan-1-Freigabe erlaubt weitere
 kurze Live-Aufnahmen und Provider-Uploads ohne festes Stückkontingent;
 automatische Wiederholungen bleiben ausgeschlossen. Frühere Testzahlen sind
 Verbrauchsnachweise und kein künftiges Limit.
@@ -335,13 +336,21 @@ Verbrauchsnachweise und kein künftiges Limit.
   praktische Prüfungen. Zwei Beenden-Versuche wurden vom Provider überholt.
 - Menschliche Sprachqualität, Zahlen-/Namensfehler, Korrekturzeit und tatsächlicher
   Zeitgewinn sind offen. Die neue Fallliste enthält keine gemessenen Ergebnisse.
-- Gehörte VoiceOver-Ausgabe und die interaktive Diktatabnahme auf macOS 14
-  bleiben offen. Der bestandene macOS-14-CI-Lauf prüft native Offline-Tests
-  und Bundle-Build, aber keine Berechtigungen, Aufnahme oder Einfügung.
-- Wer den alten API-Key-Helfer verwendet hat, speichert den Schlüssel über den
-  App-Dialog neu. Der neue Account erhält die normale App-Zugriffsrichtlinie;
-  die reale Migration und gegebenenfalls eine angezeigte Altbereinigung sind
-  separat zu prüfen. Der Shell-Helfer schreibt keine Schlüssel mehr.
+- Gehörte VoiceOver-Ausgabe und die interaktive Diktatabnahme auf dem
+  vorhandenen Mac bleiben offen. Der bestandene macOS-14-CI-Lauf prüft native
+  Offline-Tests und Bundle-Build, aber keine Berechtigungen, Aufnahme oder
+  Einfügung unter macOS 14.
+- Der vorhandene API-Schlüssel liegt noch im alten Account `OPENAI_API_KEY`.
+  Dessen Dateischlüsselbund-Zugriffsliste enthält einzelne Build-Hashes;
+  deshalb ist die frühere Freigabe nicht updatefest. Auch ein von einer lokal
+  selbst signierten Test-App neu angelegter Eintrag forderte nach einem
+  Build-Wechsel erneut Zugriff. Ein bloßes Speichern über den App-Dialog ist
+  somit keine belegte dauerhafte Lösung. Der neue, fest installierte signierte
+  Schlüsselbundhelfer bestand einen isolierten Aufruf aus einem signierten
+  App-Host; der echte API-Schlüssel wurde dabei nicht gelesen. Installation,
+  einmalige Freigabe der bestehenden Schlüsselbundobjekte und der operative
+  Lesezugriff nach einem weiteren App-Build bleiben am installierten Kandidaten
+  zu prüfen. Den alten Eintrag bis dahin nicht löschen.
 
 Bekannte Fehler mit falschem Ziel, beschädigtem vorhandenem Text oder Verlust der
 einzigen Aufnahme/des einzigen Transkripts verhindern eine Ausweitung des betroffenen

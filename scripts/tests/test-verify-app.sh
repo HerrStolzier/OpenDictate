@@ -52,7 +52,7 @@ cleanup() {
   rm -rf "$BUNDLE_TEST_DIR"
   if [[ "$exit_status" -eq 0 ]]; then
     printf 'PASS: source bundle content and permissions unchanged.\n'
-    printf 'Bundle verifier regressions passed (1 accepted, 6 rejected).\n'
+    printf 'Bundle verifier regressions passed (1 accepted, 7 rejected).\n'
   fi
   exit "$exit_status"
 }
@@ -160,6 +160,15 @@ assert_runtime "$VALID" present
 assert_entitlement "$VALID" bool true
 TMPDIR="$BUNDLE_TEST_DIR" "$VERIFIER" "$VALID"
 printf 'PASS: valid ad-hoc bundle accepted.\n'
+
+MISSING_HELPER="$BUNDLE_TEST_DIR/missing-helper.app"
+make_fixture "$MISSING_HELPER" true runtime
+rm "$MISSING_HELPER/Contents/Helpers/OpenDictateKeychainHelper"
+codesign --remove-signature "$MISSING_HELPER"
+codesign --force --sign - --timestamp=none --options runtime \
+  --entitlements "$BUNDLE_TEST_DIR/missing-helper.app.input.plist" "$MISSING_HELPER"
+assert_valid_signature "$MISSING_HELPER"
+expect_rejection "$MISSING_HELPER" 'Signed app is missing its Keychain helper.'
 
 for entitlement in missing false string; do
   fixture="$BUNDLE_TEST_DIR/audio-$entitlement.app"

@@ -87,9 +87,12 @@ Release, noch keine gemessenen Eigenschaften der installierten App.
    Feld derselben App dort den Zieltext prüfen; bei einem Appwechsel die
    Rückkehr zur Start-App prüfen. Das Verhalten wird hier abgenommen, nicht
    erneut als Produktentscheidung behandelt.
-4. Auf einem frischen macOS-14-Benutzerzustand Einrichtung mit eigenem
-   Testschlüssel, Mikrofon- und Bedienungshilfen-Dialog sowie den manuellen
-   Zwischenablageweg prüfen. Drei zusätzliche kurze reale Aufnahmen decken
+4. Auf dem vorhandenen Apple-Silicon-Mac Einrichtung in einem kontrolliert
+   frischen lokalen Benutzerzustand mit eigenem Testschlüssel, Mikrofon- und
+   Bedienungshilfen-Dialog sowie den manuellen Zwischenablageweg prüfen.
+   Die macOS-14-Kompatibilität separat durch native CI-Tests und einen
+   verifizierten Bundle-Build prüfen; daraus keine interaktive Abnahme auf
+   macOS 14 ableiten. Drei zusätzliche kurze reale Aufnahmen decken
    Abbruch während Aufnahme, Providerfehler und Beenden während Verarbeitung
    ab. Dateizustand und Wiederholung vor und nach dem Fall prüfen. Einen
    Geräteausfall ohne verfügbares externes Testgerät über einen kontrollierten
@@ -132,9 +135,12 @@ Release, noch keine gemessenen Eigenschaften der installierten App.
 - In den drei Störfällen geht weder die einzige Aufnahme noch ein bereits
   erzeugtes vollständiges Transkript verloren. Keine Prüfung beschädigt
   vorhandenen fremden Text.
-- macOS 14 und VoiceOver sind tatsächlich geprüft. Der Bericht nennt die
-  bewusst nicht unterstützten Situationen, insbesondere Terminal mit
-  Zeilenumbrüchen und Feldwechsel während der Verarbeitung.
+- macOS 14 hat einen nativen CI-Nachweis für Offline-Tests und Bundle-Build.
+  Die interaktive Diktat- und VoiceOver-Abnahme erfolgt auf dem vorhandenen
+  Mac; der Bericht nennt dessen macOS-Version und die fehlende interaktive
+  macOS-14-Prüfung ausdrücklich. Er nennt auch die bewusst nicht unterstützten
+  Situationen, insbesondere Terminal mit Zeilenumbrüchen und Feldwechsel
+  während der Verarbeitung.
 - Der normale Erfolgspfad braucht nach der Einrichtung keine Fensteröffnung,
   keinen weiteren Klick und keine Bestätigung. Die 20 lokalen
   **Fixture-Zustandswechsel** erfüllen das 0,5-Sekunden-Ziel; die fünf

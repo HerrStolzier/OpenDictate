@@ -45,8 +45,8 @@ For release or packaging changes, additionally run `./scripts/build-app.sh` and
 verify the generated Plist and signature. A build does not prove microphone,
 target-field delivery, VoiceOver, installation or publication.
 The build calls `scripts/verify-app.sh`, which checks the final signed bundle's
-Hardened Runtime flag and boolean `com.apple.security.device.audio-input`
-entitlement. Run `./scripts/verify-app.sh /path/to/OpenDictate.app` to repeat
+Hardened Runtime flag, boolean `com.apple.security.device.audio-input`
+entitlement and signed Keychain helper. Run `./scripts/verify-app.sh /path/to/OpenDictate.app` to repeat
 these checks without rebuilding or launching. A missing or false entitlement
 must fail verification, even when the signature itself is valid.
 
@@ -59,7 +59,7 @@ bash scripts/tests/test-verify-app.sh .build/OpenDictate.app
 
 The fixtures use temporary copies and ad-hoc signing. They verify rejection of
 missing, false and wrongly typed audio-input entitlements, missing Hardened
-Runtime and broken signatures. The original bundle must remain unchanged. The
+Runtime, a missing Keychain helper and broken signatures. The original bundle must remain unchanged. The
 tests do not launch the app, access a microphone or change a user's signing
 identity, Keychain or permissions. CI runs them before packaging its development
 archive and verifies the archive again after extraction.
@@ -100,9 +100,13 @@ argument or environment variable.
   exercise cancellation, delayed permission results and quit/drain ordering. They
   do not execute native permission dialogs or prove microphone/device behavior.
 - The API-key tests inject Keychain results without accessing the real Keychain.
-  For a legacy API-key item, save the key through the in-app dialog and inspect
-  or test the new item's ACL separately. If legacy cleanup reports a warning,
-  saving again retries it; never use a real credential in automated checks.
+  The installed signed helper is kept unchanged across ordinary app rebuilds.
+  Verify the actual legacy API-key and recovery-key reads after their one-time
+  macOS approvals, then verify both again after changing only the main app
+  build. The offline signed-host ping checks identity and IPC without reading a
+  credential; it does not prove the real Keychain ACL. If legacy cleanup reports
+  a warning, saving again retries it; never use a real credential in automated
+  checks.
 
 ## Explicit live API check
 
