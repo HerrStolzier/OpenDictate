@@ -58,7 +58,7 @@ struct APIKeySetupTests {
 
         let button = try primary(in: panel)
         #expect(panel.display == .setup)
-        #expect(button.title == "API-Schlüssel einrichten")
+        #expect(button.title == "Schlüssel eingeben")
         button.performClick(nil)
         #expect(setups == 1)
         #expect(recordings == 0)

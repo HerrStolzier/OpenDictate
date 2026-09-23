@@ -17,10 +17,11 @@
     .group > p { color: #5a6879; margin: 0 0 20px; max-width: 780px; }
     .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; align-items: stretch; }
     .comparison { background: #f7f9fc; border: 1px solid #d8dfe8; border-radius: 24px; padding: 22px; min-height: 390px; }
-    .comparison.proposed { background: #eef4fb; border-color: #b7cdea; }
+    .comparison.proposed { background: #f2f5f9; border-color: #bdcad9; }
     .eyebrow { color: #6a798b; font-size: 12px; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; margin: 0 0 15px; }
     .proposed .eyebrow { color: #3162a0; }
     .window { max-width: 380px; min-height: 270px; border: 1px solid #d6dde7; border-radius: 18px; overflow: hidden; background: #fff; box-shadow: 0 14px 34px #29394b18, 0 2px 5px #29394b0d; }
+    .proposed .window { border-color: #c9d2de; box-shadow: 0 18px 42px #263b5712, 0 2px 6px #263b5709; }
     .windowbar { height: 34px; display: flex; align-items: center; gap: 6px; padding: 0 13px; background: #f8f9fb; border-bottom: 1px solid #e6ebf1; color: #758091; font-size: 11px; font-weight: 600; }
     .dot { width: 9px; height: 9px; border-radius: 50%; background: #f4a19b; }
     .dot:nth-child(2) { background: #f2d184; }
@@ -38,18 +39,19 @@
     .old .link { display: block; margin: 19px 0; font-size: 13px; }
     .old .shortcut { font-size: 12px; color: #667487; }
     .old .small { display: inline-block; margin-top: 17px; padding: 4px 9px; border: 1px solid #d5dee9; border-radius: 7px; font-size: 11px; }
-    .new .body { padding: 20px; }
-    .new .top { display: flex; align-items: center; justify-content: space-between; color: #718094; font-size: 12px; }
-    .new .brand { font-weight: 700; color: #2a3b50; letter-spacing: -.01em; }
-    .new .gear { border: 1px solid #dfe7f1; border-radius: 8px; padding: 5px 8px; }
-    .new .state { display: flex; align-items: center; gap: 11px; margin: 26px 0 8px; }
-    .new .badge { width: 39px; height: 39px; border-radius: 12px; display: grid; place-items: center; background: #eaf1fb; color: #2d6bc2; font-size: 20px; }
-    .new .badge.record { background: #fff0ed; color: #b64231; }
-    .new .badge.good { background: #e9f7ef; color: #26724b; }
-    .new .badge.warn { background: #fff2e6; color: #ad6634; }
-    .new .headline { font-size: 20px; font-weight: 700; letter-spacing: -.025em; }
-    .new .detail { margin: 0 0 21px; color: #647388; font-size: 13px; line-height: 1.42; }
-    .new .meta { color: #7c8999; font-size: 11px; text-align: center; margin: 13px 0 0; }
+    .new .body { padding: 22px 22px 24px; }
+    .new .top { display: flex; align-items: center; justify-content: space-between; color: #526277; font-size: 12px; }
+    .new .brand { font-weight: 700; color: #26364b; letter-spacing: -.025em; }
+    .new .gear { border: 1px solid #d8e0e9; border-radius: 9px; padding: 5px 9px; }
+    .new .state { display: flex; align-items: center; gap: 12px; margin: 25px 0 10px; }
+    .new .badge { flex: none; width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: #e8eef8; color: #2f5b93; }
+    .new .badge svg { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+    .new .badge.record { background: #fff0ed; color: #a64031; }
+    .new .badge.good { background: #e9f5ee; color: #266746; }
+    .new .badge.warn { background: #fbefe8; color: #98553a; }
+    .new .headline { color: #26364b; font-size: 20px; line-height: 1.15; font-weight: 700; letter-spacing: -.04em; }
+    .new .detail { margin: 0 0 22px; color: #4c5f76; font-size: 13px; line-height: 1.5; }
+    .new .meta { color: #596b80; font-size: 11px; text-align: center; margin: 14px 0 0; }
     .new .actions { display: flex; gap: 9px; }
     .new .actions > * { flex: 1; }
     .menu-row { display: flex; align-items: center; gap: 12px; min-height: 63px; border-bottom: 1px solid #e4e9f0; font-size: 13px; }
@@ -60,21 +62,26 @@
     .menu-row strong { display: block; font-size: 13px; margin-bottom: 2px; }
     .menu-row small { color: #738095; font-size: 11px; }
     .menu-row .right { margin-left: auto; color: #63758c; font-size: 12px; white-space: nowrap; }
-    .pill { display: inline-block; padding: 4px 7px; border-radius: 7px; background: #eef2f7; color: #617287; font-size: 11px; }
+    .pill { display: inline-block; padding: 4px 8px; border-radius: 7px; background: #eaf0f7; color: #355a87; font-size: 10px; font-weight: 700; letter-spacing: .045em; text-transform: uppercase; }
     .transcript { padding: 12px 14px; border-radius: 11px; background: #f2f6fa; border: 1px solid #e1e8f0; color: #34485d; font-size: 13px; line-height: 1.45; margin: 14px 0; }
     .note { font-size: 12px; color: #687789; line-height: 1.45; margin: 15px 0 0; }
     .source { margin-top: 15px; color: #6a798b; font-size: 12px; line-height: 1.4; }
-    .step { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #ecf0f4; font-size: 13px; }
+    .step { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #e6ebf1; font-size: 12px; color: #304156; }
     .step:last-of-type { border: 0; }
-    .step b { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; background: #eaf1fb; color: #3869a8; font-size: 11px; }
-    .step em { margin-left: auto; color: #6b7b8d; font-size: 11px; font-style: normal; }
+    .step b { display: grid; place-items: center; flex: none; width: 22px; height: 22px; border-radius: 7px; background: #e8eef8; color: #315d93; font-size: 11px; font-variant-numeric: tabular-nums; }
+    .step em { margin-left: auto; color: #586b82; font-size: 11px; font-style: normal; }
+    .new .button { padding: 10px 12px; border-radius: 10px; }
+    .new .button.primary { background: #263b55; box-shadow: 0 2px 5px #263b551c; }
+    .new .button.secondary { background: #f6f8fb; color: #2e4966; border: 1px solid #d9e2ee; }
+    .new .caption { margin: 0 0 8px; color: #64758a; font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+    .new .callout { padding: 10px 12px; margin: 0 0 14px; border: 1px solid #e8d7cd; border-left: 3px solid #bb7656; border-radius: 8px; background: #fdf8f4; color: #704b3b; font-size: 11px; line-height: 1.4; }
     @media (max-width: 760px) { body { padding: 24px 15px 60px; } .pair { grid-template-columns: 1fr; } .comparison { min-height: 0; } }
   </style>
 </head>
 <body>
 <main>
   <h1>OpenDictate · ruhig, klar, sofort da</h1>
-  <p class="intro">Entwurfsstand für Plan 1 · 23. September 2026. Der Normalweg bleibt zweimal ⌥⇧Leertaste im Zieltextfeld. Das Bedienfenster erscheint nur, wenn man es ausdrücklich öffnet. „Ist“ folgt dem installierten Build <code>bd3630f</code>; das Ergebnis-Panel wurde zusätzlich direkt angesehen.</p>
+  <p class="intro">Überarbeiteter Entwurf für Plan 1 · 23. September 2026. Die Fläche bleibt bewusst einfach; Präzision bei Schrift, Abständen, Symbolen und Rückwegen trägt die Wirkung. Der Normalweg bleibt zweimal ⌥⇧Leertaste im Zieltextfeld. Das Bedienfenster erscheint nur, wenn man es ausdrücklich öffnet. „Ist“ folgt dem installierten Build <code>bd3630f</code>; das Ergebnis-Panel wurde zusätzlich direkt angesehen.</p>
 
   <section class="group">
     <h2>1 · Menüleiste</h2>
@@ -118,7 +125,7 @@
         <p class="eyebrow">Vorschlag · auf Zuruf geöffnet</p>
         <div class="window"><div class="windowbar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>OpenDictate</span></div><div class="body">
           <div class="top"><span class="brand">OpenDictate</span><span class="gear" aria-label="Einstellungen">⚙</span></div>
-          <div class="state"><span class="badge good">✓</span><span class="headline">Diktat fertig</span></div>
+          <div class="state"><span class="badge"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="16" rx="2"/><path d="M9 3h6M9 10h6M9 14h6"/></svg></span><span class="headline">Text bereit</span></div>
           <p class="detail">Einfügen wurde ausgelöst. Prüfe den Text im Zielprogramm.</p>
           <div class="transcript">Wir besprechen den Entwurf am Montag.</div>
           <div class="actions"><span class="button secondary">Text kopieren</span><span class="button primary">Neues Diktat</span></div>
@@ -148,20 +155,22 @@
         <p class="eyebrow">Vorschlag · geführter Rückweg</p>
         <div class="window"><div class="windowbar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span>OpenDictate</span></div><div class="body">
           <div class="top"><span class="brand">OpenDictate</span><span class="pill">Einrichtung</span></div>
-          <div class="state"><span class="badge">⚿</span><span class="headline">Fast bereit</span></div>
-          <p class="detail">Hinterlege deinen eigenen OpenAI-API-Schlüssel. Die Nutzung wird von OpenAI berechnet.</p>
-          <div class="step"><b>1</b>API-Schlüssel im Schlüsselbund<em>offen</em></div>
-          <div class="step"><b>2</b>Mikrofon und Bedienungshilfen<em>danach</em></div>
-          <span class="button primary" style="margin-top:16px">Schlüssel eingeben</span>
-          <p class="meta">Kein zusätzliches OpenDictate-Konto</p>
+          <div class="state"><span class="badge"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8.5" cy="14" r="4.5"/><path d="M12 11l8-8 1 2-2 2 1 2-2 2-2-1-2 2"/></svg></span><span class="headline">Fast bereit</span></div>
+          <p class="detail">Hinterlege deinen eigenen OpenAI-API-Schlüssel. OpenAI berechnet die Transkription separat.</p>
+          <p class="caption">Einmalig einrichten</p>
+          <div class="step"><b>1</b>API-Schlüssel im Schlüsselbund<em>jetzt</em></div>
+          <div class="step"><b>2</b>Mikrofon und Bedienungshilfen<em>beim Start</em></div>
+          <span class="button primary" style="margin-top:17px">Schlüssel eingeben</span>
+          <p class="meta">Kein zusätzliches OpenDictate-Konto.</p>
         </div></div>
         <div class="window" style="margin-top:15px; min-height:0"><div class="body">
-          <div class="state" style="margin-top:0"><span class="badge warn">!</span><span class="headline">Transkription fehlgeschlagen</span></div>
-          <p class="detail">Deine Aufnahme ist aufbewahrt. Prüfe die Verbindung und versuche es erneut.</p>
-          <div class="actions"><span class="button secondary">Aufnahmen öffnen</span><span class="button primary">Erneut versuchen</span></div>
-          <p class="meta">Erneutes Senden kann Kosten verursachen</p>
+          <div class="top"><span class="brand">OpenDictate</span><span class="pill">Aufnahme gesichert</span></div>
+          <div class="state" style="margin-top:20px"><span class="badge warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.8 19a1.5 1.5 0 0 0 1.3 2h15.8a1.5 1.5 0 0 0 1.3-2L12 3Z"/><path d="M12 9v5m0 3h.01"/></svg></span><span class="headline">Kein Text erzeugt</span></div>
+          <p class="detail">Die Verbindung ist fehlgeschlagen. Deine Aufnahme bleibt für einen neuen Versuch verfügbar.</p>
+          <div class="callout">Die Originalaufnahme ist aufbewahrt. Ein erneuter Versand an OpenAI kann Kosten verursachen.</div>
+          <div class="actions"><span class="button primary">Aufnahmen öffnen</span><span class="button secondary">Neues Diktat</span></div>
         </div></div>
-        <p class="note">Der Fehlerentwurf gilt nur, wenn die Aufnahme tatsächlich gesichert wurde. Bei fehlender Sicherung braucht der reale Zustand einen anderen, wahrheitsgemäßen Text.</p>
+        <p class="note">Die Zeile „Aufnahme gesichert“ erscheint nur nach geprüftem Dateistatus. Der tatsächliche Fehlertext nennt den bekannten Grund; bei fehlender Sicherung muss der reale Zustand wahrheitsgemäß anders lauten.</p>
       </div>
     </div>
   </section>

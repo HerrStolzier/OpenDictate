@@ -297,18 +297,19 @@ TextEdit→Finder-Wechsel sichtbar geprüft. Der neue ⌘V-Build `bd3630f` hat n
 eigene echte TextEdit-, Safari-, Brave-, Obsidian- und Terminal-Nachweise
 im [Plan-1-Bericht](release-plans/evidence/2026-09-23-plan1-status.md).
 Die vollständige Feld-/Fokusmatrix, Einrichtung im frischen Benutzerzustand,
-Störfälle und UX-Feedback bleiben offen. Danach frühes menschliches
-Nutzerfeedback sammeln; die komplette
+Störfälle und die Prüfung der überarbeiteten UX am installierten Build bleiben
+offen. Bastis erste Designrückmeldung und die gewählte Richtung stehen im
+[Plan-1-Bericht](release-plans/evidence/2026-09-23-plan1-status.md). Danach
+frühes menschliches Nutzerfeedback sammeln; die komplette
 [Kompatibilitätsmatrix](compatibility-matrix.md) bleibt das breitere Produktziel.
 
-Mac-spezifischer lokaler Desktop, frischer macOS-Benutzerzustand und physisches
-Mac-Eingabegerät sind von der Linux-Umgebung aus nicht prüfbar. Auf omarchy sind
-Mikrofon und Hyprland-Sitzung erreichbar, wurden für Phase 1 aber mangels neuer
-Live-Freigabe nicht verwendet. Die früher dokumentierten sechs beziehungsweise
-acht Mikrofon-/Provider-Versuche sowie die acht neuen Plan-1-Aufnahmen sind
-verbraucht; sie werden nicht als neues Budget verwendet. Im neuen Block blieb
-ein Upload ungenutzt. Beim tatsächlichen Pilot Umfang und Audiozeit vorher
-festlegen.
+Die aktuelle Arbeit läuft am Mac mini mit physischem Eingabegerät. Ein frischer
+macOS-14-Benutzerzustand ist hier nicht vorhanden. Der neue native
+macOS-14-CI-Job kann Offline-Tests und Bundle-Builds prüfen, aber keine
+interaktive Diktatabnahme ersetzen. Bastis Plan-1-Freigabe erlaubt weitere
+kurze Live-Aufnahmen und Provider-Uploads ohne festes Stückkontingent;
+automatische Wiederholungen bleiben ausgeschlossen. Frühere Testzahlen sind
+Verbrauchsnachweise und kein künftiges Limit.
 
 ## Bekannte offene Grenzen
 

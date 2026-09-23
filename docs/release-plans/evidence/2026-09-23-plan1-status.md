@@ -69,9 +69,23 @@ Recovery-Einträge blieben unangetastet.
 Das installierte Ergebnis-Panel wurde mit Cua Driver direkt aufgenommen:
 [Ist-Screenshot](../mockups/01-ist-ergebnis.png). Die drei visuellen
 [Vergleiche](../mockups/01-ux-richtung.html) sind Entwürfe und keine
-implementierten App-Zustände. Bastis Feedback zur Richtung ist angefragt.
+implementierten App-Zustände. Basti fand die einfache Richtung schön, aber
+noch zu generisch. Seine Vorgabe für die nächste Fassung: Wenn die App bewusst
+einfach aussieht, müssen die Details sichtbar sorgfältiger sein. Die gewählte
+Richtung ist daher ein ruhiges, macOS-nahes Panel mit präziser Typografie,
+Abstandsfolge, einheitlichen SF-Symbolen, zurückhaltender Zustandsfarbe und
+klarer Hierarchie zwischen Hauptaktion und Rückweg. Insbesondere Einrichtung
+und Fehler bekommen einen konkreten nächsten Schritt und eine genaue,
+wahrheitsgemäße Statuszeile. Die Funktion und der Normalweg mit dem Kürzel
+werden durch diesen Gestaltungsdurchgang nicht erweitert.
 Seine Zwischenfrage bestätigte die Grenze: Die wiederhergestellte allgemeine
 Zwischenablage-/⌘V-Einfügung wird durch UX-Arbeit nicht erneut geändert.
+
+Die lokale Maschine läuft auf macOS 27 und hat nur die Command Line Tools als
+aktive Entwicklerumgebung; `simctl` ist nicht verfügbar. Apple bietet im
+Xcode-Simulator keine macOS-14-Laufzeit an. Ein macOS-14-Runner kann dagegen
+Swift- und Bundle-Prüfungen unter diesem System ausführen. Er ersetzt keine
+interaktive Prüfung von Mikrofon, Berechtigungen, VoiceOver und Einfügen.
 
 ## Offline-Prüfungen
 
@@ -127,12 +141,29 @@ Unicode-Normalisierung (`e` + Akzent zu `é`); die strikte Zeichenfolgen-
 Abnahme ist dafür nicht bestanden. Der allgemeine ⌘V-Pfad blieb unverändert.
 
 Die übrige sichtbare Feldermatrix, ein echter Providerfehler, tatsächlich
-unterbrochene Verarbeitung, Feedbackentscheidung und anschließende
-UI-Änderungen, gehörtes VoiceOver, macOS-14-Laufzeit und lokale Statuszeiten
+unterbrochene Verarbeitung, die UX-Prüfung am installierten neuen Build,
+gehörtes VoiceOver, die interaktive macOS-14-Abnahme und lokale Statuszeiten
 sind noch nicht abgeschlossen. Der erste konkrete Live-Testblock war zu diesem
 Zeitpunkt ausgeschöpft. Für macOS 14 ist auf dem aktuellen
 Mac kein Laufzeitnachweis möglich; der konfigurierte MacBook-SSH-Host antwortete
 nicht innerhalb von fünf Sekunden.
+
+Nach Bastis Feedback wurde das [Mockup](../mockups/01-ux-richtung.html)
+gezielt in Typografie, Abständen, SF-Symbolik, Aktionshierarchie und
+Fehlerzustand verfeinert. Das neue App-Panel übernimmt die ruhigere Anordnung,
+kleinere Statusflächen und einheitliche Bedienelemente. Die isolierte native
+Vorschau zeigte Bereit, Einrichtung, Fehler und Ergebnis sichtbar; Dunkel und
+Hell wurden für die Fehleransicht kontrolliert. Ein zu hoher leerer Bereich
+am unteren Fensterrand wurde dabei gefunden und korrigiert. Der
+App-Quellstand bestand zwei gemeldete Swift-Testläufe mit 89 und 69 Tests, acht
+Python-Tests, Swift-Format, Shell-Syntax und einen Release-Build samt sieben
+Bundle-Prüffällen. Diese Vorschau nutzt weder Mikrofon noch Provider und ist
+kein Test des installierten Kandidaten. Die ⌘V-Einfügelogik blieb unberührt.
+
+Für den noch ausstehenden CI-Lauf wurde ein nativer macOS-14-Job mit Xcode
+16.2 ergänzt. Er führt die Offline-Swift-Tests und einen verifizierten
+Bundle-Build aus. Ein bestandener Lauf belegt nur diese Teilmenge, nicht die
+interaktiven Berechtigungs-, VoiceOver- oder Einfügeprüfungen.
 
 **Fortsetzung:** Basti hat die Fortsetzung von Plan 1 ohne festes
 Aufnahmekontingent ausdrücklich freigegeben; die ältere Verbrauchsangabe oben

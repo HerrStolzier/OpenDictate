@@ -16,8 +16,14 @@ git diff --check
 ```
 
 CI uses the same strict formatting, warnings-as-errors tests and six shell
-syntax checks. It records the macOS, architecture, Swift and formatter versions
-so runner updates are visible without changing the selected toolchain. Its
+syntax checks on macOS 15. A separate macOS 14 Apple-Silicon job selects the
+runner's Xcode 16.2 and runs the offline Swift tests plus an ad-hoc bundle
+build and verification. This is a native macOS 14 runtime check, but cannot
+exercise microphone, permission dialogs, VoiceOver or target-field insertion
+without an interactive desktop. The macOS 14 runner is scheduled for removal
+by GitHub in November 2026; this gate needs another host before then. CI
+records the macOS, architecture, Swift and formatter versions so runner
+updates are visible without changing the selected toolchain. Its
 whitespace check compares the checked-out commit with its first parent
 (`git diff --check HEAD^ HEAD`); on pull requests this covers the merge diff
 against the base branch. Local `git diff --check` checks uncommitted edits.

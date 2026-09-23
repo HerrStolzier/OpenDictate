@@ -97,7 +97,7 @@ struct DictationPanelTests {
         let message = "Der Schlüssel konnte nicht gespeichert werden. Versuche es erneut."
         panel.updateAPIKeySetup(needsSetup: true, message: message)
         #expect(views.compactMap { $0 as? NSTextField }.map(\.stringValue).contains(message))
-        #expect(primary.title == "API-Schlüssel einrichten")
+        #expect(primary.title == "Schlüssel eingeben")
         expectHidden(panel, keyWindow: keyWindow)
 
         panel.updateAPIKeySetup(needsSetup: false)

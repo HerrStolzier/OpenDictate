@@ -10,13 +10,13 @@ final class DictationPanel: NSWindowController {
         var title: String {
             switch self {
             case .ready: "Bereit zum Diktieren."
-            case .setup: "API-Schlüssel einrichten."
+            case .setup: "Fast bereit"
             case .recording: "Aufnahme läuft."
             case .processing: "Text wird verarbeitet."
             case .confirmed: "Text eingefügt."
             case .manual: "Text ist verfügbar."
             case .unconfirmed: "Diktat verarbeitet."
-            case .failure: "Vorgang nicht abgeschlossen."
+            case .failure: "Nicht abgeschlossen"
             case .retry: "Diese Aufnahme erneut verarbeiten?"
             case .cancelling: "Wird abgebrochen …"
             }
@@ -64,6 +64,7 @@ final class DictationPanel: NSWindowController {
     private let content = PanelSurface()
     private let iconSurface = PanelSurface(raised: true)
     private let icon = NSImageView()
+    private let brand = NSTextField(labelWithString: "OpenDictate")
     private let headline = NSTextField(wrappingLabelWithString: "")
     private let detail = NSTextField(wrappingLabelWithString: "")
     private let shortcut = NSTextField(wrappingLabelWithString: "")
@@ -71,7 +72,7 @@ final class DictationPanel: NSWindowController {
     private let textScroll = NSScrollView()
     private let primary = TactileButton(title: "Aufnahme starten", target: nil, action: nil)
     private let secondary = TactileButton(title: "Abbrechen", target: nil, action: nil)
-    private let actions = NSButton(title: "Weitere Aktionen", target: nil, action: nil)
+    private let actions = TactileButton(title: "Weitere Aktionen", target: nil, action: nil)
     private let settings = TactileButton(title: "Einstellungen", target: nil, action: nil)
     private var textHeight: NSLayoutConstraint!
     private var currentDetail = "Starte die Aufnahme oder nutze dein Tastenkürzel."
@@ -79,7 +80,7 @@ final class DictationPanel: NSWindowController {
 
     init() {
         let panel = DictationUtilityPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 360, height: 370),
+            contentRect: NSRect(x: 0, y: 0, width: 360, height: 320),
             styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
         panel.title = "OpenDictate"
         panel.isReleasedWhenClosed = false
@@ -87,7 +88,7 @@ final class DictationPanel: NSWindowController {
         panel.becomesKeyOnlyIfNeeded = false
         panel.level = .floating
         panel.collectionBehavior = [.fullScreenAuxiliary]
-        panel.minSize = NSSize(width: 340, height: 390)
+        panel.minSize = NSSize(width: 340, height: 320)
         panel.isMovableByWindowBackground = false
         panel.backgroundColor = PanelColors.background
         super.init(window: panel)
@@ -205,7 +206,7 @@ final class DictationPanel: NSWindowController {
             set(
                 .setup,
                 detail: message
-                    ?? "Du brauchst einen eigenen OpenAI-API-Schlüssel. OpenAI berechnet die Transkription separat.")
+                    ?? "Hinterlege deinen eigenen OpenAI-API-Schlüssel. OpenAI berechnet die Transkription separat.")
         } else if display == .setup {
             set(
                 .ready,
@@ -240,10 +241,20 @@ final class DictationPanel: NSWindowController {
         showingText = value == .manual
         textView.string = "Wir besprechen den Entwurf am Montag."
         window?.title = "OpenDictate – Vorschau"
-        set(
-            value,
-            detail: value == .unconfirmed
-                ? Self.pasteDetail : "Gestaltungsvorschau · kein Mikrofon, kein Upload, kein Kopieren.")
+        let previewDetail: String =
+            switch value {
+            case .ready: "Wähle dein Zieltextfeld und drücke das Tastenkürzel."
+            case .setup: "Hinterlege deinen eigenen OpenAI-API-Schlüssel. OpenAI berechnet die Transkription separat."
+            case .recording: "Sprich in deinem Tempo. Das Tastenkürzel beendet die Aufnahme."
+            case .processing: "Der Text wird verarbeitet. Du kannst im Zieltextfeld bleiben."
+            case .confirmed: "Der Text wurde im Zielprogramm bestätigt."
+            case .manual: "Automatisches Einfügen war nicht möglich. Du kannst den Text kopieren."
+            case .unconfirmed: Self.pasteDetail
+            case .failure: "Beispiel: Die Verbindung ist fehlgeschlagen. Eine gesicherte Aufnahme bleibt verfügbar."
+            case .retry: "Ein neuer Versand an OpenAI kann erneut Kosten verursachen."
+            case .cancelling: "Die laufende Arbeit wird beendet."
+            }
+        set(value, detail: previewDetail)
     }
 
     private func set(_ value: Display, detail text: String) {
@@ -270,49 +281,70 @@ final class DictationPanel: NSWindowController {
         let stack = NSStackView()
         stack.orientation = .vertical
         stack.alignment = .centerX
-        stack.spacing = 16
+        stack.spacing = 14
         stack.translatesAutoresizingMaskIntoConstraints = false
         content.addSubview(stack)
         NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 24),
-            stack.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -24),
-            stack.topAnchor.constraint(equalTo: content.topAnchor, constant: 16),
-            stack.bottomAnchor.constraint(lessThanOrEqualTo: content.bottomAnchor, constant: -20)
+            stack.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 22),
+            stack.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -22),
+            stack.topAnchor.constraint(equalTo: content.topAnchor, constant: 20),
+            stack.bottomAnchor.constraint(lessThanOrEqualTo: content.bottomAnchor, constant: -22)
         ])
+        let header = NSStackView()
+        header.orientation = .horizontal
+        header.alignment = .centerY
+        header.spacing = 8
+        brand.font = .systemFont(ofSize: 13, weight: .semibold)
+        brand.textColor = PanelColors.ink
+        brand.setAccessibilityElement(false)
+        header.addArrangedSubview(brand)
+        header.addArrangedSubview(NSView())
         settings.target = self
         settings.action = #selector(openSettings)
         settings.prominent = false
         settings.setAccessibilityLabel("Einstellungen öffnen")
-        stack.addArrangedSubview(settings)
-        settings.widthAnchor.constraint(equalToConstant: 150).isActive = true
-        settings.heightAnchor.constraint(equalToConstant: 36).isActive = true
+        header.addArrangedSubview(settings)
+        settings.widthAnchor.constraint(equalToConstant: 112).isActive = true
+        settings.heightAnchor.constraint(equalToConstant: 34).isActive = true
+        stack.addArrangedSubview(header)
+        header.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
+        stack.setCustomSpacing(27, after: header)
+        let status = NSStackView()
+        status.orientation = .horizontal
+        status.alignment = .centerY
+        status.spacing = 12
         iconSurface.translatesAutoresizingMaskIntoConstraints = false
         icon.translatesAutoresizingMaskIntoConstraints = false
         iconSurface.addSubview(icon)
         icon.setAccessibilityElement(false)
         iconSurface.setAccessibilityElement(false)
         NSLayoutConstraint.activate([
-            iconSurface.widthAnchor.constraint(equalToConstant: 64),
-            iconSurface.heightAnchor.constraint(equalToConstant: 64),
-            icon.widthAnchor.constraint(equalToConstant: 24),
-            icon.heightAnchor.constraint(equalToConstant: 24),
+            iconSurface.widthAnchor.constraint(equalToConstant: 42),
+            iconSurface.heightAnchor.constraint(equalToConstant: 42),
+            icon.widthAnchor.constraint(equalToConstant: 20),
+            icon.heightAnchor.constraint(equalToConstant: 20),
             icon.centerXAnchor.constraint(equalTo: iconSurface.centerXAnchor),
             icon.centerYAnchor.constraint(equalTo: iconSurface.centerYAnchor)
         ])
-        stack.addArrangedSubview(iconSurface)
-        headline.font = .systemFont(ofSize: 20, weight: .semibold)
-        headline.alignment = .center
+        status.addArrangedSubview(iconSurface)
+        headline.font = .systemFont(ofSize: 21, weight: .semibold)
+        headline.alignment = .left
+        status.addArrangedSubview(headline)
+        stack.addArrangedSubview(status)
+        status.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
+        stack.setCustomSpacing(9, after: status)
         detail.font = .systemFont(ofSize: 14)
         detail.textColor = PanelColors.secondary
-        detail.alignment = .center
-        shortcut.font = .systemFont(ofSize: 13)
+        detail.alignment = .left
+        shortcut.font = .systemFont(ofSize: 12)
         shortcut.textColor = PanelColors.secondary
         shortcut.alignment = .center
         for field in [headline, detail] {
             field.setContentCompressionResistancePriority(.required, for: .vertical)
-            stack.addArrangedSubview(field)
-            field.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
         }
+        stack.addArrangedSubview(detail)
+        detail.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
+        stack.setCustomSpacing(22, after: detail)
         textView.isEditable = false
         textView.isSelectable = true
         textView.isRichText = false
@@ -325,14 +357,18 @@ final class DictationPanel: NSWindowController {
         textView.setAccessibilityLabel("Verfügbarer Text")
         textScroll.documentView = textView
         textScroll.hasVerticalScroller = true
-        textScroll.borderType = .bezelBorder
+        textScroll.autohidesScrollers = true
+        textScroll.borderType = .noBorder
+        textScroll.wantsLayer = true
+        textScroll.layer?.cornerRadius = 10
+        textScroll.layer?.masksToBounds = true
         stack.addArrangedSubview(textScroll)
         textScroll.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
         textHeight = textScroll.heightAnchor.constraint(equalToConstant: 130)
         textHeight.isActive = true
         primary.target = self
         primary.action = #selector(primaryAction)
-        primary.font = .systemFont(ofSize: 14, weight: .medium)
+        primary.font = .systemFont(ofSize: 14, weight: .semibold)
         primary.setAccessibilityIdentifier("dictation-primary")
         secondary.target = self
         secondary.action = #selector(secondaryAction)
@@ -346,18 +382,21 @@ final class DictationPanel: NSWindowController {
         shortcut.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
         actions.target = self
         actions.action = #selector(openActions)
-        actions.bezelStyle = .rounded
+        actions.prominent = false
         actions.setAccessibilityIdentifier("dictation-actions")
         stack.addArrangedSubview(actions)
+        actions.widthAnchor.constraint(equalToConstant: 140).isActive = true
+        actions.heightAnchor.constraint(equalToConstant: 34).isActive = true
         window?.initialFirstResponder = primary
     }
 
     private func render() {
         headline.stringValue = display.title
-        headline.textColor = display.color
+        headline.textColor = PanelColors.ink
         detail.stringValue = currentDetail
         icon.image = NSImage(systemSymbolName: display.symbol, accessibilityDescription: nil)
         icon.contentTintColor = display.color
+        iconSurface.accent = display.color
         settings.isEnabled = !busy
         primary.isHidden = display == .processing || display == .cancelling
         primary.isEnabled = !busy || display == .recording
@@ -366,7 +405,7 @@ final class DictationPanel: NSWindowController {
         textScroll.isHidden = !showingText
         switch display {
         case .ready, .confirmed: primary.title = "Aufnahme starten"
-        case .setup: primary.title = "API-Schlüssel einrichten"
+        case .setup: primary.title = "Schlüssel eingeben"
         case .recording: primary.title = "Aufnahme beenden"
         case .manual: primary.title = "Text kopieren"
         case .unconfirmed: primary.title = showingText ? "Text kopieren" : "Text ansehen"
@@ -391,7 +430,7 @@ final class DictationPanel: NSWindowController {
         }
         content.layoutSubtreeIfNeeded()
         if let window {
-            let desired = max(370, content.subviews.first?.fittingSize.height ?? 370) + 16
+            let desired = max(300, content.subviews.first?.fittingSize.height ?? 300) + 16
             let available = (window.screen ?? NSScreen.main)?.visibleFrame.height ?? 800
             let height = min(available - 40, desired + (window.frame.height - window.contentLayoutRect.height))
             if abs(window.frame.height - height) > 1 {
@@ -487,6 +526,9 @@ enum PanelColors {
 @MainActor
 private final class PanelSurface: NSView {
     private let raised: Bool
+    var accent: NSColor = PanelColors.ink {
+        didSet { needsDisplay = true }
+    }
     init(raised: Bool = false) {
         self.raised = raised
         super.init(frame: .zero)
@@ -494,18 +536,10 @@ private final class PanelSurface: NSView {
     required init?(coder: NSCoder) { nil }
     override func draw(_ dirtyRect: NSRect) {
         if raised {
-            let shape = NSBezierPath(roundedRect: bounds.insetBy(dx: 3, dy: 3), xRadius: 20, yRadius: 20)
-            NSGraphicsContext.saveGraphicsState()
-            let shadow = NSShadow()
-            shadow.shadowColor = NSColor.black.withAlphaComponent(0.18)
-            shadow.shadowBlurRadius = 5
-            shadow.shadowOffset = NSSize(width: 0, height: -2)
-            if !NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast { shadow.set() }
-            PanelColors.raised.setFill()
+            let shape = NSBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), xRadius: 11, yRadius: 11)
+            accent.withAlphaComponent(0.09).setFill()
             shape.fill()
-            NSGraphicsContext.restoreGraphicsState()
-            NSGradient(starting: PanelColors.raised, ending: PanelColors.inset)?.draw(in: shape, angle: -90)
-            PanelColors.secondary.withAlphaComponent(0.4).setStroke()
+            accent.withAlphaComponent(0.22).setStroke()
             shape.stroke()
         } else {
             PanelColors.background.setFill()
@@ -526,45 +560,36 @@ private final class TactileButton: NSButton {
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { isEnabled }
     override var focusRingMaskBounds: NSRect { bounds.insetBy(dx: 3, dy: 3) }
     override func drawFocusRingMask() {
-        NSBezierPath(roundedRect: focusRingMaskBounds, xRadius: 14, yRadius: 14).fill()
+        NSBezierPath(roundedRect: focusRingMaskBounds, xRadius: 10, yRadius: 10).fill()
     }
     override func draw(_ dirtyRect: NSRect) {
         let pressed = cell?.isHighlighted == true
-        let rect = bounds.insetBy(dx: 3, dy: 3).offsetBy(dx: 0, dy: pressed ? -1 : 0)
-        let shape = NSBezierPath(roundedRect: rect, xRadius: 14, yRadius: 14)
+        let rect = bounds.insetBy(dx: 3, dy: 3)
+        let shape = NSBezierPath(roundedRect: rect, xRadius: 10, yRadius: 10)
         let highContrast = NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast
-        if prominent, !pressed && !highContrast {
-            NSGraphicsContext.saveGraphicsState()
-            let shadow = NSShadow()
-            shadow.shadowColor = NSColor.black.withAlphaComponent(0.2)
-            shadow.shadowBlurRadius = 4
-            shadow.shadowOffset = NSSize(width: 0, height: -2)
-            shadow.set()
-            PanelColors.ink.setFill()
+        if !isEnabled {
+            PanelColors.inset.setFill()
             shape.fill()
-            NSGraphicsContext.restoreGraphicsState()
+        } else if prominent {
+            PanelColors.pair(0x263B55, 0xD7E3F5).setFill()
+            shape.fill()
+        } else {
+            PanelColors.raised.setFill()
+            shape.fill()
+            PanelColors.secondary.withAlphaComponent(highContrast ? 0.8 : 0.3).setStroke()
+            shape.stroke()
         }
-        if prominent {
-            if highContrast {
-                PanelColors.pair(0x253145, 0xEDF2FA).setFill()
-                shape.fill()
-            } else {
-                NSGradient(
-                    starting: PanelColors.pair(0x414D60, 0xEDF2FA), ending: PanelColors.pair(0x253145, 0xCAD5E5)
-                )?.draw(in: shape, angle: -90)
-            }
-        }
-        if pressed, prominent {
-            NSColor.black.withAlphaComponent(0.08).setFill()
+        if pressed {
+            PanelColors.ink.withAlphaComponent(prominent ? 0.16 : 0.07).setFill()
             shape.fill()
         }
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = .center
         let attributes: [NSAttributedString.Key: Any] = [
             .font: font ?? NSFont.systemFont(ofSize: 14, weight: .medium),
-            .foregroundColor: prominent
-                ? PanelColors.pair(0xFFFFFF, 0x202936)
-                : (isEnabled ? PanelColors.ink : PanelColors.secondary), .paragraphStyle: paragraph
+            .foregroundColor: isEnabled
+                ? (prominent ? PanelColors.pair(0xFFFFFF, 0x202936) : PanelColors.ink)
+                : PanelColors.secondary, .paragraphStyle: paragraph
         ]
         let size = (title as NSString).size(withAttributes: attributes)
         (title as NSString).draw(

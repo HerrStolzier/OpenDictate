@@ -16,7 +16,7 @@ for later testing. To build from source, use Swift 6 on macOS:
 open .build/OpenDictate.app
 ```
 
-1. Open the menu bar panel. If a key is missing, choose **API-Schlüssel einrichten**
+1. Open the menu bar panel. If a key is missing, choose **Schlüssel eingeben**
    to open the Keychain-backed dialog directly. Saving a key does not start a
    recording or make a paid request.
 2. Choose your microphone and language in **Einstellungen**. Allow microphone
