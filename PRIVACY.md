@@ -33,66 +33,29 @@ directs users to the app dialog and performs no Keychain operation.
 The transcript is written as plain text to the macOS general clipboard. Any
 local application with clipboard access may be able to read it.
 
-OpenDictate leaves the transcript on the clipboard until another clipboard write
-replaces it, preserving a manual recovery path when automatic insertion is
-unavailable or ineffective. Clipboard managers may retain their own copy;
-OpenDictate cannot remove that copy. Automatic insertion does not read or paste
-from the clipboard: it sends the transcript directly to the Accessibility text
-element captured at dictation start. It retains only process, window, element,
-web-document identity (when available), role, writability, application bundle
-identifier and selection range, not the target's
-text or title. These references are cleared when the flow becomes idle. An
-external application switch invalidates the automatic target. For Brave, Safari and Obsidian web
-editors, it instead
-sends the exact transcript as Unicode keyboard events addressed to that process.
-It checks that the application is still frontmost and the same Accessibility
-field, window and web document remain focused before each text chunk. Before
-the first insertion, an available selection range must still match the captured
-range. It does not activate the target during delivery, read the
-field's existing contents, or send a paste shortcut. A focus change or cancellation
-stops remaining chunks; already submitted text may have reached the destination
-and cannot be rolled back safely. The panel distinguishes interruption from a
-preflight that never attempted input and keeps the full transcript available.
-A native setter error is treated as an uncertain attempt, not proof that the
-target stayed unchanged. All-submitted input remains unconfirmed as well.
-Brave's event path keeps line breaks with preceding text and complete graphemes
-within the event-size limit. If a transcript cannot satisfy those constraints,
-it falls back before posting any event; the original clipboard text is unchanged.
-
-Except for the Apple Terminal case below, if the focused control does not expose
-a settable selected-text Accessibility attribute, automatic insertion stops and
-the transcript remains available only through the clipboard.
-OpenDictate does not fall back to an automatic `Cmd+V`
-because that would again consume mutable global clipboard contents.
-
-For Apple Terminal (`com.apple.Terminal`), a focused `AXTextArea` outside a web
-document uses process-scoped Unicode events without requiring a settable selected
-text attribute. Protected or disabled fields and known non-empty display selections
-remain excluded. The original application, window, field and available initial
-selection must still match. Missing selection metadata remains allowed and cannot
-prove the absence of a selection. Secure Event Input is checked at capture and
-again before each chunk, and is never changed by OpenDictate. The entire insertion
-text is checked before delivery: C0 controls, DEL/C1, Unicode line/paragraph separators
-and the private function-key range `U+F700…U+F8FF` prevent all automatic events.
-As elsewhere in the dictation flow, surrounding whitespace is trimmed before
-clipboard and insertion delivery. The clipboard retains that complete text.
-This prevents automatic Return and control-key delivery, but does not identify
-every password prompt or guarantee that an interactive terminal program treats
-ordinary keys as text.
-Terminal's actual Accessibility structure and event handling remain a native
-acceptance check.
+OpenDictate leaves the transcript on the general clipboard until another write
+replaces it. Clipboard managers may retain their own copy; OpenDictate cannot
+remove that copy. For automatic insertion, OpenDictate remembers the application
+that was in front when dictation started, activates it after transcription and
+sends Command-V. It checks that Accessibility permission is available, that the
+application is then frontmost and that the clipboard still contains the full
+transcript. It does not inspect the destination's text or title. A different
+field or window in the original application may receive Paste after a focus
+change; the app cannot confirm that the target accepted the command. Paste in a
+terminal may insert line breaks or executable commands. OpenDictate does not
+identify protected, read-only or password controls before Paste. Retries copy their text
+but do not automatically paste it.
 
 The recording panel opens only through an explicit user action. Recording,
 results, errors and setup reminders update the menu bar and existing panel
 contents without showing a hidden window or activating OpenDictate.
-The original field is captured before Keychain access, permission waits or
-an explicit panel action's focus return; a missing field is not recaptured later.
+The original application is captured before Keychain access, permission waits
+or an explicit panel action's focus return.
 
 An explicit recording-panel action may return focus to the most recently used
 application. Stopping through the panel returns only if that application is still
 the most recently selected external app. Passive updates never return focus.
-Automatic insertion targets the field captured when recording started,
-provided its application is still frontmost and the target remains valid.
+Automatic insertion reactivates the application captured when recording started.
 Retries require explicit confirmation, copy their
 result, and never automatically insert. Otherwise only the clipboard
 is updated. Automatic insertion can also be disabled in the menu. Accessibility

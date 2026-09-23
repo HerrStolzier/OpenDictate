@@ -27,25 +27,16 @@
             "local.opendictate.matrixhost", "com.apple.Safari", "com.brave.Browser", "md.obsidian",
             "com.apple.TextEdit"
         ]
-        private let board = NSPasteboard.withUniqueName()
-        private lazy var inserter: PasteboardInserter = {
-            var access = PasteboardInserter.Access.live
-            let post = access.postUnicode
-            access.postUnicode = { [weak self] pid, units in
-                let sent = post(pid, units)
-                if sent { self?.postedChunks += 1 }
-                return sent
-            }
-            return PasteboardInserter(access: access)
-        }()
-        private var target: InsertionTarget?
+        private let board = NSPasteboard.general
+        private let inserter = PasteboardInserter()
+        private var target: NSRunningApplication?
+        private var clipboard: [[NSPasteboard.PasteboardType: Data]] = []
+        private var fixtureClipboardChange: Int?
         private var armTask: Task<Void, Never>?
         private var simulateDelay = false
         private var progressElapsed: Double = 80
         private var sampleText = DeliveryMatrixPreview.sample
         private var captureDetail = ""
-        private var postedChunks = 0
-        private var expectedChunks = 0
         private lazy var flow = makeFlow()
 
         static func run(_ app: NSApplication) {
@@ -66,11 +57,21 @@
                         return sampleText
                     },
                     transcribeRetry: { _ in Self.sample }, keep: { _ in true }, removeRetry: { _ in }, clean: { _ in },
-                    copy: { [unowned self] in inserter.copy($0, to: board) },
-                    paste: { [unowned self] in await inserter.paste($0, into: target) }))
+                    copy: { [unowned self] text in
+                        let copied = inserter.copy(text, to: board)
+                        if copied { fixtureClipboardChange = board.changeCount }
+                        return copied
+                    },
+                    paste: { [unowned self] in await inserter.paste($0, into: target, board: board) }))
         }
 
         private func show() {
+            clipboard = (board.pasteboardItems ?? []).map { item in
+                Dictionary(
+                    uniqueKeysWithValues: item.types.compactMap { type in
+                        item.data(forType: type).map { (type, $0) }
+                    })
+            }
             window.title = "OpenDictate – isolierte Übergabeprüfung"
             window.isReleasedWhenClosed = false
             let stack = NSStackView()
@@ -101,7 +102,7 @@
             flow.onOutcome = { [weak self] outcome in
                 guard let self else { return }
                 result.stringValue =
-                    "Ergebnis: \(outcome); Test-Zwischenablage vollständig: \(board.string(forType: .string) == sampleText)\n\(captureDetail)\nUnicode-Chunks: \(postedChunks) / \(expectedChunks)"
+                    "Ergebnis: \(outcome); Test-Zwischenablage vollständig: \(board.string(forType: .string) == sampleText)\n\(captureDetail)"
                 panel.update(outcome: outcome, transcript: flow.lastTranscript)
                 panel.window?.title = "OpenDictate – synthetisches Übergabeergebnis"
             }
@@ -139,12 +140,7 @@
             sampleText = singleLine.state == .on ? Self.sample.replacingOccurrences(of: "\n", with: " ") : Self.sample
             if lineProbe.state == .on { sampleText = "Erste\r\n\r\nZweite\n\nDritte" }
             if longProbe.state == .on { sampleText = Array(repeating: sampleText, count: 600).joined(separator: " ") }
-            postedChunks = 0
             let expectedID = targetIDs[targetApp.indexOfSelectedItem]
-            expectedChunks =
-                UnicodeTextDelivery.chunks(
-                    sampleText, lineBreakPolicy: UnicodeTextDelivery.policy(for: expectedID)
-                ).count
             result.stringValue = "Warte höchstens 60 Sekunden auf ein lokales Matrix-Fenster …"
             armTask = Task { @MainActor in
                 defer {
@@ -156,12 +152,8 @@
                     if let app = NSWorkspace.shared.frontmostApplication,
                         app.bundleIdentifier == expectedID, Self.isLocalFixture(app.processIdentifier)
                     {
-                        target = inserter.captureTarget(in: app.processIdentifier)
-                        let observed = InsertionTarget.read(pid: app.processIdentifier)
-                        captureDetail =
-                            observed.map {
-                                "Ziel erfasst: \(target != nil); \($0.role); aktiviert: \(String(describing: $0.enabled)); Auswahl schreibbar: \($0.acceptsSelectedText)"
-                            } ?? "Keine gültige lokale AX-Zielidentität."
+                        target = app
+                        captureDetail = "App erfasst: \(expectedID); normales Einfügen über ⌘V."
                         if inspectOnly {
                             result.stringValue =
                                 "Vordergrund bestätigt: \(expectedID)\n\(captureDetail)\nKeine Texteingabe."
@@ -197,7 +189,14 @@
         func applicationWillTerminate(_ notification: Notification) {
             armTask?.cancel()
             flow.cancel()
-            board.releaseGlobally()
+            guard fixtureClipboardChange == board.changeCount else { return }
+            board.clearContents()
+            let items = clipboard.map { values in
+                let item = NSPasteboardItem()
+                for (type, data) in values { item.setData(data, forType: type) }
+                return item
+            }
+            board.writeObjects(items)
         }
 
         static func runHost(_ app: NSApplication) {

@@ -10,7 +10,26 @@ Zwei parallele Arbeitspfade: **macOS-Produktabnahme** (unverändert offen) und
 **Linux Phase 1** (Kern in `main`, noch nicht in `PROJECT.md`). Linux markiert
 macOS nicht als erledigt.
 
-## Neue macOS-Nachweise vom 22. und 23. September
+## Neuer Quellcodekandidat: normaler Einfügebefehl
+
+Auf Bastis ausdrücklichen Wunsch ist die automatische Übergabe wieder auf
+Zwischenablage, Aktivierung der beim Diktatbeginn aktiven App und ⌘V umgestellt.
+Das Feld muss kein setzbares `AXSelectedText` mehr anbieten. Vor dem Tastendruck
+werden Accessibility-Freigabe, Vordergrund-App und unveränderter Kopiertext
+geprüft. Fenster und Feld sind nicht mehr gebunden: Ein Fokuswechsel kann Text
+in ein anderes Feld derselben ursprünglichen App lenken; ein Appwechsel kann
+durch die Reaktivierung rückgängig gemacht werden. Der Terminal-Sonderpfad und
+seine Zeilenumbruchfilter sind entfallen. Offline-Tests belegen die
+Entscheidungslogik, keinen sichtbaren Text in einer installierten App. Die
+historischen Live-Nachweise unten gelten nur für ihre damaligen Kandidaten.
+
+Nächster Mac-Nachweis: den identifizierten neuen Build in einem eigenen leeren
+TextEdit-Dokument und in repräsentativen Browser-/Electron-Feldern sichtbar
+prüfen. Fokuswechsel und Terminal nur mit klarer Erwartung an die Reaktivierung
+und einem harmlosen Ziel prüfen; vorherige Negativtests sind keine Sollvorgabe
+mehr. Mikrofon/Provider und Installation bleiben separate Live-Gates.
+
+## macOS-Nachweise vom 22. und 23. September (älterer Kandidat)
 
 Die installierte Revision `68ef919` fügte nach gezielter Erneuerung ihrer
 Bedienungshilfen-Freigabe in einem echten Durchlauf mit physischem Kürzel,
@@ -232,12 +251,10 @@ Die Bindung bleibt Nutzersache und wurde nicht installiert:
 ## Nächster ausführbarer Mac-Schritt
 
 Die vorbereitete [Pilot- und Integrationsliste](audio-quality-fixtures.md#prepared-first-human-pilot)
-verwendet vorhandene Prüfmittel. Für den installierten Kandidaten `68ef919`
-sind die normale TextEdit-Eingabe, eine leere Terminal-Shellzeile und der
-negative TextEdit→Finder-Wechsel nach dem Stoppen sichtbar geprüft. Als Nächstes
-gezielt die übrigen Phasen und Ziele prüfen: Unterbrechung während mehrteiliger
-Eingabe, Terminal-Tabs/Markierung, Einrichtung, Abbruch und Beenden. Bei einer
-Quellcodeänderung zuvor einen identifizierten Kandidaten mit vorhandener
+verwendet vorhandene Prüfmittel. Für den installierten älteren Kandidaten
+`68ef919` sind TextEdit, eine leere Terminal-Shellzeile und der negative
+TextEdit→Finder-Wechsel sichtbar geprüft. Diese Einfügenachweise gelten nicht
+für den neuen ⌘V-Pfad. Zuerst einen identifizierten Kandidaten mit vorhandener
 lokaler Signatur bauen oder ein überprüftes
 [CI-Entwicklungsarchiv](development.md#ci-development-archives) bewusst wählen.
 Die ad-hoc Signatur eines neuen Archivs übernimmt vorhandene
@@ -255,17 +272,17 @@ verwendet. Beim tatsächlichen Pilot Umfang und Audiozeit vorher festlegen.
 ## Bekannte offene Grenzen
 
 - Der gemeldete Terminalfehler wurde auf dem installierten Kandidaten in einer
-  leeren Shellzeile nicht reproduziert. Terminal-Tabs, Markierung, Secure Input
+  leeren Shellzeile nicht reproduziert. Der neue ⌘V-Pfad ist dort ungetestet und
+  hat keinen Zeilenumbruchfilter. Terminal-Tabs, Markierung, Secure Input
   und das Verhalten interaktiver Programme brauchen noch sichtbare Prüfung.
   iTerm2 und Terminals innerhalb von Editoren sind nicht abgedeckt.
-- Ein echter negativer Appwechsel nach dem Stoppen ist für TextEdit→Finder
-  bestanden. Wechsel während Aufnahme und mehrteiliger Übergabe sind für
-  diesen installierten Kandidaten damit nicht pauschal abgenommen.
+- Ein echter negativer Appwechsel nach dem Stoppen ist für TextEdit→Finder auf
+  dem älteren Kandidaten bestanden. Der neue Pfad reaktiviert die ursprüngliche
+  App; dieses frühere Ergebnis ist keine Abnahme des neuen Verhaltens.
 - Der erste Safari-textarea-Fallback im jüngsten historischen Zieltest bleibt
   ungeklärt, obwohl der Wiederholungsversuch bestand.
-- Eine manuelle Cursor-/Auswahlbewegung innerhalb desselben Feldes während
-  mehrteiliger Eingabe ist noch zu untersuchen. Die Korrektur der Rückmeldung
-  erkennt solche Bewegungen nicht automatisch.
+- Eine manuelle Cursor-/Auswahlbewegung kann den Einfügeort ändern. Der neue
+  Pfad bindet kein bestimmtes Feld.
 - Reale Gerätewechsel, Abziehen des Mikrofons, Berechtigungs-/Keychainfehler und
   Beenden während Aufnahme/Upload brauchen passende praktische Prüfungen.
 - Menschliche Sprachqualität, Zahlen-/Namensfehler, Korrekturzeit und tatsächlicher
@@ -292,7 +309,7 @@ rechtfertigen keine allgemeine Erfolgsquote oder pauschale Programm-Unterstützu
 | [Roadmap 16. September](roadmap-acceptance-2026-09-16.md) | Synthetische Feld-/Fokus-/Unicodeprüfungen, Recovery-Dateisystemfehler und Hotkey-Registrierung |
 | [Brave 15. September](brave-insertion-2026-09-15.md) | Synthetische Brave-Einfügung und vom Nutzer bestätigter damaliger Proton-Pfad |
 | [Native App 15. September](live-acceptance-2026-09-15.md), [Einstellungen](settings-acceptance-2026-09-15.md) | Konkretes menschliches Diktat und native Bedienungs-/Fensterprüfungen |
-| [13. September](live-acceptance-2026-09-13.md), [7. September](live-acceptance-2026-09-07.md) | Ältere Kandidaten; insbesondere der historische Cmd+V-Pfad validiert keine heutige direkte Einfügelogik |
+| [13. September](live-acceptance-2026-09-13.md), [7. September](live-acceptance-2026-09-07.md) | Ältere Kandidaten; der damalige Cmd+V-Pfad ist ein Hinweis, aber kein Test des neuen Builds |
 
 Einzelheiten zur früheren lokalen Signatur-/Keychain-Einrichtung und der Abnahme
 vom 14. September bleiben im

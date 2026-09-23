@@ -5,6 +5,13 @@ die Textübergabe. Programme dienen als repräsentative Beispiele ihrer Kategori
 ein bestandener Lauf ist kein Versprechen für alle Programme derselben Kategorie.
 Datierte Berichte bleiben die Quelle für den jeweils tatsächlich geprüften Kandidaten.
 
+**Neuer Kandidat:** Automatisches Einfügen läuft wieder über die allgemeine
+Zwischenablage und ⌘V in der zu Beginn erfassten App. Sie wird vor dem
+Einfügebefehl aktiviert. Ein Feldwechsel kann den Einfügeort ändern; ein
+Appwechsel nach dem Stoppen wird durch die Reaktivierung zurückgenommen.
+Die folgenden historischen AX-/Unicode-Nachweise gelten für ältere Kandidaten
+und müssen für den neuen Einfügeweg sichtbar wiederholt werden.
+
 Die [Terminal- und Fokusabnahme vom 22. September](terminal-focus-acceptance-2026-09-22.md)
 belegt die sichtbare Eingabe in einer leeren Apple-Terminal-Shellzeile; der
 beabsichtigte negative Fokusfall blieb wegen eines Providerfehlers unentschieden.
@@ -32,7 +39,7 @@ begrenzt; diese Vorbereitung erweitert ihre Nachweise nicht.
 
 ## Abdeckungsziel
 
-| Kategorie | Repräsentative Beispiele | Zu prüfende Felder | Aktuelle Evidenz |
+| Kategorie | Repräsentative Beispiele | Zu prüfende Felder | Historische Evidenz, neuer Pfad offen |
 |---|---|---|---|
 | Native macOS-App | TextEdit; kontrollierter AppKit-Host | ein- und mehrzeiliges editierbares Feld | Neue echte Auswahlersetzung in TextEdit AXTextArea bestanden. Einzeilige native Felder und weitere Positionen bleiben synthetisch belegt. |
 | Browser, einfaches Formular | Safari und Brave | `input`, `textarea` | Echte Auswahlersetzung in beiden Browsern bestanden; Brave textarea einschließlich 90-Sekunden-Autostopp. Safari textarea zunächst verlustfreier Fallback ungeklärter Ursache, Wiederholung bestanden. Chrome-Ersteinrichtung unverändert, Firefox fehlt. |
@@ -90,17 +97,18 @@ Auswahlersetzung und mehrzeilige Eingabe sind dort keine Abnahmekriterien.
 2. Eine bestehende Auswahl ersetzen, ohne Text davor oder danach zu verändern.
 3. Mehrzeiligen Unicode-Text mit Umlauten, kombinierenden Zeichen und Emoji exakt
    übernehmen. Lange Texte müssen ihre Chunk-Grenzen unverändert überstehen.
-4. Während Aufnahme, Verarbeitung und mehrteiliger Übergabe App, Fenster oder
-   Browser-Tab wechseln. Text darf nur das für dieses Diktat erfasste und weiterhin
-   gültige Ziel erreichen; nach Zielverlust werden keine weiteren Chunks gesendet.
-5. Ablehnung, fehlende Accessibility-Berechtigung oder nicht unterstütztes Feld:
-   kein stiller Verlust und keine Einfügung in ein anderes Ziel. Das vollständige
-   Transkript bleibt auf der Zwischenablage und die Oberfläche erklärt den manuellen
-   Rückweg verständlich.
+4. Während Aufnahme und Verarbeitung App, Fenster, Feld oder Browser-Tab
+   wechseln. Prüfen, welches Feld nach der Reaktivierung der ursprünglichen App
+   den ⌘V-Befehl erhält. Die Änderung des Einfügeorts ist eine bewusste Grenze.
+5. Fehlende Accessibility-Berechtigung, fehlende App oder zwischenzeitlich
+   geänderte Zwischenablage: kein Einfügebefehl. Das vollständige Transkript
+   bleibt verfügbar, sofern die Zwischenablage nicht von außen überschrieben wurde.
 
-## Apple Terminal
+## Apple Terminal (historischer Sonderpfad)
 
-Die Anwendung ist Apple Terminal; die installierte Revision des gemeldeten
+Die folgenden Details beschreiben den entfernten Unicode-Sonderpfad und gelten
+nicht für den neuen ⌘V-Kandidaten. Dessen Terminal-Verhalten und insbesondere
+Zeilenumbrüche sind ungetestet. Die Anwendung ist Apple Terminal; die installierte Revision des gemeldeten
 Fehlers ist weiterhin unbekannt. Die neue Ausnahme lockert ausschließlich hier
 die sonstige Voraussetzung eines setzbaren `AXSelectedText`. Sie verwendet
 Unicode-Events, auch wenn das Attribut setzbar wäre. Ein als deaktiviert oder
@@ -139,7 +147,7 @@ Supportaussage aus einem einzelnen Beispiel.
 
 ## Priorität
 
-1. Auf dem neuen Kandidaten vollständige und unterbrochene Texteingabe gezielt sichtbar prüfen; danach früh menschliche Diktate samt physischem Tastenkürzel und Korrekturaufwand auswerten.
+1. Auf dem neuen Kandidaten normale ⌘V-Eingabe in repräsentativen Feldern und die Wirkung von Fokuswechseln sichtbar prüfen; danach menschliche Diktate samt physischem Tastenkürzel und Korrekturaufwand auswerten.
 2. Eine begrenzte Runde der offenen Fokus-, Aufnahme-, Abbruch-, Geräte- und Recoveryfälle nach Risiko und Pilotbefund durchführen.
 3. Die breitere Matrix einschließlich VoiceOver und verbleibender Plattform-/Feldkombinationen systematisch ergänzen; fehlende Fälle bleiben ausdrücklich offen.
 

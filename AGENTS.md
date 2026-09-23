@@ -23,7 +23,7 @@
 - Never delete the only surviving audio after a failed, cancelled, empty, or undelivered transcription. Preserve the original if the authenticated recovery copy cannot be created.
 - Retry only authenticated recordings, upload the bytes that were authenticated, enforce expiry at access time, and never upload legacy or heuristic-skipped audio automatically.
 - Keep recording, processing, delivery, cancellation, and retry mutually consistent through `DictationState`. Do not start overlapping provider requests.
-- Auto-paste may target only the application captured for that dictation and only while it is still the frontmost application. Clipboard-only fallback must remain available.
+- Auto-paste may activate only the application captured for that dictation. Before sending Command-V, verify that it is frontmost and that the clipboard still holds the transcript. Clipboard-only fallback must remain available. The focused field is not bound by this legacy path.
 - Keep the API key in the macOS Keychain. Never accept it through command arguments, checked-in files, logs, fixtures, or process environment.
 - Logs may contain bounded operational metadata, but never API keys, transcripts, or audio contents.
 - Replace global hotkeys transactionally: retain the working registration and stored preference if a replacement fails.

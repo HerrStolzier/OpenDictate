@@ -47,18 +47,16 @@ are shown in Settings; **Hilfe** and **Über OpenDictate …** also show the sou
 revision when embedded in that build. Older bundles without that information
 show it as unknown.
 
-Choose the target field before starting. Its identity is captured at the start
-action, before a Keychain dialog, permission wait or panel focus change. An
-explicit panel recording action can
-return focus to the most recently used application; passive status updates never
-activate another application. Switching external applications invalidates the
-captured automatic target, even if you later return.
+Choose the target application before starting. Its identity is captured at the
+start action, before a Keychain dialog, permission wait or panel focus change.
+An explicit panel recording action can return focus to the most recently used
+application. At delivery, automatic Paste activates the captured application.
+It uses whichever control is then focused there.
 
 Automatic input is always reported as unconfirmed. A rejected preflight, an
-attempt with an uncertain result, an interrupted multi-part submission and a
-complete submission have distinct feedback. Already submitted text cannot be
-safely rolled back. The full transcript stays available after interruption; no
-automatic retry or second insertion method is used to guess the missing text.
+attempt with an uncertain result and a submitted Paste command have distinct
+feedback. A submitted command cannot be safely rolled back. The transcript
+stays available on the clipboard; no automatic retry guesses whether Paste worked.
 
 A failed transcription keeps a recoverable recording where possible. Retrying
 asks for confirmation and copies the result without automatically inserting it.
@@ -128,46 +126,23 @@ macOS will ask for:
 - Accessibility access when automatic insertion is enabled. It is not requested
   at launch for clipboard-only use.
 
-Automatic insertion captures the target application, window, text element,
-web document (when available) and selection when dictation starts. It only
-delivers while that original target remains focused. Before the first insertion,
-the initial selection range, when exposed, must be unchanged. Selection is not
-compared with that original range after each Unicode chunk because input itself
-moves the caret. Manual caret changes inside the same field during chunked input
-remain an open interaction case. Protected and disabled controls use the manual
-fallback. Non-writable controls also use that fallback, except for the narrowly
-defined Apple Terminal input path below. Switching to another application during
-a dictation invalidates its automatic target, even if you later return.
+Automatic insertion remembers the application in front when dictation starts.
+After transcription, OpenDictate puts the text on the general clipboard, brings
+that application to the front and sends the ordinary Command-V shortcut. The
+application and its currently focused control handle Paste. This also works with
+controls that do not expose a writable Accessibility text selection.
 
-Insertion sends the transcript directly to the captured Accessibility text
-element. Brave, Safari and Obsidian web editors use process-scoped Unicode keyboard events
-instead because these editors can accept the Accessibility setter without
-inserting text. This path rechecks the foreground application and focused field
-between text chunks; it never sends a paste shortcut or consumes the clipboard.
-Safari receives line breaks separately so text following a newline is not lost;
-a CRLF pair remains one line break. Brave binds line breaks to preceding text
-and keeps complete graphemes together within each event. Text that cannot fit
-this rule (for example a leading line break or an unusually long grapheme)
-uses the full clipboard fallback before sending any event. Obsidian retains
-grouped text. These policies do not establish compatibility with every editor.
-Candidate-specific acceptance is tracked in
-[remaining acceptance](docs/remaining-acceptance.md). The transcript
-also remains on the general clipboard until it is overwritten, preserving
-manual paste when Accessibility, target identity or direct insertion fails.
-Some custom, browser or Electron text controls may not expose a settable
-Accessibility selection; those controls receive the clipboard-only fallback.
-
-Apple's Terminal app has a separate Unicode-event path for its focused text area,
-whose Accessibility selection describes terminal display text rather than a
-normal editable field. It remains bound to the original process, window and field.
-A known non-empty display selection or enabled Secure Keyboard Entry prevents
-automatic input. Insertion text containing line breaks, control characters or
-function-key characters also falls back before any event is sent; OpenDictate
-does not send Return automatically. The full text remains on the clipboard.
-Missing selection metadata alone does not prevent input, so it cannot establish
-the absence of a display selection. This path is limited to Apple Terminal;
-its actual Accessibility structure and acceptance of events still need a visible
-Mac test. It does not establish support for iTerm2 or terminals inside editors.
+This restores the early prototype's behavior: a focus or window change during
+dictation can cause the transcript to paste into a different control in the
+original application. OpenDictate checks that the original application is
+frontmost and that the clipboard still holds the transcript before sending the
+shortcut, but cannot confirm which control accepted it or whether Paste changed
+visible text. In Terminal, Paste may include line breaks or shell commands;
+OpenDictate does not send a separate Return. Use clipboard-only mode for targets
+where automatic Paste is unwanted, especially password fields. OpenDictate no
+longer inspects whether the focused control is protected or read-only. The transcript remains on the clipboard for
+manual recovery. Candidate-specific acceptance is tracked in
+[remaining acceptance](docs/remaining-acceptance.md).
 
 The recording panel shows elapsed time, the input level and the final countdown
 to its automatic stop. The custom shortcut dialog supports Tab/Shift+Tab,
