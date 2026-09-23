@@ -104,6 +104,19 @@ Mikrofon-/API-Abnahmen sind Nachweise und keine erneute Ausführungserlaubnis.
   zweiten Upload. Die Freigabe ist beendet. Ablauf, fehlender Fokusnachweis und
   Bereinigung: [autonomer Fokuswechselversuch](docs/autonomous-focus-acceptance-2026-09-22.md).
 
+## Wiederholter Fokuswechsel — 2026-09-23
+
+- **Auftrag und Korrektur:** Basti wies an, den Fokuswechseltest ohne seine
+  Bedienung zu wiederholen und einen dabei gefundenen Fehler zu beheben. Er
+  stellte klar, dass eine technisch erzwungene Aufnahmezeitgrenze dafür keine
+  Voraussetzung ist. Diese neue Anweisung bezog sich auf den konkreten
+  Wiederholungstest, nicht auf unbegrenzte künftige Mikrofon-/API-Läufe.
+- **Ausführung:** Zwei kurze Aufnahmen über das vorhandene Mikrofon; die erste
+  wurde wegen zu leisem Signal ohne Upload übersprungen. Die zweite führte zu
+  einem OpenAI-Request und einem [bestandenen negativen Appwechsel](docs/live-focus-acceptance-2026-09-23.md).
+  Die eigens gestarteten Testfenster und die fehlgeschlagene eigene Aufnahme
+  wurden bereinigt. Weitere Live-Läufe erfolgten in diesem Auftrag nicht.
+
 ## Konkreter Git-Abschluss — 2026-09-14
 
 - **Umfang:** Dokumentationsstand `956afec` nach `HerrStolzier/OpenDictate`

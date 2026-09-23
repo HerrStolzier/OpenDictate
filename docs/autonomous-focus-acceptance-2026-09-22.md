@@ -55,7 +55,8 @@ Kürzel beendeten ihn nicht nachweisbar. TextEdit und OpenDictate liefen wie
 vor dem Test weiter. Die Zwischenablage wurde nicht verändert.
 
 Der genehmigte Live-Block ist durch die überschrittene Audiozeit beendet.
-Ein erneuter echter Fokuswechsel braucht eine neue konkrete Freigabe und eine
-technisch erzwungene Aufnahme-Obergrenze, bevor der Hotkey erneut verwendet
-wird. Die bisherigen Offline-Tests für Zielbindung bleiben gültig, ersetzen
-aber diesen praktischen Nachweis nicht.
+Die damalige Forderung nach einer technisch erzwungenen Aufnahme-Obergrenze
+war eine falsche Folgerung des Agenten. Basti stellte dies am 23. September
+klar und beauftragte einen neuen, [bestandenen echten Fokuswechseltest](live-focus-acceptance-2026-09-23.md).
+Die überschrittene Freigabe und der unentschiedene Befund dieses früheren Laufs
+bleiben als historische Tatsachen erhalten.

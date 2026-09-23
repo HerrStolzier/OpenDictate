@@ -1,6 +1,6 @@
 # Aktueller Stand und verbleibende Abnahme
 
-Stand: 22. September 2026. Dies ist die einzige aktuelle Übergabedatei.
+Stand: 23. September 2026. Dies ist die einzige aktuelle Übergabedatei.
 Produktziel: [PROJECT.md](../PROJECT.md); Regeln: [AGENTS.md](../AGENTS.md);
 Prüfverfahren: [CHECKS.md](../CHECKS.md); belegte frühere Testbudgets:
 [APPROVALS.md](../APPROVALS.md). Linux-Plan:
@@ -10,7 +10,7 @@ Zwei parallele Arbeitspfade: **macOS-Produktabnahme** (unverändert offen) und
 **Linux Phase 1** (Kern in `main`, noch nicht in `PROJECT.md`). Linux markiert
 macOS nicht als erledigt.
 
-## Neuer macOS-Nachweis vom 22. September
+## Neue macOS-Nachweise vom 22. und 23. September
 
 Die installierte Revision `68ef919` fügte nach gezielter Erneuerung ihrer
 Bedienungshilfen-Freigabe in einem echten Durchlauf mit physischem Kürzel,
@@ -29,8 +29,15 @@ Ein [autonomer Wiederholungsversuch](autonomous-focus-acceptance-2026-09-22.md)
 lieferte ebenfalls keinen negativen Fokusnachweis. Der Agent überschritt dabei
 die neu genehmigte Audio-Obergrenze von 20 Sekunden mit einer 31,272-Sekunden-
 Aufnahme. Er beendete den Live-Block nach einem Upload und bereinigte eigene
-Artefakte. Vor einem weiteren Live-Versuch muss eine Aufnahme-Obergrenze
-technisch erzwungen werden; die aktuelle Freigabe gilt nicht weiter.
+Artefakte. Die damalige Freigabe endete damit.
+
+**Korrektur vom 23. September:** Basti verwarf die technische Zeitgrenze als
+Voraussetzung und beauftragte die Wiederholung. Der
+[echte negative Appwechsel](live-focus-acceptance-2026-09-23.md) ist nun für
+TextEdit→Finder nach dem Aufnahmestopp mit Provider-Transkript, leerem
+Ausgangsfeld und Kopiertext bestanden. Der erste Wiederholungslauf war zu
+leise und wurde ohne Upload übersprungen; im erfolgreichen zweiten Lauf war
+keine Quellcodekorrektur nötig. Andere Fokusphasen bleiben offen.
 
 ## Aktuelle Änderung
 
@@ -84,7 +91,7 @@ früherer installierter Kandidaten gelten nicht als neue Laufzeitabnahme.
 | B: CI und Archive | Strikter Formatter, Compilerwarnungen als Fehler, Plattformprotokoll, sechs Shellprüfungen; sieben kontrollierte Bundle-Fälle; Archiv nach Entpacken erneut überprüft, mit Revision und Prüfsummen | Ergebnisse und Artefakt des exakten Workflow-Laufs; echte Installation und macOS-14-Laufzeitabnahme bleiben offen |
 | C: Einrichtung und Beenden | Vorgangsgebundene Rückmeldungen für Start, Retry und Einrichtung; Abbruch und Quit gegen verschachtelte Aktionen geschützt; verlustarme Keychain-Migration mit explizitem Hinweis bei unvollständiger Altbereinigung | Frische Einrichtung, verzögerte Berechtigungen, tatsächliche Keychain-Zugriffsrichtlinie und Beenden während Aufnahme/Upload auf einem Mac |
 | D: Menschlicher Pilot | Zwölf begrenzte Fälle und Messgrößen vorbereitet; ein menschlich gesprochener TextEdit-Durchlauf mit physischem Kürzel bestanden | Weitere tatsächlich gesprochene Diktate und Auswertung der Pilot-Messgrößen |
-| E: Integrationsfälle | Begrenzte erste Fallliste; Offline-Tests für verspätete Rückmeldungen, Abbruch und Quit mit kontrolliertem Aufnahme-/Transkriptionsablauf | Reale Fokuswechsel, Beenden/Abbruch, Gerätefehler und Safari-Fallback untersuchen |
+| E: Integrationsfälle | Begrenzte erste Fallliste; Offline-Tests für verspätete Rückmeldungen, Abbruch und Quit; ein realer negativer TextEdit→Finder-Wechsel nach Aufnahmestopp mit Kopiertext bestanden | Weitere Fokusphasen, Beenden/Abbruch, Gerätefehler und Safari-Fallback untersuchen |
 | F: Dokumentation | Einstieg verkürzt, Entwicklerverfahren ausgelagert, aktuelle Übergabe und Aufbewahrungsangaben präzisiert | Nach D/E über begrenzten Betatest entscheiden |
 
 Linux nimmt die macOS-Pakete A–F und den nächsten Mac-Schritt nicht als erledigt.
@@ -225,21 +232,17 @@ Die Bindung bleibt Nutzersache und wurde nicht installiert:
 ## Nächster ausführbarer Mac-Schritt
 
 Die vorbereitete [Pilot- und Integrationsliste](audio-quality-fixtures.md#prepared-first-human-pilot)
-verwendet vorhandene Prüfmittel. Zuerst einen identifizierten Kandidaten auf dem
-Mac mit der vorhandenen lokalen Signatur bauen oder ein überprüftes
-[CI-Entwicklungsarchiv](development.md#ci-development-archives) für einen bewusst
-gewählten Test vorbereiten. Die ad-hoc Signatur des Archivs übernimmt vorhandene
-Bedienungshilfen-/Keychain-Zugriffe nicht automatisch; Gatekeeper kann es sperren.
-Danach Version und Build in Einstellungen beziehungsweise „Über OpenDictate …“
-ablesen. Mit geschlossenem Panel einen kleinen sichtbaren Eingabetest mit
-unkritischem Text prüfen: vollständige Eingabe, Unterbrechung zwischen
-Unicode-Abschnitten und nativer Normalfall. Für Apples Terminal zuerst die
-tatsächliche App und AX-Zielstruktur identifizieren, dann einzeiligen Testtext
-ohne Return prüfen und anschließend aus der Eingabe entfernen. Die Terminalfälle
-in [CHECKS](../CHECKS.md) erfassen außerdem Markierung, Secure Event Input und
-mehrzeiligen Fallback. Ein Ereigniszähler belegt gesendete Befehle, nicht
-übernommene Zeichen.
-Danach frühes menschliches Nutzerfeedback sammeln; die komplette
+verwendet vorhandene Prüfmittel. Für den installierten Kandidaten `68ef919`
+sind die normale TextEdit-Eingabe, eine leere Terminal-Shellzeile und der
+negative TextEdit→Finder-Wechsel nach dem Stoppen sichtbar geprüft. Als Nächstes
+gezielt die übrigen Phasen und Ziele prüfen: Unterbrechung während mehrteiliger
+Eingabe, Terminal-Tabs/Markierung, Einrichtung, Abbruch und Beenden. Bei einer
+Quellcodeänderung zuvor einen identifizierten Kandidaten mit vorhandener
+lokaler Signatur bauen oder ein überprüftes
+[CI-Entwicklungsarchiv](development.md#ci-development-archives) bewusst wählen.
+Die ad-hoc Signatur eines neuen Archivs übernimmt vorhandene
+Bedienungshilfen-/Keychain-Zugriffe nicht automatisch. Danach frühes
+menschliches Nutzerfeedback sammeln; die komplette
 [Kompatibilitätsmatrix](compatibility-matrix.md) bleibt das breitere Produktziel.
 
 Mac-spezifischer lokaler Desktop, frischer macOS-Benutzerzustand und physisches
@@ -251,13 +254,13 @@ verwendet. Beim tatsächlichen Pilot Umfang und Audiozeit vorher festlegen.
 
 ## Bekannte offene Grenzen
 
-- Der gemeldete Terminalfehler ist auf dem installierten Kandidaten nicht
-  reproduziert. Der neue Apple-Terminal-Pfad ist durch kontrollierte Tests
-  begrenzt; echte Terminaleingabe, unbekannte Auswahlmetadaten und das Verhalten
-  konkreter Terminalprogramme brauchen sichtbare Prüfung. iTerm2 und Terminals
-  innerhalb von Editoren werden durch diesen Sonderpfad nicht abgedeckt.
-- Reale negative Appwechsel müssen als tatsächlich erfolgte Vordergrundwechsel
-  belegt werden. Ein misslungener Testwechsel zählt weder als Pass noch als Fehler.
+- Der gemeldete Terminalfehler wurde auf dem installierten Kandidaten in einer
+  leeren Shellzeile nicht reproduziert. Terminal-Tabs, Markierung, Secure Input
+  und das Verhalten interaktiver Programme brauchen noch sichtbare Prüfung.
+  iTerm2 und Terminals innerhalb von Editoren sind nicht abgedeckt.
+- Ein echter negativer Appwechsel nach dem Stoppen ist für TextEdit→Finder
+  bestanden. Wechsel während Aufnahme und mehrteiliger Übergabe sind für
+  diesen installierten Kandidaten damit nicht pauschal abgenommen.
 - Der erste Safari-textarea-Fallback im jüngsten historischen Zieltest bleibt
   ungeklärt, obwohl der Wiederholungsversuch bestand.
 - Eine manuelle Cursor-/Auswahlbewegung innerhalb desselben Feldes während
