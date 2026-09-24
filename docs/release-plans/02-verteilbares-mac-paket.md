@@ -11,6 +11,8 @@ geeignete Apple-Developer-Mitgliedschaft, ein geschütztes Zertifikat
 heutige lokale selbst signierte App und die CI-Entwicklungsarchive erfüllen
 diese Voraussetzung nicht.
 
+Die internen Plan-1-Grenzen werden hier nicht als bestandene Tests ausgegeben. Vor dem Betapaket hat der Schutz vorhandener Aufnahmen und Texte Vorrang vor weiteren Feld- oder Timing-Matrizen.
+
 ## Arbeit
 
 1. Einen getrennten Release-Bauweg für eine saubere Git-Revision schaffen.
@@ -38,7 +40,8 @@ diese Voraussetzung nicht.
    OpenDictate einführen. Den entpackten `.app`-Umfang messen; Ziel sind
    höchstens 8 MiB für den Apple-Silicon-Build (lokaler Ausgangswert:
    rund 3,9 MiB am 23. September 2026).
-5. Release-Bau, Prüfung und Installation in [CHECKS.md](../../CHECKS.md),
+5. Vor der Weitergabe an Tester die noch offenen Störpfade anhand des konkreten Pakets abgleichen: Beenden während Verarbeitung so auslösen, dass der Vorgang tatsächlich aktiv ist, und neue sowie schon vorhandene Recovery-Dateien vorher und nachher prüfen. Provider- und Recorderfehler mit vorhandenen deterministischen Offline-Prüfungen absichern; tritt ein echter Fehler im begrenzten Lauf auf, dessen sichtbaren Rückweg und Dateizustand zusätzlich festhalten. Keine API-Schlüssel, Systemrechte oder alten Aufnahmen absichtlich beschädigen, um einen Fehler zu erzwingen. Ein beobachteter Datenverlust stoppt die Weitergabe.
+6. Release-Bau, Prüfung und Installation in [CHECKS.md](../../CHECKS.md),
    [README.md](../../README.md) und der Entwicklerdokumentation so festhalten,
    dass die Quellrevision und das endgültige ZIP eindeutig zusammenpassen.
 
@@ -52,8 +55,11 @@ diese Voraussetzung nicht.
   Berechtigungen sind sichtbar, lösbar und in der Anleitung erklärt; keine
   gespeicherte Aufnahme wird beim Wechsel überschrieben oder unbemerkt gelöscht.
 - Der vollständige Diktatweg und der manuelle Kopierweg funktionieren mit
-  dem entpackten Developer-ID-Build. Das CI-Archiv bleibt ausdrücklich ein
-  Entwicklungsartefakt.
+  dem entpackten Developer-ID-Build. Der tatsächlich aktive Beenden-Fall und
+  die deterministischen Provider-/Recorder-Fehlerprüfungen zeigen keinen Verlust
+  der einzigen Aufnahme oder eines vollständigen Textes. Ein nicht provozierter
+  echter Provider-/Recorderfehler wird nicht als live bestanden bezeichnet.
+  Das CI-Archiv bleibt ausdrücklich ein Entwicklungsartefakt.
 - Die App bleibt ein einzelnes Bundle bis 8 MiB ohne zusätzlichen Installer,
   Hintergrunddienst oder eigenes Nutzerkonto. Der normale Diktatablauf aus
   Plan 1 bleibt durch die neue Signatur und Paketierung unverändert einfach.

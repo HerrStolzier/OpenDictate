@@ -1,6 +1,6 @@
 # Plan 1: Fortsetzung am 24. September 2026
 
-Plan 1 ist wieder aufgenommen, noch nicht insgesamt abgenommen. Basti entschied
+Zu Beginn der Fortsetzung war Plan 1 noch nicht insgesamt abgenommen. Basti entschied
 in der Fortsetzung ausdrücklich: **„Ersteinrichtung als offene Grenze belassen“**.
 Es wird kein zusätzliches macOS-Konto angelegt und keine frische Einrichtung
 behauptet. Diese benannte Grenze bleibt auch in einer späteren Übergabe erhalten.
@@ -474,3 +474,26 @@ Zeitwerte; kein neuer Befund. Der Nachtrag erhöht den Bereinigungszähler
 korrekt um 89 Bildkopien auf 210 eigene Dateien. Ein Git-Diff allein beweist
 nicht deren tatsächliche Löschung; diese bleibt als Hauptaufgaben-Postcheck
 gekennzeichnet. Weder der Review noch dieser Nachtrag schließen Plan 1 ab.
+
+
+## Abschlussentscheidung für den internen ersten Schritt
+
+Nach Abgleich der vorhandenen Ergebnisse mit Bastis Rückmeldung zur Dauer wird
+[Plan 1](../01-interne-produktabnahme.md) auf seine interne Funktionsabnahme
+begrenzt und dafür abgeschlossen. Diese Entscheidung ändert keine historischen
+Testergebnisse: Die fünf älteren echten Diktate bleiben ihrem Build zugeordnet;
+der physische Build-7-TextEdit-Lauf bleibt ein eigener Nachweis. Die Safari-
+Rohabweichung bleibt sichtbar, ihr vollständiger kanonisch gleicher Text wird
+für diesen internen Grundablauf akzeptiert.
+
+Die absichtlich provozierten Fehler- und Beenden-Fälle sind vor einer Weitergabe
+an fremde Tester in Plan 2 verankert. Die gehörte VoiceOver-Ausgabe gehört zur
+Abnahme des endgültigen signierten Kandidaten in Plan 4. Die 20 gefilmten
+Wechsel bleiben als sichtbarer Funktionsnachweis erhalten; ihre unkalibrierte
+Werkzeugzeit wird nicht in eine bestandene App-Latenz umgedeutet. Der Betatest
+misst später die für Nutzer relevante Zeit bis zum verwendbaren Text.
+
+Die frische Ersteinrichtung bleibt wie von Basti entschieden offen. Plan 1
+bedeutet hier ausdrücklich weder ein abgeschlossenes verteilbares Paket noch
+Beta- oder Release-Freigabe. Bei beobachtetem Aufnahme- oder Textverlust wird
+die Weitergabe gestoppt, auch wenn dieser interne Grundablauf bestanden ist.

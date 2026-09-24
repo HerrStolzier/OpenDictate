@@ -6,9 +6,10 @@ Prüfverfahren: [CHECKS.md](../CHECKS.md); belegte frühere Testbudgets:
 [APPROVALS.md](../APPROVALS.md). Linux-Plan:
 [linux-build-plan.md](linux-build-plan.md).
 
-Zwei parallele Arbeitspfade: **macOS-Produktabnahme** (wieder aufgenommen, offen) und
-**Linux Phase 1** (Kern in `main`, noch nicht in `PROJECT.md`). Linux markiert
-macOS nicht als erledigt.
+Zwei Arbeitspfade: **macOS-Produktabnahme** (Plan 1 für den belegten internen
+Grundablauf abgeschlossen; Paket, Beta und Release offen) und **Linux Phase 1**
+(Kern in `main`, noch nicht in `PROJECT.md`). Linux markiert keinen Mac-Release
+als erledigt.
 
 ## Dokumentationsstand
 
@@ -20,8 +21,8 @@ den installierten Build und den ⌘V-Ablauf wurden korrigiert. Datierte
 Abnahmeberichte behalten ihren damaligen Kandidaten und werden dadurch nicht
 zu Nachweisen für Build 7. Alle lokalen Markdown-Links und Website-Ressourcen
 wurden geprüft. Die aktualisierte Website konnte wegen einer Browser-URL-Sperre
-nicht erneut visuell abgenommen werden. Plan 1 und die öffentliche
-Release-Dokumentation sind damit weiterhin nicht freigegeben.
+nicht erneut visuell abgenommen werden. Die spätere öffentliche
+Release-Dokumentation ist damit weiterhin nicht freigegeben.
 
 Die anschließende [Testbereinigung](test-signal-audit.md) entfernt 22
 schwach aussagekräftige oder redundante Testfunktionen. Die verbleibende
@@ -51,10 +52,10 @@ bestätigt; Einzelheiten stehen im
 [Fortsetzungsbericht vom 24. September](release-plans/evidence/2026-09-24-plan1-fortsetzung.md).
 Die frische Ersteinrichtung bleibt auf Bastis ausdrückliche Entscheidung als
 offene Grenze bestehen; kein neues Benutzerkonto wird dafür angelegt. Plan 1
-ist insgesamt weiter offen: reale Störfälle, gehörtes VoiceOver und die 20 per Video zu messenden
-lokalen Zustandswechsel sind nicht abgenommen. Alle 20 Wechsel sind inzwischen
-sichtbar aufgezeichnet; die Messung trennt Eingabeübertragung und App-Reaktion
-noch nicht belastbar. Die realen Einstellungen wurden
+ist für den belegten internen Grundablauf abgeschlossen. Reale Störfälle gehen
+als Sicherheitsprüfung vor Weitergabe an Tester in Plan 2; gehörtes VoiceOver
+bleibt Abnahme des endgültigen Kandidaten in Plan 4. Alle 20 lokalen Wechsel
+sind sichtbar aufgezeichnet, aber ihre App-Latenz wurde nicht belastbar gemessen. Die realen Einstellungen wurden
 inzwischen am installierten Build 7 in der bestehenden dunklen Darstellung
 bei Mindestgröße einschließlich Tastaturfokus, Hilfe und Aufnahmen geprüft;
 API-Schlüssel und Vokabular wurden dabei nicht geöffnet oder verändert. Frühere
@@ -391,9 +392,11 @@ auch der echte manuelle Kopierweg und vier synthetische native Anfangs-/Mittelf�
 bestanden, jeweils nur für ihren dokumentierten Umfang. Die fünf echten Diktate
 des älteren `bd3630f` bleiben getrennte Nachweise.
 
-Die Browser-/Editor-Feldmatrix ist ausgeführt; die Safari-Normalisierung bleibt
-ohne Akzeptanzentscheidung. Störfälle, das Zeitkriterium und gehörtes VoiceOver
-bleiben offen. Die Einstellungsnavigation ist geprüft, ihr Vorher-/Nachher-Nachweis
+Die Browser-/Editor-Feldmatrix ist ausgeführt; die Safari-Normalisierung
+ist für den sichtbaren, kanonisch gleichen Grundablauf akzeptiert, die rohe
+Abweichung bleibt dokumentiert. Störfälle vor dem Betapaket sowie gehörtes
+VoiceOver vor dem Release bleiben offen. Eine exakte 0,5-Sekunden-Zusage
+wird aus der unkalibrierten Messung nicht abgeleitet. Die Einstellungsnavigation ist geprüft, ihr Vorher-/Nachher-Nachweis
 zur Dateiintegrität fehlt jedoch. Die frische
 Ersteinrichtung ist ausdrücklich als offene, akzeptierte Grenze belassen; dafür
 wird kein zusätzliches Benutzerkonto angelegt. Bastis erste Designrückmeldung
@@ -402,7 +405,7 @@ und die gewählte Richtung stehen im
 frühes menschliches Nutzerfeedback sammeln; die komplette
 [Kompatibilitätsmatrix](compatibility-matrix.md) bleibt das breitere Produktziel.
 
-Die aktuelle Arbeit läuft am Mac mini mit physischem Eingabegerät. Für macOS 14
+Die dokumentierte Abnahme erfolgte am Mac mini mit physischem Eingabegerät. Für macOS 14
 ist nur der native CI-Nachweis der Offline-Tests und des Bundle-Builds vorgesehen;
 eine macOS-14-VM oder ein zweiter Mac stehen nicht zur Verfügung. Die
 interaktive Diktatabnahme erfolgt auf dem vorhandenen Mac und wird nicht als

@@ -33,7 +33,7 @@ hier noch nicht veröffentlicht.
    lokaler Zwischenablagezugriff, Aufbewahrung und der Feldwechsel innerhalb
    der Start-App müssen verständlich genannt sein.
    Das [App-Design- und UX-Kapitel aus Plan 1](01-interne-produktabnahme.md#app-design-und-ux)
-   am endgültigen Paket noch einmal sichtbar prüfen: Hierarchie von
+   am endgültigen Paket sichtbar und mit gehörtem VoiceOver prüfen: Hierarchie von
    Menüleiste und Panel, heller und dunkler Modus, kleinste Panelgröße,
    Tastaturweg und gehörte VoiceOver-Ausgabe. Jeder Fehlertext gibt eine
    konkrete nächste Handlung statt technischer Innensicht. Den tatsächlichen

@@ -6,8 +6,9 @@ unempfindliche Diktataufgaben. Der Test liefert eine priorisierte Fehlerliste
 und messbare Aussagen zur Einrichtung und zum Nutzen, keine allgemeine
 Erfolgsquote für alle Macs oder Textfelder. Er überprüft ausdrücklich das
 [App-Design und die UX aus Plan 1](01-interne-produktabnahme.md#app-design-und-ux).
-Getestet wird die **umgesetzte App**, nicht ein Mockup. Die Mockup-Feedbackrunde
-und die UI-Abnahme aus Plan 1 sind abgeschlossen, bevor Tester eingeladen werden.
+Getestet wird die **umgesetzte App**, nicht ein Mockup. Die Mockup-Feedbackrunde und die interne visuelle und Tastaturprüfung aus
+Plan 1 sind abgeschlossen, bevor Tester eingeladen werden. Gehörtes VoiceOver
+bleibt ein Prüfpunkt des endgültigen Release-Kandidaten in Plan 4.
 
 **Voraussetzung:** Das Paket aus [Plan 2](02-verteilbares-mac-paket.md) ist
 geprüft. Vor Einladung werden Empfänger, Paketlink, höchstens 20
