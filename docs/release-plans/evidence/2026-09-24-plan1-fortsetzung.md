@@ -144,6 +144,36 @@ Die Fixture führt beim Beenden ihre vorhandene bedingte
 Zwischenablage-Wiederherstellung aus. Die nicht verwertbare lokale
 Videoaufnahme wurde nach bestätigtem Aufzeichnungsende entfernt.
 
+### Spätere Safari-Fokusdiagnose
+
+Die CI für `1f9a1b3` bestand auf macOS 14 und 15
+([Lauf](https://github.com/HerrStolzier/OpenDictate/actions/runs/36026210411)).
+Der Luna-Task prüfte den unveränderten Inserter: `deliveryUnconfirmed` bestätigt
+nur das Posten der CGEvents, nicht deren Verarbeitung durch Safari. Die
+App-Aktivierung mit anschließender 250-ms-Wartezeit prüft die Vordergrund-PID,
+aber keinen konkreten Feldempfänger. Das erklärt die Unsicherheit des Befunds,
+belegt für sich jedoch keine Ursache.
+
+In einem neuen eigenen Safari-Tab blieb die kontrollierte Auswahlersetzung
+erneut aus: mit ausgeblendetem Agentenzeiger der eigens angelegten Cua-Sitzung,
+Aktivierung vor der Referenzvorbereitung und anschließend ausschließlich
+Hintergrundaktionen. Auch eine Tastatur-Fokusprobe vor erneuter Vorbereitung
+änderte das nicht. Ein gesonderter Anfangsfall mit gespeicherter Referenz 0–0
+und anschließendem unveränderndem Pfeil-links-Tastendruck blieb ebenfalls ohne
+Einfügung. Der native AX-Fokus zeigte dabei den formatierten Editor; die
+Fixture bestätigte Safari, vollständige Zwischenablage und
+`deliveryUnconfirmed`. Kein manuelles ⌘V wurde in dieser Runde als Ersatz
+für den automatischen Nachweis verwendet. Keine Produktionsquelle wurde geändert.
+
+Als nächster abgegrenzter Schritt ist ein echter Mausklickvergleich vorbereitet:
+eigener Safari-Tab, `contenteditable`, Cursor am Anfang, Referenz 70 UTF-16-
+Einheiten; Fixture mit zehn Sekunden synthetischer Aufnahmezeit. Basti klickt
+„Lokales Testfeld erfassen“ und anschließend den oberen Safari-Fensterrand,
+ohne den Cursor im Text zu verändern. Erst nach dem Lauf wird das tatsächliche
+Feldergebnis ausgewertet. Zum Zeitpunkt dieser Notiz ist der Lauf noch nicht
+gestartet; die zwei eigenen Testoberflächen bleiben dafür offen. Kein Mikrofon,
+Provider oder globales Systemeinstellungsänderung ist beteiligt.
+
 ## Ergänzte native Einfügepositionen
 
 Die isolierten Helfer wurden aus den unveränderten Produktionsquellen von
