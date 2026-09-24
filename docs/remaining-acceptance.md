@@ -51,8 +51,7 @@ bestätigt; Einzelheiten stehen im
 [Fortsetzungsbericht vom 24. September](release-plans/evidence/2026-09-24-plan1-fortsetzung.md).
 Die frische Ersteinrichtung bleibt auf Bastis ausdrückliche Entscheidung als
 offene Grenze bestehen; kein neues Benutzerkonto wird dafür angelegt. Plan 1
-ist insgesamt weiter offen: die verbleibenden Browser-/Editor-Matrixfälle,
-reale Störfälle, gehörtes VoiceOver und die 20 per Video zu messenden
+ist insgesamt weiter offen: reale Störfälle, gehörtes VoiceOver und die 20 per Video zu messenden
 lokalen Zustandswechsel sind nicht erledigt. Die realen Einstellungen wurden
 inzwischen am installierten Build 7 in der bestehenden dunklen Darstellung
 bei Mindestgröße einschließlich Tastaturfokus, Hilfe und Aufnahmen geprüft;
@@ -67,7 +66,11 @@ Akzeptanzentscheidung bleibt offen. Die anfänglich ausgebliebene automatische
 Safari-`contenteditable`-Übergabe trat auch nach Bastis echten Mausklicks auf.
 Im anschließend neu gebauten Debug-Testprozess funktionierten dagegen sowohl
 die PID-Diagnose als auch der unveränderte globale Produktionsweg am selben
-Feldanfang. Weitere Positionen liefern inzwischen vollständige NFC-Gleichheit.
+Feldanfang. Alle zwölf Safari-Positionen liefern inzwischen vollständige NFC-Gleichheit.
+Die zwölf Brave-Positionen und Obsidian an Anfang, Mitte und Auswahlersetzung
+stimmen roh vollständig überein; Obsidian zusätzlich in der gespeicherten Datei.
+Damit ist die Feldmatrix ausgeführt; die Safari-Normalisierungsentscheidung
+bleibt offen.
 Die Ursache der früheren Fehlschläge bleibt ungeklärt; ein Wechsel der
 Produktions-Zustellart ist durch die Gegenprobe nicht begründet.
 [A/B-Nachweis](release-plans/evidence/2026-09-24-safari-pid-versus-global.json),

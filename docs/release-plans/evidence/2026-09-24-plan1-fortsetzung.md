@@ -346,3 +346,69 @@ belegt. Die Fenstergröße wurde auf die beobachteten 440 × 308 Punkte an ihrer
 ursprünglichen Position zurückgesetzt, „Erweitert“ wieder eingeklappt und das
 Einstellungsfenster geschlossen. Das vorherige Ergebnis-Panel mit dem echten
 TextEdit-Transkript erschien wieder.
+
+## Brave-Feldmatrix: zwölf Positionen exakt
+
+Die nach Entfernung der PID-Diagnose neu gebaute und mit der vorhandenen
+Identität signierte Produktions-Fixture aus `57f7a06` (PID 89259) wurde gegen
+einen eigenen lokalen Testtab in Brave (PID 712, Fenster 41) geprüft.
+Die genaue Vordergrund-Fensterzuordnung wurde bestätigt. Die Vorbereitung
+und Sollreferenz erfolgten wie in der Safari-Matrix; ausschließlich die
+Produktions-Fixture fügte die Probe automatisch ein.
+
+| Feld | Anfang | Mitte | Auswahlersetzung |
+|---|---|---|---|
+| `input`, einzeilig | [Exakt](2026-09-24-brave-input-start.json) | [Exakt](2026-09-24-brave-input-middle.json) | [Exakt](2026-09-24-brave-input-selection.json) |
+| `textarea`, mehrzeilig | [Exakt](2026-09-24-brave-textarea-start.json) | [Exakt](2026-09-24-brave-textarea-middle.json) | [Exakt](2026-09-24-brave-textarea-selection.json) |
+| `contenteditable`, mehrzeilig | [Exakt](2026-09-24-brave-rich-start.json) | [Exakt](2026-09-24-brave-rich-middle.json) | [Exakt](2026-09-24-brave-rich-selection.json) |
+| editierbares `iframe`, mehrzeilig | [Exakt](2026-09-24-brave-iframe-start.json) | [Exakt](2026-09-24-brave-iframe-middle.json) | [Exakt](2026-09-24-brave-iframe-selection.json) |
+
+Alle zwölf tatsächlichen Feldwerte stimmen vollständig mit dem Soll überein,
+einschließlich kombinierendem Akzent, Emoji, Zeilenumbrüchen und unverändertem
+umgebenden Text. Die anderen drei Felder blieben bei jedem Lauf unverändert.
+Das abschließende Bildschirmbild wurde ebenfalls angesehen. Der eigene
+Testtab wurde danach geschlossen; der zuvor aktive fremde Tab blieb erhalten.
+
+Diese Ergebnisse belegen den normalen globalen Einfügeweg in diesen
+kontrollierten Brave-Feldern. Sie sind kein weiterer Mikrofon-/Providerlauf.
+Im Gegensatz zu Safari bleibt hier auch die rohe Unicode-Folge erhalten.
+
+Der CI-Lauf für exakt `57f7a06287184da6e9d1ea829bdc2c7ffdec813c` bestand auf
+[macOS 14 und macOS 15](https://github.com/HerrStolzier/OpenDictate/actions/runs/36050409392).
+Die lokale Entfernung der Diagnose stellt die vorher geprüfte Fixture-Quelle
+wieder her; der anschließende Debug-Build bestand. Keine Produktionsquelle
+wurde durch die Diagnose verändert.
+
+## Obsidian: drei Positionen exakt
+
+Im vorhandenen Vault wurde ein eigener neuer Tab mit der temporären Notiz
+`OpenDictate Matrix Plan1 2026-09-24` angelegt. Die Live-Vorschau zeigte vor
+jedem Lauf ausschließlich `Anfang. MARKIERUNG Ende.`. Die reguläre
+Produktions-Fixture aus `57f7a06` bestätigte `md.obsidian` (PID 719,
+Fenster 5963); ihr einzelner globaler Einfügebefehl ergab jeweils den
+vollständigen erwarteten Text:
+
+- [Anfang](2026-09-24-obsidian-start.json): Probe vor dem Ausgangstext.
+- [Mitte](2026-09-24-obsidian-middle.json): Probe hinter `Anfang. `.
+- [Auswahl](2026-09-24-obsidian-selection.json): nur `MARKIERUNG` ersetzt.
+
+Der vollständige sichtbare AX-Wert stimmt in allen drei Fällen roh überein,
+einschließlich NFD-Akzent, Emoji und Zeilenumbruch. Die erste Dateilesung lag
+jeweils vor Obsidian-Autosave und enthielt noch den Ausgangstext. Eine spätere
+separate Lesung bestätigte anschließend den vollständigen Solltext auch in
+der tatsächlichen Markdown-Datei; beide Beobachtungen bleiben im JSON erhalten.
+
+Die anfängliche Auswahlhilfe zum Zurücksetzen der eigenen Notiz ersetzte den
+Inhalt nicht, sondern ließ die nachfolgende Vorbereitung anhängen. Dieser
+Zustand wurde vor dem nächsten Produktionslauf erkannt und über tatsächliches
+⌘A korrigiert. Mitte und Auswahl wurden danach per Zeilenanfang, achtmal
+Pfeil rechts und für die Auswahl zehnmal Umschalt-Pfeil rechts vorbereitet;
+`MARKIERUNG` war vor der Auswahlersetzung als ausgewählt bestätigt. Das ist
+kein fehlgeschlagener Produktions-Einfügelauf.
+
+Das Endergebnis wurde visuell angesehen. Danach wurde nur der eigene Tab
+geschlossen und die anhand ihres exakten Sollinhalts identifizierte Testdatei
+entfernt. Die vorherige Graph-Ansicht blieb erhalten. Das durch die Prüfung
+wieder geöffnete Obsidian-Fenster wurde geschlossen; eine Fensterinventur
+bestätigte wieder keinen offenen gewöhnlichen Obsidian-Fenstertitel. Auch
+die Produktions-Fixture wurde beendet; Build 7 (PID 82317) lief weiter.
