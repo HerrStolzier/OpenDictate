@@ -40,6 +40,9 @@ Die [Fortsetzung vom 24. September](release-plans/evidence/2026-09-24-plan1-fort
 belegt für den laufenden Build 7 zehn Minuten Leerlauf mit durchschnittlich
 0,02833 Prozent CPU und maximal 81,40625 MiB RSS. Eine aktuelle isolierte
 UI-Teilprüfung ergänzt Hell/Dunkel, Tastaturfokus und den Rückweg zum Text.
+Ein anschließendes echtes Diktat mit physischem Option+Shift+Space wurde von
+Basti bestätigt und direkt im vorher leeren TextEdit-Testdokument verifiziert:
+„Dieser Test enthält sieben grüne Äpfel.“ Dieser Build-7-Kürzellauf ist bestanden.
 Die frische Ersteinrichtung bleibt auf Bastis ausdrückliche Entscheidung als
 offene Grenze bestehen; kein neues Benutzerkonto wird dafür angelegt. Plan 1
 ist insgesamt weiter offen: fehlende Matrixfälle, reale Störfälle, gehörtes

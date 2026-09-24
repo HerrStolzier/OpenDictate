@@ -76,10 +76,29 @@ behalten deshalb ihren Aussagewert für diese konkreten Zielprogramme und
 Produktionspfade. Ebenso bleiben die tatsächlich bestandenen nativen und
 Fokusfälle der [Offline-Matrix](2026-09-23-offline-matrix.md) verwendbar.
 Das macht fehlende Matrixfälle nicht bestanden und benennt die alten Läufe
-nicht nachträglich als fünf Build-7-Läufe. Ein aktueller physischer
-Kürzel-Durchlauf in einem eigenen leeren TextEdit-Dokument ist vorbereitet.
+nicht nachträglich als fünf Build-7-Läufe. Der unten dokumentierte aktuelle
+physische Kürzel-Durchlauf ergänzt diese Nachweise.
 
 Die frühere falsche Erfolgsmeldung beim Pruning ist bereits durch `620dc39`
 korrigiert: `prune` zählt nur erfolgreich gelöschte Dateien und protokolliert
 verweigerte Löschungen gesondert. Die installierte Build-3-Prüfung steht im
 historischen Bericht. Dieser alte Befund ist kein erneut offener Fehler.
+
+## Physisches Kürzel auf Build 7: TextEdit bestanden
+
+Basti führte den vorbereiteten Lauf mit physischem Option+Shift+Space aus und
+meldete „text ist da“. Anschließend wurde das eigene Dokument
+`OpenDictate Matrix Plan 1.txt` direkt per Accessibility-Wert und Screenshot
+geprüft. Im vorher leeren Feld stand vollständig:
+
+> Dieser Test enthält sieben grüne Äpfel.
+
+Das Panel der installierten App zeigte „Diktat verarbeitet“ und die reguläre
+Rückmeldung zum ausgelösten automatischen Einfügen. Damit ist dieser aktuelle
+Durchlauf mit menschlicher Sprache, physischem Kürzel und sichtbarer Einfügung
+in TextEdit belegt. Kein künstlicher Tastendruck oder synthetischer Text wurde
+für dieses Ergebnis verwendet. Die Aussage gilt für diesen konkreten Lauf,
+nicht als allgemeines Sprachqualitätsurteil oder erneuter Fünf-App-Nachweis.
+
+Das eigene Testdokument bleibt für die anschließende Prüfung des manuellen
+Kopierwegs vorübergehend geöffnet und ist danach zu bereinigen.
