@@ -304,11 +304,21 @@ vorherige Quellstand `cbdfb34` auch nach einem App-Build-Wechsel ohne weitere
 Abfrage eine Aufnahme. Ein Provider-Lauf lieferte Text im App-Panel; der Text erschien im vorbereiteten
 TextEdit-Dokument nicht sichtbar, während macOS Brave als vorderste App
 meldete. Build 7 startete ohne Dialog, beide installierten Bundles sind
-signaturgeprüft, und der Bereit-Zustand wurde sichtbar geprüft. Für einen
-neuen Diktatlauf fehlt noch der echte TextEdit-Vordergrund: Die
-Computersteuerung fokussiert das Feld, macOS meldet dennoch OpenDictate als
-vorderste App. Die operative Schlüsselbund-Lesung und sichtbare Einfügung
-auf Build 7 bleiben deshalb offen; in diesem Versuch gab es keinen Upload.
+signaturgeprüft, und der Bereit-Zustand wurde sichtbar geprüft. Der erste
+geplante Build-7-Diktatlauf wurde wegen unklaren Zieles ausgelassen: Die
+Computersteuerung fokussierte ein TextEdit-Feld, während macOS OpenDictate
+als vorderste App meldete. In diesem Versuch gab es keinen Upload.
+
+Am 24. September wurde TextEdit anschließend als wirkliche Vordergrund-App
+bestätigt. Ein kurzer Build-7-Lauf über den sichtbaren Aufnahme-Knopf erreichte
+ohne Schlüsselbunddialog Mikrofon und Provider, lieferte bei 44 Prozent
+Ausgabe jedoch keinen Text; die Aufnahme blieb erhalten. Ein zweiter Lauf bei
+80 Prozent fügte den erkannten Satz automatisch sichtbar in TextEdit ein.
+Ausgabe, eingefügter Testsatz und eigene Testartefakte wurden danach
+wiederhergestellt beziehungsweise entfernt. [Einzelheiten](release-plans/evidence/2026-09-24-keychain-and-plan1.md#build-7-echter-textedit-einfügeweg).
+Das physische Kürzel auf Build 7 ist damit weiterhin offen; die fünf echten
+Kürzel-Läufe des älteren `bd3630f` bleiben getrennte Nachweise.
+
 Die vollständige Feld-/Fokusmatrix, Einrichtung im frischen Benutzerzustand,
 Störfälle und die vollständige UX-Prüfung am installierten Build bleiben
 offen. Bastis erste Designrückmeldung und die gewählte Richtung stehen im
@@ -335,11 +345,11 @@ Verbrauchsnachweise und kein künftiges Limit.
 - Ein echter negativer Appwechsel nach dem Stoppen ist für TextEdit→Finder auf
   dem älteren Kandidaten bestanden. Der neue Pfad reaktiviert die ursprüngliche
   App; dieses frühere Ergebnis ist keine Abnahme des neuen Verhaltens.
-- Der jüngste installierte Build transkribierte einen kontrollierten
-  Systemsprache-Satz, aber ein TextEdit-Feld blieb leer. Die App meldete
-  ausgelöstes Einfügen; eine unabhängige Vordergrundabfrage zeigte Brave
-  trotz TextEdit-Aktionen der Computersteuerung. Der echte TextEdit-Fokus
-  muss für den Wiederholungslauf sichtbar hergestellt werden.
+- Der erste Versuch mit dem vorherigen Build landete bei Brave als
+  Vordergrund-App nicht in TextEdit. Die Wiederholung auf Build 7 mit
+  bestätigtem TextEdit-Vordergrund fügte den Satz sichtbar ein. Das belegt den
+  Knopf-Ablauf für dieses Feld;
+  das physische Kürzel auf Build 7 bleibt offen.
 - Der erste Safari-textarea-Fallback im jüngsten historischen Zieltest bleibt
   ungeklärt, obwohl der Wiederholungsversuch bestand.
 - Eine manuelle Cursor-/Auswahlbewegung kann den Einfügeort ändern. Der neue

@@ -94,3 +94,32 @@ unbekanntem Ziel gestartet. Die Ausgabe wurde nach einer vorübergehenden
 Anhebung von 44 auf 80 Prozent wieder auf 44 Prozent zurückgestellt. Der
 sichtbare Einfügeweg und der echte Schlüsselbund-Lesezugriff von Build 7 sind
 weiter offen.
+
+## Build 7: echter TextEdit-Einfügeweg
+
+Am 24. September stand TextEdit laut `NSWorkspace.frontmostApplication`
+tatsächlich im Vordergrund; dessen `First Text View` war fokussiert und enthielt
+vor dem Test nur ein vorhandenes Leerzeichen. Die Computersteuerung löste das
+globale Kürzel nicht aus, weshalb die folgenden Läufe ausdrücklich **über den
+Aufnahme-Knopf** der installierten App gestartet und beendet wurden. Der
+App-Quellstand war `c92cbc9`, beide installierten Bundles meldeten Build 7;
+Testsystem war der Apple-Silicon-Mac mit macOS 27.0.
+
+Der erste kurze Lauf bei 44 Prozent Systemausgabe erreichte nach der Aufnahme
+den Provider, lieferte aber keinen Text. Die App zeigte „Kein Text“ und
+behielt die authentifizierte Aufnahme zur Wiederholung. Beim zweiten Lauf
+mit vorübergehend 80 Prozent Systemausgabe lieferte der Provider Text.
+OpenDictate meldete ausgelöstes automatisches Einfügen; das TextEdit-Feld
+enthielt danach sichtbar `Obendichtate Probe Apfel sieben.` hinter seinem
+vorhandenen Leerzeichen. Damit sind API-Schlüssel-Lesezugriff, Mikrofon,
+Provider-Antwort und automatische Einfügung **für diesen Knopf-Lauf auf Build 7**
+belegt. Die leichte Wortabweichung stammt aus der Spracherkennung; ein
+Sprachqualitätsnachweis ist das nicht. Das physische globale Kürzel auf Build 7
+und andere Zielprogramme wurden in dieser Runde nicht erneut geprüft.
+
+Nur der eingefügte Testsatz wurde aus TextEdit entfernt; der vorherige
+Feldinhalt blieb erhalten. Die eigene leere Wiederholungsaufnahme und ihre
+Authentifizierungsdatei sowie die erzeugte Sprachdatei wurden einzeln
+entfernt. Die drei zuvor vorhandenen Aufnahmen blieben bestehen. Die
+Systemausgabe wurde auf die vorherigen 44 Prozent zurückgestellt. Während
+beider Läufe erschien kein neuer Schlüsselbunddialog.
