@@ -11,7 +11,7 @@ behauptet. Diese benannte Grenze bleibt auch in einer späteren Übergabe erhalt
   saubere Quellrevision `c92cbc98af06049708095411cb12a8f35f87bac6`.
 - Signaturprüfung: `codesign --verify --deep --strict` bestanden.
 - Plattform: Apple Silicon (`arm64`), macOS 27.0, Build `26A428`.
-- Arbeitskopie: `694ac95e70aef159278a093c7141027cffc0355f`; `git diff c92cbc9 HEAD
+- Arbeitskopie zu Beginn: `694ac95e70aef159278a093c7141027cffc0355f`; `git diff c92cbc9 HEAD
   -- Sources` ist leer. Die Testbereinigung ändert keinen Produktionspfad.
 - Aktueller Debug-Build mit `swift build --build-system native -Xswiftc
   -warnings-as-errors` bestanden. SwiftPM meldet lediglich die veraltete
@@ -63,9 +63,9 @@ Reproduktion: isolierte Gestaltungsvorschau starten, mit ⌘0 die Optionen öffn
 Zustand und Erscheinungsbild wählen; im Panel Hauptaktion, Rückweg und
 Tab/Umschalt-Tab prüfen. Nach der Prüfung wurde der Vorschauprozess beendet.
 
-Das ist kein vollständiger UI-Abschluss: 340-Punkte-Mindestbreite, sämtliche
-Zustände in beiden Darstellungen, reale Einstellungen, gehörtes VoiceOver und
-die 20 per Video gemessenen Übergangszeiten bleiben gesondert zu belegen.
+Dies war zunächst eine Teilprüfung; die spätere Mindestbreitenrunde steht
+unten. Reale Einstellungen, gehörtes VoiceOver und die 20 per Video gemessenen
+Übergangszeiten bleiben gesondert zu belegen.
 
 ### Ergänzung: Aufnahme bei Mindestbreite
 
@@ -76,6 +76,73 @@ die Aktionen „Aufnahme beenden“, „Abbrechen“ und „Weitere Aktionen“.
 Screenshots wurden direkt angesehen. Das belegt diese beiden langen
 Aufnahmebeschriftungen bei Mindestbreite; weitere Zustände werden dadurch nicht
 pauschal abgenommen.
+
+### Ergänzung: sämtliche Panelzustände bei Mindestbreite
+
+Die reine Debug-Prüfhilfe aus `e704705` ergänzt „Mindestbreite prüfen“ in den
+Vorschauoptionen. Sie setzt ausschließlich das eigene Vorschaupanel auf
+`window.minSize.width` (340 Punkte). Die Produktionsdarstellung selbst wurde
+nicht geändert. Nach einem regulären Neustart der neu gebauten Vorschau wurden
+alle zehn angebotenen Zustände in Hell und Dunkel per Screenshot angesehen:
+Bereit, Fast bereit, Aufnahme, Verarbeitung, bestätigt eingefügt, manuell
+verfügbar, unbestätigte Übergabe, Fehler, Wiederholung und Abbruch.
+
+Haupt- und Nebenaktionen, Erklärungen, Beispieltext und Fokusmarkierungen
+blieben vollständig lesbar. Die lange Wiederholungsüberschrift brach sinnvoll
+um. Zwei unmittelbar nach einem Zustandswechsel erfasste Fehlerbilder waren
+angeschnitten; die gezielte erneute Aufnahme zeigte in beiden Darstellungen
+das vollständige Panel. Daraus wird kein Latenzergebnis abgeleitet.
+
+Reproduktion: Vorschau aus diesem Quellstand bauen, ⌘0 → „Mindestbreite prüfen“;
+dann jedes Angebot unter „Vorschauzustand“ jeweils mit Hell und Dunkel ansehen.
+Die Screenshots und AX-Zustände stehen im Haupttask
+`01a0d2c3-d26d-72f2-84e9-fe3ac34fcfe8`. Diese Prüfung betrifft das gemeinsame
+Panel mit Beispieldaten, nicht reale Einstellungen oder gehörte Sprachausgabe.
+
+Die erste Messprobe der lokalen Reaktionszeit dauerte einschließlich
+Automations- und Screenshot-Aufwand 735 ms. Das ist keine belastbare Messung
+der App-Latenz. Ein anschließend aufgezeichneter Tastendruck wurde wegen
+mehrdeutiger Fensterzuordnung vor Zustellung verweigert; daraus gibt es keinen
+bestandenen Zustandswechsel. Die Aufzeichnung wurde beendet. Die 20 geforderten
+Video-Messungen bleiben offen.
+
+## Browser-Prüfhilfe und neue Safari-Befunde
+
+Die lokale HTML-Fixture aus `e704705` setzt kontrollierte Ausgangstexte und
+Cursor-/Auswahlpositionen, speichert eine getrennte Referenz und vergleicht
+den vollständigen tatsächlichen Feldinhalt. Sie setzt niemals den erwarteten
+Prüftext in das Feld. Der neue `contenteditable`-Vergleich nutzt sichtbare
+Zeilenumbrüche; NFC-Gleichheit bleibt eine getrennte Diagnose.
+
+| Fall | Beobachtung |
+|---|---|
+| Safari `textarea`, Anfang | Produktions-Fixture fügte die mehrzeilige Probe vor dem vollständigen Ausgangstext ein. Rohvergleich: 69 statt 70 UTF-16-Einheiten, erste Abweichung 34; NFC vollständig gleich. [Soll/Ist-Anzeige](2026-09-24-safari-multiline-start.json), [Screenshot](2026-09-24-safari-multiline-start.png). |
+| Safari `contenteditable`, Auswahl `MARKIERUNG` | Referenz bestätigt Auswahl 8–18. Automatische Fixture-Übergabe meldete `deliveryUnconfirmed` und vollständige Zwischenablage, ließ das Feld aber unverändert. Auch nach gezieltem sichtbarem Editor-Klick und neu gespeicherter Auswahl keine Einfügung. Ursache noch nicht eingegrenzt. |
+| Dasselbe Feld, ausschließlich manuelle Diagnose | Ein danach separat ausgelöstes ⌘V ersetzte die Auswahl vollständig. Rohvergleich 59 statt 60, erste Abweichung 42; NFC gleich. Das belegt den manuellen Weg und die Vergleichshilfe, **nicht** die automatische Übergabe. [Diagnose](2026-09-24-safari-rich-manual-diagnostic.json), [Screenshot](2026-09-24-safari-rich-manual-diagnostic.png). |
+
+Vor den automatischen Versuchen bestätigte die Fenstersteuerung Safari als
+Vordergrundprozess und das richtige fokussierte Fenster. Ihre zusätzliche
+Prüfung des vordersten normalen Fensters blieb wegen eines kleinen überlagerten
+Fensters unbestätigt. Die Ursache ist deshalb weder als Produktionsfehler noch
+als reine Automationsgrenze entschieden. Keine Mikrofon-/Provideraktion war
+an diesen Fällen beteiligt. Die Entscheidung über kanonische
+Unicode-Normalisierung ist ebenfalls noch offen; kein Rohfehler wird als
+„EXAKT“ umgedeutet.
+
+Nach Integration bestanden Formatter, 138 vorhandene Swift-Testfunktionen
+(vier Opt-in-Fälle übersprungen), acht Python-Tests, sechs Shell-Syntaxprüfungen
+und `git diff --check`. Der Standard-Swift-Testaufruf scheiterte am bekannten
+fehlenden `TestingMacros`-Plugin; der in `CHECKS.md` dokumentierte explizite
+Plugin-Pfad bestand. Der Debug-Build bestand. Das ändert weder den installierten
+Build 7 noch seine Signatur oder Berechtigungen.
+
+Das eigene Safari-Fixturefenster und beide eigenen Prüfhilfen wurden danach
+regulär geschlossen; die vorher vorhandene Safari-Startseite blieb bestehen.
+Eine Prozessprüfung bestätigte, dass Vorschau, Matrix-Fixture und nativer
+Feld-Host beendet waren und die installierte App mit PID 82317 weiterlief.
+Die Fixture führt beim Beenden ihre vorhandene bedingte
+Zwischenablage-Wiederherstellung aus. Die nicht verwertbare lokale
+Videoaufnahme wurde nach bestätigtem Aufzeichnungsende entfernt.
 
 ## Ergänzte native Einfügepositionen
 

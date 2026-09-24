@@ -1,0 +1,28 @@
+{
+  "candidate": "e704705; production fixture binary 523cbd2",
+  "scope": "production fixture automatic paste, textarea start",
+  "target": "Safari controlled local HTML fixture",
+  "observed_elements": [
+    {
+      "label": "Mehrzeilige Eingabe",
+      "role": "AXTextArea",
+      "value": "Äpfel 🍏 und Grüße.\nZweite Zeile: é, 👩🏽‍💻.Anfang. MARKIERUNG Ende."
+    },
+    {
+      "label": "Äpfel 🍏 und Grüße.\nZweite Zeile: é, 👩🏽‍💻.Anfang. MARKIERUNG Ende.",
+      "role": "AXStaticText",
+      "value": "Äpfel 🍏 und Grüße.\nZweite Zeile: é, 👩🏽‍💻.Anfang. MARKIERUNG Ende."
+    },
+    {
+      "label": "ABWEICHUNG: Ist 69, Soll 70 UTF-16-Einheiten; erste Abweichung bei 34.",
+      "role": "AXStaticText",
+      "value": "ABWEICHUNG: Ist 69, Soll 70 UTF-16-Einheiten; erste Abweichung bei 34."
+    },
+    {
+      "label": "NFC-DIAGNOSE: kanonisch gleich; die Rohabweichung bleibt ABWEICHUNG.",
+      "role": "AXStaticText",
+      "value": "NFC-DIAGNOSE: kanonisch gleich; die Rohabweichung bleibt ABWEICHUNG."
+    }
+  ],
+  "acceptance": "raw mismatch; canonical NFC equality; acceptance decision pending"
+}

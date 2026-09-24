@@ -52,10 +52,19 @@ bestätigt; Einzelheiten stehen im
 Die frische Ersteinrichtung bleibt auf Bastis ausdrückliche Entscheidung als
 offene Grenze bestehen; kein neues Benutzerkonto wird dafür angelegt. Plan 1
 ist insgesamt weiter offen: die verbleibenden Browser-/Editor-Matrixfälle,
-reale Störfälle, gehörtes VoiceOver, vollständige Mindestgrößenprüfung und die
+reale Störfälle, gehörtes VoiceOver, reale Einstellungen und die
 20 per Video zu messenden lokalen Zustandswechsel sind nicht erledigt. Frühere
 bestandene Tests werden anhand unveränderter Produktionspfade wiederverwendet,
 nicht pauschal verworfen.
+
+Die isolierte Vorschau ergänzt inzwischen alle zehn Panelzustände bei
+340 Punkten Mindestbreite in Hell und Dunkel. Der neue Safari-textarea-Fall
+am Anfang ist vollständig NFC-gleich, aber nicht rohzeichengleich; die
+Akzeptanzentscheidung bleibt offen. Im Safari-`contenteditable` blieb die
+automatische Fixture-Übergabe trotz gespeicherter Auswahl aus, während danach
+manuelles ⌘V funktionierte. Dieser Fall braucht eine Fokus-/Übergabediagnose
+und wird nicht als bestanden bezeichnet. Die Einzelheiten stehen im selben
+Fortsetzungsbericht.
 
 ## Neuer Quellcodekandidat: normaler Einfügebefehl
 
