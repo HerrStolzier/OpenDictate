@@ -4,6 +4,7 @@
   "preview_process_97486_exists": false,
   "installed_process_82317_exists": true,
   "boundary": "No before/after integrity inventory for the settings navigation run exists. This post-check does not establish unchanged preference or recovery file bytes.",
-  "own_full_desktop_timing_files_removed": 121,
-  "full_desktop_timing_video_remains": false
+  "own_full_desktop_timing_files_removed": 210,
+  "full_desktop_timing_video_remains": false,
+  "remaining_full_desktop_turn_images": 0
 }
