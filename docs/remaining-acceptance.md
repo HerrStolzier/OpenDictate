@@ -72,8 +72,9 @@ die PID-Diagnose als auch der unveränderte globale Produktionsweg am selben
 Feldanfang. Alle zwölf Safari-Positionen liefern inzwischen vollständige NFC-Gleichheit.
 Die zwölf Brave-Positionen und Obsidian an Anfang, Mitte und Auswahlersetzung
 stimmen roh vollständig überein; Obsidian zusätzlich in der gespeicherten Datei.
-Damit ist die Feldmatrix ausgeführt; die Safari-Normalisierungsentscheidung
-bleibt offen.
+Damit ist die Feldmatrix ausgeführt. Die Safari-Normalisierung wird für den
+internen Grundablauf als vollständiger kanonisch gleicher Text akzeptiert;
+der rohe Unterschied und die früheren erfolglosen Läufe bleiben sichtbar.
 Die Ursache der früheren Fehlschläge bleibt ungeklärt; ein Wechsel der
 Produktions-Zustellart ist durch die Gegenprobe nicht begründet.
 [A/B-Nachweis](release-plans/evidence/2026-09-24-safari-pid-versus-global.json),
@@ -104,10 +105,12 @@ damaligen Kandidaten.
 
 Die [lokale Plan-1-Matrix](release-plans/evidence/2026-09-23-offline-matrix.md)
 zeigt zwei native Feldfälle und beide Fokuswechselarten mit künstlichem Text;
-Safari normalisierte im `input` einen kombinierenden Akzent. Nächster
-Mac-Nachweis: die ausgeführte Feldmatrix hinsichtlich Safari-Normalisierung
-abschließend bewerten; reale Störfälle und das Zeitkriterium prüfen. Der Abbruch während Aufnahme bestand;
-Providerfehler und tatsächlich unterbrochene Verarbeitung bleiben offen.
+Safari normalisierte im `input` einen kombinierenden Akzent. Für den internen
+Grundablauf ist das kanonisch gleiche Ergebnis akzeptiert. Vor dem Betapaket
+folgen die noch offenen Fehler- und Beenden-Pfade aus Plan 2; die Zeit bis
+zum nutzbaren Text wird im Betatest gemessen. Der Abbruch während Aufnahme
+bestand; ein echter Providerfehler und tatsächlich unterbrochene Verarbeitung
+bleiben als praktische Nachweise offen.
 Der erste Live-Testblock mit acht Aufnahmen ist verbraucht. Basti hat die
 Fortsetzung von Plan 1 ohne festes Kontingent ausdrücklich freigegeben;
 Details stehen in [APPROVALS.md](../APPROVALS.md).
@@ -360,7 +363,7 @@ Die Bindung bleibt Nutzersache und wurde nicht installiert:
 
 `bind = SUPER SHIFT, D, exec, <absoluter-pfad>/linux/target/release/opendictate toggle`
 
-## Nächster ausführbarer Mac-Schritt
+## Nächste Mac-Stufe: verteilbares Paket
 
 Die vorbereitete [Pilot- und Integrationsliste](audio-quality-fixtures.md#prepared-first-human-pilot)
 verwendet vorhandene Prüfmittel. Für den installierten älteren Kandidaten
