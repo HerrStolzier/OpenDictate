@@ -297,10 +297,12 @@ verwendet vorhandene Prüfmittel. Für den installierten älteren Kandidaten
 TextEdit→Finder-Wechsel sichtbar geprüft. Der neue ⌘V-Build `bd3630f` hat nun
 eigene echte TextEdit-, Safari-, Brave-, Obsidian- und Terminal-Nachweise
 im [Plan-1-Bericht](release-plans/evidence/2026-09-23-plan1-status.md). Der
-inzwischen installierte Build 4 enthält die UX-Änderung; seine erneute
-Mikrofon- und Einfügeprüfung ist noch offen. Beim ersten Startversuch über den
-Panel-Button wartete der neue Build vor der Aufnahme im macOS-Schlüsselbund;
-der geschützte Dialog benötigt eine Bestätigung direkt am Mac.
+inzwischen installierte Quellstand `cbdfb34` enthält die UX-Änderung und den
+stabilen Schlüsselbundhelfer. Nach zwei einmaligen Freigaben startete er auch
+nach einem App-Build-Wechsel ohne weitere Abfrage eine Aufnahme. Ein
+Provider-Lauf lieferte Text im App-Panel; der Text erschien im vorbereiteten
+TextEdit-Dokument nicht sichtbar, während macOS Brave als vorderste App
+meldete. Die erneute Einfügeprüfung auf diesem Build bleibt offen.
 Die vollständige Feld-/Fokusmatrix, Einrichtung im frischen Benutzerzustand,
 Störfälle und die Prüfung der überarbeiteten UX am installierten Build bleiben
 offen. Bastis erste Designrückmeldung und die gewählte Richtung stehen im
@@ -327,6 +329,11 @@ Verbrauchsnachweise und kein künftiges Limit.
 - Ein echter negativer Appwechsel nach dem Stoppen ist für TextEdit→Finder auf
   dem älteren Kandidaten bestanden. Der neue Pfad reaktiviert die ursprüngliche
   App; dieses frühere Ergebnis ist keine Abnahme des neuen Verhaltens.
+- Der jüngste installierte Build transkribierte einen kontrollierten
+  Systemsprache-Satz, aber ein TextEdit-Feld blieb leer. Die App meldete
+  ausgelöstes Einfügen; eine unabhängige Vordergrundabfrage zeigte Brave
+  trotz TextEdit-Aktionen der Computersteuerung. Der echte TextEdit-Fokus
+  muss für den Wiederholungslauf sichtbar hergestellt werden.
 - Der erste Safari-textarea-Fallback im jüngsten historischen Zieltest bleibt
   ungeklärt, obwohl der Wiederholungsversuch bestand.
 - Eine manuelle Cursor-/Auswahlbewegung kann den Einfügeort ändern. Der neue
@@ -350,9 +357,11 @@ Verbrauchsnachweise und kein künftiges Limit.
   App-Host; der echte API-Schlüssel wurde dabei nicht gelesen. Der neue Build
   wurde in beide lokalen App-Kopien installiert, die bisherigen Bundles wurden
   gesichert. Der installierte Helfer ist signiert und stimmt mit dem Bundle
-  überein. Die einmalige macOS-Freigabe eines bestehenden Objekts ist noch
-  offen; damit bleiben der operative Lesezugriff und ein erneuter Zugriff nach
-  dem nächsten App-Build ungeprüft. Den alten Eintrag bis dahin nicht löschen.
+  überein. Beide getrennten macOS-Freigaben sind inzwischen bestätigt; ein
+  Start nach einem weiteren App-Build mit verändertem Code-Hash erreichte ohne
+  Dialog die Aufnahme. Der [Fortsetzungsbericht](release-plans/evidence/2026-09-24-keychain-and-plan1.md)
+  dokumentiert diesen bestandenen Ausschnitt. Den alten API-Key-Eintrag nur
+  durch die bestehende verlustarme App-Migration entfernen, nicht manuell.
 
 Bekannte Fehler mit falschem Ziel, beschädigtem vorhandenem Text oder Verlust der
 einzigen Aufnahme/des einzigen Transkripts verhindern eine Ausweitung des betroffenen
