@@ -1,0 +1,358 @@
+# Plan 1 · Zwischenstand vom 23. September 2026
+
+Dieser Stand ist noch **keine Produktabnahme**. Er trennt lokale Prüfungen von
+den ausstehenden sichtbaren Diktat-, UX- und Plattformnachweisen.
+
+**Aktuell installierter Kandidat:** Build 4 aus Quellrevision
+`79f5cee4ea8c30b5b8cc079d235cd0a76debd17d` liegt unter `/Applications`
+und `~/Applications`; beide Programmdateien haben SHA-256
+`1981e79b2d91a82bcf1fc35ebde348a5c1fa11eaa5d27a985434a1d568104994`.
+Beide vorherigen Build-3-Bundles liegen unverändert unter
+`.build/plan1-rollbacks-20260923-build3/`. Der installierte Build wurde aus
+`~/Applications` gestartet. Das tatsächliche Bereit-Panel wurde sichtbar
+geprüft; Tab verschob den Tastaturfokus von „Aufnahme starten“ zu „Weitere
+Aktionen“. Eine erneute Mikrofon- und Einfügeprüfung auf Build 4 ist damit
+noch nicht belegt. Der Dateivergleich zwischen den installierten
+Quellrevisionen Build 3 und Build 4 zeigt als einzige Änderung unter
+`Sources/OpenDictate/App` und `Sources/OpenDictate/System` das Panel;
+`PasteboardInserter` und der allgemeine ⌘V-Pfad blieben unverändert.
+
+Der [PR-CI-Lauf](https://github.com/HerrStolzier/OpenDictate/actions/runs/35903565835)
+bestand auf macOS 15 und auf dem macOS-14-Runner. Dessen Log meldet macOS
+14.8.9, Xcode 16.2 und Swift 6.0.3; 158 Offline-Tests sowie Signatur,
+Hardened Runtime und Mikrofon-Entitlement des gebauten Bundles bestanden.
+Das ist ein echter macOS-14-Prozesslauf der Tests, aber kein interaktiver
+Diktat-, TCC-, VoiceOver- oder Einfügenachweis.
+
+Der erste Build-4-Liveversuch auf einem eigenen leeren TextEdit-Dokument ist
+noch **nicht bestanden**. Die Computersteuerung erzeugte mit der simulierten
+Tastenkombination nur ein geschütztes Leerzeichen im Feld; die App blieb
+bereit. Das Zeichen und das eigene Dokument wurden verworfen, die
+vorübergehend von 25 auf 80 Prozent erhöhte Ausgabelautstärke wurde auf 25
+Prozent zurückgestellt. Dieser Tastaturweg ist kein Ersatz für den physischen
+Hotkey. Der anschließende Klick auf „Aufnahme starten“ blockierte vor dem
+Recorder im macOS-Schlüsselbund. Ein lesender Prozessmitschnitt zeigte den
+Pfad `prepareRecording` → `hasAPIKey` → `KeychainItem.readResult` →
+`SecKeychainItemCopyContent`. Weder Aufnahme noch Provider-Anfrage wurden
+für diesen Versuch ausgelöst. Die geschützte Systemabfrage wartet auf Bastis
+Eingabe direkt am Mac; danach muss der echte Weg auf Build 4 erneut geprüft
+werden. Die Computersteuerung kann diesen Sicherheitsdialog nicht bedienen.
+
+**Nachprüfung der wiederkehrenden Schlüsselbundabfrage:** Build 3 und Build 4
+haben dieselbe ausgewiesene Designated Requirement aus Bundle-ID und lokalem
+Zertifikat, aber verschiedene Code-Hashes. Der tatsächlich vorhandene
+API-Schlüssel liegt weiter im älteren Login-Schlüsselbund-Account
+`OPENAI_API_KEY`; der neue Account `OPENAI_API_KEY_APP` ist nicht vorhanden.
+Die Zugriffsliste des alten Eintrags enthält sowohl signaturbasierte
+OpenDictate-App-Einträge als auch eine `partition_id`-Liste einzelner
+Code-Hashes, darunter die beiden jüngsten Builds. Der zuvor nach einem
+Neustart beobachtete promptfreie Zugriff beweist daher keine Freigabe für
+zukünftige Builds. Die genaue interne Entscheidung von macOS wurde nicht
+instrumentiert; die Hash-Liste ist die konkrete updateabhängige Grenze.
+Der separate Schlüssel für authentifizierte Recovery-Aufnahmen
+(`FAILED_RECORDING_AUTH_KEY`) hat ebenfalls eine solche Hash-Liste.
+
+Zwei harmlose, getrennte Testeinträge wurden unter einer lokal selbst
+signierten Probe-App angelegt und wieder gelöscht. Beim üblichen
+dateibasierten Schlüsselbund blockierte das Lesen nach einer neu signierten
+Version der Probe-App erneut, obwohl Bundle-ID und Zertifikat gleich blieben.
+Auch ein ausdrücklich auf diese App begrenzter `SecAccessCreate`-Eintrag
+erhielt eine `partition_id` mit dem Build-Hash. Der moderne Data-Protection-
+Schlüsselbund verweigerte das Anlegen eines Testeintrags mit Status `-34018`
+ohne gültige App-Zugriffsberechtigung, auch mit einer lokal deklarierten
+App-Gruppe. Diese Proben haben den echten API-Schlüssel weder gelesen noch
+verändert. Die beiden Testeinträge und ihre temporären Bundles wurden entfernt.
+Eine alleinige Migration in den bisherigen Dateischlüsselbund ist damit
+keine belegte dauerhafte Lösung.
+
+Eine dritte isolierte Probe hielt den **gleichen** signierten Helfer-Code bei
+einem Austausch und erneuten Signieren der umgebenden App unverändert. Sein
+Code-Hash blieb gleich; der Dummy-Schlüssel war danach ohne Dialog lesbar.
+Auch dieser Testeintrag und das temporäre Bundle wurden entfernt. Das belegt
+die technische Grundidee eines stabilen Helfers, nicht bereits dessen sichere
+Integration oder einen Zugriff auf den echten API-Schlüssel.
+
+**Vorheriger installierter Kandidat:** Build 3 aus Quellrevision
+`7621a7f18345a25c178c286e06e56a9558fc0d1a` liegt unter `/Applications`
+und `~/Applications`; beide Programmdateien haben SHA-256
+`a6204f3c07c68ca22587dd658aeda7c636e10cf42255971796a48bf6d7da765e`.
+Die Signatur, Hardened Runtime, Mikrofon-Berechtigung im Bundle und sieben
+kontrollierte Bundle-Prüffälle bestanden. Beide bisherigen Build-2-Kopien sind
+unter `.build/plan1-rollbacks-20260923-build2/` gesichert. Der neue Build läuft
+aus `~/Applications` und meldete beim Start die gesperrte alte Audiodatei als
+nicht löschbar, ohne eine falsche Bereinigungserfolgsmeldung; Audio und
+Authentifizierungsdatei sind weiter vorhanden. Beim ersten neuen Diktierlauf
+forderte macOS Zugriff auf den bestehenden Schlüsselbund-Eintrag an.
+Basti bestätigte den Zugriff direkt am Mac. Anschließend wurde die laufende
+installierte App gezielt in die Zugriffsliste genau dieses API-Schlüssel-Eintrags
+aufgenommen; „alle Programme“ blieb aus. Nach dem Speichern war „Änderungen
+sichern“ deaktiviert. Ein neuer Start über das App-Panel erreichte ohne neue
+Schlüsselbundabfrage „Aufnahme läuft“ mit Eingangssignal. Der Quellpfad liest
+den Schlüssel vor diesem Zustand in `hasAPIKey` und `TranscriptionOptions.current`.
+Dieser Lauf wurde nach 14,9 Sekunden ohne Provider-Upload abgebrochen; die
+eigene Recovery-Aufnahme wurde einzeln über die App gelöscht und ihr Dateipaar
+war danach nicht mehr vorhanden. Eine weitere Berechtigungsabfrage nach einer
+App-Änderung bleibt möglich.
+
+Der installierte Build wurde anschließend regulär beendet und erneut aus
+`~/Applications` gestartet. Das globale Kürzel war wieder registriert; ein
+erneuter Lauf erreichte den Provider und dessen Antwort ohne neuen sichtbaren
+Schlüsselbunddialog. Dieser Neustart prüft die gespeicherte Freigabe für genau
+dieses Bundle, nicht für zukünftige Signaturen. Die 46,9 Sekunden lange
+Testaufnahme enthielt keinen erkannten Text und blieb korrekt als
+authentifizierte Wiederholungsdatei erhalten. Sie wurde einzeln im
+Aufnahmen-Fenster gelöscht; Audio und `.auth` sind danach nicht mehr vorhanden.
+Die zwei älteren Aufnahmen blieben bestehen. Für diesen Neustarttest fiel ein
+Provider-Request an.
+
+Ein anschließender echter Build-3-Durchlauf startete mit dem physischen
+Kürzel in einem leeren eigenen TextEdit-Dokument. Die lokale Systemstimme
+Anna spielte einen harmlosen Testsatz über den Mac-Lautsprecher in das
+JBL-Mikrofon. Der erste Versuch lieferte nach einem Provider-Request keinen
+Text: Die Systemausgabe war stummgeschaltet (Aufnahme: Peak −35 dB,
+Durchschnitt −45 dB). Nach vorübergehendem Aufheben der Stummschaltung und
+Anheben der Ausgabe von 56 auf 80 ergab der zweite Versuch Peak −14 dB und
+Durchschnitt −32 dB. Ein Provider-Request lieferte den vollständigen Text;
+das installierte Build fügte ihn ohne Klick oder manuelles Paste sichtbar in
+das zuvor leere TextEdit-Dokument ein. Der per Accessibility gelesene Feldtext
+stimmte mit dem App-Ergebnistext überein; die Spracherkennung schrieb
+„Build“ als „Bild“ und „sieben“ als „7“. Das belegt den Übertragungsweg,
+keine allgemeine Sprachqualität. Die Lautstärke 56 und Stummschaltung wurden
+wiederhergestellt. Die eigene Aufnahme des leeren Versuchs wurde einzeln
+gelöscht; lokale Audiodatei des erfolgreichen Laufs, Testdokument,
+Screenshots und der letzte Text im App-Speicher wurden bereinigt. Die zwei
+älteren vorgefundenen
+Recovery-Einträge blieben unangetastet.
+
+## Vorheriger Kandidat
+
+| Merkmal | Aktuell geprüft |
+|---|---|
+| Quell-HEAD | `8be59821d9e5bc3874299b910e463d9acc42e7d5` · nur Release-Pläne nach dem App-Quellstand |
+| Installiertes Bundle | `~/Applications/OpenDictate.app`, Build `2`, Quellrevision `bd3630f605feff1ef64598ccab85511f944662c5` |
+| Programmdatei | SHA-256 `492d4b0609400a3926bd18881544d48c3ef89be90e059f9122869416821a5f5f` |
+| Signatur | `codesign --verify --deep --strict` bestanden; `local.opendictate.app`, `OpenDictate Self-Signed`, Hardened Runtime |
+| Test-Mac | Mac mini, Apple M4, macOS 27.0 (26A428) |
+| Standardmikrofon | JBL Quantum Stream Talk (USB), nicht stumm; Eingangspegel von 0,235 auf gerätebestätigt 0,772 gestellt |
+
+Das installierte Ergebnis-Panel wurde mit Cua Driver direkt aufgenommen:
+[Ist-Screenshot](../mockups/01-ist-ergebnis.png). Die drei visuellen
+[Vergleiche](../mockups/01-ux-richtung.html) sind Entwürfe und keine
+implementierten App-Zustände. Basti fand die einfache Richtung schön, aber
+noch zu generisch. Seine Vorgabe für die nächste Fassung: Wenn die App bewusst
+einfach aussieht, müssen die Details sichtbar sorgfältiger sein. Die gewählte
+Richtung ist daher ein ruhiges, macOS-nahes Panel mit präziser Typografie,
+Abstandsfolge, einheitlichen SF-Symbolen, zurückhaltender Zustandsfarbe und
+klarer Hierarchie zwischen Hauptaktion und Rückweg. Insbesondere Einrichtung
+und Fehler bekommen einen konkreten nächsten Schritt und eine genaue,
+wahrheitsgemäße Statuszeile. Die Funktion und der Normalweg mit dem Kürzel
+werden durch diesen Gestaltungsdurchgang nicht erweitert.
+Seine Zwischenfrage bestätigte die Grenze: Die wiederhergestellte allgemeine
+Zwischenablage-/⌘V-Einfügung wird durch UX-Arbeit nicht erneut geändert.
+
+Die lokale Maschine läuft auf macOS 27 und hat nur die Command Line Tools als
+aktive Entwicklerumgebung; `simctl` ist nicht verfügbar. Apple bietet im
+Xcode-Simulator keine macOS-14-Laufzeit an. Ein macOS-14-Runner kann dagegen
+Swift- und Bundle-Prüfungen unter diesem System ausführen. Er ersetzt keine
+interaktive Prüfung von Mikrofon, Berechtigungen, VoiceOver und Einfügen.
+
+## Offline-Prüfungen
+
+- `swift format lint --strict --configuration .swift-format --recursive Sources Tests Package.swift`: bestanden.
+- `swift test -Xswiftc -warnings-as-errors`: auf diesem Swift-6.4-Host wegen
+  fehlender `TestingMacros`-Plugin-Erkennung gescheitert. Der dokumentierte
+  Aufruf mit `-plugin-path` bestand: 69 Tests in 12 Suites; Opt-in-Live- und
+  Benchmark-Tests blieben ausgeschaltet.
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/tests -p 'test_*.py' -v`: 8 Tests bestanden.
+- `bash -n` für die sechs in `CHECKS.md` aufgeführten Skripte: bestanden.
+- `git diff --check`: bestanden.
+
+## Sichtbare Live-Prüfungen
+
+Die fünf normalen Diktate mit physischem Kürzel, JBL-Mikrofon, OpenAI und
+installiertem Build haben Text im jeweils vorher geprüften Feld erzeugt:
+TextEdit, Safari-`textarea`, Brave-`contenteditable`, eine harmlose
+**nicht abgeschickte** Terminal-Zeile und Obsidian im isolierten temporären
+Vault. Soll-/Ist-Bilder und Messwerte stehen im
+[Live-Ledger](2026-09-23-live-ledger.json). Safari verschmolz in der
+Transkription einmal „Apfel sieben“ zu „Apfelsieben“; der sichtbare Zieltext
+stimmte mit der Zwischenablage überein. Das ist kein Nachweis allgemeiner
+Sprachqualität oder sämtlicher Felder einer App.
+
+Ein sechster Lauf wurde während der Aufnahme im Panel abgebrochen. Die App
+erzeugte eine 78,2 Sekunden lange, authentifizierte Recovery-Datei ohne
+Provider-Upload; nach dem App-Neustart war „Wiederholen“ dafür aktiv. Die
+eigene Testaufnahme wurde anschließend über den einzelnen App-Eintrag
+gelöscht. Die ältere fremde Aufnahme blieb bytegleich. Zwei weitere Läufe
+forderten das Beenden an, als der Status „Transkribieren …“ zeigte. Der
+Provider antwortete jeweils während des Bestätigungsdialogs und der Text
+gelangte noch in das eigene TextEdit-Dokument. Diese Versuche **bestehen den
+Unterbrechungsfall nicht**. Beim zweiten Lauf ging ein Return an das eigene
+TextEdit-Dokument statt an den Dialog; dessen führender Zeilenumbruch gehörte
+zum Testartefakt und wurde mit ihm entfernt. Die App wurde erst danach
+beendet. Insgesamt wurden acht Aufnahmen und sieben Uploads verbraucht.
+
+Bei einer vorgefundenen Aufnahme vom 15. September zeigte `ls -leO@` eine
+macOS-ACL mit `deny delete`. Die App protokollierte dennoch wiederholt
+„Pruned 1 expired failed recording(s)“, während Audio- und
+Authentifizierungsdatei bytegleich liegen blieben. Der Quellcode zählt
+ausgewählte abgelaufene Einträge, ohne das Ergebnis von `unlink` für die
+Erfolgsmeldung zu prüfen. Das ist eine falsche Bereinigungsmeldung. Die
+vorgefundene Datei wurde nicht verändert oder gelöscht; eine Quellkorrektur
+und Prüfung am nächsten Kandidaten bleiben offen.
+
+## Weiter offen
+
+Die [lokale Einfügematrix](2026-09-23-offline-matrix.md) zeigt zwei exakte
+native Fälle und sichtbare, synthetische Fokuswechsel innerhalb einer App
+und zwischen zwei Apps. Der Safari-`input`-Vergleich meldete eine
+Unicode-Normalisierung (`e` + Akzent zu `é`); die strikte Zeichenfolgen-
+Abnahme ist dafür nicht bestanden. Der allgemeine ⌘V-Pfad blieb unverändert.
+
+Die übrige sichtbare Feldermatrix, ein echter Providerfehler, tatsächlich
+unterbrochene Verarbeitung, die UX-Prüfung am installierten neuen Build,
+gehörtes VoiceOver, die interaktive macOS-14-Abnahme und lokale Statuszeiten
+sind noch nicht abgeschlossen. Der erste konkrete Live-Testblock war zu diesem
+Zeitpunkt ausgeschöpft. Für macOS 14 ist auf dem aktuellen
+Mac kein Laufzeitnachweis möglich; der konfigurierte MacBook-SSH-Host antwortete
+nicht innerhalb von fünf Sekunden.
+
+Nach Bastis Feedback wurde das [Mockup](../mockups/01-ux-richtung.html)
+gezielt in Typografie, Abständen, SF-Symbolik, Aktionshierarchie und
+Fehlerzustand verfeinert. Das neue App-Panel übernimmt die ruhigere Anordnung,
+kleinere Statusflächen und einheitliche Bedienelemente. Die isolierte native
+Vorschau zeigte Bereit, Einrichtung, Fehler und Ergebnis sichtbar; Dunkel und
+Hell wurden für die Fehleransicht kontrolliert. Ein zu hoher leerer Bereich
+am unteren Fensterrand wurde dabei gefunden und korrigiert. Der
+App-Quellstand bestand zwei gemeldete Swift-Testläufe mit 89 und 69 Tests, acht
+Python-Tests, Swift-Format, Shell-Syntax und einen Release-Build samt sieben
+Bundle-Prüffällen. Diese Vorschau nutzt weder Mikrofon noch Provider und ist
+kein Test des installierten Kandidaten. Die ⌘V-Einfügelogik blieb unberührt.
+
+Die App weicht bewusst in drei Details vom statischen Entwurf ab:
+„Einstellungen“ bleibt als ausgeschriebener, tastaturfokussierbarer Button
+statt eines alleinstehenden Zahnradzeichens sichtbar. Die festen
+Einrichtungsschritte werden im Panel nicht als dauerhaft offen angezeigt,
+weil bereits erteilte Berechtigungen sonst falsch wirken würden. Der Fehlerzustand
+behauptet nicht pauschal „Aufnahme gesichert“, weil diese Aussage erst nach
+einem geprüften Dateistatus zulässig ist; der konkrete Grund steht im
+Zustandstext und der Rückweg führt zu den Aufnahmen.
+
+Für den CI-Lauf wurde ein nativer macOS-14-Job mit Xcode
+16.2 ergänzt. Er führt die Offline-Swift-Tests und einen verifizierten
+Bundle-Build aus. Der bestandene Lauf belegt nur diese Teilmenge, nicht die
+interaktiven Berechtigungs-, VoiceOver- oder Einfügeprüfungen.
+
+**Fortsetzung:** Basti hat die Fortsetzung von Plan 1 ohne festes
+Aufnahmekontingent ausdrücklich freigegeben; die ältere Verbrauchsangabe oben
+beschreibt nur den ersten Block. Die Offline-Tests für gesperrte Audiodateien,
+Recorder- und Providerfehler bestehen auf dem neuen Quellstand. Beim Pruning
+bleibt die Authentifizierungsdatei jetzt erhalten, wenn macOS die Audiodatei
+nicht löschen kann; nur tatsächlich entfernte Dateien werden als entfernt
+gezählt. Der oben dokumentierte Start von Build 3 bestätigte diesen
+gesperrten Dateifall auch am installierten Bundle.
+Die [Matrix-Fortsetzung](2026-09-23-offline-matrix.md#fortsetzung-mit-der-lokalen-safari-seite)
+zeigte Safari-`textarea` mit derselben Normalisierung sowie zwei zunächst
+erfolglose Browserfelder.
+Eine anschließende [direkte Safari-Kontrolle](2026-09-23-offline-matrix.md#direkte-safari-kontrolle-nach-dem-fehlversuch)
+fügte per ⌘V in beide gezielt fokussierten Felder vollständig ein. Das grenzte
+die früheren Fixture-Fehler auf deren Ablauf oder Fokuszustand ein; dieser
+direkte Kontrolllauf allein war noch kein Produktions-Fixture-Nachweis.
+Ein gesonderter Appwechseltest zeigte, dass ein Accessibility-Klick in das
+`iframe`-Feld den sichtbaren Fokus nicht immer bewegt. Nach gezieltem
+Pixelklick blieb der Feldfokus bei einem Appwechsel erhalten und ⌘V landete
+im `iframe`; [Fallnotiz und Bild](2026-09-23-offline-matrix.md#direkte-safari-kontrolle-nach-dem-fehlversuch).
+Die [erneute Produktions-Fixture](2026-09-23-offline-matrix.md#wiederholung-mit-der-produktions-fixture)
+fügte anschließend in beide sichtbar fokussierten Safari-Felder mehrzeiligen
+künstlichen Text über `DictationFlow` und `PasteboardInserter` ein. Das
+schließt die beiden sichtbaren Einfügefälle, aber weder den exakten
+DOM-Rohvergleich noch andere Feldpositionen und echte Diktate in diesen
+Feldern.
+
+Eine diagnostische Leerlaufmessung des seit 08:45 Uhr laufenden, installierten
+Prozesses ist abgeschlossen: zwei unmittelbar aufeinanderfolgende
+[300-Sekunden-Teile](2026-09-23-idle-32011-part1.json) und
+[Teil 2](2026-09-23-idle-32011-part2.json), zusammen 600,09 Sekunden. Die
+gemittelte Prozess-CPU betrug 0,0133 Prozent. Das höchste abgetastete RSS lag
+bei 110.368 KiB (107,78 MiB) und überschritt das Ziel von 100 MiB. `vmmap`
+meldete danach 27,5 MiB Physical Footprint; diese andere Metrik ersetzt den
+RSS-Abnahmewert nicht. Die beiden JSON-Dateien enthalten die Sekundensamples.
+
+Nach einem frischen App-Start ohne weitere App-Bedienung ergaben
+[Teil 1](2026-09-23-idle-7259-part1.json) und
+[Teil 2](2026-09-23-idle-7259-part2.json) über denselben Prozess zusammen
+600,094 Sekunden, 0,0167 Prozent mittlere Prozess-CPU und höchstens 100.432
+KiB (98,078 MiB) abgetastetes RSS. Damit besteht der installierte Build das
+Leerlaufziel auf diesem Mac im frischen Lauf. Die frühere Überschreitung beim
+bereits stundenlang laufenden Prozess bleibt als diagnostische Beobachtung
+erhalten; sie ist durch den frischen Lauf nicht erklärt. Der Sampler erfasst
+keine Spitzen zwischen Sekundenabfragen und keine Energieaufnahme.
+
+Für den damals installierten **Build 3** wurde die App anschließend erneut
+frisch aus `~/Applications` gestartet und ohne App-Bedienung gemessen.
+[Teil 1](2026-09-23-idle-build3-12111-part1.json) und
+[Teil 2](2026-09-23-idle-build3-12111-part2.json) umfassen denselben Prozess
+über zusammen 600,087 Sekunden mit nur 0,071 Sekunden Abstand. Die mittlere
+Prozess-CPU betrug 0,025 Prozent. Das höchste abgetastete RSS lag bei 102.816
+KiB (100,406 MiB) und damit **knapp über** dem 100-MiB-Ziel. Es begann bei
+102.512 KiB und blieb in beiden Teilen ungefähr auf diesem Niveau; der Befund
+ist kein einzelner später Ausreißer. Build 3 besteht damit das CPU-Kriterium,
+aber vorerst nicht das festgelegte RSS-Kriterium. Die frühere frische Messung
+stammt von einem anderen, zuvor installierten Kandidaten und ersetzt diesen
+Build-3-Nachweis nicht. Die Ursache der etwa 2,3 MiB Differenz zwischen den
+beiden frischen Messungen ist noch nicht geklärt.
+
+Für den frisch gestarteten installierten **Build 4** wurde die Messung am
+selben Prozess PID 41365 wiederholt. [Teil 1](2026-09-23-idle-build4-41365-part1.json)
+und [Teil 2](2026-09-23-idle-build4-41365-part2.json) enthalten 600,079
+Sekunden Beobachtung mit sekündlichen Samples; die Lücke zwischen den Teilen
+betrug 0,071 Sekunden. Die mittlere Prozess-CPU betrug 0,0017 Prozent, das
+höchste abgetastete RSS 99.552 KiB (97,219 MiB). Beide Plan-1-Ziele sind
+auf diesem Mac für diesen frischen Build damit erfüllt. Spitzen zwischen
+Samples und andere Hardware bleiben ungemessen. Ein erster Messversuch
+desselben Builds hatte 45 Sekunden ungesampelte Zeit zwischen den Teilen;
+er ist nicht der Abnahmenachweis und liegt nur als Diagnose unter `.build/`.
+
+## Schlüsselbundzugriff über App-Builds
+
+Der installierte Build 4 nutzt weiterhin den alten API-Key-Eintrag
+`OPENAI_API_KEY`. Seine Zugriffsliste sowie die des separaten
+`FAILED_RECORDING_AUTH_KEY` enthalten einzelne Code-Hashes. Build 3 und Build 4
+hatten zwar dieselbe signierte App-Anforderung, aber unterschiedliche
+Code-Hashes. Ein selbst signierter Probeprozess konnte einen neu angelegten
+Dateischlüsselbund-Eintrag nach einem Build-Wechsel ohne erneute macOS-Freigabe
+nicht lesen. Der lokale Versuch mit der Data-Protection-Keychain scheiterte
+für diese Identität mit `errSecMissingEntitlement`. Die Probeeinträge wurden
+wieder entfernt; der echte API-Schlüssel blieb unberührt.
+
+Ein unverändert signierter Helfer in einer Test-App konnte dagegen denselben
+Probeeintrag auch nach Änderung des App-Hauptprogramms ohne weitere Freigabe
+lesen. Auf dieser Grundlage enthält der neue Quellstand einen separaten
+Schlüsselbundhelfer. Die App kopiert ihn einmal in ihren Application-Support-
+Ordner und erhält diese Datei bei späteren gewöhnlichen App-Updates. Beide
+Seiten prüfen die Signatur des jeweiligen Gegenübers; die App prüft den
+tatsächlich gestarteten Prozess vor Übergabe eines Schlüssels. Der Helfer
+akzeptiert nur die drei bestehenden Schlüsselbund-Accounts, transportiert
+Daten nur durch anonyme Pipes und protokolliert keine Geheimnisse.
+
+Der signierte Bundle-Build, `swift test`, acht Python-Tests, striktes Swift-
+Format, Shell-Syntax und die Bundle-Fehlerprüfungen bestanden. Ein signierter
+synthetischer App-Host erhielt vom echten gebündelten Helfer eine erfolgreiche
+geheimnisfreie Antwort. Der Direktaufruf des Helfers aus dem Terminal wurde
+abgewiesen; die bei der Probe angelegte Helferkopie wurde danach entfernt.
+Das belegt Signaturprüfung und Prozesskommunikation, aber noch keine
+macOS-Freigabe für die bestehenden echten Einträge. Dafür und für einen
+erneuten Zugriff nach Änderung des App-Builds ist die installierte App nötig.
+Die alte API-Key-Position wird bis zu diesem Nachweis nicht gelöscht.
+
+Der saubere Quellstand `78826a3` wurde anschließend in beiden bestehenden
+App-Pfaden installiert; beide vorherigen Bundles liegen als lokales Rollback
+unter `.build/keychain-rollback-20260923/`. Der erste Start legte eine
+signaturgeprüfte Helferkopie an. Ihr Inhalt entsprach dem im installierten
+Bundle, und macOS startete einen SecurityAgent-Zugriffsdialog für einen
+vorhandenen Eintrag. Eine Benutzerfreigabe und ein erfolgreicher Lesezugriff
+liegen noch nicht vor. Der spätere Buildskript-Fix `82de203` erhält die
+Helferkennung auch bei anonymer CI-Signatur. Der macOS-14-Job mit Offline-Tests
+und Bundle-Build sowie der macOS-15-Job mit Tests, Fehler-Fixtures und
+verifiziertem Entwicklungsarchiv bestanden auf diesem Quellstand. Diese
+CI-Ergebnisse belegen keine interaktive Schlüsselbundfreigabe.

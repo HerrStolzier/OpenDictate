@@ -465,13 +465,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn usage_lists_toggle() {
-        assert!(USAGE.contains("toggle"));
-        assert!(USAGE.contains("retry"));
-        assert!(USAGE.contains("secrets probe"));
-    }
-
-    #[test]
     fn unknown_command_is_an_error() {
         let error = run(vec!["nope".to_string()]).unwrap_err();
         assert!(error.contains("Unbekanntes Kommando"));

@@ -10,6 +10,26 @@ concurrency:
   group: swift-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  compatibility-macos-14:
+    runs-on: macos-14
+    timeout-minutes: 20
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
+      OPENDICTATE_SIGN_IDENTITY: '-'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Record actual macOS 14 toolchain
+        run: |
+          sw_vers
+          uname -m
+          xcodebuild -version
+          swift --version
+      - name: Test offline on macOS 14
+        run: swift test -Xswiftc -warnings-as-errors
+      - name: Build and verify macOS 14 bundle
+        run: ./scripts/build-app.sh
   test-and-build:
     runs-on: macos-15
     timeout-minutes: 15

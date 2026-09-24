@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
 APP="$ROOT/.build/OpenDictate.app"
 EXECUTABLE="$ROOT/.build/release/OpenDictate"
+HELPER_EXECUTABLE="$ROOT/.build/release/OpenDictateKeychainHelper"
 ICON_SOURCE="$ROOT/Assets/OpenDictateIcon.png"
 ICONSET="$ROOT/.build/OpenDictate.iconset"
 
@@ -46,8 +47,9 @@ fi
 echo "Source revision: $SOURCE_REVISION ($SOURCE_STATE)"
 
 rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Helpers"
 cp "$EXECUTABLE" "$APP/Contents/MacOS/OpenDictate"
+cp "$HELPER_EXECUTABLE" "$APP/Contents/Helpers/OpenDictateKeychainHelper"
 cp "$ICON_SOURCE" "$APP/Contents/Resources/OpenDictateIcon.png"
 
 rm -rf "$ICONSET"
@@ -121,20 +123,25 @@ clear_xattrs() {
 SIGN_IDENTITY="${OPENDICTATE_SIGN_IDENTITY:-OpenDictate Self-Signed}"
 if [[ "$SIGN_IDENTITY" == "-" ]]; then
   echo "Signing ad hoc."
-  SIGN_ARGS=(--force --deep --options runtime --sign -)
+  SIGN_ARGS=(--force --options runtime --sign -)
+  HELPER_SIGN_ARGS=(--force --options runtime --sign -)
 elif security find-identity -p codesigning 2>/dev/null | grep -qF "\"$SIGN_IDENTITY\""; then
   echo "Signing with identity: $SIGN_IDENTITY"
-  SIGN_ARGS=(--force --deep --options runtime --sign "$SIGN_IDENTITY")
+  SIGN_ARGS=(--force --options runtime --sign "$SIGN_IDENTITY")
+  HELPER_SIGN_ARGS=(--force --options runtime --sign "$SIGN_IDENTITY")
 else
   echo "WARNING: code-signing identity '$SIGN_IDENTITY' not found; falling back to ad-hoc."
   echo "         The Accessibility permission will need to be re-granted after each build."
   echo "         See docs/accessibility-signing.md to create the stable identity."
-  SIGN_ARGS=(--force --deep --options runtime --sign -)
+  SIGN_ARGS=(--force --options runtime --sign -)
+  HELPER_SIGN_ARGS=(--force --options runtime --sign -)
 fi
 
 SIGN_ARGS+=(--entitlements "$ROOT/Assets/OpenDictate.entitlements")
+HELPER_SIGN_ARGS+=(--identifier OpenDictateKeychainHelper)
 
 clear_xattrs
+codesign "${HELPER_SIGN_ARGS[@]}" "$APP/Contents/Helpers/OpenDictateKeychainHelper"
 if ! codesign "${SIGN_ARGS[@]}" "$APP" 2>/dev/null; then
   clear_xattrs
   codesign "${SIGN_ARGS[@]}" "$APP"

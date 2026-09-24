@@ -7,6 +7,7 @@
   label { display: block; margin-top: 16px; }
   input, textarea, [contenteditable], iframe { font: inherit; width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid #777; }
   textarea, [contenteditable], iframe { min-height: 90px; }
+  [contenteditable] { white-space: pre-wrap; }
 </style>
 <h1>OpenDictate Matrix Browser</h1>
 <p>Lokale künstliche Testdaten. Keine Netzwerkzugriffe, Formulare oder Speicherung.</p>
@@ -15,7 +16,7 @@
 <label for="multi">Mehrzeilige Eingabe</label>
 <textarea id="multi">Anfang. MARKIERUNG Ende.</textarea>
 <label id="rich-label">Formatierter Editor</label>
-<div contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="rich-label">Anfang. MARKIERUNG Ende.</div>
+<div id="rich" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="rich-label">Anfang. MARKIERUNG Ende.</div>
 <label for="frame">Eingebetteter Editor</label>
 <iframe id="frame" title="Eingebetteter Editor" srcdoc="<!doctype html><html lang='de'><meta charset='utf-8'><label for='inner'>Iframe Eingabe</label><textarea id='inner' style='width:90%;height:60px'>Anfang. MARKIERUNG Ende.</textarea></html>"></iframe>
 <label for="protected">Passwortfeld</label>
@@ -36,42 +37,240 @@
 <select id="verify-target">
   <option value="multi">Mehrzeilige Eingabe</option>
   <option value="single">Einzeilige Eingabe</option>
+  <option value="rich">contenteditable</option>
   <option value="frame">Iframe Eingabe</option>
 </select>
-<button id="remember" type="button">Referenz aus Cursor und Auswahl vorbereiten</button>
+<label for="position">Cursor oder Auswahl</label>
+<select id="position">
+  <option value="start">Anfang</option>
+  <option value="middle">Mitte (nach „Anfang. “)</option>
+  <option value="end">Ende</option>
+  <option value="selection">Auswahl („Ende.“ oder „MARKIERUNG“)</option>
+</select>
+<button id="reset-field" type="button">Ausgangstext zurücksetzen</button>
+<button id="prepare-position" type="button">Position setzen und Feld fokussieren</button>
+<button id="remember" type="button">Referenz speichern und Feld fokussieren</button>
 <button id="verify" type="button">Ergebnis exakt vergleichen</button>
 <output id="comparison" aria-live="polite">Noch keine Referenz vorbereitet.</output>
+<button id="diagnose-nfc" type="button">Separater NFC-Diagnosevergleich</button>
+<output id="nfc-comparison" aria-live="polite">NFC-Diagnose noch nicht ausgeführt.</output>
 </section>
 <script>
   // A local acceptance fixture only: no network, storage or clipboard access.
   const sample = 'Äpfel 🍏 und Grüße.\nZweite Zeile: e\u0301, 👩🏽‍💻.';
+  const baselines = {
+    single: 'Anfang. Ende.',
+    multi: 'Anfang. MARKIERUNG Ende.',
+    rich: 'Anfang. MARKIERUNG Ende.',
+    frame: 'Anfang. MARKIERUNG Ende.'
+  };
   let reference;
-  document.getElementById('remember').addEventListener('click', () => {
-    const id = document.getElementById('verify-target').value;
+  const targetControl = document.getElementById('verify-target');
+  const positionControl = document.getElementById('position');
+  const probeControl = document.getElementById('probe');
+  const comparison = document.getElementById('comparison');
+  const nfcComparison = document.getElementById('nfc-comparison');
+
+  function selectedField(id = targetControl.value) {
+    if (!Object.hasOwn(baselines, id)) throw new Error('Unbekanntes Vergleichsfeld.');
     const field = id === 'frame'
-      ? document.getElementById('frame').contentDocument.getElementById('inner')
+      ? document.getElementById('frame').contentDocument?.getElementById('inner')
       : document.getElementById(id);
+    if (!field) throw new Error('Das ausgewählte Testfeld ist nicht verfügbar.');
+    return field;
+  }
+
+  function visibleText(id, field) {
+    return id === 'rich' ? field.innerText : field.value;
+  }
+
+  function resetText(id, field) {
+    if (id === 'rich') field.textContent = baselines[id];
+    else field.value = baselines[id];
+  }
+
+  function expectedBounds(id, position) {
+    const length = baselines[id].length;
+    if (position === 'start') return {start: 0, end: 0};
+    if (position === 'end') return {start: length, end: length};
+    if (position === 'middle') return {start: 8, end: 8};
+    if (position === 'selection') {
+      return {start: 8, end: id === 'single' ? length : 18};
+    }
+    throw new Error('Unbekannte Cursor- oder Auswahlposition.');
+  }
+
+  function validateBounds(bounds, length) {
+    if (!Number.isInteger(bounds.start) || !Number.isInteger(bounds.end)
+      || bounds.start < 0 || bounds.start > bounds.end || bounds.end > length) {
+      throw new Error('Cursor oder Auswahl liegt außerhalb des Ausgangstexts.');
+    }
+  }
+
+  function setContentEditableBounds(field, bounds) {
+    if (field.childNodes.length !== 1 || field.firstChild.nodeType !== Node.TEXT_NODE) {
+      throw new Error('contenteditable unterstützt hier nur den kontrollierten einfachen Ausgangstext.');
+    }
+    const document = field.ownerDocument;
+    const selection = document.getSelection();
+    if (!selection) throw new Error('Die contenteditable-Auswahl ist nicht verfügbar.');
+    const range = document.createRange();
+    range.setStart(field.firstChild, bounds.start);
+    range.setEnd(field.firstChild, bounds.end);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  function setBounds(id, field, bounds) {
+    validateBounds(bounds, baselines[id].length);
+    field.focus();
+    if (id === 'rich') setContentEditableBounds(field, bounds);
+    else field.setSelectionRange(bounds.start, bounds.end);
+  }
+
+  function readBounds(id, field) {
+    if (id !== 'rich') {
+      const bounds = {start: field.selectionStart, end: field.selectionEnd};
+      validateBounds(bounds, baselines[id].length);
+      return bounds;
+    }
+    if (field.childNodes.length !== 1 || field.firstChild.nodeType !== Node.TEXT_NODE) {
+      throw new Error('contenteditable hat nicht mehr den kontrollierten einfachen Textaufbau.');
+    }
+    const selection = field.ownerDocument.getSelection();
+    if (!selection || selection.rangeCount !== 1) {
+      throw new Error('Keine eindeutige contenteditable-Auswahl im Zielfeld.');
+    }
+    const range = selection.getRangeAt(0);
+    if (range.startContainer !== field.firstChild || range.endContainer !== field.firstChild) {
+      throw new Error('Die Auswahl liegt nicht vollständig im gewählten contenteditable-Feld.');
+    }
+    const bounds = {start: range.startOffset, end: range.endOffset};
+    validateBounds(bounds, baselines[id].length);
+    return bounds;
+  }
+
+  function clearReference(message) {
+    reference = undefined;
+    comparison.textContent = message;
+    nfcComparison.textContent = 'NFC-Diagnose noch nicht ausgeführt.';
+  }
+
+  function probeText() {
     const mode = document.getElementById('probe').value;
-    const text = mode === 'long' ? Array(600).fill(sample).join(' ')
+    return mode === 'long' ? Array(600).fill(sample).join(' ')
       : mode === 'single' ? sample.replace('\n', ' ')
       : mode === 'lines' ? 'Erste\n\nZweite\n\nDritte' : sample;
-    const start = field.selectionStart;
-    const end = field.selectionEnd;
-    reference = {field, expected: field.value.slice(0, start) + text + field.value.slice(end)};
-    document.getElementById('comparison').textContent =
-      `Referenz bereit: ${reference.expected.length} UTF-16-Einheiten; Auswahl ${start}–${end}.`;
-    field.focus();
-    field.setSelectionRange(start, end);
+  }
+
+  function referenceField() {
+    if (!reference) throw new Error('Keine Referenz gespeichert; Vergleich nicht möglich.');
+    if (targetControl.value !== reference.id || selectedField(reference.id) !== reference.field) {
+      throw new Error('Das Vergleichsfeld wurde gewechselt; Referenz neu speichern.');
+    }
+    return reference.field;
+  }
+
+  document.getElementById('reset-field').addEventListener('click', () => {
+    try {
+      const id = targetControl.value;
+      const field = selectedField(id);
+      resetText(id, field);
+      clearReference('Ausgangstext zurückgesetzt; noch keine Referenz gespeichert.');
+      setBounds(id, field, {start: 0, end: 0});
+      comparison.textContent = 'Ausgangstext zurückgesetzt; Zielfeld fokussiert.';
+    } catch (error) {
+      clearReference(`Vorbereitung abgebrochen: ${error.message}`);
+    }
   });
+
+  document.getElementById('prepare-position').addEventListener('click', () => {
+    try {
+      const id = targetControl.value;
+      const field = selectedField(id);
+      if (visibleText(id, field) !== baselines[id]) {
+        throw new Error('Ausgangstext stimmt nicht; zuerst das Feld zurücksetzen.');
+      }
+      const bounds = expectedBounds(id, positionControl.value);
+      validateBounds(bounds, baselines[id].length);
+      clearReference('Position gesetzt; noch keine Referenz gespeichert.');
+      setBounds(id, field, bounds);
+      comparison.textContent = `Position ${positionControl.selectedOptions[0].text} gesetzt; Auswahl ${bounds.start}–${bounds.end}.`;
+    } catch (error) {
+      clearReference(`Vorbereitung abgebrochen: ${error.message}`);
+    }
+  });
+
+  document.getElementById('remember').addEventListener('click', () => {
+    try {
+      const id = targetControl.value;
+      const field = selectedField(id);
+      if (visibleText(id, field) !== baselines[id]) {
+        throw new Error('Ausgangstext stimmt nicht; zuerst zurücksetzen und Position setzen.');
+      }
+      const bounds = readBounds(id, field);
+      const wantedBounds = expectedBounds(id, positionControl.value);
+      if (bounds.start !== wantedBounds.start || bounds.end !== wantedBounds.end) {
+        throw new Error('Cursor oder Auswahl stimmt nicht mit der gewählten Position überein.');
+      }
+      const text = probeText();
+      const baseline = baselines[id];
+      reference = {
+        id,
+        field,
+        position: positionControl.value,
+        probe: probeControl.value,
+        expected: baseline.slice(0, bounds.start) + text + baseline.slice(bounds.end)
+      };
+      setBounds(id, field, bounds);
+      comparison.textContent = `Referenz gespeichert: ${reference.expected.length} UTF-16-Einheiten; Auswahl ${bounds.start}–${bounds.end}. Zielfeld fokussiert.`;
+      nfcComparison.textContent = 'NFC-Diagnose noch nicht ausgeführt.';
+    } catch (error) {
+      clearReference(`Referenz nicht gespeichert: ${error.message}`);
+    }
+  });
+
   document.getElementById('verify').addEventListener('click', () => {
-    if (!reference) return;
-    const actual = reference.field.value;
-    const expected = reference.expected;
-    let mismatch = 0;
-    while (mismatch < Math.min(actual.length, expected.length) && actual[mismatch] === expected[mismatch]) mismatch++;
-    document.getElementById('comparison').textContent = actual === expected
-      ? `EXAKT: ${actual.length} UTF-16-Einheiten stimmen vollständig überein.`
-      : `ABWEICHUNG: Ist ${actual.length}, Soll ${expected.length} UTF-16-Einheiten; erste Abweichung bei ${mismatch}.`;
+    try {
+      const id = reference?.id;
+      const field = referenceField();
+      if (positionControl.value !== reference.position || probeControl.value !== reference.probe) {
+        throw new Error('Position oder Prüftext wurde gewechselt; Referenz neu speichern.');
+      }
+      const actual = visibleText(id, field);
+      const expected = reference.expected;
+      let mismatch = 0;
+      while (mismatch < Math.min(actual.length, expected.length) && actual[mismatch] === expected[mismatch]) mismatch++;
+      comparison.textContent = actual === expected
+        ? `EXAKT: ${actual.length} UTF-16-Einheiten stimmen vollständig überein.`
+        : `ABWEICHUNG: Ist ${actual.length}, Soll ${expected.length} UTF-16-Einheiten; erste Abweichung bei ${mismatch}.`;
+    } catch (error) {
+      comparison.textContent = `Vergleich nicht möglich: ${error.message}`;
+    }
   });
+
+  document.getElementById('diagnose-nfc').addEventListener('click', () => {
+    try {
+      const id = reference?.id;
+      const field = referenceField();
+      if (positionControl.value !== reference.position || probeControl.value !== reference.probe) {
+        throw new Error('Position oder Prüftext wurde gewechselt; Referenz neu speichern.');
+      }
+      const actual = visibleText(id, field);
+      const rawEqual = actual === reference.expected;
+      const nfcEqual = actual.normalize('NFC') === reference.expected.normalize('NFC');
+      nfcComparison.textContent = nfcEqual
+        ? rawEqual
+          ? 'NFC-DIAGNOSE: NFC gleich; der Rohvergleich ist EXAKT.'
+          : 'NFC-DIAGNOSE: kanonisch gleich; die Rohabweichung bleibt ABWEICHUNG.'
+        : 'NFC-DIAGNOSE: auch nach NFC verschieden; der Rohvergleich bleibt maßgeblich.';
+    } catch (error) {
+      nfcComparison.textContent = `NFC-Diagnose nicht möglich: ${error.message}`;
+    }
+  });
+
+  for (const control of [targetControl, positionControl, probeControl]) {
+    control.addEventListener('change', () => clearReference('Auswahl geändert; Referenz neu vorbereiten.'));
+  }
 </script>
 </html>

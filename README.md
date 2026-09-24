@@ -1,7 +1,8 @@
 # OpenDictate
 
-Native dictation for macOS 14 and newer: press a shortcut, speak, then work with
-text in your chosen application. OpenDictate uses your own OpenAI API key.
+Native dictation for Apple Silicon Macs with macOS 14 and newer: press a
+shortcut, speak, then work with text in your chosen application. This is the
+scope of the planned first public Mac release. OpenDictate uses your own OpenAI API key.
 Audio is sent to OpenAI over HTTPS; transcription incurs separate API charges.
 
 ## First dictation
@@ -16,7 +17,7 @@ for later testing. To build from source, use Swift 6 on macOS:
 open .build/OpenDictate.app
 ```
 
-1. Open the menu bar panel. If a key is missing, choose **API-Schlüssel einrichten**
+1. Open the menu bar panel. If a key is missing, choose **Schlüssel eingeben**
    to open the Keychain-backed dialog directly. Saving a key does not start a
    recording or make a paid request.
 2. Choose your microphone and language in **Einstellungen**. Allow microphone
@@ -31,6 +32,15 @@ open .build/OpenDictate.app
 The API key is stored in the macOS Keychain. Never put it in a command, environment
 variable, checked-in file or log. A missing, invalid or inaccessible key receives
 an actionable message; the key dialog supports normal macOS editing shortcuts.
+If macOS asks whether **OpenDictateKeychainHelper** may access an existing
+Keychain item, verify the request and choose **Always Allow** for that item.
+The helper is installed once in OpenDictate's Application Support directory and
+kept unchanged across ordinary app updates. The API key and the recovery key
+are separate items, so each existing item may need its own initial approval.
+Enter the Mac password only in the macOS dialog. Do not enable access for all
+applications. Replacing the helper or signing identity can require approval
+again; the separate code-signing private key must retain its restricted access
+([development signing](docs/accessibility-signing.md#create-a-local-development-identity)).
 See [privacy and retention](PRIVACY.md) and the
 [current evidence and limitations](docs/remaining-acceptance.md).
 
@@ -73,7 +83,10 @@ Changes apply to the next dictation, no restart needed.
   price next to each.
 - **Language** — Auto, German, or English. Auto lets the API detect it.
 - **Vokabular und Kontext** — local prompt setting (up to 2,000 characters in the editor), sent with each dictation. A stored value overrides the legacy environment variable.
-- **Automatisch einfügen** — disable for clipboard-only delivery. Switching foreground applications while a dictation is processing causes a clipboard-only fallback.
+- **Automatisch einfügen** — disable for clipboard-only delivery. At delivery,
+  the app captured when dictation began is brought forward if it is still
+  running. Paste uses whichever field is then focused there. If that app cannot
+  be verified as frontmost, the transcript remains on the clipboard.
 - **Letzten Text erneut kopieren** — recovers the last transcript without another API request. It is kept in RAM only and can be cleared.
 - Saved recordings can be retried or deleted individually. Retry is disabled during recording and processing.
 
@@ -91,7 +104,9 @@ the menu uploads it again. Recordings are authenticated with a device-local
 Keychain secret before retry. Managed recovery files are limited to five and
 expire after 24 hours. Pruning runs at launch, after every keep and periodically
 while the app is open; expired recordings cannot be retried. Files can remain on
-disk while the app is closed. Temporary originals preserved after a failed
+disk while the app is closed or if macOS denies deletion. In that case the app
+logs the failure and retains the authentication file alongside the audio.
+Temporary originals preserved after a failed
 recovery write and historical crash leftovers are outside that managed store;
 see [PRIVACY.md](PRIVACY.md#last-transcript-and-temporary-originals). A retry deletes
 the file only after a non-empty transcript has reached the clipboard. Clipboard

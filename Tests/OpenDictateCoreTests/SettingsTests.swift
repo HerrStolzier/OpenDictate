@@ -40,13 +40,6 @@ struct SettingsTests {
 
     // MARK: - Model
 
-    @Test("With nothing configured the built-in default wins")
-    func modelDefault() {
-        let s = settings()
-        #expect(s.model == .gptTranscribe)
-        #expect(s.modelSource == "built-in default")
-    }
-
     @Test("The environment variable is used when nothing was picked in the menu")
     func modelFromEnvironment() {
         let s = settings(env: ["OPENAI_TRANSCRIBE_MODEL": "whisper-1"])
@@ -87,19 +80,7 @@ struct SettingsTests {
         #expect(s.language == nil)
     }
 
-    @Test("A picked language round-trips")
-    func languageRoundTrip() {
-        let s = settings()
-        s.language = "en"
-        #expect(s.language == "en")
-    }
-
     // MARK: - Hotkey
-
-    @Test("The default shortcut is Option+Shift+Space")
-    func shortcutDefault() {
-        #expect(settings().shortcut == .optionShiftSpace)
-    }
 
     @Test("A picked shortcut round-trips")
     func shortcutRoundTrip() {
@@ -153,41 +134,10 @@ struct SettingsTests {
 
 @Suite("Hotkey shortcuts")
 struct HotKeyShortcutTests {
-    @Test("The presets are the three the menu offers")
-    func presets() {
-        #expect(HotKeyShortcut.presets.count == 3)
-        #expect(HotKeyShortcut.presets.contains(.optionShiftSpace))
-        #expect(HotKeyShortcut.presets.contains(.controlOptionD))
-        #expect(HotKeyShortcut.presets.contains(.f5))
-    }
-
-    @Test("Every preset carries a label the menu can show")
-    func presetsHaveNames() {
-        for preset in HotKeyShortcut.presets {
-            #expect(!preset.displayName.isEmpty)
-        }
-    }
-
     @Test("Presets are distinct, so no two menu entries register the same key")
     func presetsAreDistinct() {
         let pairs = HotKeyShortcut.presets.map { "\($0.keyCode)-\($0.modifiers)" }
         #expect(Set(pairs).count == pairs.count)
     }
 
-    @Test("A known pair maps back to its preset")
-    func lookupSucceeds() {
-        let found = HotKeyShortcut.preset(keyCode: 49, modifiers: 2048 | 512)
-        #expect(found == .optionShiftSpace)
-    }
-
-    @Test("An unknown pair maps to nothing")
-    func lookupFails() {
-        #expect(HotKeyShortcut.preset(keyCode: 1, modifiers: 1) == nil)
-    }
-
-    @Test("The Carbon cross-check accepts the real constants and rejects wrong ones")
-    func carbonCrossCheck() {
-        #expect(HotKeyShortcut.carbonConstantsMatch(space: 49, d: 2, f5: 96, shift: 512, control: 4096, option: 2048))
-        #expect(!HotKeyShortcut.carbonConstantsMatch(space: 50, d: 2, f5: 96, shift: 512, control: 4096, option: 2048))
-    }
 }

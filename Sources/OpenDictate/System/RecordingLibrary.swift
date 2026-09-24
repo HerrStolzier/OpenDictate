@@ -37,7 +37,6 @@ actor RecordingLibrary {
     func delete(filename: String) {
         guard FailedRecordingStore.isExpectedFilename(filename) else { return }
         let url = FailedRecordingStore.directory.appendingPathComponent(filename)
-        _ = FailedRecordingStore.unlinkFile(url)
-        _ = FailedRecordingStore.unlinkFile(url.appendingPathExtension("auth"))
+        _ = FailedRecordingStore.removeAudioAndAuthentication(at: url)
     }
 }

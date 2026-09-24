@@ -16,8 +16,15 @@ git diff --check
 ```
 
 CI uses the same strict formatting, warnings-as-errors tests and six shell
-syntax checks. It records the macOS, architecture, Swift and formatter versions
-so runner updates are visible without changing the selected toolchain. Its
+syntax checks on macOS 15. A separate macOS 14 Apple-Silicon job selects the
+runner's Xcode 16.2 and runs the offline Swift tests plus an ad-hoc bundle
+build and verification. This is a native macOS 14 runtime check, but cannot
+exercise microphone, permission dialogs, VoiceOver or target-field insertion
+without an interactive desktop. [GitHub plans to retire the macOS-14 runner
+on 2 November 2026](https://github.com/actions/runner-images/issues/13518),
+with temporary brownouts in October; this gate needs another host before then. CI
+records the macOS, architecture, Swift and formatter versions so runner
+updates are visible without changing the selected toolchain. Its
 whitespace check compares the checked-out commit with its first parent
 (`git diff --check HEAD^ HEAD`); on pull requests this covers the merge diff
 against the base branch. Local `git diff --check` checks uncommitted edits.
@@ -39,8 +46,8 @@ For release or packaging changes, additionally run `./scripts/build-app.sh` and
 verify the generated Plist and signature. A build does not prove microphone,
 target-field delivery, VoiceOver, installation or publication.
 The build calls `scripts/verify-app.sh`, which checks the final signed bundle's
-Hardened Runtime flag and boolean `com.apple.security.device.audio-input`
-entitlement. Run `./scripts/verify-app.sh /path/to/OpenDictate.app` to repeat
+Hardened Runtime flag, boolean `com.apple.security.device.audio-input`
+entitlement and signed Keychain helper. Run `./scripts/verify-app.sh /path/to/OpenDictate.app` to repeat
 these checks without rebuilding or launching. A missing or false entitlement
 must fail verification, even when the signature itself is valid.
 
@@ -53,7 +60,7 @@ bash scripts/tests/test-verify-app.sh .build/OpenDictate.app
 
 The fixtures use temporary copies and ad-hoc signing. They verify rejection of
 missing, false and wrongly typed audio-input entitlements, missing Hardened
-Runtime and broken signatures. The original bundle must remain unchanged. The
+Runtime, a missing Keychain helper and broken signatures. The original bundle must remain unchanged. The
 tests do not launch the app, access a microphone or change a user's signing
 identity, Keychain or permissions. CI runs them before packaging its development
 archive and verifies the archive again after extraction.
@@ -81,6 +88,9 @@ argument or environment variable.
 
 ## Meaning of checks
 
+The rationale for the retained and removed isolated tests is recorded in
+[`docs/test-signal-audit.md`](docs/test-signal-audit.md).
+
 - `swift test -Xswiftc -warnings-as-errors`: offline logic, lifecycle, HTTP stubs, recovery, logging and synthetic audio-file tests, with compiler warnings treated as failures. Optional benchmark and live API test are skipped by default.
 - `python3 -m unittest discover ...`: offline regression tests for the transcript evaluator and process sampler, including output-file preservation.
 - `swift format lint --strict --configuration .swift-format --recursive Sources Tests Package.swift`: project formatting; lint warnings cause a failed check.
@@ -94,9 +104,13 @@ argument or environment variable.
   exercise cancellation, delayed permission results and quit/drain ordering. They
   do not execute native permission dialogs or prove microphone/device behavior.
 - The API-key tests inject Keychain results without accessing the real Keychain.
-  For a legacy API-key item, save the key through the in-app dialog and inspect
-  or test the new item's ACL separately. If legacy cleanup reports a warning,
-  saving again retries it; never use a real credential in automated checks.
+  The installed signed helper is kept unchanged across ordinary app rebuilds.
+  Verify the actual legacy API-key and recovery-key reads after their one-time
+  macOS approvals, then verify both again after changing only the main app
+  build. The offline signed-host ping checks identity and IPC without reading a
+  credential; it does not prove the real Keychain ACL. If legacy cleanup reports
+  a warning, saving again retries it; never use a real credential in automated
+  checks.
 
 ## Explicit live API check
 
@@ -180,11 +194,33 @@ file integrity before/after; do not delete recordings created by the user.
 
 ## Repräsentative Kompatibilitätsabnahme
 
+Before extending the isolated fixtures, account for these failure cases:
+
+- No saved reference must be reported as unavailable, never as a pass or a
+  result left over from an earlier field.
+- A missing field, out-of-bounds selection, selection outside the chosen field,
+  or a changed field choice must be rejected before comparison.
+- Compare the entire resulting field so lost or duplicated text before or after
+  the insertion is reported.
+- Cover multiline separators, supplementary and joined emoji, and a combining
+  accent. Mismatches must report raw UTF-16 lengths and the first differing
+  offset; contenteditable comparisons must use its visible line breaks.
+- A canonical NFC match after a raw mismatch is diagnostic only. It must remain
+  an `ABWEICHUNG`, never become `EXAKT`.
+- Preparation must modify only the selected controlled fixture field, reset it
+  to its known harmless baseline, and set a validated caret or range. It must
+  never write the expected probe into that field; result comparison is read-only.
+- The preview minimum-width action must resize and show only the actual preview
+  panel at its declared `window.minSize.width`, preserving its height and
+  position where possible and leaving other app and user windows unchanged.
 `./script/build_and_run.sh --matrix-host` starts controlled native test fields.
 `./script/build_and_run.sh --matrix-fixture` runs the production flow and inserter
 with fixed artificial text and the general clipboard, restored on exit only if
 it still contains the fixture's value. Choose the exact target
 app; only its foreground window with an `OpenDictate Matrix` title qualifies.
+For Safari's local file fixture, the exact `AXURL` of
+`scripts/fixtures/delivery-matrix.html` also qualifies when Safari exposes no
+window title.
 The fixture has no microphone, provider, Keychain, preference or recovery access.
 Its build reuses the existing local signing identity; it does not grant TCC access.
 The “Nur Ziel prüfen” option reports the actual `NSWorkspace` foreground app and
@@ -227,9 +263,18 @@ does not prove visible insertion in a real editor.
 Use [the compatibility matrix](docs/compatibility-matrix.md) for product-facing
 acceptance. Exercise native fields, browser `input`/`textarea`, `contenteditable`,
 an editable iframe and an Electron field with controlled non-sensitive content.
-In the HTML fixture, load its reference probe and use the built-in comparator;
-an `EXAKT` result means the complete value and selection replacement match in
-UTF-16 units, including surrogate pairs, line breaks and trailing whitespace.
+In the HTML fixture, choose a comparison field, reset its known harmless
+starting text, set a caret or selection, and save the reference before the
+production-fixture action. Preparation modifies only that selected field; it
+never inserts the expected probe. The comparator accepts `input`, `textarea`,
+the inner `iframe` textarea and the fixture's plain-text `contenteditable`.
+For `contenteditable` it reads visible `innerText` line breaks and deliberately
+supports only the fixture's single-text-node baseline, not general rich text.
+`EXAKT` means the complete resulting string matches in raw UTF-16 units,
+including the surrounding text, surrogate pairs, line breaks and trailing
+whitespace. The separate NFC diagnostic never changes a raw `ABWEICHUNG` into
+`EXAKT`; comparison itself is read-only. It does not check the final caret
+position.
 For each relevant category check cursor positions, selection replacement,
 multiline Unicode and app/window/tab switches during recording and processing.
 Observe whether Paste reaches a different field in the original application.

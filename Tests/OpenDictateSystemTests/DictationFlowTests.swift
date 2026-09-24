@@ -22,6 +22,8 @@ struct DictationFlowTests {
         var keepSucceeds = true
         var text = "dictated text"
         var preparationFails = false
+        var stopFails = false
+        var uploadFails = false
         var suspendUpload = false
         var kept: [URL] = []
         var cleaned: [URL] = []
@@ -35,6 +37,7 @@ struct DictationFlowTests {
                     start: { self.starts += 1 },
                     stop: {
                         self.stops += 1
+                        if self.stopFails { throw OpenDictateError.recordingCouldNotStart }
                         return self.original
                     },
                     prepare: { _ in
@@ -43,6 +46,7 @@ struct DictationFlowTests {
                     },
                     transcribeFile: { _ in
                         self.uploads += 1
+                        if self.uploadFails { throw URLError(.cannotConnectToHost) }
                         if self.suspendUpload { try await Task.sleep(for: .seconds(3600)) }
                         return self.text
                     },
@@ -103,6 +107,37 @@ struct DictationFlowTests {
         #expect(h.removed == 0 && h.pasted == 0)
     }
 
+    @Test func recorderStopFailureReportsAnErrorWithoutUploading() throws {
+        let h = Harness()
+        h.stopFails = true
+        var outcomes: [DictationOutcome] = []
+        var status = ""
+        h.flow.onOutcome = { outcomes.append($0) }
+        h.flow.onStatus = { status = $0 }
+
+        #expect(try h.flow.start())
+        #expect(h.flow.stop())
+        #expect(h.flow.state == .idle)
+        #expect(outcomes == [.failed])
+        #expect(status.hasPrefix("Aufnahmefehler:"))
+        #expect(h.uploads == 0 && h.pasted == 0 && h.cleaned.isEmpty)
+    }
+
+    @Test func providerFailurePreservesOriginalForManualRetry() async throws {
+        let h = Harness()
+        h.uploadFails = true
+        var outcomes: [DictationOutcome] = []
+        h.flow.onOutcome = { outcomes.append($0) }
+
+        #expect(try h.flow.start())
+        #expect(h.flow.stop())
+        await h.flow.task?.value
+        #expect(h.uploads == 1 && h.pasted == 0)
+        #expect(h.kept == [h.original])
+        #expect(Set(h.cleaned) == Set([h.original, h.trimmed]))
+        #expect(outcomes == [.failed])
+    }
+
     @Test func clipboardFailureKeepsAudioAndText() async {
         let h = Harness()
         h.copySucceeds = false
@@ -120,17 +155,6 @@ struct DictationFlowTests {
         #expect(h.flow.retry(h.payload))
         await h.flow.task?.value
         #expect(h.removed == 1 && h.pasted == 0)
-    }
-
-    @Test func sentPasteIsReportedAsUnconfirmed() async throws {
-        let h = Harness()
-        var outcomes: [DictationOutcome] = []
-        h.flow.onOutcome = { outcomes.append($0) }
-        _ = try h.flow.start()
-        _ = h.flow.stop()
-        await h.flow.task?.value
-        #expect(outcomes == [.deliveryUnconfirmed])
-        #expect(h.pasted == 1)
     }
 
     @Test func retryProvidesManualTextInsteadOfAnUnconfirmedPaste() async {

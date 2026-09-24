@@ -1,0 +1,40 @@
+{
+  "candidate": "57f7a06",
+  "time": "2026-09-24T21:58:05.375358+02:00",
+  "scope": "Synthetic text through production DictationFlow/PasteboardInserter; no microphone/provider",
+  "browser": {
+    "pid": 712,
+    "window_id": 41
+  },
+  "fixture": {
+    "pid": 89259,
+    "window_id": 5875
+  },
+  "mode": "production global CGEvent; diagnostic option removed",
+  "controls": {
+    "Prüftext": "Einzeilige Unicode-Probe",
+    "Vergleichsfeld": "Einzeilige Eingabe",
+    "Cursor oder Auswahl": "Anfang"
+  },
+  "baseline_fields": {
+    "Einzeilige Eingabe": "Anfang. Ende.",
+    "Mehrzeilige Eingabe": "Anfang. Äpfel 🍏 und Grüße.\nZweite Zeile: é, 👩🏽‍💻. Ende.",
+    "Formatierter Editor": "Anfang. Äpfel 🍏 und Grüße.\nZweite Zeile: é, 👩🏽‍💻.MARKIERUNG Ende.",
+    "Iframe Eingabe": "Anfang. Äpfel 🍏 und Grüße.\nZweite Zeile: é, 👩🏽‍💻. Ende."
+  },
+  "reference": [
+    "Referenz gespeichert: 59 UTF-16-Einheiten; Auswahl 0–0. Zielfeld fokussiert."
+  ],
+  "fixture_result": [
+    "Ergebnis: deliveryUnconfirmed; Test-Zwischenablage vollständig: true\nApp erfasst: com.brave.Browser; normales Einfügen über ⌘V."
+  ],
+  "expected": "Äpfel 🍏 und Grüße. Zweite Zeile: é, 👩🏽‍💻.Anfang. Ende.",
+  "actual": "Äpfel 🍏 und Grüße. Zweite Zeile: é, 👩🏽‍💻.Anfang. Ende.",
+  "raw_equal": true,
+  "nfc_equal": true,
+  "comparison": [
+    "EXAKT: 59 UTF-16-Einheiten stimmen vollständig überein.",
+    "NFC-DIAGNOSE: NFC gleich; der Rohvergleich ist EXAKT."
+  ],
+  "other_fields_unchanged": true
+}

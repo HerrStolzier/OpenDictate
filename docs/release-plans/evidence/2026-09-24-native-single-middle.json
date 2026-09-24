@@ -1,0 +1,14 @@
+{
+  "case": "native single: insertion before Ende.",
+  "source": "523cbd2",
+  "target": "Matrix Eingabe A",
+  "expected": "Anfang. Äpfel 🍏 und Grüße. Zweite Zeile: é, 👩🏽‍💻.Ende.",
+  "actual": "Anfang. Äpfel 🍏 und Grüße. Zweite Zeile: é, 👩🏽‍💻.Ende.",
+  "exact": true,
+  "utf16_units": 59,
+  "other_fields": {
+    "Matrix Eingabe B": "Unverändert.",
+    "Matrix Nur Lesen": "Schreibgeschützt.",
+    "Matrix Mehrzeilig": "Anfang. MARKIERUNG Ende."
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "candidate": "57f7a06",
+  "time": "2026-09-24T22:05:18.482452+02:00",
+  "scope": "Own Obsidian Live Preview note; synthetic production flow and global paste; no microphone/provider",
+  "browser": {
+    "pid": 719,
+    "window_id": 5963
+  },
+  "fixture": {
+    "pid": 89259,
+    "window_id": 5875
+  },
+  "baseline": "Anfang. MARKIERUNG Ende.",
+  "selection_utf16": [
+    8,
+    18
+  ],
+  "expected": "Anfang. Äpfel 🍏 und Grüße.\nZweite Zeile: é, 👩🏽‍💻. Ende.",
+  "actual_ax": "Anfang. Äpfel 🍏 und Grüße.\nZweite Zeile: é, 👩🏽‍💻. Ende.",
+  "saved_note": "Anfang. Äpfel 🍏 und Grüße.\nZweite Zeile: é, 👩🏽‍💻. Ende.",
+  "raw_equal": true,
+  "saved_equal": true,
+  "nfc_equal": true,
+  "fixture_result": [
+    "Ergebnis: deliveryUnconfirmed; Test-Zwischenablage vollständig: true\nApp erfasst: md.obsidian; normales Einfügen über ⌘V."
+  ],
+  "initial_file_observation": "Anfang. MARKIERUNG Ende."
+}

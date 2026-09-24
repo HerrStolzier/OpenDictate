@@ -1,0 +1,14 @@
+{
+  "case": "native multiline: insertion before MARKIERUNG",
+  "source": "523cbd2",
+  "target": "Matrix Mehrzeilig",
+  "expected": "Anfang. Äpfel 🍏 und Grüße.\nZweite Zeile: é, 👩🏽‍💻.MARKIERUNG Ende.",
+  "actual": "Anfang. Äpfel 🍏 und Grüße.\nZweite Zeile: é, 👩🏽‍💻.MARKIERUNG Ende.",
+  "exact": true,
+  "utf16_units": 70,
+  "other_fields": {
+    "Matrix Eingabe A": "Anfang. Äpfel 🍏 und Grüße. Zweite Zeile: é, 👩🏽‍💻.Ende.",
+    "Matrix Eingabe B": "Unverändert.",
+    "Matrix Nur Lesen": "Schreibgeschützt."
+  }
+}

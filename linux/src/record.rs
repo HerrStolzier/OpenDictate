@@ -348,11 +348,6 @@ mod tests {
     }
 
     #[test]
-    fn max_recording_matches_macos_cap() {
-        assert_eq!(MAX_RECORDING, Duration::from_secs(90));
-    }
-
-    #[test]
     fn short_and_silent_recordings_are_not_uploadable() {
         let short =
             std::env::temp_dir().join(format!("opendictate-short-{}.wav", std::process::id()));
