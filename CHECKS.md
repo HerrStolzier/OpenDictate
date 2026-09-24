@@ -213,23 +213,6 @@ Before extending the isolated fixtures, account for these failure cases:
 - The preview minimum-width action must resize and show only the actual preview
   panel at its declared `window.minSize.width`, preserving its height and
   position where possible and leaving other app and user windows unchanged.
-- The isolated PID-targeted paste diagnostic must default off and apply only to
-  the current synthetic fixture run. If no accepted target was captured, it
-  must fail closed without posting or falling back to the global event tap.
-- Its PID must come from the actual `NSRunningApplication` captured after the
-  expected bundle ID and local fixture window checks. A configured app choice,
-  guessed PID, or helper-process PID is not a valid target.
-- The existing accessibility-trust, running-app, frontmost-PID, clipboard-
-  contents, and cancellation guards must remain in force before the diagnostic
-  callback posts anything.
-- The diagnostic may submit only one Command-V key-down/key-up pair to that
-  captured PID. It must not retry, fall back, or send other input. Event
-  submission does not establish that the target received the events or that
-  text entered its field.
-- Its result must name the PID-targeted diagnostic route and state that the
-  result is not a production acceptance pass. Field focus, selection, and
-  insertion remain unverified by this isolated route.
-
 `./script/build_and_run.sh --matrix-host` starts controlled native test fields.
 `./script/build_and_run.sh --matrix-fixture` runs the production flow and inserter
 with fixed artificial text and the general clipboard, restored on exit only if

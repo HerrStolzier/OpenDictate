@@ -8,7 +8,7 @@
     final class DeliveryMatrixPreview: NSObject, NSApplicationDelegate {
         static let sample = "Äpfel 🍏 und Grüße.\nZweite Zeile: e\u{301}, 👩🏽‍💻."
         private let window = NSWindow(
-            contentRect: NSRect(x: 100, y: 100, width: 500, height: 610),
+            contentRect: NSRect(x: 100, y: 100, width: 500, height: 570),
             styleMask: [.titled, .closable], backing: .buffered, defer: false)
         private let panel = DictationPanel()
         private let result = NSTextField(wrappingLabelWithString: "Bereit; nur lokale Matrix-Testfenster.")
@@ -22,8 +22,6 @@
         private let start = NSButton(title: "Lokales Testfeld erfassen", target: nil, action: nil)
         private let captureOnly = NSButton(
             checkboxWithTitle: "Nur Ziel prüfen (ohne Texteingabe)", target: nil, action: nil)
-        private let targetPIDDiagnostic = NSButton(
-            checkboxWithTitle: "Diagnose: ⌘V per PID an erfasste App senden", target: nil, action: nil)
         private let targetApp = NSPopUpButton(frame: .zero, pullsDown: false)
         private let targetIDs = [
             "local.opendictate.matrixhost", "com.apple.Safari", "com.brave.Browser", "md.obsidian",
@@ -36,7 +34,6 @@
         private var fixtureClipboardChange: Int?
         private var armTask: Task<Void, Never>?
         private var simulateDelay = false
-        private var useTargetPIDDiagnostic = false
         private var progressElapsed: Double = 80
         private var sampleText = DeliveryMatrixPreview.sample
         private var captureDetail = ""
@@ -65,17 +62,7 @@
                         if copied { fixtureClipboardChange = board.changeCount }
                         return copied
                     },
-                    paste: { [unowned self] text in
-                        guard useTargetPIDDiagnostic else {
-                            return await inserter.paste(text, into: target, board: board)
-                        }
-                        guard let target else { return .notAttempted }
-                        var access = PasteboardInserter.Access.live
-                        let targetPID = target.processIdentifier
-                        access.postCommandV = { Self.postCommandV(to: targetPID) }
-                        let diagnosticInserter = PasteboardInserter(access: access)
-                        return await diagnosticInserter.paste(text, into: target, board: board)
-                    }))
+                    paste: { [unowned self] in await inserter.paste($0, into: target, board: board) }))
         }
 
         private func show() {
@@ -87,7 +74,6 @@
             }
             window.title = "OpenDictate – isolierte Übergabeprüfung"
             window.isReleasedWhenClosed = false
-            targetPIDDiagnostic.state = .off
             let stack = NSStackView()
             stack.orientation = .vertical
             stack.spacing = 12
@@ -101,8 +87,7 @@
             let progress = NSButton(title: "Aufnahmestatus simulieren", target: self, action: #selector(checkProgress))
             let inspect = NSButton(title: "Ergebnis ansehen", target: self, action: #selector(inspectResult))
             for view in [
-                targetApp, captureOnly, targetPIDDiagnostic, singleLine, longProbe, lineProbe, recordingDelay, delay,
-                start, shortcut,
+                targetApp, captureOnly, singleLine, longProbe, lineProbe, recordingDelay, delay, start, shortcut,
                 progress,
                 inspect, result, quit
             ] {
@@ -152,7 +137,6 @@
             simulateDelay = delay.state == .on
             let simulateRecording = recordingDelay.state == .on
             let inspectOnly = captureOnly.state == .on
-            useTargetPIDDiagnostic = targetPIDDiagnostic.state == .on
             sampleText = singleLine.state == .on ? Self.sample.replacingOccurrences(of: "\n", with: " ") : Self.sample
             if lineProbe.state == .on { sampleText = "Erste\r\n\r\nZweite\n\nDritte" }
             if longProbe.state == .on { sampleText = Array(repeating: sampleText, count: 600).joined(separator: " ") }
@@ -169,10 +153,7 @@
                         app.bundleIdentifier == expectedID, Self.isLocalFixture(app.processIdentifier)
                     {
                         target = app
-                        captureDetail =
-                            useTargetPIDDiagnostic
-                            ? "App erfasst: \(expectedID); PID-Diagnose mit CGEvent.postToPid; kein Produktionsnachweis."
-                            : "App erfasst: \(expectedID); regulärer Fixture-Weg mit globalem CGEvent."
+                        captureDetail = "App erfasst: \(expectedID); normales Einfügen über ⌘V."
                         if inspectOnly {
                             result.stringValue =
                                 "Vordergrund bestätigt: \(expectedID)\n\(captureDetail)\nKeine Texteingabe."
@@ -226,18 +207,6 @@
                 }
             }
             return false
-        }
-
-        private static func postCommandV(to pid: pid_t) -> Bool {
-            let virtualVKey: CGKeyCode = 0x09
-            guard let down = CGEvent(keyboardEventSource: nil, virtualKey: virtualVKey, keyDown: true),
-                let up = CGEvent(keyboardEventSource: nil, virtualKey: virtualVKey, keyDown: false)
-            else { return false }
-            down.flags = .maskCommand
-            up.flags = .maskCommand
-            down.postToPid(pid)
-            up.postToPid(pid)
-            return true
         }
 
         func applicationWillTerminate(_ notification: Notification) {
