@@ -45,12 +45,17 @@ Basti bestätigt und direkt im vorher leeren TextEdit-Testdokument verifiziert:
 „Dieser Test enthält sieben grüne Äpfel.“ Dieser Build-7-Kürzellauf ist bestanden.
 Auch „Text ansehen“ → „Text kopieren“ → manuelles ⌘V wurde mit diesem echten
 Transkript und kontrollierter vorheriger Zwischenablage erfolgreich geprüft.
+Vier synthetische native Positionen (Anfang/Mitte in ein- und mehrzeiligen
+Feldern) wurden mit den unveränderten Produktionsquellen von `523cbd2` exakt
+bestätigt; Einzelheiten stehen im
+[Fortsetzungsbericht vom 24. September](release-plans/evidence/2026-09-24-plan1-fortsetzung.md).
 Die frische Ersteinrichtung bleibt auf Bastis ausdrückliche Entscheidung als
 offene Grenze bestehen; kein neues Benutzerkonto wird dafür angelegt. Plan 1
-ist insgesamt weiter offen: fehlende Matrixfälle, reale Störfälle, gehörtes
-VoiceOver, vollständige Mindestgrößenprüfung und gemessene lokale
-Zustandswechsel sind damit nicht erledigt. Frühere bestandene Tests werden
-anhand unveränderter Produktionspfade wiederverwendet, nicht pauschal verworfen.
+ist insgesamt weiter offen: die verbleibenden Browser-/Editor-Matrixfälle,
+reale Störfälle, gehörtes VoiceOver, vollständige Mindestgrößenprüfung und die
+20 per Video zu messenden lokalen Zustandswechsel sind nicht erledigt. Frühere
+bestandene Tests werden anhand unveränderter Produktionspfade wiederverwendet,
+nicht pauschal verworfen.
 
 ## Neuer Quellcodekandidat: normaler Einfügebefehl
 
@@ -358,12 +363,16 @@ Ausgabe jedoch keinen Text; die Aufnahme blieb erhalten. Ein zweiter Lauf bei
 80 Prozent fügte den erkannten Satz automatisch sichtbar in TextEdit ein.
 Ausgabe, eingefügter Testsatz und eigene Testartefakte wurden danach
 wiederhergestellt beziehungsweise entfernt. [Einzelheiten](release-plans/evidence/2026-09-24-keychain-and-plan1.md#build-7-echter-textedit-einfügeweg).
-Das physische Kürzel auf Build 7 ist damit weiterhin offen; die fünf echten
-Kürzel-Läufe des älteren `bd3630f` bleiben getrennte Nachweise.
+Der physische Option+Shift+Space-Lauf auf Build 7 bestand anschließend ebenfalls;
+auch der echte manuelle Kopierweg und vier synthetische native Anfangs-/Mittelfälle
+bestanden, jeweils nur für ihren dokumentierten Umfang. Die fünf echten Diktate
+des älteren `bd3630f` bleiben getrennte Nachweise.
 
-Die vollständige Feld-/Fokusmatrix, Einrichtung im frischen Benutzerzustand,
-Störfälle und die vollständige UX-Prüfung am installierten Build bleiben
-offen. Bastis erste Designrückmeldung und die gewählte Richtung stehen im
+Die verbleibenden Browser-/Editor-Matrixfälle, Fokusfälle, Störfälle und die
+vollständige UX-Prüfung am installierten Build bleiben offen. Die frische
+Ersteinrichtung ist ausdrücklich als offene, akzeptierte Grenze belassen; dafür
+wird kein zusätzliches Benutzerkonto angelegt. Bastis erste Designrückmeldung
+und die gewählte Richtung stehen im
 [Plan-1-Bericht](release-plans/evidence/2026-09-23-plan1-status.md). Danach
 frühes menschliches Nutzerfeedback sammeln; die komplette
 [Kompatibilitätsmatrix](compatibility-matrix.md) bleibt das breitere Produktziel.
@@ -390,8 +399,9 @@ Verbrauchsnachweise und kein künftiges Limit.
 - Der erste Versuch mit dem vorherigen Build landete bei Brave als
   Vordergrund-App nicht in TextEdit. Die Wiederholung auf Build 7 mit
   bestätigtem TextEdit-Vordergrund fügte den Satz sichtbar ein. Das belegt den
-  Knopf-Ablauf für dieses Feld;
-  das physische Kürzel auf Build 7 bleibt offen.
+  Knopf-Ablauf für dieses Feld. Ein separater physischer Option+Shift+Space-Lauf
+  mit Build 7 bestand; beide Nachweise gelten für ihren jeweiligen Ablauf und
+  schließen die offenen Browser-/Editorfälle nicht.
 - Der erste Safari-textarea-Fallback im jüngsten historischen Zieltest bleibt
   ungeklärt, obwohl der Wiederholungsversuch bestand.
 - Eine manuelle Cursor-/Auswahlbewegung kann den Einfügeort ändern. Der neue
@@ -401,10 +411,10 @@ Verbrauchsnachweise und kein künftiges Limit.
   praktische Prüfungen. Zwei Beenden-Versuche wurden vom Provider überholt.
 - Menschliche Sprachqualität, Zahlen-/Namensfehler, Korrekturzeit und tatsächlicher
   Zeitgewinn sind offen. Die neue Fallliste enthält keine gemessenen Ergebnisse.
-- Gehörte VoiceOver-Ausgabe und die interaktive Diktatabnahme auf dem
-  vorhandenen Mac bleiben offen. Der bestandene macOS-14-CI-Lauf prüft native
-  Offline-Tests und Bundle-Build, aber keine Berechtigungen, Aufnahme oder
-  Einfügung unter macOS 14.
+- Gehörte VoiceOver-Ausgabe und die vollständige interaktive Abnahme am
+  vorhandenen Mac bleiben offen; der einzelne Build-7-TextEdit-Lauf schließt sie
+  nicht. Der bestandene macOS-14-CI-Lauf prüft native Offline-Tests und
+  Bundle-Build, aber keine Berechtigungen, Aufnahme oder Einfügung unter macOS 14.
 - Der vorhandene API-Schlüssel liegt noch im alten Account `OPENAI_API_KEY`.
   Dessen Dateischlüsselbund-Zugriffsliste enthält einzelne Build-Hashes;
   deshalb ist die frühere Freigabe nicht updatefest. Auch ein von einer lokal
