@@ -15,6 +15,12 @@ Build 7 fügte in einem [Knopf-Lauf](evidence/2026-09-24-keychain-and-plan1.md#b
 sichtbar Text in TextEdit ein. Diese Teilnachweise schließen Plan 1 nicht ab;
 ältere Kandidatenberichte gelten nicht automatisch für den jetzigen Build.
 
+**Fortsetzung am 24. September:** Basti lässt die frische Ersteinrichtung
+ausdrücklich als offene Grenze bestehen; dafür wird kein Testkonto angelegt.
+Die übrige Abnahme wird fortgesetzt. Der [aktuelle Bericht](evidence/2026-09-24-plan1-fortsetzung.md)
+enthält die bestandene Build-7-Leerlaufmessung und ordnet ältere Nachweise
+anhand unveränderter Produktionspfade ein.
+
 ## App-Design und UX
 
 Dieses Kapitel verantwortet das Produktgefühl **vor** dem Betatest. Ziel ist
@@ -67,8 +73,9 @@ Plan 3 prüft diese Kriterien bei echten Nutzern; Plan 4 prüft die endgültige
 Gestaltung am signierten Release-Kandidaten erneut. Die Zahlen für
 Reaktionszeit und Leerlaufverbrauch sind Ziele für diesen Release. Eine
 zehnminütige Leerlaufmessung bestand bereits auf dem früheren Build 4; die
-Reaktionszeit der lokalen Zustandswechsel und der Leerlauf des aktuellen
-Build 7 sind dadurch nicht belegt.
+Reaktionszeit der lokalen Zustandswechsel ist dadurch nicht belegt. Eine
+separate [Build-7-Messung](evidence/2026-09-24-plan1-fortsetzung.md#zehn-minuten-leerlauf-bestanden)
+bestand inzwischen beide Leerlaufziele.
 
 ## Arbeit
 
@@ -91,9 +98,11 @@ Build 7 sind dadurch nicht belegt.
    Feld derselben App dort den Zieltext prüfen; bei einem Appwechsel die
    Rückkehr zur Start-App prüfen. Das Verhalten wird hier abgenommen, nicht
    erneut als Produktentscheidung behandelt.
-4. Auf dem vorhandenen Apple-Silicon-Mac Einrichtung in einem kontrolliert
-   frischen lokalen Benutzerzustand mit eigenem Testschlüssel, Mikrofon- und
-   Bedienungshilfen-Dialog sowie den manuellen Zwischenablageweg prüfen.
+4. Die ursprünglich vorgesehene Einrichtung in einem kontrolliert frischen
+   lokalen Benutzerzustand mit eigenem Testschlüssel, Mikrofon- und
+   Bedienungshilfen-Dialog bleibt nach Bastis Entscheidung vom 24. September
+   eine ausdrücklich offene Grenze. Den manuellen Zwischenablageweg auf dem
+   vorhandenen Apple-Silicon-Mac weiterhin prüfen.
    Die macOS-14-Kompatibilität separat durch native CI-Tests und einen
    verifizierten Bundle-Build prüfen; daraus keine interaktive Abnahme auf
    macOS 14 ableiten. Drei zusätzliche kurze reale Aufnahmen decken

@@ -6,7 +6,7 @@ Prüfverfahren: [CHECKS.md](../CHECKS.md); belegte frühere Testbudgets:
 [APPROVALS.md](../APPROVALS.md). Linux-Plan:
 [linux-build-plan.md](linux-build-plan.md).
 
-Zwei parallele Arbeitspfade: **macOS-Produktabnahme** (unverändert offen) und
+Zwei parallele Arbeitspfade: **macOS-Produktabnahme** (wieder aufgenommen, offen) und
 **Linux Phase 1** (Kern in `main`, noch nicht in `PROJECT.md`). Linux markiert
 macOS nicht als erledigt.
 
@@ -34,7 +34,18 @@ Dateien stimmte per SHA-256 überein und wurde nach dem Lauf entfernt; das
 bestehende Remote-Checkout blieb sauber. Details und reproduzierbare Befehle
 stehen im [Testsignal-Audit](test-signal-audit.md). Produktionscode,
 installierter Build und E2E-Nachweise bleiben unverändert. Die Plan-1-Arbeit
-bleibt angehalten.
+ist auf Bastis erneuten Auftrag wieder aufgenommen.
+
+Die [Fortsetzung vom 24. September](release-plans/evidence/2026-09-24-plan1-fortsetzung.md)
+belegt für den laufenden Build 7 zehn Minuten Leerlauf mit durchschnittlich
+0,02833 Prozent CPU und maximal 81,40625 MiB RSS. Eine aktuelle isolierte
+UI-Teilprüfung ergänzt Hell/Dunkel, Tastaturfokus und den Rückweg zum Text.
+Die frische Ersteinrichtung bleibt auf Bastis ausdrückliche Entscheidung als
+offene Grenze bestehen; kein neues Benutzerkonto wird dafür angelegt. Plan 1
+ist insgesamt weiter offen: fehlende Matrixfälle, reale Störfälle, gehörtes
+VoiceOver, vollständige Mindestgrößenprüfung und gemessene lokale
+Zustandswechsel sind damit nicht erledigt. Frühere bestandene Tests werden
+anhand unveränderter Produktionspfade wiederverwendet, nicht pauschal verworfen.
 
 ## Neuer Quellcodekandidat: normaler Einfügebefehl
 
