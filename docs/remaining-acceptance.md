@@ -43,6 +43,8 @@ UI-Teilprüfung ergänzt Hell/Dunkel, Tastaturfokus und den Rückweg zum Text.
 Ein anschließendes echtes Diktat mit physischem Option+Shift+Space wurde von
 Basti bestätigt und direkt im vorher leeren TextEdit-Testdokument verifiziert:
 „Dieser Test enthält sieben grüne Äpfel.“ Dieser Build-7-Kürzellauf ist bestanden.
+Auch „Text ansehen“ → „Text kopieren“ → manuelles ⌘V wurde mit diesem echten
+Transkript und kontrollierter vorheriger Zwischenablage erfolgreich geprüft.
 Die frische Ersteinrichtung bleibt auf Bastis ausdrückliche Entscheidung als
 offene Grenze bestehen; kein neues Benutzerkonto wird dafür angelegt. Plan 1
 ist insgesamt weiter offen: fehlende Matrixfälle, reale Störfälle, gehörtes

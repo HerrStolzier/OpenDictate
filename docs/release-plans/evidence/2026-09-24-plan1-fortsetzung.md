@@ -67,6 +67,39 @@ Das ist kein vollständiger UI-Abschluss: 340-Punkte-Mindestbreite, sämtliche
 Zustände in beiden Darstellungen, reale Einstellungen, gehörtes VoiceOver und
 die 20 per Video gemessenen Übergangszeiten bleiben gesondert zu belegen.
 
+### Ergänzung: Aufnahme bei Mindestbreite
+
+Die vorhandene Produktions-Fixture stellte das Panel explizit auf seine
+Mindestbreite von 340 Punkten. Die künstlichen Aufnahmestände 80 und 85 Sekunden
+bei −70 dB zeigten in Hell die vollständigen Countdown- und Signalhinweise sowie
+die Aktionen „Aufnahme beenden“, „Abbrechen“ und „Weitere Aktionen“. Die
+Screenshots wurden direkt angesehen. Das belegt diese beiden langen
+Aufnahmebeschriftungen bei Mindestbreite; weitere Zustände werden dadurch nicht
+pauschal abgenommen.
+
+## Ergänzte native Einfügepositionen
+
+Die isolierten Helfer wurden aus den unveränderten Produktionsquellen von
+`523cbd2` neu gebaut. `DeliveryMatrixPreview` nutzte den echten `DictationFlow`
+und `PasteboardInserter`, ohne Mikrofon oder Provider. Das Ziel wurde in der
+Fixture jeweils als `local.opendictate.matrixhost` bestätigt. Nach der Aktion
+„Lokales Testfeld erfassen“ wurden Screenshot und tatsächlicher AX-Feldwert
+geprüft. Die Fixture meldete regulär `deliveryUnconfirmed` und eine vollständige
+Test-Zwischenablage; diese Meldung allein ist kein Einfügenachweis.
+
+| Neuer Fall | Ergebnis und Nachweis |
+|---|---|
+| Einzeilig, Cursor vor `Anfang.` in `Anfang. Ende.` | Einzeilige Unicode-Probe vollständig vor dem unveränderten Ausgangstext; direkter AX-Wert stimmt exakt. [Screenshot](2026-09-24-native-single-start.png) |
+| Einzeilig, Cursor vor `Ende.` | Unverändertes `Anfang. ` + Probe + `Ende.`; 59 UTF-16-Einheiten exakt. [Soll/Ist](2026-09-24-native-single-middle.json), [Screenshot](2026-09-24-native-single-middle.png) |
+| Mehrzeilig, Cursor vor `Anfang.` | Probe mit Zeilenumbruch vor unverändertem Ausgangstext; 70 UTF-16-Einheiten exakt. [Soll/Ist](2026-09-24-native-multiline-start.json), [Screenshot](2026-09-24-native-multiline-start.png) |
+| Mehrzeilig, Cursor vor `MARKIERUNG`, keine Auswahl | `Anfang. ` + mehrzeilige Probe + `MARKIERUNG Ende.`; 70 UTF-16-Einheiten exakt. [Soll/Ist](2026-09-24-native-multiline-middle.json), [Screenshot](2026-09-24-native-multiline-middle.png) |
+
+Die Probe ist `Äpfel 🍏 und Grüße.` gefolgt von Zeilenumbruch (einzeilig:
+Leerzeichen) und `Zweite Zeile: e` + U+0301 + `, 👩🏽‍💻.`. Andere Testfelder
+blieben unverändert. Die bereits exakt bestandenen Auswahlersetzungen vom
+23. September wurden nicht wiederholt. Der eigene native Feld-Host wurde danach
+beendet. Der Einfüge-Helper bleibt für die Browsermatrix geöffnet.
+
 ## Wiederverwendbare frühere Nachweise
 
 Der direkte Vergleich `git diff bd3630f c92cbc9` ist für `AudioRecorder`,
@@ -100,5 +133,24 @@ in TextEdit belegt. Kein künstlicher Tastendruck oder synthetischer Text wurde
 für dieses Ergebnis verwendet. Die Aussage gilt für diesen konkreten Lauf,
 nicht als allgemeines Sprachqualitätsurteil oder erneuter Fünf-App-Nachweis.
 
-Das eigene Testdokument bleibt für die anschließende Prüfung des manuellen
-Kopierwegs vorübergehend geöffnet und ist danach zu bereinigen.
+## Manueller Kopierweg: bestanden
+
+Im installierten App-Panel öffnete „Text ansehen“ das vollständige echte
+Transkript. Das eigene TextEdit-Dokument wurde anschließend durch den
+kontrollierten Platzhalter `OpenDictate Kopierprobe – Platzhalter` ersetzt.
+Dieser wurde kopiert und durch einmaliges ⌘V im Dokument als tatsächlicher
+Zwischenablageinhalt kontrolliert. Danach wurde ausschließlich in OpenDictate
+„Text kopieren“ gedrückt. Die App meldete „Letzter Text kopiert“; das manuelle
+⌘V in TextEdit ersetzte den Platzhalter wieder vollständig durch
+`Dieser Test enthält sieben grüne Äpfel.` Der AX-Feldwert bestätigte das Ergebnis.
+Damit ist die echte Kopieraktion nach einem Diktat geprüft; dies simuliert
+keinen Providerfehler oder verweigerte Accessibility-Rechte.
+
+Die Cua-Paste-Aktion beim Vorbereiten des Platzhalters meldete zunächst eine
+Zeitüberschreitung, obwohl der Platzhalter bereits im Dokument stand. Der
+Zustand wurde vor weiteren Aktionen gelesen; es gab keine blinde Wiederholung.
+Dies betrifft die Testbedienung, nicht die OpenDictate-Kopieraktion.
+
+Das eigene TextEdit-Dokument wurde geschlossen, die eigens gestartete
+TextEdit-App beendet und die genau identifizierte temporäre Testdatei samt
+leerem Testordner entfernt. Bestehende fremde Dokumente wurden nicht bearbeitet.
