@@ -60,11 +60,17 @@ nicht pauschal verworfen.
 Die isolierte Vorschau ergänzt inzwischen alle zehn Panelzustände bei
 340 Punkten Mindestbreite in Hell und Dunkel. Der neue Safari-textarea-Fall
 am Anfang ist vollständig NFC-gleich, aber nicht rohzeichengleich; die
-Akzeptanzentscheidung bleibt offen. Im Safari-`contenteditable` blieb die
-automatische Fixture-Übergabe trotz gespeicherter Auswahl aus, während danach
-manuelles ⌘V funktionierte. Dieser Fall braucht eine Fokus-/Übergabediagnose
-und wird nicht als bestanden bezeichnet. Die Einzelheiten stehen im selben
-Fortsetzungsbericht.
+Akzeptanzentscheidung bleibt offen. Die anfänglich ausgebliebene automatische
+Safari-`contenteditable`-Übergabe trat auch nach Bastis echten Mausklicks auf.
+Im anschließend neu gebauten Debug-Testprozess funktionierten dagegen sowohl
+die PID-Diagnose als auch der unveränderte globale Produktionsweg am selben
+Feldanfang. Weitere Positionen liefern inzwischen vollständige NFC-Gleichheit.
+Die Ursache der früheren Fehlschläge bleibt ungeklärt; ein Wechsel der
+Produktions-Zustellart ist durch die Gegenprobe nicht begründet.
+[A/B-Nachweis](release-plans/evidence/2026-09-24-safari-pid-versus-global.json),
+[kritischer Luna-Max-Review](release-plans/evidence/2026-09-24-critical-plan1-review.md)
+und die Einzelwerte stehen im Fortsetzungsbericht. Die Rohabweichungen werden
+nicht still als bestanden umgedeutet.
 
 ## Neuer Quellcodekandidat: normaler Einfügebefehl
 

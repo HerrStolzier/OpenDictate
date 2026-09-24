@@ -165,14 +165,84 @@ Fixture bestätigte Safari, vollständige Zwischenablage und
 `deliveryUnconfirmed`. Kein manuelles ⌘V wurde in dieser Runde als Ersatz
 für den automatischen Nachweis verwendet. Keine Produktionsquelle wurde geändert.
 
-Als nächster abgegrenzter Schritt ist ein echter Mausklickvergleich vorbereitet:
-eigener Safari-Tab, `contenteditable`, Cursor am Anfang, Referenz 70 UTF-16-
-Einheiten; Fixture mit zehn Sekunden synthetischer Aufnahmezeit. Basti klickt
-„Lokales Testfeld erfassen“ und anschließend den oberen Safari-Fensterrand,
-ohne den Cursor im Text zu verändern. Erst nach dem Lauf wird das tatsächliche
-Feldergebnis ausgewertet. Zum Zeitpunkt dieser Notiz ist der Lauf noch nicht
-gestartet; die zwei eigenen Testoberflächen bleiben dafür offen. Kein Mikrofon,
-Provider oder globales Systemeinstellungsänderung ist beteiligt.
+Der anschließend vorbereitete echte Mausklickvergleich wurde von Basti
+ausgeführt: eigener Safari-Tab, `contenteditable`, Cursor am Anfang,
+Referenz 70 UTF-16-Einheiten, zehn Sekunden synthetische Aufnahmezeit.
+Er klickte „Lokales Testfeld erfassen“ und wechselte zu Safari. Die erste
+Beobachtung lag noch während der zehn Sekunden; erst nach dem abgeschlossenen
+Lauf wurde das unveränderte Feld bestätigt. Die Fixture meldete
+`deliveryUnconfirmed`, vollständige Zwischenablage und Safari als Ziel.
+[Begrenzter Ist-Nachweis](2026-09-24-safari-physical-click-no-insertion.json).
+Kein Mikrofon, Provider oder globaler Systemeinstellungswechsel war beteiligt.
+
+### Gegenprobe: PID-Versand und unveränderter Produktionsweg
+
+Die ausschließlich für DEBUG ergänzte PID-Option aus `153da2d` war zunächst
+ausgeschaltet. Sie ersetzte nur den Versand des gleichen ⌘V-Ereignispaars;
+die regulären Produktionsprüfungen blieben bestehen. Vor dem Code waren die
+isolierten Fehlerfälle in `CHECKS.md` desselben Commits festgehalten.
+Das eigene Fixture-Bundle wurde neu gebaut und mit der bereits vorhandenen
+Identität signiert. Die installierte App und deren Freigaben blieben unverändert.
+
+Im neuen Testprozess 81953 mit Safari-Prozess 29269, Fenster 5256, wurde je
+Versandart der Ausgangstext zurückgesetzt und die Anfangsreferenz 0–0 bestätigt.
+Zuerst mit eingeschalteter PID-Diagnose, anschließend mit ausgeschalteter
+Diagnose und regulärem globalem `CGEvent` erschien der vollständige Text.
+Beide Rohvergleiche ergeben 69 statt 70 UTF-16-Einheiten, erste Abweichung bei
+34; beide vollständigen Texte sind NFC-gleich.
+[Soll/Ist und Moduszuordnung](2026-09-24-safari-pid-versus-global.json),
+[Bild des PID-Ergebnisses](2026-09-24-safari-pid-diagnostic.png).
+Das Bild allein identifiziert die Versandart nicht; dafür dienen die separat
+beobachtete Checkbox und der Fixture-Ergebnistext.
+
+Damit ist kein nötiger Produktionswechsel auf PID-Versand belegt. Die früheren
+Fehlschläge werden nicht rückwirkend als bestanden markiert. Neuaufbau,
+Prozessneustart und veränderter Fokuszustand unterscheiden die Runden;
+welcher Faktor ursächlich war, wurde nicht isoliert. Die erfolgreiche Runde
+bestätigte das gewöhnliche Safari-Fenster als Vordergrundfenster, frühere
+Automationsrunden hatten teilweise nur ein kleines Overlay bestätigt.
+Die vorübergehende PID-Diagnose wird nach Sicherung des Befunds entfernt.
+Der parallel angeforderte [Luna-Max-Review](2026-09-24-critical-plan1-review.md)
+bestätigt diese enge Einordnung.
+
+### Ergänzte Safari-Positionen im normalen Modus
+
+Alle folgenden zusätzlichen Läufe nutzten den regulären globalen Einfügeweg
+des selben Testprozesses; die PID-Diagnose war ausgeschaltet. Vor jedem Lauf
+wurden Ausgangstext und erwartete Auswahl in der lokalen Seite geprüft und
+die getrennte Sollreferenz gespeichert. Nur die Produktions-Fixture fügte
+den künstlichen Text ein. Danach wurden der vollständige AX-Feldwert und
+der Roh-/NFC-Vergleich der Seite gelesen. Die anderen Testfelder blieben
+bei jeder Aktion unverändert.
+
+| Feld | Anfang | Mitte | Auswahlersetzung |
+|---|---|---|---|
+| `input`, einzeilige Unicode-Probe | [Soll/Ist](2026-09-24-safari-input-start.json) | [Soll/Ist](2026-09-24-safari-input-middle.json) | [Soll/Ist](2026-09-24-safari-input-selection.json) |
+| `textarea`, mehrzeilige Probe | [Früherer aktueller Nachweis](2026-09-24-safari-multiline-start.json) | [Soll/Ist](2026-09-24-safari-textarea-middle.json) | [Soll/Ist](2026-09-24-safari-textarea-selection.json) |
+| `contenteditable`, mehrzeilige Probe | [Globale Gegenprobe](2026-09-24-safari-pid-versus-global.json) | [Soll/Ist](2026-09-24-safari-rich-middle.json) | [Soll/Ist](2026-09-24-safari-rich-selection.json) |
+| Editierbares `iframe`, mehrzeilige Probe | [Soll/Ist](2026-09-24-safari-iframe-start.json) | [Soll/Ist](2026-09-24-safari-iframe-middle.json) | [Soll/Ist](2026-09-24-safari-iframe-selection.json) |
+
+Alle zwölf Positionen haben damit einen vollständigen Einfügenachweis mit
+NFC-Gleichheit. Die Rohvergleiche weichen jeweils ausschließlich durch
+`e` + U+0301 gegenüber U+00E9 ab. Ihre Akzeptanzentscheidung bleibt offen;
+die Anzeigen werden nicht nachträglich in „EXAKT“ geändert. Das ist eine
+synthetische Feldmatrix, kein weiterer Mikrofon-/Providerlauf und keine
+pauschale Safari-Kompatibilitätsaussage.
+
+Zur Wiederholung: HTML-Fixture in einem eigenen Safari-Tab öffnen, Feld,
+Position und passenden Prüftext wählen, zurücksetzen, Position setzen und
+Referenz speichern. In der separaten Produktions-Fixture dieselbe ein- oder
+mehrzeilige Probe wählen und bei fokussiertem Safari-Feld die lokale Prüfung
+starten. Erst nach abgeschlossenem Lauf den gesamten Feldwert vergleichen.
+Nie die erwartete Probe zur Vorbereitung selbst ins Zielfeld schreiben.
+
+Der eigene Safari-Testtab wurde anschließend geschlossen; die ursprüngliche
+Startseite blieb offen. Die Prozessprüfung bestätigte den beendeten eigenen
+Fixture-Prozess und den weiter laufenden installierten Build 7 (PID 82317).
+Die Entfernung der temporären PID-Option wurde als `c5d6a27` integriert;
+`DeliveryMatrixPreview.swift` entspricht danach wieder exakt dem bereits
+geprüften Stand vor dieser Diagnose. Die historischen Fehlerfallvorgaben
+bleiben im Diagnose-Commit `153da2d` nachvollziehbar.
 
 ## Ergänzte native Einfügepositionen
 

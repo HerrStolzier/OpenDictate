@@ -1,0 +1,40 @@
+{
+  "candidate": "153da2d",
+  "time": "2026-09-24T21:39:47.694086+02:00",
+  "scope": "Synthetic text through production DictationFlow/PasteboardInserter; no microphone/provider",
+  "browser": {
+    "pid": 29269,
+    "window_id": 5256
+  },
+  "fixture": {
+    "pid": 81953,
+    "window_id": 5665
+  },
+  "mode": "global CGEvent; PID diagnostic OFF",
+  "controls": {
+    "Prüftext": "Mehrzeilige Unicode-Probe",
+    "Vergleichsfeld": "Iframe Eingabe",
+    "Cursor oder Auswahl": "Auswahl („Ende.“ oder „MARKIERUNG“)"
+  },
+  "baseline_fields": {
+    "Einzeilige Eingabe": "Anfang. Ende.",
+    "Mehrzeilige Eingabe": "Anfang. MARKIERUNG Ende.",
+    "Formatierter Editor": "Anfang. Äpfel 🍏 und Grüße.\nZweite Zeile: é, 👩🏽‍💻. Ende.",
+    "Iframe Eingabe": "Anfang. MARKIERUNG Ende."
+  },
+  "reference": [
+    "Referenz gespeichert: 60 UTF-16-Einheiten; Auswahl 8–18. Zielfeld fokussiert."
+  ],
+  "fixture_result": [
+    "Ergebnis: deliveryUnconfirmed; Test-Zwischenablage vollständig: true\nApp erfasst: com.apple.Safari; regulärer Fixture-Weg mit globalem CGEvent."
+  ],
+  "expected": "Anfang. Äpfel 🍏 und Grüße.\nZweite Zeile: é, 👩🏽‍💻. Ende.",
+  "actual": "Anfang. Äpfel 🍏 und Grüße.\nZweite Zeile: é, 👩🏽‍💻. Ende.",
+  "raw_equal": false,
+  "nfc_equal": true,
+  "comparison": [
+    "ABWEICHUNG: Ist 59, Soll 60 UTF-16-Einheiten; erste Abweichung bei 42.",
+    "NFC-DIAGNOSE: kanonisch gleich; die Rohabweichung bleibt ABWEICHUNG."
+  ],
+  "other_fields_unchanged": true
+}
