@@ -63,8 +63,9 @@ hergestelltem TextEdit-Vordergrund wiederholt. Die Ausgabe wurde auf ihre
 vorherigen 31 Prozent zurückgestellt; die Toneinstellungen sind geschlossen.
 
 Die zwei eigenen Recovery-Dateien aus dem 4,7-Sekunden-Abbruch und dem
-Lauf ohne Text bleiben bis zur gezielten Einzelbereinigung bestehen. Die
-älteren Aufnahmen werden nicht verändert.
+Lauf ohne Text wurden nach Bastis Freigabe einzeln in der App gelöscht.
+Ihre Audio- und `.auth`-Dateien sind nicht mehr vorhanden; die drei älteren
+Aufnahmen stehen weiterhin in der App-Liste und im Speicherordner.
 
 Das tatsächlich installierte Panel zeigte den Bereit-Zustand ohne erzwungene
 Fensteröffnung während der Aufnahme. Die kompakten Einstellungen zeigten
@@ -74,7 +75,5 @@ Vokabular über Scrollen erreichbar. Tab wechselte vom Mikrofon zum Kürzel,
 Shift-Tab zurück. Diese Sicht- und Tastaturprobe ersetzt weder gehörte
 VoiceOver-Ausgabe noch die vollständige Zustandsprüfung in Hell und Dunkel.
 
-Die Bibliothek enthält momentan die drei vorgefundenen und zwei eigenen
-gesicherten Aufnahmen. Vor einem weiteren fehlgeschlagenen Aufnahmelauf
-müssen die eigenen beiden Dateien gezielt bereinigt werden, damit die
-Fünf-Dateien-Grenze keine ältere Aufnahme verdrängt.
+Die Bibliothek enthält die drei vorgefundenen Aufnahmen. Die beiden eigenen
+Testaufnahmen sind bereinigt.
