@@ -1,6 +1,6 @@
 # Aktueller Stand und verbleibende Abnahme
 
-Stand: 23. September 2026. Dies ist die einzige aktuelle Übergabedatei.
+Stand: 24. September 2026. Dies ist die einzige aktuelle Übergabedatei.
 Produktziel: [PROJECT.md](../PROJECT.md); Regeln: [AGENTS.md](../AGENTS.md);
 Prüfverfahren: [CHECKS.md](../CHECKS.md); belegte frühere Testbudgets:
 [APPROVALS.md](../APPROVALS.md). Linux-Plan:
@@ -297,15 +297,20 @@ verwendet vorhandene Prüfmittel. Für den installierten älteren Kandidaten
 TextEdit→Finder-Wechsel sichtbar geprüft. Der neue ⌘V-Build `bd3630f` hat nun
 eigene echte TextEdit-, Safari-, Brave-, Obsidian- und Terminal-Nachweise
 im [Plan-1-Bericht](release-plans/evidence/2026-09-23-plan1-status.md). Der
-inzwischen installierte Build 6 aus Quellstand `d79b947` enthält die UX-Änderung und den
-stabilen Schlüsselbundhelfer. Nach zwei einmaligen Freigaben startete der
+inzwischen installierte Build 7 aus Quellstand `c92cbc9` enthält die UX-Änderung,
+den stabilen Schlüsselbundhelfer und die präzisierte Bereit-Zeile. Nach zwei
+einmaligen Freigaben startete der
 vorherige Quellstand `cbdfb34` auch nach einem App-Build-Wechsel ohne weitere
 Abfrage eine Aufnahme. Ein Provider-Lauf lieferte Text im App-Panel; der Text erschien im vorbereiteten
 TextEdit-Dokument nicht sichtbar, während macOS Brave als vorderste App
-meldete. Build 6 startete ohne Dialog; dessen operative Schlüsselbund-Lesung
-und erneute sichtbare Einfügeprüfung bleiben offen.
+meldete. Build 7 startete ohne Dialog, beide installierten Bundles sind
+signaturgeprüft, und der Bereit-Zustand wurde sichtbar geprüft. Für einen
+neuen Diktatlauf fehlt noch der echte TextEdit-Vordergrund: Die
+Computersteuerung fokussiert das Feld, macOS meldet dennoch OpenDictate als
+vorderste App. Die operative Schlüsselbund-Lesung und sichtbare Einfügung
+auf Build 7 bleiben deshalb offen; in diesem Versuch gab es keinen Upload.
 Die vollständige Feld-/Fokusmatrix, Einrichtung im frischen Benutzerzustand,
-Störfälle und die Prüfung der überarbeiteten UX am installierten Build bleiben
+Störfälle und die vollständige UX-Prüfung am installierten Build bleiben
 offen. Bastis erste Designrückmeldung und die gewählte Richtung stehen im
 [Plan-1-Bericht](release-plans/evidence/2026-09-23-plan1-status.md). Danach
 frühes menschliches Nutzerfeedback sammeln; die komplette

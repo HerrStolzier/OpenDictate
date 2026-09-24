@@ -1,7 +1,8 @@
 # OpenDictate
 
-Native dictation for macOS 14 and newer: press a shortcut, speak, then work with
-text in your chosen application. OpenDictate uses your own OpenAI API key.
+Native dictation for Apple Silicon Macs with macOS 14 and newer: press a
+shortcut, speak, then work with text in your chosen application. This is the
+scope of the planned first public Mac release. OpenDictate uses your own OpenAI API key.
 Audio is sent to OpenAI over HTTPS; transcription incurs separate API charges.
 
 ## First dictation

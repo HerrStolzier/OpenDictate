@@ -77,3 +77,20 @@ VoiceOver-Ausgabe noch die vollständige Zustandsprüfung in Hell und Dunkel.
 
 Die Bibliothek enthält die drei vorgefundenen Aufnahmen. Die beiden eigenen
 Testaufnahmen sind bereinigt.
+
+## Build 7: bereinigter Bereit-Zustand
+
+Die doppelte Bereit-Zeile im Panel wurde in Quellstand `c92cbc9` durch eine
+konkrete Anleitung für das Zieltextfeld ersetzt. Beide bestehenden App-Pfade
+enthalten den signaturgeprüften Build 7. Der echte Bereit-Zustand zeigte die
+neue Zeile sichtbar. Lokale Swift- und Python-Tests, Format- und Shell-Prüfungen,
+Bundle-Verifikation und die Bundle-Fehlerfixtures bestanden. Die CI-Jobs auf
+macOS 14 und 15 bestanden für diesen Quellstand.
+
+Ein neues leeres TextEdit-Dokument ist vorbereitet. Ein Accessibility-Klick
+und die Fensteraktion „Alle nach vorne bringen“ ließen macOS dennoch
+OpenDictate als vorderste App melden. Deshalb wurde kein Diktatversuch mit
+unbekanntem Ziel gestartet. Die Ausgabe wurde nach einer vorübergehenden
+Anhebung von 44 auf 80 Prozent wieder auf 44 Prozent zurückgestellt. Der
+sichtbare Einfügeweg und der echte Schlüsselbund-Lesezugriff von Build 7 sind
+weiter offen.

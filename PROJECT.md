@@ -16,6 +16,8 @@ einer einzelnen Person. Der aktuelle Plan steht in der
 ## Belegter Produktumfang
 
 - Native Menüleisten-App für macOS 14+, SwiftPM und Swift 6.
+- Der erste öffentliche Mac-Release wird für Apple Silicon mit macOS 14+
+  abgenommen. Intel-Macs sind nicht Teil dieser ersten Produktabnahme.
 - Aufnahme → OpenAI-Transkription mit eigenem API-Schlüssel → Zwischenablage
   und optional automatisches Einfügen. Einrichtung und Details: [README](README.md).
 - Bewusste Wiederholung erhaltener Aufnahmen bei Fehlern; Schutz des Originals,
