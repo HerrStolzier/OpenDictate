@@ -2,8 +2,8 @@
 
 **Ziel:** Ein nachvollziehbares ZIP mit einer Developer-ID-signierten,
 notarisierten OpenDictate-App für Apple Silicon und macOS 14 oder neuer kann
-auf einem bisher unbenutzten Mac normal geöffnet werden. Es ist zunächst ein
-Betakandidat und wird noch nicht öffentlich angeboten.
+auf dem vorhandenen Mac aus dem endgültigen Archiv normal geöffnet werden.
+Es ist zunächst ein Betakandidat und wird noch nicht öffentlich angeboten.
 
 **Voraussetzung:** [Plan 1](01-interne-produktabnahme.md) ist bestanden. Eine
 geeignete Apple-Developer-Mitgliedschaft, ein geschütztes Zertifikat
@@ -25,7 +25,9 @@ diese Voraussetzung nicht.
    Architektur und Quellrevision in ein Release-Manifest schreiben.
 3. Signatur, Entitlements, Ticket und Gatekeeper-Bewertung an der **aus dem
    endgültigen ZIP entpackten** App prüfen. Den Downloadweg mit Quarantäne
-   simulieren und den ersten Start auf einem frischen macOS-14-Mac prüfen.
+   simulieren und den ersten Start des entpackten Pakets auf dem vorhandenen
+   Mac prüfen. Für macOS 14 gelten nur native CI-Tests und Bundle-Build;
+   eine interaktive Installation auf macOS 14 wird nicht behauptet.
 4. Den Wechsel von einer älteren lokalen OpenDictate-Installation zu diesem
    Developer-ID-Build kontrolliert prüfen: bestehende Aufnahmen erhalten,
    Keychain-Zugriff und macOS-Berechtigungen tatsächlich beobachten,
@@ -45,10 +47,10 @@ diese Voraussetzung nicht.
 - Das entpackte Paket besteht `codesign --verify --deep --strict`, die
   Entitlement-Prüfung, `stapler validate` und eine Gatekeeper-Bewertung.
   Das Manifest und der SHA-256-Wert beschreiben genau dieses ZIP.
-- Frische Installation und Wechsel vom lokalen Build funktionieren auf
-  macOS 14 Apple Silicon. Eventuell erneut nötige Berechtigungen sind
-  sichtbar, lösbar und in der Anleitung erklärt; keine gespeicherte Aufnahme
-  wird beim Wechsel überschrieben oder unbemerkt gelöscht.
+- Installation des endgültigen Pakets und Wechsel vom lokalen Build
+  funktionieren auf dem vorhandenen Apple-Silicon-Mac. Eventuell erneut nötige
+  Berechtigungen sind sichtbar, lösbar und in der Anleitung erklärt; keine
+  gespeicherte Aufnahme wird beim Wechsel überschrieben oder unbemerkt gelöscht.
 - Der vollständige Diktatweg und der manuelle Kopierweg funktionieren mit
   dem entpackten Developer-ID-Build. Das CI-Archiv bleibt ausdrücklich ein
   Entwicklungsartefakt.

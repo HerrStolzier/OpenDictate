@@ -2,7 +2,7 @@
 
 **Ziel:** Die freigegebene erste Mac-Version steht als kostenloser direkter
 Download auf GitHub Releases bereit. Eine öffentliche Produktseite führt zum
-gleichen Paket. Download, Erststart und Hilfeweg wurden von außen geprüft.
+gleichen Paket. Download, Installation, Start und Hilfeweg wurden von außen geprüft.
 Ein Bezahlmodell, Mac App Store, Intel-Macs, Linux und Windows sind nicht Teil
 dieser ersten Veröffentlichung.
 
@@ -26,9 +26,9 @@ zu bestätigen; dieser Plan trifft keine Vertrags- oder Firmenentscheidung.
    Ad-hoc-CI-Archiv als Produktdownload verlinken. Die Website verlinkt genau
    diesen Release und seine Datenschutzhinweise.
 3. Von den öffentlichen Links das ZIP erneut herunterladen, den Hash
-   vergleichen, Signatur/Notarisierung prüfen und auf einem frischen Mac
-   installieren. Sichtbar prüfen: erster Start, Berechtigungsdialoge,
-   Schlüssel-Einrichtung und ein harmloses Diktat. Der Prüflauf ist auf
+   vergleichen, Signatur/Notarisierung prüfen und auf dem vorhandenen Mac
+   aus dem Download installieren. Sichtbar prüfen: Start, vorhandene
+   Berechtigungen, Schlüsselzugriff und ein harmloses Diktat. Der Prüflauf ist auf
    denselben Release-Hash bezogen.
 4. GitHub Issues als öffentlichen Meldeweg prüfen und auf der Seite verlinken.
    Release- und Installationsprobleme mit Version, macOS und reproduzierbaren

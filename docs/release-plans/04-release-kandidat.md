@@ -19,11 +19,12 @@ hier noch nicht veröffentlicht.
    Plan 2 erzeugen und den Build danach nicht mehr verändern. Die Tests aus
    [CHECKS.md](../../CHECKS.md), Bundle- und Archivprüfung sowie die
    Notarisierungsprüfung für genau diese Revision protokollieren.
-3. Das **endgültige ZIP** auf einem frischen macOS-14-Apple-Silicon-Mac und
-   auf einem aktuellen unterstützten Mac installieren. Jeweils Start,
+3. Das **endgültige ZIP** auf dem vorhandenen unterstützten Mac aus dem
+   Archiv installieren. Dort Start,
    Berechtigungen, Schlüsselbund, ein echtes Diktat, manuellen Kopierweg,
    Beenden und erneuten Start prüfen. Den Updateweg von der vorigen lokalen
-   Installation einmal gesondert prüfen.
+   Installation einmal gesondert prüfen. Den nativen macOS-14-CI-Nachweis
+   gesondert dokumentieren; ein interaktiver macOS-14-Test ist nicht verfügbar.
 4. [README.md](../../README.md), [PRIVACY.md](../../PRIVACY.md),
    [PROJECT.md](../../PROJECT.md), Website-Text und Release-Hinweise mit dem
    Kandidaten vergleichen. Die Website beschreibt derzeit einen älteren
@@ -46,7 +47,8 @@ hier noch nicht veröffentlicht.
   Transkripts, Beschädigung vorhandenen Textes, falsche Beschreibung des
   Datenflusses, nicht installierbares Paket oder nicht reproduzierbarer
   Release-Build. Andere Grenzen sind ausdrücklich beschrieben.
-- Der signierte und notarisierte Kandidat besteht die beiden Laufzeitprüfungen.
+- Der signierte und notarisierte Kandidat besteht die Installation und den
+  Updateweg auf dem vorhandenen Mac.
   Sämtliche öffentlichen Texte stimmen mit seiner tatsächlichen Funktion
   überein; der endgültige Archiv-Hash steht im Freigabeprotokoll.
 - Der Abschlussvergleich bestätigt die Schlankheitskriterien aus Plan 1 und 2:
