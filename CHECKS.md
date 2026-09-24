@@ -194,6 +194,26 @@ file integrity before/after; do not delete recordings created by the user.
 
 ## Repräsentative Kompatibilitätsabnahme
 
+Before extending the isolated fixtures, account for these failure cases:
+
+- No saved reference must be reported as unavailable, never as a pass or a
+  result left over from an earlier field.
+- A missing field, out-of-bounds selection, selection outside the chosen field,
+  or a changed field choice must be rejected before comparison.
+- Compare the entire resulting field so lost or duplicated text before or after
+  the insertion is reported.
+- Cover multiline separators, supplementary and joined emoji, and a combining
+  accent. Mismatches must report raw UTF-16 lengths and the first differing
+  offset; contenteditable comparisons must use its visible line breaks.
+- A canonical NFC match after a raw mismatch is diagnostic only. It must remain
+  an `ABWEICHUNG`, never become `EXAKT`.
+- Preparation must modify only the selected controlled fixture field, reset it
+  to its known harmless baseline, and set a validated caret or range. It must
+  never write the expected probe into that field; result comparison is read-only.
+- The preview minimum-width action must resize and show only the actual preview
+  panel at its declared `window.minSize.width`, preserving its height and
+  position where possible and leaving other app and user windows unchanged.
+
 `./script/build_and_run.sh --matrix-host` starts controlled native test fields.
 `./script/build_and_run.sh --matrix-fixture` runs the production flow and inserter
 with fixed artificial text and the general clipboard, restored on exit only if
@@ -244,9 +264,18 @@ does not prove visible insertion in a real editor.
 Use [the compatibility matrix](docs/compatibility-matrix.md) for product-facing
 acceptance. Exercise native fields, browser `input`/`textarea`, `contenteditable`,
 an editable iframe and an Electron field with controlled non-sensitive content.
-In the HTML fixture, load its reference probe and use the built-in comparator;
-an `EXAKT` result means the complete value and selection replacement match in
-UTF-16 units, including surrogate pairs, line breaks and trailing whitespace.
+In the HTML fixture, choose a comparison field, reset its known harmless
+starting text, set a caret or selection, and save the reference before the
+production-fixture action. Preparation modifies only that selected field; it
+never inserts the expected probe. The comparator accepts `input`, `textarea`,
+the inner `iframe` textarea and the fixture's plain-text `contenteditable`.
+For `contenteditable` it reads visible `innerText` line breaks and deliberately
+supports only the fixture's single-text-node baseline, not general rich text.
+`EXAKT` means the complete resulting string matches in raw UTF-16 units,
+including the surrounding text, surrogate pairs, line breaks and trailing
+whitespace. The separate NFC diagnostic never changes a raw `ABWEICHUNG` into
+`EXAKT`; comparison itself is read-only. It does not check the final caret
+position.
 For each relevant category check cursor positions, selection replacement,
 multiline Unicode and app/window/tab switches during recording and processing.
 Observe whether Paste reaches a different field in the original application.

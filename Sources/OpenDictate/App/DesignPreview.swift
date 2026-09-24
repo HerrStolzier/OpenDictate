@@ -7,7 +7,7 @@
     final class DesignPreview: NSObject {
         private let panel = DictationPanel()
         private let controls = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 380, height: 150),
+            contentRect: NSRect(x: 0, y: 0, width: 380, height: 190),
             styleMask: [.titled, .closable], backing: .buffered, defer: false)
         private let states = NSPopUpButton()
         private let appearance = NSPopUpButton()
@@ -55,6 +55,8 @@
             let label = NSTextField(wrappingLabelWithString: "Nur Beispieldaten · keine Aufnahme oder Übertragung")
             let passive = NSButton(
                 title: "Passiven Status im Testfenster prüfen", target: self, action: #selector(testPassiveFocus))
+            let minimumWidth = NSButton(
+                title: "Mindestbreite prüfen", target: self, action: #selector(checkMinimumWidth))
             states.addItems(withTitles: DictationPanel.Display.allCases.map(\.title))
             states.target = self
             states.action = #selector(selectState)
@@ -63,7 +65,9 @@
             appearance.target = self
             appearance.action = #selector(selectAppearance)
             appearance.setAccessibilityLabel("Vorschaudarstellung")
-            for view in [label, states, appearance, passive, focusResult] { stack.addArrangedSubview(view) }
+            for view in [label, states, appearance, passive, minimumWidth, focusResult] {
+                stack.addArrangedSubview(view)
+            }
             controls.contentView = stack
             controls.center()
             controls.setFrameOrigin(NSPoint(x: 100, y: 100))
@@ -96,6 +100,24 @@
             panel.showForInteraction()
         }
         @objc private func showOptions() { controls.makeKeyAndOrderFront(nil) }
+
+        @objc private func checkMinimumWidth() {
+            guard let window = panel.window else { return }
+            var frame = window.frame
+            let centerX = frame.midX
+            frame.size.width = window.minSize.width
+            frame.origin.x = centerX - frame.width / 2
+            if let visibleFrame = (window.screen ?? NSScreen.main)?.visibleFrame {
+                if frame.width <= visibleFrame.width {
+                    frame.origin.x = min(max(frame.origin.x, visibleFrame.minX), visibleFrame.maxX - frame.width)
+                }
+                if frame.height <= visibleFrame.height {
+                    frame.origin.y = min(max(frame.origin.y, visibleFrame.minY), visibleFrame.maxY - frame.height)
+                }
+            }
+            window.setFrame(frame, display: true)
+            panel.show()
+        }
 
         @objc private func testPassiveFocus() {
             focusTask?.cancel()
