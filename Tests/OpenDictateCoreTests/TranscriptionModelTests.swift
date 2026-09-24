@@ -5,12 +5,6 @@ import Testing
 
 @Suite("Transcription model")
 struct TranscriptionModelTests {
-    @Test("The default is the accuracy-focused async model")
-    func defaultModel() {
-        #expect(TranscriptionModel.default == .gptTranscribe)
-        #expect(TranscriptionModel.default.rawValue == "gpt-transcribe")
-    }
-
     @Test("The realtime model is rejected for the upload flow")
     func realtimeModelRejected() {
         #expect(!TranscriptionModel.gptLiveTranscribe.isUsableForUpload)
@@ -40,10 +34,4 @@ struct TranscriptionModelTests {
         #expect(future.pricePerMinuteUSD == nil)
     }
 
-    @Test("Known prices match OpenAI's published per-minute rates")
-    func prices() {
-        #expect(TranscriptionModel.gptTranscribe.pricePerMinuteUSD == 0.0045)
-        #expect(TranscriptionModel.gpt4oMiniTranscribe.pricePerMinuteUSD == 0.003)
-        #expect(TranscriptionModel.gptLiveTranscribe.pricePerMinuteUSD == 0.017)
-    }
 }

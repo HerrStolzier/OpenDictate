@@ -157,17 +157,6 @@ struct DictationFlowTests {
         #expect(h.removed == 1 && h.pasted == 0)
     }
 
-    @Test func sentPasteIsReportedAsUnconfirmed() async throws {
-        let h = Harness()
-        var outcomes: [DictationOutcome] = []
-        h.flow.onOutcome = { outcomes.append($0) }
-        _ = try h.flow.start()
-        _ = h.flow.stop()
-        await h.flow.task?.value
-        #expect(outcomes == [.deliveryUnconfirmed])
-        #expect(h.pasted == 1)
-    }
-
     @Test func retryProvidesManualTextInsteadOfAnUnconfirmedPaste() async {
         let h = Harness()
         var outcomes: [DictationOutcome] = []

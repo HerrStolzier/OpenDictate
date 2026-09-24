@@ -23,6 +23,19 @@ wurden geprüft. Die aktualisierte Website konnte wegen einer Browser-URL-Sperre
 nicht erneut visuell abgenommen werden. Plan 1 und die öffentliche
 Release-Dokumentation sind damit weiterhin nicht freigegeben.
 
+Die anschließende [Testbereinigung](test-signal-audit.md) entfernt 22
+schwach aussagekräftige oder redundante Testfunktionen. Die verbleibende
+Swift-Suite mit 138 Testfunktionen (vier Opt-in-Tests übersprungen) sowie die
+acht Python-Tests bestanden lokal; die zwei Rust-Testlöschungen
+wurden separat auf `omarchy` gegen exakt `ab839fd5ab64ff69cc5a126e859f804b473b59a5`
+geprüft: 23 Rust-Tests, Formatter, Clippy mit `-D warnings` und Release-Build
+bestanden offline. Der isolierte Quellbaum aus allen 17 committed `linux/`
+Dateien stimmte per SHA-256 überein und wurde nach dem Lauf entfernt; das
+bestehende Remote-Checkout blieb sauber. Details und reproduzierbare Befehle
+stehen im [Testsignal-Audit](test-signal-audit.md). Produktionscode,
+installierter Build und E2E-Nachweise bleiben unverändert. Die Plan-1-Arbeit
+bleibt angehalten.
+
 ## Neuer Quellcodekandidat: normaler Einfügebefehl
 
 Auf Bastis ausdrücklichen Wunsch ist die automatische Übergabe wieder auf
@@ -340,7 +353,7 @@ frühes menschliches Nutzerfeedback sammeln; die komplette
 [Kompatibilitätsmatrix](compatibility-matrix.md) bleibt das breitere Produktziel.
 
 Die aktuelle Arbeit läuft am Mac mini mit physischem Eingabegerät. Für macOS 14
-ist nur der native CI-Nachweis mit 158 Offline-Tests und Bundle-Build vorgesehen;
+ist nur der native CI-Nachweis der Offline-Tests und des Bundle-Builds vorgesehen;
 eine macOS-14-VM oder ein zweiter Mac stehen nicht zur Verfügung. Die
 interaktive Diktatabnahme erfolgt auf dem vorhandenen Mac und wird nicht als
 macOS-14-Nachweis bezeichnet. Bastis Plan-1-Freigabe erlaubt weitere
