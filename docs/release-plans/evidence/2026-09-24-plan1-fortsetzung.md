@@ -465,3 +465,12 @@ erster neuer Status) extrahieren; Video-PTS liefert `ffprobe -show_frames`.
 Die Vorschau und der temporäre Aufzeichnungsclient wurden beendet. Die vollständigen
 Desktop-Aufnahmen und deren Einzelbilder wurden nach Prüfung der zugeschnittenen
 Belege aus den eigenen temporären Messordnern entfernt.
+
+
+Die unabhängige Luna-Max-Nachprüfung umfasste anschließend `1cf9616` sowie
+den reinen Bereinigungsnachtrag `8a5b03f`. Sie bestätigte die konsistenten
+20 aufgezeichneten Übergänge und die ausdrücklich begrenzte Aussage der
+Zeitwerte; kein neuer Befund. Der Nachtrag erhöht den Bereinigungszähler
+korrekt um 89 Bildkopien auf 210 eigene Dateien. Ein Git-Diff allein beweist
+nicht deren tatsächliche Löschung; diese bleibt als Hauptaufgaben-Postcheck
+gekennzeichnet. Weder der Review noch dieser Nachtrag schließen Plan 1 ab.
