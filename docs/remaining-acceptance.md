@@ -52,7 +52,9 @@ bestätigt; Einzelheiten stehen im
 Die frische Ersteinrichtung bleibt auf Bastis ausdrückliche Entscheidung als
 offene Grenze bestehen; kein neues Benutzerkonto wird dafür angelegt. Plan 1
 ist insgesamt weiter offen: reale Störfälle, gehörtes VoiceOver und die 20 per Video zu messenden
-lokalen Zustandswechsel sind nicht erledigt. Die realen Einstellungen wurden
+lokalen Zustandswechsel sind nicht abgenommen. Alle 20 Wechsel sind inzwischen
+sichtbar aufgezeichnet; die Messung trennt Eingabeübertragung und App-Reaktion
+noch nicht belastbar. Die realen Einstellungen wurden
 inzwischen am installierten Build 7 in der bestehenden dunklen Darstellung
 bei Mindestgröße einschließlich Tastaturfokus, Hilfe und Aufnahmen geprüft;
 API-Schlüssel und Vokabular wurden dabei nicht geöffnet oder verändert. Frühere
@@ -102,8 +104,8 @@ damaligen Kandidaten.
 Die [lokale Plan-1-Matrix](release-plans/evidence/2026-09-23-offline-matrix.md)
 zeigt zwei native Feldfälle und beide Fokuswechselarten mit künstlichem Text;
 Safari normalisierte im `input` einen kombinierenden Akzent. Nächster
-Mac-Nachweis: die übrige sichtbare Feldmatrix mit kontrollierten künstlichen
-Texten prüfen. Der Abbruch während Aufnahme bestand;
+Mac-Nachweis: die ausgeführte Feldmatrix hinsichtlich Safari-Normalisierung
+abschließend bewerten; reale Störfälle und das Zeitkriterium prüfen. Der Abbruch während Aufnahme bestand;
 Providerfehler und tatsächlich unterbrochene Verarbeitung bleiben offen.
 Der erste Live-Testblock mit acht Aufnahmen ist verbraucht. Basti hat die
 Fortsetzung von Plan 1 ohne festes Kontingent ausdrücklich freigegeben;
@@ -389,8 +391,10 @@ auch der echte manuelle Kopierweg und vier synthetische native Anfangs-/Mittelf�
 bestanden, jeweils nur für ihren dokumentierten Umfang. Die fünf echten Diktate
 des älteren `bd3630f` bleiben getrennte Nachweise.
 
-Die verbleibenden Browser-/Editor-Matrixfälle, Fokusfälle, Störfälle und die
-vollständige UX-Prüfung am installierten Build bleiben offen. Die frische
+Die Browser-/Editor-Feldmatrix ist ausgeführt; die Safari-Normalisierung bleibt
+ohne Akzeptanzentscheidung. Störfälle, das Zeitkriterium und gehörtes VoiceOver
+bleiben offen. Die Einstellungsnavigation ist geprüft, ihr Vorher-/Nachher-Nachweis
+zur Dateiintegrität fehlt jedoch. Die frische
 Ersteinrichtung ist ausdrücklich als offene, akzeptierte Grenze belassen; dafür
 wird kein zusätzliches Benutzerkonto angelegt. Bastis erste Designrückmeldung
 und die gewählte Richtung stehen im
@@ -422,7 +426,7 @@ Verbrauchsnachweise und kein künftiges Limit.
   bestätigtem TextEdit-Vordergrund fügte den Satz sichtbar ein. Das belegt den
   Knopf-Ablauf für dieses Feld. Ein separater physischer Option+Shift+Space-Lauf
   mit Build 7 bestand; beide Nachweise gelten für ihren jeweiligen Ablauf und
-  schließen die offenen Browser-/Editorfälle nicht.
+  sind keine allgemeine Browser-/Editor-Kompatibilitätszusage.
 - Der erste Safari-textarea-Fallback im jüngsten historischen Zieltest bleibt
   ungeklärt, obwohl der Wiederholungsversuch bestand.
 - Eine manuelle Cursor-/Auswahlbewegung kann den Einfügeort ändern. Der neue

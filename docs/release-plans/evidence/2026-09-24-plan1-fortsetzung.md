@@ -339,8 +339,10 @@ Build 7 samt Quellrevision. Bei der bestehenden alten Aufnahme war
 „Nicht zur Wiederholung verfügbar“ deaktiviert; das Menü wurde geschlossen,
 ohne Wiederholung oder Löschung auszulösen.
 
-Die Prüfung änderte keine gespeicherte Einstellung, keinen API-Schlüssel und
-keine Systemberechtigung. Der API-Schlüssel- und Vokabulardialog wurden nicht
+Während der Bedienung wurde keine Einstellungsänderung, Schlüsseländerung
+oder Änderung von Systemberechtigungen ausgelöst. Ein Vorher-/Nachher-Vergleich
+der Einstellungs- und Recovery-Dateien fehlt jedoch; deren bytegleiche
+Unverändertheit ist für diesen Lauf nicht unabhängig nachgewiesen. Der API-Schlüssel- und Vokabulardialog wurden nicht
 geöffnet. Gehörtes VoiceOver und eine frische Einrichtung sind dadurch nicht
 belegt. Die Fenstergröße wurde auf die beobachteten 440 × 308 Punkte an ihrer
 ursprünglichen Position zurückgesetzt, „Erweitert“ wieder eingeklappt und das
@@ -412,3 +414,54 @@ entfernt. Die vorherige Graph-Ansicht blieb erhalten. Das durch die Prüfung
 wieder geöffnete Obsidian-Fenster wurde geschlossen; eine Fensterinventur
 bestätigte wieder keinen offenen gewöhnlichen Obsidian-Fenstertitel. Auch
 die Produktions-Fixture wurde beendet; Build 7 (PID 82317) lief weiter.
+
+
+## Kritiker-Nachprüfung und Bereinigungsnachweis
+
+Ein unabhängiger Luna-Max-Worktree-Review verglich `57f7a06287184da6e9d1ea829bdc2c7ffdec813c`
+mit `5d0bda385dc0096613bb1e135e100a1e2231aa2e`. Alle zwölf Brave- und drei
+Obsidian-Soll/Ist-Vergleiche bestätigten sich; die synthetische Einordnung und
+die offene Safari-Normalisierung sind korrekt. Der Review fand keine wesentlichen
+Widersprüche in diesen Ergebnissen.
+
+Der belegte Einwand betrifft die Integritätsprüfung nach der Einstellungsnavigation:
+Die nach `CHECKS.md` erforderlichen Vorher-/Nachher-Inventare wurden nicht gesichert.
+Die Aussage oben ist deshalb auf die tatsächlich bedienten Aktionen begrenzt.
+Ein nachträglicher Hash wäre kein Ersatz für den fehlenden Ausgangswert.
+Der [aktuelle Nachcheck](2026-09-24-cleanup-postcheck.json) bestätigt die Abwesenheit
+der eigenen Obsidian-Testdatei und des eigenen Vorschauprozesses; die installierte
+App läuft weiter. Dieser Nachcheck beweist keine historische Dateiintegrität.
+
+## Zwanzig sichtbare Zustandswechsel; Zeitgrenze noch offen
+
+Die isolierte Gestaltungsvorschau aus `57f7a06` (PID 97486) durchlief zehn
+Aufnahme-/Stopp-Paare über ihr tatsächliches Panel-Bedienelement. Neun zusätzliche
+Abbrechen-Aktionen setzten zwischen den Paaren zurück; sie zählen nicht zu den
+20 Messfällen. Nach jeder Aktion bestätigte eine separate Accessibility-Abfrage
+den erwarteten sichtbaren Zustand. Mikrofon, Provider, globales Tastenkürzel und
+installierte App waren an diesen Wechseln nicht beteiligt.
+
+Die [zugeschnittene Bildschirmaufnahme](2026-09-24-preview-timing.mp4) bewahrt
+alle 20 Wechsel. Sie enthält nur den gemeinsamen Vorschau-Innenbereich, keinen
+übrigen Desktop und keinen Ton. [Messdaten](2026-09-24-preview-timing.json) nennen
+für jeden Wechsel Werkzeugstart, Werkzeugrückkehr und Video-PTS. Zwei Kontaktbögen
+zeigen jeweils den letzten Frame vor und den ersten erkannten Frame mit dem neuen
+Status: [Wechsel 1–10](2026-09-24-preview-timing-frames-1.png),
+[Wechsel 11–20](2026-09-24-preview-timing-frames-2.png).
+
+Die Differenzen zwischen Werkzeugstart und sichtbarem Status liegen bei
+391–521 ms. Sie enthalten jedoch die vorherige Bildaufnahme und Eingabeübertragung;
+die Uhrenzuordnung zwischen Aktionsprotokoll und Video-PTS ist nicht unabhängig
+kalibriert. Der Mauszeiger im Video ist ebenfalls kein kalibrierter Mouse-down-
+Zeitstempel. Daher sind diese Zahlen **keine gemessenen App-Reaktionszeiten**:
+Weder sind alle 20 Fälle unter 0,5 Sekunden abgenommen, noch ist eine langsame
+App-Reaktion bewiesen. Die Funktionswechsel sind bestätigt, das Zeitkriterium
+bleibt offen. Für dessen Abschluss ist ein synchroner Eingabezeitpunkt im
+Video oder eine entsprechend kalibrierte Messung nötig.
+
+Zur Nachprüfung enthält das JSON die nullbasierten Frame-Nummern. Einzelbilder
+lassen sich aus dem zugeschnittenen Video mit FFmpeg `select=eq(n\,751)` (Beispiel:
+erster neuer Status) extrahieren; Video-PTS liefert `ffprobe -show_frames`.
+Die Vorschau und der temporäre Aufzeichnungsclient wurden beendet. Die vollständigen
+Desktop-Aufnahmen und deren Einzelbilder wurden nach Prüfung der zugeschnittenen
+Belege aus den eigenen temporären Messordnern entfernt.
