@@ -29,6 +29,16 @@ dem Code- und Dokumentationsstand die CI-Jobs auf macOS 14 und macOS 15.
 Der macOS-14-Job ist ein nativer Offline- und Bundle-Nachweis, kein
 interaktiver Diktatnachweis.
 
+Die beiden zunächst installierten lokalen Helfer-Builds trugen wegen des
+Standardwerts im Buildskript fälschlich die sichtbare Buildnummer 1, obwohl
+zuvor Build 4 installiert war. Das wurde durch einen explizit mit
+`OPENDICTATE_BUILD_NUMBER=6` gebauten, signierten Bundle-Build aus Quellstand
+`d79b947` korrigiert und in beiden App-Pfaden installiert. Deren Plists melden
+Build 6, der neue Prozess startete ohne Schlüsselbunddialog. Das vorherige
+Bundle ist unter `.build/keychain-build1-rollback-20260924/` gesichert. Ein
+erneuter tatsächlicher API-Schlüssel-Lesezugriff auf Build 6 wurde wegen der
+voll belegten Recovery-Bibliothek noch nicht ausgelöst.
+
 ## Diktat und sichtbares Ziel
 
 Nach der ersten Freigabe lief eine unbeabsichtigt lange Aufnahme an. Sie

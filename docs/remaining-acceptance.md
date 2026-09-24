@@ -297,12 +297,13 @@ verwendet vorhandene Prüfmittel. Für den installierten älteren Kandidaten
 TextEdit→Finder-Wechsel sichtbar geprüft. Der neue ⌘V-Build `bd3630f` hat nun
 eigene echte TextEdit-, Safari-, Brave-, Obsidian- und Terminal-Nachweise
 im [Plan-1-Bericht](release-plans/evidence/2026-09-23-plan1-status.md). Der
-inzwischen installierte Quellstand `cbdfb34` enthält die UX-Änderung und den
-stabilen Schlüsselbundhelfer. Nach zwei einmaligen Freigaben startete er auch
-nach einem App-Build-Wechsel ohne weitere Abfrage eine Aufnahme. Ein
-Provider-Lauf lieferte Text im App-Panel; der Text erschien im vorbereiteten
+inzwischen installierte Build 6 aus Quellstand `d79b947` enthält die UX-Änderung und den
+stabilen Schlüsselbundhelfer. Nach zwei einmaligen Freigaben startete der
+vorherige Quellstand `cbdfb34` auch nach einem App-Build-Wechsel ohne weitere
+Abfrage eine Aufnahme. Ein Provider-Lauf lieferte Text im App-Panel; der Text erschien im vorbereiteten
 TextEdit-Dokument nicht sichtbar, während macOS Brave als vorderste App
-meldete. Die erneute Einfügeprüfung auf diesem Build bleibt offen.
+meldete. Build 6 startete ohne Dialog; dessen operative Schlüsselbund-Lesung
+und erneute sichtbare Einfügeprüfung bleiben offen.
 Die vollständige Feld-/Fokusmatrix, Einrichtung im frischen Benutzerzustand,
 Störfälle und die Prüfung der überarbeiteten UX am installierten Build bleiben
 offen. Bastis erste Designrückmeldung und die gewählte Richtung stehen im
