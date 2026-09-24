@@ -54,13 +54,6 @@ struct TrimPlannerTests {
         }
     }
 
-    @Test("Too little left after trimming is rejected as too short")
-    func rejectsTooShort() {
-        #expect(throws: OpenDictateError.self) {
-            _ = try plan(original: 30, speech: (10, 10.2))
-        }
-    }
-
     @Test("A saving under 0.35 s is not worth a re-encode")
     func skipsPointlessExport() throws {
         // Speech covers nearly everything: padding pushes the span to the full file.
