@@ -321,3 +321,28 @@ Dies betrifft die Testbedienung, nicht die OpenDictate-Kopieraktion.
 Das eigene TextEdit-Dokument wurde geschlossen, die eigens gestartete
 TextEdit-App beendet und die genau identifizierte temporäre Testdatei samt
 leerem Testordner entfernt. Bestehende fremde Dokumente wurden nicht bearbeitet.
+
+## Reale Einstellungen auf Build 7
+
+Die installierte App (PID 82317, Quellrevision `c92cbc98af06`) öffnete ihre
+Einstellungen aus dem echten Ergebnis-Panel. In der bestehenden dunklen
+Darstellung wurden Normalansicht, aufgeklappter Bereich, Hilfe, Versionsdialog
+und Aufnahmenseite geprüft. Bei der deklarierten Mindestgröße 380 × 300 Punkten
+blieben die Bedienelemente lesbar; Scrollen erschloss die längeren Seiten.
+[Basisansicht](2026-09-24-settings-minimum-basic.png),
+[erweiterter Bereich](2026-09-24-settings-minimum-advanced.png).
+
+Tab wechselte nachvollziehbar vom Mikrofon über Tastenkürzel und Sprache zu
+„Automatisch einfügen“, mit sichtbarer Fokusmarkierung. Hilfe und Aufnahmen
+führten über „‹ Einstellungen“ zurück. Hilfe und Versionsdialog zeigten
+Build 7 samt Quellrevision. Bei der bestehenden alten Aufnahme war
+„Nicht zur Wiederholung verfügbar“ deaktiviert; das Menü wurde geschlossen,
+ohne Wiederholung oder Löschung auszulösen.
+
+Die Prüfung änderte keine gespeicherte Einstellung, keinen API-Schlüssel und
+keine Systemberechtigung. Der API-Schlüssel- und Vokabulardialog wurden nicht
+geöffnet. Gehörtes VoiceOver und eine frische Einrichtung sind dadurch nicht
+belegt. Die Fenstergröße wurde auf die beobachteten 440 × 308 Punkte an ihrer
+ursprünglichen Position zurückgesetzt, „Erweitert“ wieder eingeklappt und das
+Einstellungsfenster geschlossen. Das vorherige Ergebnis-Panel mit dem echten
+TextEdit-Transkript erschien wieder.

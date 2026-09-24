@@ -52,8 +52,11 @@ bestätigt; Einzelheiten stehen im
 Die frische Ersteinrichtung bleibt auf Bastis ausdrückliche Entscheidung als
 offene Grenze bestehen; kein neues Benutzerkonto wird dafür angelegt. Plan 1
 ist insgesamt weiter offen: die verbleibenden Browser-/Editor-Matrixfälle,
-reale Störfälle, gehörtes VoiceOver, reale Einstellungen und die
-20 per Video zu messenden lokalen Zustandswechsel sind nicht erledigt. Frühere
+reale Störfälle, gehörtes VoiceOver und die 20 per Video zu messenden
+lokalen Zustandswechsel sind nicht erledigt. Die realen Einstellungen wurden
+inzwischen am installierten Build 7 in der bestehenden dunklen Darstellung
+bei Mindestgröße einschließlich Tastaturfokus, Hilfe und Aufnahmen geprüft;
+API-Schlüssel und Vokabular wurden dabei nicht geöffnet oder verändert. Frühere
 bestandene Tests werden anhand unveränderter Produktionspfade wiederverwendet,
 nicht pauschal verworfen.
 
