@@ -27,8 +27,9 @@ hier noch nicht veröffentlicht.
    gesondert dokumentieren; ein interaktiver macOS-14-Test ist nicht verfügbar.
 4. [README.md](../../README.md), [PRIVACY.md](../../PRIVACY.md),
    [PROJECT.md](../../PROJECT.md), Website-Text und Release-Hinweise mit dem
-   Kandidaten vergleichen. Die Website beschreibt derzeit einen älteren
-   Einfügeweg und muss vor Veröffentlichung korrigiert werden. API-Gebühren,
+   Kandidaten vergleichen. Der lokale Website-Entwurf beschreibt den heutigen
+   ⌘V-Pfad; vor Veröffentlichung muss er mit dem Release-Kandidaten erneut
+   abgeglichen werden. API-Gebühren,
    lokaler Zwischenablagezugriff, Aufbewahrung und der Feldwechsel innerhalb
    der Start-App müssen verständlich genannt sein.
    Das [App-Design- und UX-Kapitel aus Plan 1](01-interne-produktabnahme.md#app-design-und-ux)

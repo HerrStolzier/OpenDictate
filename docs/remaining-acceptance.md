@@ -10,6 +10,19 @@ Zwei parallele Arbeitspfade: **macOS-Produktabnahme** (unverändert offen) und
 **Linux Phase 1** (Kern in `main`, noch nicht in `PROJECT.md`). Linux markiert
 macOS nicht als erledigt.
 
+## Dokumentationsstand
+
+Am 24. September wurden die maßgeblichen Gegenwartsquellen `PROJECT.md`,
+`README.md`, `PRIVACY.md`, `CHECKS.md`, diese Übergabe, die
+Kompatibilitätsmatrix, die fünf Release-Pläne und der lokale Website-Entwurf
+gegen den dokumentierten Build-7-Stand abgeglichen. Veraltete Aussagen über
+den installierten Build und den ⌘V-Ablauf wurden korrigiert. Datierte
+Abnahmeberichte behalten ihren damaligen Kandidaten und werden dadurch nicht
+zu Nachweisen für Build 7. Alle lokalen Markdown-Links und Website-Ressourcen
+wurden geprüft. Die aktualisierte Website konnte wegen einer Browser-URL-Sperre
+nicht erneut visuell abgenommen werden. Plan 1 und die öffentliche
+Release-Dokumentation sind damit weiterhin nicht freigegeben.
+
 ## Neuer Quellcodekandidat: normaler Einfügebefehl
 
 Auf Bastis ausdrücklichen Wunsch ist die automatische Übergabe wieder auf

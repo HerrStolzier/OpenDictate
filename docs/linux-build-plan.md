@@ -156,7 +156,8 @@ auf dem Zielsystem belegt sind.
 
 ### Phase 2 — Auto-Insert
 
-Nur mit der bestehenden macOS-Regel, nicht „wenn sinnvoll“:
+Nur mit einer nachgewiesenen Linux-Zielregel, nicht „wenn sinnvoll“. Sie ist
+bewusst strenger als der aktuelle macOS-Pfad, der die Start-App reaktiviert:
 
 - Ziel **vor** Keyring-Dialog oder Panel erfassen (`hyprctl activewindow` oder
   gleichwertig)
@@ -165,10 +166,11 @@ Nur mit der bestehenden macOS-Regel, nicht „wenn sinnvoll“:
 - Retry nie auto-insert
 - Clipboard-Fallback bleibt immer
 
-Kandidaten: `hyprctl dispatch sendshortcut`, virtuelle Tastatur. Ctrl+V nach
-eigenem Clipboard-Write ist eine **dokumentierte Linux-Ausnahme**, kein stilles
-Cmd+V. macOS lehnt automatisches Cmd+V ab; auf Linux bleibt Insert unbestätigt
-und bereits übernommener Text lässt sich nicht zurückrollen.
+Kandidaten: `hyprctl dispatch sendshortcut`, virtuelle Tastatur. Der aktuelle
+macOS-Pfad aktiviert die zu Beginn erfasste App und sendet dort ⌘V nach
+Prüfung von Vordergrund und Zwischenablage. Linux braucht für Ctrl+V eine
+eigene Wayland-/Hyprland-Prüfung; auch dort bleibt Insert unbestätigt und
+bereits übernommener Text lässt sich nicht zurückrollen.
 
 Wenn der Frontmost-Check nicht belegbar ist: Clipboard-only als Default, nicht
 als vages Best-Effort.

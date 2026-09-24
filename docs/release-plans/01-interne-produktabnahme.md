@@ -8,10 +8,12 @@ Umfangsentscheidung wird vor Beginn der Release-Arbeit bestätigt und anschließ
 in `PROJECT.md` und `README.md` einheitlich beschrieben.
 
 **Startpunkt:** Basti meldete am 23. September 2026, dass die wiederhergestellte
-Einfügefunktion in seinem Test funktioniert. Der Bericht zum installierten Build
-`bd3630f` dokumentiert bisher nur manuelles ⌘V; Bastis Rückmeldung ist ein
-zusätzlicher, noch nicht genauer protokollierter Praxistest. Ältere
-Kandidatenberichte gelten nicht als Abnahme des neuen Pfads.
+Einfügefunktion in seinem Test funktioniert. Spätere
+[Live-Tests](evidence/2026-09-23-plan1-status.md) belegten fünf konkrete
+Zielprogramme für den damaligen Build `bd3630f`. Der aktuell installierte
+Build 7 fügte in einem [Knopf-Lauf](evidence/2026-09-24-keychain-and-plan1.md#build-7-echter-textedit-einfügeweg)
+sichtbar Text in TextEdit ein. Diese Teilnachweise schließen Plan 1 nicht ab;
+ältere Kandidatenberichte gelten nicht automatisch für den jetzigen Build.
 
 ## App-Design und UX
 
@@ -63,8 +65,10 @@ umgesetzt und am laufenden Build beurteilt.
 
 Plan 3 prüft diese Kriterien bei echten Nutzern; Plan 4 prüft die endgültige
 Gestaltung am signierten Release-Kandidaten erneut. Die Zahlen für
-Reaktionszeit und Leerlaufverbrauch sind Ziele für diesen
-Release, noch keine gemessenen Eigenschaften der installierten App.
+Reaktionszeit und Leerlaufverbrauch sind Ziele für diesen Release. Eine
+zehnminütige Leerlaufmessung bestand bereits auf dem früheren Build 4; die
+Reaktionszeit der lokalen Zustandswechsel und der Leerlauf des aktuellen
+Build 7 sind dadurch nicht belegt.
 
 ## Arbeit
 

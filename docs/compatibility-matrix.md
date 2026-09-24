@@ -1,16 +1,19 @@
 # Kompatibilitätsmatrix für Texteingabe und Fokus
 
-Stand: 2026-09-23. Diese Matrix ist der aktuelle produktweite Abnahmeplan für
+Stand: 2026-09-24. Diese Matrix ist der aktuelle produktweite Abnahmeplan für
 die Textübergabe. Programme dienen als repräsentative Beispiele ihrer Kategorie;
 ein bestandener Lauf ist kein Versprechen für alle Programme derselben Kategorie.
 Datierte Berichte bleiben die Quelle für den jeweils tatsächlich geprüften Kandidaten.
 
-**Neuer Kandidat:** Automatisches Einfügen läuft wieder über die allgemeine
+**Aktueller Einfügeweg:** Automatisches Einfügen läuft wieder über die allgemeine
 Zwischenablage und ⌘V in der zu Beginn erfassten App. Sie wird vor dem
 Einfügebefehl aktiviert. Ein Feldwechsel kann den Einfügeort ändern; ein
 Appwechsel nach dem Stoppen wird durch die Reaktivierung zurückgenommen.
-Der neue Build `bd3630f` ist lokal installiert. Ein
-[manueller TextEdit-⌘V-Test](installed-command-v-2026-09-23.md) bestand;
+Der derzeit installierte Build 7 aus Quellstand `c92cbc9` bestand einen
+[echten TextEdit-Knopf-Lauf](release-plans/evidence/2026-09-24-keychain-and-plan1.md#build-7-echter-textedit-einfügeweg)
+mit Mikrofon, Provider und sichtbarer automatischer Einfügung. Das physische
+Kürzel auf diesem Build bleibt ungeprüft. Auf dem älteren Build `bd3630f`
+bestand zuerst ein [manueller TextEdit-⌘V-Test](installed-command-v-2026-09-23.md);
 die anschließende [Plan-1-Liverunde](release-plans/evidence/2026-09-23-plan1-status.md)
 belegte automatische Einfügung nach echten Diktaten in genau einem TextEdit-
 Dokument, Safari-`textarea`, Brave-`contenteditable`, Obsidian-CodeMirror und
@@ -38,7 +41,7 @@ Die jeweiligen Einzelfälle belegen keine vollständige Kategorie oder Phasenmat
 
 Die Stabilisierung in [PR #12](https://github.com/HerrStolzier/OpenDictate/pull/12)
 ändert Rückmeldungen zu versuchter/unterbrochener Texteingabe und die Einrichtung.
-Auf dem installierten Kandidaten `68ef919` wurden inzwischen die
+Auf dem damals installierten Kandidaten `68ef919` wurden die
 [TextEdit-Einfügung](live-acceptance-2026-09-22.md) und der oben genannte enge
 Terminal-Fall sowie der negative Appwechsel sichtbar geprüft. Eine begrenzte
 erste Runde und ein früher
@@ -49,7 +52,7 @@ begrenzt; diese Vorbereitung erweitert ihre Nachweise nicht.
 
 ## Abdeckungsziel
 
-| Kategorie | Repräsentative Beispiele | Zu prüfende Felder | Historische Evidenz, neuer Pfad offen |
+| Kategorie | Repräsentative Beispiele | Zu prüfende Felder | Bisherige Evidenz und offene Fälle |
 |---|---|---|---|
 | Native macOS-App | TextEdit; kontrollierter AppKit-Host | ein- und mehrzeiliges editierbares Feld | Neue echte Auswahlersetzung in TextEdit AXTextArea bestanden. Einzeilige native Felder und weitere Positionen bleiben synthetisch belegt. |
 | Browser, einfaches Formular | Safari und Brave | `input`, `textarea` | Echte Auswahlersetzung in beiden Browsern bestanden; Brave textarea einschließlich 90-Sekunden-Autostopp. Safari textarea zunächst verlustfreier Fallback ungeklärter Ursache, Wiederholung bestanden. Chrome-Ersteinrichtung unverändert, Firefox fehlt. |
@@ -158,7 +161,7 @@ Supportaussage aus einem einzelnen Beispiel.
 
 ## Priorität
 
-1. Auf dem neuen Kandidaten normale ⌘V-Eingabe in repräsentativen Feldern und die Wirkung von Fokuswechseln sichtbar prüfen; danach menschliche Diktate samt physischem Tastenkürzel und Korrekturaufwand auswerten.
+1. Auf dem aktuellen Build normale ⌘V-Eingabe in repräsentativen Feldern und die Wirkung von Fokuswechseln sichtbar prüfen; danach menschliche Diktate samt physischem Tastenkürzel und Korrekturaufwand auswerten.
 2. Eine begrenzte Runde der offenen Fokus-, Aufnahme-, Abbruch-, Geräte- und Recoveryfälle nach Risiko und Pilotbefund durchführen.
 3. Die breitere Matrix einschließlich VoiceOver und verbleibender Plattform-/Feldkombinationen systematisch ergänzen; fehlende Fälle bleiben ausdrücklich offen.
 
@@ -182,4 +185,4 @@ Windows-/Linux-Version und keine öffentliche Veröffentlichung zu.
 - [Native Abnahme vom 15. September](live-acceptance-2026-09-15.md): echter,
   sichtbar geprüfter TextEdit-Durchlauf samt Kandidat und Grenzen.
 - [Ältere Live-Abnahme](live-acceptance-2026-09-07.md): historischer `Cmd+V`-Pfad;
-  kein Nachweis für die heutige direkte Einfügelogik.
+  kein Nachweis für den heutigen installierten Build.
