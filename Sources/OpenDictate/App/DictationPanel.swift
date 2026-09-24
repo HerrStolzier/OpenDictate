@@ -191,8 +191,12 @@ final class DictationPanel: NSWindowController {
     }
 
     func setStatus(_ value: String) {
-        currentDetail = value
-        detail.stringValue = value
+        let panelText =
+            value == "Bereit" && display == .ready
+            ? "Wähle ein Textfeld und starte mit deinem Tastenkürzel."
+            : value
+        currentDetail = panelText
+        detail.stringValue = panelText
     }
 
     func setShortcut(_ value: String) { shortcut.stringValue = value }
