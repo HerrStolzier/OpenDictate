@@ -24,12 +24,17 @@ nicht erneut visuell abgenommen werden. Plan 1 und die öffentliche
 Release-Dokumentation sind damit weiterhin nicht freigegeben.
 
 Die anschließende [Testbereinigung](test-signal-audit.md) entfernt 22
-schwach aussagekräftige oder redundante Testfunktionen. Die verbleibenden
-Swift-Suite mit 138 Testfunktionen (vier Opt-in-Tests übersprungen) und acht
-Python-Tests bestanden lokal; die zwei Rust-Testlöschungen
-sind mangels erreichbarer Linux-Testumgebung nicht durch einen neuen
-Linux-Lauf geprüft. Produktionscode, installierter Build und E2E-Nachweise
-bleiben unverändert. Die Plan-1-Arbeit bleibt angehalten.
+schwach aussagekräftige oder redundante Testfunktionen. Die verbleibende
+Swift-Suite mit 138 Testfunktionen (vier Opt-in-Tests übersprungen) sowie die
+acht Python-Tests bestanden lokal; die zwei Rust-Testlöschungen
+wurden separat auf `omarchy` gegen exakt `ab839fd5ab64ff69cc5a126e859f804b473b59a5`
+geprüft: 23 Rust-Tests, Formatter, Clippy mit `-D warnings` und Release-Build
+bestanden offline. Der isolierte Quellbaum aus allen 17 committed `linux/`
+Dateien stimmte per SHA-256 überein und wurde nach dem Lauf entfernt; das
+bestehende Remote-Checkout blieb sauber. Details und reproduzierbare Befehle
+stehen im [Testsignal-Audit](test-signal-audit.md). Produktionscode,
+installierter Build und E2E-Nachweise bleiben unverändert. Die Plan-1-Arbeit
+bleibt angehalten.
 
 ## Neuer Quellcodekandidat: normaler Einfügebefehl
 

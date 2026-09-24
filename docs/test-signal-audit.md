@@ -71,8 +71,19 @@ functions (50 Core and 88 System) passed, with four opt-in live, native hotkey,
 and benchmark tests skipped. All eight Python tests passed. Strict Swift formatting, the six shell
 syntax checks from `CHECKS.md`, and `git diff --check` passed.
 
-Linux execution is unverified: Cargo and rustfmt are unavailable on this Mac,
-and the configured Linux SSH host timed out. The Rust diff only deletes two
-complete test functions inside existing `#[cfg(test)]` modules. It does not
-change imports, production code, or dependencies. The earlier 25-test Linux
-report remains historical evidence; it is not a run of the remaining 23 tests.
+Linux checks passed on `omarchy` (Linux, Cargo 1.98.1) for commit
+`ab839fd5ab64ff69cc5a126e859f804b473b59a5`. All 17 files copied from the
+committed `linux/` tree into a temporary directory matched by SHA-256. The
+23 remaining Rust tests passed; formatting, Clippy with warnings denied, and
+the release build passed. Cargo ran offline with the existing cache. The
+temporary source tree and build artifacts were removed; the remote `main`
+checkout stayed clean. No microphone, provider, Keyring, or app was used.
+
+Reproduce on Linux from the repository root:
+
+```bash
+CARGO_NET_OFFLINE=true ~/.cargo/bin/cargo fmt --manifest-path linux/Cargo.toml -- --check
+CARGO_NET_OFFLINE=true ~/.cargo/bin/cargo test --manifest-path linux/Cargo.toml --locked
+CARGO_NET_OFFLINE=true ~/.cargo/bin/cargo clippy --manifest-path linux/Cargo.toml --locked --all-targets -- -D warnings
+CARGO_NET_OFFLINE=true ~/.cargo/bin/cargo build --manifest-path linux/Cargo.toml --locked --release
+```
