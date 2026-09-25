@@ -15,7 +15,6 @@ struct DictationFlowTests {
         var pasted = 0
         var pastedText: String?
         var pasteResult: InsertionSubmission = .submitted
-        var pasteOverride: (@MainActor (String) async -> InsertionSubmission)?
         var copiedTexts: [String] = []
         var afterCopy: (() -> Void)?
         var copySucceeds = true
@@ -69,7 +68,6 @@ struct DictationFlowTests {
                     paste: { text in
                         self.pasted += 1
                         self.pastedText = text
-                        if let pasteOverride = self.pasteOverride { return await pasteOverride(text) }
                         return self.pasteResult
                     }
                 ))
@@ -198,16 +196,6 @@ struct DictationFlowTests {
         #expect(h.uploads == 0)
         #expect(h.kept == [h.original])
         #expect(h.cleaned == [h.original])
-    }
-
-    @Test func failedPersistenceNeverDeletesOnlyOriginal() async throws {
-        let h = Harness()
-        h.preparationFails = true
-        h.keepSucceeds = false
-        _ = try h.flow.start()
-        _ = h.flow.stop()
-        await h.flow.task?.value
-        #expect(h.cleaned.isEmpty)
     }
 
     @Test func failedDeliveryKeepsOriginalNotTrimmedAudio() async throws {

@@ -95,18 +95,18 @@ struct AppLifecycleTests {
         }
     }
 
-    @Test func preparationRemainsExclusiveAcrossBothKeyReads() throws {
+    @Test func activeOperationRejectsRepeatedNestedBegins() throws {
         let h = Harness()
         let operation = try #require(h.lifecycle.beginOperation())
         defer { h.lifecycle.finish(operation) }
         var nestedAttempts = 0
-        let keyRead = {
+        let attemptNestedBegin = {
             nestedAttempts += 1
             #expect(h.lifecycle.beginOperation() == nil)
             #expect(h.flow.state == .idle)
         }
-        keyRead()
-        keyRead()
+        attemptNestedBegin()
+        attemptNestedBegin()
         #expect(try h.lifecycle.commit(operation) { _ = try h.flow.start() })
         #expect(nestedAttempts == 2 && h.starts == 1)
         h.flow.cancel()
@@ -154,21 +154,21 @@ struct AppLifecycleTests {
         #expect(h.cleaned.isEmpty)
     }
 
-    @Test func cancelBeforeQueuedPreparationRunsSkipsItsKeyReadAndUpload() async throws {
+    @Test func cancelledOperationIsRejectedByQueuedCurrentnessCheck() async throws {
         let h = Harness()
         let operation = try #require(h.lifecycle.beginOperation())
-        var keyReads = 0
+        var admittedActions = 0
         let task = Task { @MainActor in
             defer { h.lifecycle.finish(operation) }
             guard h.lifecycle.isCurrent(operation) else { return }
-            keyReads += 1
+            admittedActions += 1
             h.lifecycle.commit(operation) {
                 _ = h.flow.retry(.init(url: h.original, data: Data([1])))
             }
         }
         h.lifecycle.cancelPreparation()
         await task.value
-        #expect(keyReads == 0 && h.uploads == 0 && h.flow.state == .idle)
+        #expect(admittedActions == 0 && h.uploads == 0 && h.flow.state == .idle)
         #expect(h.lifecycle.canBeginOperation)
     }
 

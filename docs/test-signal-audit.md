@@ -87,3 +87,36 @@ CARGO_NET_OFFLINE=true ~/.cargo/bin/cargo test --manifest-path linux/Cargo.toml 
 CARGO_NET_OFFLINE=true ~/.cargo/bin/cargo clippy --manifest-path linux/Cargo.toml --locked --all-targets -- -D warnings
 CARGO_NET_OFFLINE=true ~/.cargo/bin/cargo build --manifest-path linux/Cargo.toml --locked --release
 ```
+
+## Focused follow-up · 25 September 2026
+
+Reviewed from clean `6c139d34501bd219a2238a68c603d2e58a7a0086` against the
+production flow, AppDelegate callers, related tests, CI and Git history.
+
+- Remove `DictationFlowTests.failedPersistenceNeverDeletesOnlyOriginal`:
+  preparation and persistence both fail, and its sole assertion rejects any
+  cleanup. `failedRecoveryCannotAdvertiseSuccess` uses the same setup and
+  assertion, plus the failed outcome. The older test dates to `536cf3f`; the
+  stronger test was added in `f72d277`. Production calls the same flow from
+  `AppDelegate.makeFlow`; no production API or shared helper becomes unused.
+  Removal risk is limited to duplicate coverage; retain the stronger test.
+- Remove the unused `Harness.pasteOverride` and its branch. The only callers
+  were chunk-delivery tests removed in `bd3630f`; no remaining test assigns it
+  and no production caller exists. The normal configurable paste result stays.
+- Rename two lifecycle tests and their local counters to describe operation
+  exclusion/currentness. Their orchestration is supplied by the test itself;
+  they do not prove that AppDelegate guards actual Keychain reads. Keep their
+  lifecycle coverage, and do not count them as installed-app acceptance.
+
+This is a small test-only cleanup, not a new test layer or a production fix.
+No independent review or live E2E is claimed. Repeat the offline checks from
+`CHECKS.md`; on the current Command Line Tools host use its documented
+TestingMacros plugin option. The affected suites can also be selected with
+`--filter 'AppLifecycleTests|DictationFlowTests'`.
+
+Validation on macOS 27.0 / arm64, Swift 6.4: the full offline Swift suite
+passed (137 test functions, four opt-in tests skipped), as did all eight
+Python tests, strict Swift formatting, six shell syntax checks and
+`git diff --check` (exit 0 each). No live microphone, provider, Keychain or
+installed-app check was run. Test code changed by +8/-20 lines; production
+code changed by zero lines. The remaining stronger recovery test passed.
