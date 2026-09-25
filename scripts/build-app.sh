@@ -3,16 +3,21 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
 APP="$ROOT/.build/OpenDictate.app"
-EXECUTABLE="$ROOT/.build/release/OpenDictate"
-HELPER_EXECUTABLE="$ROOT/.build/release/OpenDictateKeychainHelper"
+EXECUTABLE=""
+HELPER_EXECUTABLE=""
 ICON_SOURCE="$ROOT/Assets/OpenDictateIcon.png"
 ICONSET="$ROOT/.build/OpenDictate.iconset"
 
 cd "$ROOT"
 VERSION="$(cat "$ROOT/VERSION")"
+BUILD_MODE="${OPENDICTATE_BUILD_MODE:-development}"
 BUILD_NUMBER="${OPENDICTATE_BUILD_NUMBER:-1}"
 [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid VERSION" >&2; exit 1; }
 [[ "$BUILD_NUMBER" =~ ^[0-9]+$ ]] || { echo "Invalid build number" >&2; exit 1; }
+case "$BUILD_MODE" in
+  development|release) ;;
+  *) echo "OPENDICTATE_BUILD_MODE must be 'development' or 'release'." >&2; exit 1 ;;
+esac
 SOURCE_REVISION="${OPENDICTATE_SOURCE_REVISION:-}"
 SOURCE_STATE="unversioned"
 if [[ -n "$SOURCE_REVISION" && ! "$SOURCE_REVISION" =~ ^[0-9a-f]{40}$ ]]; then
@@ -35,7 +40,55 @@ elif [[ -n "$SOURCE_REVISION" ]]; then
 else
   SOURCE_REVISION="unknown"
 fi
-swift build -c release
+EXPECTED_TEAM_ID=""
+if [[ "$BUILD_MODE" == "release" ]]; then
+  [[ "$GIT_ROOT" == "$ROOT" ]] || {
+    echo "Release builds require this project's Git checkout." >&2
+    exit 1
+  }
+  [[ -z "$CHECKOUT_STATUS" ]] || {
+    echo "Release builds require a clean checkout, including untracked files." >&2
+    exit 1
+  }
+  [[ -n "${OPENDICTATE_BUILD_NUMBER:-}" ]] || {
+    echo "Set OPENDICTATE_BUILD_NUMBER explicitly for a release build." >&2
+    exit 1
+  }
+  if [[ -n "$SOURCE_REVISION" && "$SOURCE_REVISION" != "$CHECKOUT_REVISION" ]]; then
+    echo "Release source revision must match the checked-out commit." >&2
+    exit 1
+  fi
+  SIGN_IDENTITY="${OPENDICTATE_SIGN_IDENTITY:-}"
+  [[ -n "$SIGN_IDENTITY" ]] || {
+    echo "Release builds require OPENDICTATE_SIGN_IDENTITY naming a valid Developer ID Application identity." >&2
+    exit 1
+  }
+  if [[ "$SIGN_IDENTITY" =~ ^Developer\ ID\ Application:\ .+\ \(([A-Z0-9]{10})\)$ ]]; then
+    EXPECTED_TEAM_ID="${BASH_REMATCH[1]}"
+  else
+    echo "Release identity must be 'Developer ID Application: Name (TEAMID)'." >&2
+    exit 1
+  fi
+  if ! security find-identity -v -p codesigning 2>/dev/null | awk -v identity="$SIGN_IDENTITY" '
+    index($0, "\"" identity "\"") { found = 1 }
+    END { exit !found }'; then
+    echo "No valid Developer ID Application identity matches OPENDICTATE_SIGN_IDENTITY." >&2
+    exit 1
+  fi
+  echo "Building clean arm64 release for team $EXPECTED_TEAM_ID."
+  BUILD_ARGUMENTS=(-c release --triple arm64-apple-macosx14.0)
+  swift build "${BUILD_ARGUMENTS[@]}"
+else
+  BUILD_ARGUMENTS=(-c release)
+  swift build "${BUILD_ARGUMENTS[@]}"
+fi
+PRODUCT_BIN_PATH="$(swift build --show-bin-path "${BUILD_ARGUMENTS[@]}")"
+EXECUTABLE="$PRODUCT_BIN_PATH/OpenDictate"
+HELPER_EXECUTABLE="$PRODUCT_BIN_PATH/OpenDictateKeychainHelper"
+[[ -x "$EXECUTABLE" && -x "$HELPER_EXECUTABLE" ]] || {
+  echo "SwiftPM did not produce both expected executables in $PRODUCT_BIN_PATH." >&2
+  exit 1
+}
 if [[ "$GIT_ROOT" == "$ROOT" ]]; then
   [[ "$(git rev-parse --verify 'HEAD^{commit}')" == "$SOURCE_REVISION" ]] || {
     echo "Checkout changed during the build; build again from the intended commit." >&2
@@ -45,6 +98,15 @@ if [[ "$GIT_ROOT" == "$ROOT" ]]; then
   if [[ -n "$CHECKOUT_STATUS" ]]; then SOURCE_STATE="dirty"; fi
 fi
 echo "Source revision: $SOURCE_REVISION ($SOURCE_STATE)"
+
+if [[ "$BUILD_MODE" == "release" ]]; then
+  for binary in "$EXECUTABLE" "$HELPER_EXECUTABLE"; do
+    [[ "$(lipo -archs "$binary")" == "arm64" ]] || {
+      echo "Release executable must contain only arm64: $binary" >&2
+      exit 1
+    }
+  done
+fi
 
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Helpers"
@@ -113,24 +175,23 @@ clear_xattrs() {
   find "$APP" -exec xattr -c {} \; 2>/dev/null || true
 }
 
-# Sign with a stable code-signing identity so macOS keeps the Accessibility
-# (TCC) grant across rebuilds. Ad-hoc signatures change their code hash on every
-# build, which silently invalidates the Accessibility permission. Override the
-# identity with OPENDICTATE_SIGN_IDENTITY; falls back to ad-hoc if it is missing.
-# Note: the self-signed identity is intentionally untrusted (it only exists to
-# keep the signing identity stable for TCC), so it appears under "Matching identities"
-# but not under "Valid identities only" — match the former, without -v.
-SIGN_IDENTITY="${OPENDICTATE_SIGN_IDENTITY:-OpenDictate Self-Signed}"
-if [[ "$SIGN_IDENTITY" == "-" ]]; then
-  echo "Signing ad hoc."
+if [[ "$BUILD_MODE" == "release" ]]; then
+  echo "Signing app and helper with Developer ID team $EXPECTED_TEAM_ID."
+  SIGN_ARGS=(--force --timestamp --options runtime --sign "$SIGN_IDENTITY")
+  HELPER_SIGN_ARGS=(--force --timestamp --options runtime --sign "$SIGN_IDENTITY")
+elif [[ "${OPENDICTATE_SIGN_IDENTITY:-OpenDictate Self-Signed}" == "-" ]]; then
+  echo "Signing development build ad hoc."
   SIGN_ARGS=(--force --options runtime --sign -)
   HELPER_SIGN_ARGS=(--force --options runtime --sign -)
-elif security find-identity -p codesigning 2>/dev/null | grep -qF "\"$SIGN_IDENTITY\""; then
-  echo "Signing with identity: $SIGN_IDENTITY"
+  SIGN_IDENTITY="-"
+elif security find-identity -p codesigning 2>/dev/null | grep -qF "\"${OPENDICTATE_SIGN_IDENTITY:-OpenDictate Self-Signed}\""; then
+  SIGN_IDENTITY="${OPENDICTATE_SIGN_IDENTITY:-OpenDictate Self-Signed}"
+  echo "Signing development build with identity: $SIGN_IDENTITY"
   SIGN_ARGS=(--force --options runtime --sign "$SIGN_IDENTITY")
   HELPER_SIGN_ARGS=(--force --options runtime --sign "$SIGN_IDENTITY")
 else
-  echo "WARNING: code-signing identity '$SIGN_IDENTITY' not found; falling back to ad-hoc."
+  SIGN_IDENTITY="${OPENDICTATE_SIGN_IDENTITY:-OpenDictate Self-Signed}"
+  echo "WARNING: development identity '$SIGN_IDENTITY' not found; falling back to ad-hoc."
   echo "         The Accessibility permission will need to be re-granted after each build."
   echo "         See docs/accessibility-signing.md to create the stable identity."
   SIGN_ARGS=(--force --options runtime --sign -)
@@ -148,5 +209,9 @@ if ! codesign "${SIGN_ARGS[@]}" "$APP" 2>/dev/null; then
 fi
 
 clear_xattrs
-"$ROOT/scripts/verify-app.sh" "$APP"
+if [[ "$BUILD_MODE" == "release" ]]; then
+  "$ROOT/scripts/verify-app.sh" --release --team-id "$EXPECTED_TEAM_ID" "$APP"
+else
+  "$ROOT/scripts/verify-app.sh" "$APP"
+fi
 echo "$APP"

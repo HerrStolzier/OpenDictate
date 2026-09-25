@@ -8,6 +8,7 @@ swift test -Xswiftc -warnings-as-errors
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/tests -p 'test_*.py' -v
 bash -n scripts/build-app.sh
 bash -n scripts/verify-app.sh
+bash -n scripts/package-release-app.sh
 bash -n scripts/store-api-key.sh
 bash -n script/build_and_run.sh
 bash -n scripts/package-ci-app.sh
@@ -15,8 +16,8 @@ bash -n scripts/tests/test-verify-app.sh
 git diff --check
 ```
 
-CI uses the same strict formatting, warnings-as-errors tests and six shell
-syntax checks on macOS 15. A separate macOS 14 Apple-Silicon job selects the
+CI uses strict formatting, warnings-as-errors tests and six shell syntax checks
+on macOS 15. A separate macOS 14 Apple-Silicon job selects the
 runner's Xcode 16.2 and runs the offline Swift tests plus an ad-hoc bundle
 build and verification. This is a native macOS 14 runtime check, but cannot
 exercise microphone, permission dialogs, VoiceOver or target-field insertion
@@ -65,6 +66,85 @@ tests do not launch the app, access a microphone or change a user's signing
 identity, Keychain or permissions. CI runs them before packaging its development
 archive and verifies the archive again after extraction.
 
+## Developer ID release candidate
+
+This path prepares and validates a private release candidate. It does not
+authorize a notary upload, installation or app launch. Before the release path
+is exercised, check these failure cases:
+
+- Missing or malformed Developer ID identity stops before Swift compilation;
+  an invalid or non-Developer-ID identity stops before signing. Release mode
+  never falls back to ad-hoc signing.
+- A dirty checkout, source-revision mismatch, missing explicit build number or
+  non-arm64 build stops before packaging.
+- A wrong signing team, different app/helper identities, missing secure
+  timestamp, missing Hardened Runtime or missing microphone entitlement fails
+  verification.
+- An unset notary profile is rejected before submission. A name that is not a
+  stored profile is left to notarytool's credential diagnostic; do not create or
+  replace profiles as part of this workflow.
+- A notary result other than Accepted must not be stapled or packaged. A missing
+  or invalid stapled ticket, failed Gatekeeper assessment, changed archive
+  contents or existing output directory stops before a release directory is
+  produced.
+
+For a later, separately authorized release attempt, first build on a clean,
+committed checkout. The identity value is the public signing identity name, not
+a password or private key:
+
+```bash
+OPENDICTATE_BUILD_MODE=release \
+OPENDICTATE_BUILD_NUMBER=42 \
+OPENDICTATE_SIGN_IDENTITY='Developer ID Application: Example Team (ABCDE12345)' \
+./scripts/build-app.sh
+```
+
+The build signs the app and Keychain helper with that identity, uses the
+arm64 macOS 14 target, secure timestamps and Hardened Runtime, then checks the
+team and microphone entitlement. The bundle output is `.build/OpenDictate.app`;
+compiler and generated icon artifacts remain under `.build/`.
+
+Notarization remains a manual step. Keep the named profile in Keychain and use
+no password, API key or private-key path in the command or environment. Keep
+the temporary ZIP and JSON result outside the repository:
+
+```bash
+(
+set -euo pipefail
+: "${NOTARY_PROFILE:?Set this to the name of an existing notarytool Keychain profile}"
+WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/opendictate-notary.XXXXXX")"
+trap 'rm -rf "$WORK_DIR"' EXIT
+NOTARY_ZIP="$WORK_DIR/OpenDictate-notary.zip"
+NOTARY_RESULT="$WORK_DIR/notary-result.json"
+ditto -c -k --sequesterRsrc --keepParent .build/OpenDictate.app "$NOTARY_ZIP"
+xcrun notarytool submit "$NOTARY_ZIP" --keychain-profile "$NOTARY_PROFILE" \
+  --wait --no-progress --output-format json > "$NOTARY_RESULT"
+python3 - "$NOTARY_RESULT" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+result = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+if result.get("status") != "Accepted":
+    raise SystemExit(f"Notary status is {result.get('status')!r}; do not staple or package.")
+print(f"Notary accepted submission {result.get('id', '<id missing>')}")
+PY
+xcrun stapler staple .build/OpenDictate.app
+xcrun stapler validate .build/OpenDictate.app
+./scripts/package-release-app.sh .build/OpenDictate.app \
+  /absolute/path/to/new-release-directory ABCDE12345
+)
+```
+
+The final packaging command verifies the signed and stapled bundle, creates the
+final ZIP and manifest in a new directory outside the checkout, extracts that
+ZIP into a temporary directory, and verifies the extracted signature, ticket,
+architecture and Gatekeeper assessment before publishing either output file.
+The manifest binds version, build number, clean Git revision, Developer ID team,
+architecture and final ZIP SHA-256. Packaging does not install or launch the
+app and does not check Keychain ACL migration or microphone behavior. The
+release helper is checked locally; CI remains on the ad-hoc development path.
+
 Documentation-only changes: run `git diff --check`, verify changed local links
 and review ownership, conflicting rules and evidence scope. Include new files
 in that review. Do not rerun app tests solely for prose changes.
@@ -95,7 +175,7 @@ The rationale for the retained and removed isolated tests is recorded in
 - `python3 -m unittest discover ...`: offline regression tests for the transcript evaluator and process sampler, including output-file preservation.
 - `swift format lint --strict --configuration .swift-format --recursive Sources Tests Package.swift`: project formatting; lint warnings cause a failed check.
 - `./scripts/build-app.sh`: release bundle, Plist, signature and Hardened Runtime verification. Does not launch/install it.
-- `git diff --check` and `bash -n` for all six scripts listed above before handoff.
+- `git diff --check` and `bash -n` for all scripts listed above before handoff.
 - Real microphone, hotkeys, direct target-field insertion, clipboard fallback and VoiceOver require attended native-app acceptance; an accessibility tree alone is not a VoiceOver listening test.
 - After changing the insertion mechanism, recheck the affected categories and
   scenarios in `docs/compatibility-matrix.md`. Historical checks validate only

@@ -61,6 +61,33 @@ before replacing a daily app; the archive does not reset permissions or bypass
 macOS trust checks. Source installation with the existing local signing identity
 is documented in [local signing](accessibility-signing.md).
 
+## Private Developer ID release candidate
+
+Plan 2 adds an explicit release mode to `./scripts/build-app.sh`. It requires a
+clean committed checkout, an explicit build number and a valid Developer ID
+Application identity; it never falls back to ad-hoc signing. It builds arm64
+for macOS 14, signs the app and Keychain helper with the same identity and
+secure timestamp, and checks both signatures, Hardened Runtime, and the app's
+microphone entitlement. The verifier checks the Developer ID certificate
+requirement and compares the extracted leaf certificate bytes, not just the
+displayed identity name.
+
+The separate `./scripts/package-release-app.sh` command is for an app that has
+already received an Accepted notary result and a stapled ticket. It verifies the
+ticket and Gatekeeper assessment, creates a new final ZIP and manifest, then
+checks the extracted ZIP before writing either output. Its output directory
+must be new and outside the checkout. It does not submit to Apple, install or
+launch the app, or verify the existing Keychain helper's runtime ACL migration.
+
+The complete manual ZIP, notarytool, Accepted-status, staple, and final-package
+sequence is in [CHECKS.md](../CHECKS.md#developer-id-release-candidate). Keep
+the notary profile in Keychain; never place its password, API key, or private
+key in a command, environment variable, manifest, or log. If identity or
+profile prerequisites are unavailable, stop without changing account or
+Keychain state. This path prepares a private candidate and does not announce a
+public release. See Apple's [Developer ID code-signing requirement](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements)
+and [notarization workflow](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution).
+
 ## Linux Phase-0 spike
 
 The crate under [`linux/`](../linux/README.md) is a Hyprland/omarchy CLI spike,
