@@ -1,0 +1,26 @@
+Base: 7309c02bdf83a93ab94890b4770dc07f7f8a9178
+Isolated copy: git archive base Sources Tests Package.swift .swift-format
+Command per mutation: swift test -Xswiftc -warnings-as-errors -Xswiftc -plugin-path -Xswiftc /Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing --filter <test name>
+Mutation pairs and selectors: control-scenarios.json
+All production source hashes matched baseline after restoration.
+
+padding
+✘ Test "Speech in the middle gets padded on both sides" recorded an issue at TrimPlannerTests.swift:27:9: Expectation failed: abs(result.uploadDuration - 4.5) < 0.0001
+✘ Test "Speech in the middle gets padded on both sides" recorded an issue at TrimPlannerTests.swift:28:9: Expectation failed: abs(result.trimmedDuration - 5.5) < 0.0001
+✘ Test run with 1 test in 1 suite failed after 0.001 seconds with 2 issues.
+
+pause
+✘ Test "The range spans the first to the last loud window" recorded an issue at AudioLevelsTests.swift:62:9: Expectation failed: acc.range == SpeechRange(start: 0.05, end: 0.20)
+✘ Test "The range spans the first to the last loud window" failed after 0.001 seconds with 1 issue.
+✘ Suite "Speech range detection" failed after 0.001 seconds with 1 issue.
+✘ Test run with 1 test in 1 suite failed after 0.001 seconds with 1 issue.
+
+setup
+✘ Test setupUpdatesKeepTheirActionAvailableWithoutOpeningOrRecording() recorded an issue at DictationPanelTests.swift:106:9: Expectation failed: recordings == 0
+✘ Test setupUpdatesKeepTheirActionAvailableWithoutOpeningOrRecording() failed after 0.124 seconds with 1 issue.
+✘ Suite "Delivery presentation without showing a window" failed after 0.124 seconds with 1 issue.
+✘ Test run with 1 test in 1 suite failed after 0.124 seconds with 1 issue.
+
+restored
+✔ Test run with 1 test in 1 suite passed after 0.119 seconds.
+✔ Test run with 2 tests in 2 suites passed after 0.001 seconds.

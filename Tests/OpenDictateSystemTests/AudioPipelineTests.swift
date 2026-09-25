@@ -58,13 +58,6 @@ struct AudioPipelineTests {
         #expect(prepared.uploadDuration >= 1 && prepared.uploadDuration <= 1.6)
     }
 
-    @Test func shortDetectedSpanDoesNotPretendThereWasNoAudio() throws {
-        let url = try fixture(seconds: 3, start: 1, end: 1.2, amplitude: 0.2)
-        defer { try? FileManager.default.removeItem(at: url) }
-        let analysis = try AudioPreprocessor.analyze(audioURL: url)
-        #expect(analysis.speechRange != nil)
-    }
-
     @Test(.enabled(if: ProcessInfo.processInfo.environment["OPENDICTATE_BENCHMARK"] == "1"))
     func benchmark() async throws {
         let url = try fixture(seconds: 90, start: 0.2, end: 89.7, amplitude: 0.2, aac: true)

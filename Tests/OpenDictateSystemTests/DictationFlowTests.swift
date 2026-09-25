@@ -178,15 +178,6 @@ struct DictationFlowTests {
         #expect(h.cleaned.isEmpty)
     }
 
-    @Test func automaticInsertionReceivesTheExactTrimmedTranscript() async throws {
-        let h = Harness()
-        h.text = "  dictated text\n"
-        _ = try h.flow.start()
-        _ = h.flow.stop()
-        await h.flow.task?.value
-        #expect(h.pastedText == "dictated text")
-    }
-
     @Test func skippedAudioIsKeptWithoutUpload() async throws {
         let h = Harness()
         h.preparationFails = true

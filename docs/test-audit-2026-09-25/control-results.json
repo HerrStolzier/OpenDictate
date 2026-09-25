@@ -1,0 +1,23 @@
+[
+  {
+    "mutation": "padding",
+    "test": "padsBothSides",
+    "exit_code": 1,
+    "assertion_failure": true
+  },
+  {
+    "mutation": "pause",
+    "test": "spansFirstToLast",
+    "exit_code": 1,
+    "assertion_failure": true
+  },
+  {
+    "mutation": "setup",
+    "test": "setupUpdatesKeepTheirActionAvailableWithoutOpeningOrRecording",
+    "exit_code": 1,
+    "assertion_failure": true
+  },
+  {
+    "restored_exit_code": 0
+  }
+]

@@ -1,0 +1,23 @@
+[
+  [
+    "padding",
+    "Sources/OpenDictateCore/TrimPlanner.swift",
+    "let end = min(originalDuration, speechRange.end + padding)",
+    "let end = min(originalDuration, speechRange.end)",
+    "padsBothSides"
+  ],
+  [
+    "pause",
+    "Sources/OpenDictateCore/AudioLevels.swift",
+    "firstSpeechTime = firstSpeechTime ?? start",
+    "firstSpeechTime = start",
+    "spansFirstToLast"
+  ],
+  [
+    "setup",
+    "Sources/OpenDictate/App/DictationPanel.swift",
+    "} else if display == .setup {",
+    "} else if display == .setup {\n            onRecord?()",
+    "setupUpdatesKeepTheirActionAvailableWithoutOpeningOrRecording"
+  ]
+]
