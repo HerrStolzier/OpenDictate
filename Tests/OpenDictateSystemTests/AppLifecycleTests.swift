@@ -95,23 +95,6 @@ struct AppLifecycleTests {
         }
     }
 
-    @Test func activeOperationRejectsRepeatedNestedBegins() throws {
-        let h = Harness()
-        let operation = try #require(h.lifecycle.beginOperation())
-        defer { h.lifecycle.finish(operation) }
-        var nestedAttempts = 0
-        let attemptNestedBegin = {
-            nestedAttempts += 1
-            #expect(h.lifecycle.beginOperation() == nil)
-            #expect(h.flow.state == .idle)
-        }
-        attemptNestedBegin()
-        attemptNestedBegin()
-        #expect(try h.lifecycle.commit(operation) { _ = try h.flow.start() })
-        #expect(nestedAttempts == 2 && h.starts == 1)
-        h.flow.cancel()
-    }
-
     @Test func lateMicrophoneAnswerCannotStartOrReleaseANewerPreparation() async throws {
         let h = Harness()
         let microphone = Deferred<Bool>()
@@ -154,24 +137,6 @@ struct AppLifecycleTests {
         #expect(h.cleaned.isEmpty)
     }
 
-    @Test func cancelledOperationIsRejectedByQueuedCurrentnessCheck() async throws {
-        let h = Harness()
-        let operation = try #require(h.lifecycle.beginOperation())
-        var admittedActions = 0
-        let task = Task { @MainActor in
-            defer { h.lifecycle.finish(operation) }
-            guard h.lifecycle.isCurrent(operation) else { return }
-            admittedActions += 1
-            h.lifecycle.commit(operation) {
-                _ = h.flow.retry(.init(url: h.original, data: Data([1])))
-            }
-        }
-        h.lifecycle.cancelPreparation()
-        await task.value
-        #expect(admittedActions == 0 && h.uploads == 0 && h.flow.state == .idle)
-        #expect(h.lifecycle.canBeginOperation)
-    }
-
     @Test func quitDuringPreparationRejectsLateSuccessAndErrorCallbacks() async throws {
         for permitted in [false, true] {
             let h = Harness()
@@ -194,19 +159,6 @@ struct AppLifecycleTests {
             #expect(h.confirmations == 0 && h.cancellations == 0 && h.replies == 0)
             #expect(errors == 0 && h.starts == 0)
         }
-    }
-
-    @Test func setupModalCannotAdmitAHotkeyOrSaveAfterNestedQuit() throws {
-        let lifecycle = AppLifecycle()
-        let setup = try #require(lifecycle.beginOperation())
-        #expect(lifecycle.beginOperation() == nil)
-        #expect(
-            lifecycle.requestTermination(
-                hasActiveDictation: false, confirm: { false }, cancel: { nil }, reply: {}) == .now)
-        var saves = 0
-        #expect(!lifecycle.commit(setup) { saves += 1 })
-        lifecycle.finish(setup)
-        #expect(saves == 0 && !lifecycle.canBeginOperation)
     }
 
     @Test func finishingFlowInsideQuitDialogDoesNotAllowASecondQuit() throws {

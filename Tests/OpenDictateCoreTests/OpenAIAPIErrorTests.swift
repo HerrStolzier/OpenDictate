@@ -9,15 +9,6 @@ struct OpenAIAPIErrorTests {
         OpenAIAPIErrorMessage.humanReadableMessage(from: Data(json.utf8), statusCode: status)
     }
 
-    @Test("401 with an invalid key points at advanced settings")
-    func invalidKey() {
-        let text = message(
-            #"{"error":{"message":"Incorrect API key","type":"invalid_request_error","code":"invalid_api_key"}}"#,
-            status: 401)
-        #expect(text.contains("ungültig"))
-        #expect(text.contains("Erweitert"))
-    }
-
     @Test("429 for an exhausted quota talks about billing, not about waiting")
     func exhaustedQuota() {
         let text = message(
@@ -35,30 +26,12 @@ struct OpenAIAPIErrorTests {
         #expect(text.contains("Warte einen Moment"))
     }
 
-    @Test("413 with an unparseable body suggests a shorter recording")
-    func malformedBody() {
-        let text = message("<html>Request Entity Too Large</html>", status: 413)
-        #expect(text.contains("kürzeres Diktat"))
-    }
-
-    @Test("A server error with an empty body suggests trying later")
-    func emptyBody() {
-        let text = OpenAIAPIErrorMessage.humanReadableMessage(from: Data(), statusCode: 500)
-        #expect(text.contains("später erneut"))
-    }
-
     @Test("An unknown code does not expose raw provider text")
     func unknownCodeHidesServerMessage() {
         let text = message(
             #"{"error":{"message":"Unsupported audio format.","type":"invalid_request_error","code":"unsupported_format"}}"#,
             status: 400)
         #expect(!text.contains("Unsupported audio format."))
-        #expect(text.contains("Hilfe"))
-    }
-
-    @Test("An unknown code with no message still falls back")
-    func unknownCodeWithoutMessage() {
-        let text = message(#"{"error":{"message":"","type":"weird","code":"weird"}}"#, status: 400)
         #expect(text.contains("Hilfe"))
     }
 

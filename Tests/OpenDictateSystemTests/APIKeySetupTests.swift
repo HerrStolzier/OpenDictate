@@ -47,45 +47,6 @@ struct APIKeySetupTests {
                 .first { $0.accessibilityIdentifier() == "dictation-primary" })
     }
 
-    @Test func setupActionAndSavingDoNotStartARecording() throws {
-        let panel = DictationPanel()
-        defer { panel.window?.close() }
-        var setups = 0
-        var recordings = 0
-        panel.onSetup = { setups += 1 }
-        panel.onRecord = { recordings += 1 }
-        panel.updateAPIKeySetup(needsSetup: true)
-
-        let button = try primary(in: panel)
-        #expect(panel.display == .setup)
-        #expect(button.title == "Schlüssel eingeben")
-        button.performClick(nil)
-        #expect(setups == 1)
-        #expect(recordings == 0)
-
-        panel.updateAPIKeySetup(needsSetup: false)
-        #expect(panel.display == .ready)
-        #expect(recordings == 0)
-        button.performClick(nil)
-        #expect(recordings == 1)
-    }
-
-    @Test func cancelledOrFailedSetupKeepsItsActionAvailable() throws {
-        let panel = DictationPanel()
-        defer { panel.window?.close() }
-        var setups = 0
-        var recordings = 0
-        panel.onSetup = { setups += 1 }
-        panel.onRecord = { recordings += 1 }
-        for message in ["Einrichtung abgebrochen.", "Schlüssel konnte nicht gespeichert werden."] {
-            panel.updateAPIKeySetup(needsSetup: true, message: message)
-            #expect(panel.display == .setup)
-            try primary(in: panel).performClick(nil)
-        }
-        #expect(setups == 2)
-        #expect(recordings == 0)
-    }
-
     @Test func configuredUsersKeepTheirExistingTranscriptAction() throws {
         let panel = DictationPanel()
         defer { panel.window?.close() }

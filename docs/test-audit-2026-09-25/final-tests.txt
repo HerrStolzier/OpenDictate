@@ -1,0 +1,37 @@
+Base: 7309c02bdf83a93ab94890b4770dc07f7f8a9178 plus 28 test deletions
+Exit code: 0
+➜ Test benchmark() skipped.
+➜ Test collisionRetainsOriginalSystemRegistrationAndReleasesBoth() skipped.
+➜ Test syntheticReference() skipped.
+➜ Test recoveryPruning() skipped.
+✔ Suite "Native hotkey registration with explicit opt-in" passed after 0.010 seconds.
+✔ Suite "Opt-in live transcription" passed after 0.010 seconds.
+✔ Suite "Offline resource benchmarks" passed after 0.010 seconds.
+✔ Suite "Keychain item status and write boundaries" passed after 0.011 seconds.
+✔ Suite "Hotkey transaction without hardware registration" passed after 0.011 seconds.
+✔ Suite "API key presence without credential access" passed after 0.011 seconds.
+✔ Suite "API key replacement without deleting the working credential" passed after 0.011 seconds.
+✔ Suite "Offline transcription API contract" passed after 0.011 seconds.
+✔ Suite "UserDefaults settings adapter" passed after 0.011 seconds.
+✔ Suite "Recovery access expiry" passed after 0.017 seconds.
+✔ Suite "Offline URLSession transport" passed after 0.019 seconds.
+✔ Suite "Application paste delivery without system input" passed after 0.019 seconds.
+✔ Suite "Bounded logging" passed after 0.020 seconds.
+✔ Suite "Synthetic audio pipeline" passed after 0.110 seconds.
+✔ Suite "Failed recording store security boundaries" passed after 0.384 seconds.
+✔ Suite "Shortcut dialog keyboard navigation" passed after 0.407 seconds.
+✔ Suite "API key setup panel" passed after 0.408 seconds.
+✔ Suite "Delivery presentation without showing a window" passed after 0.411 seconds.
+✔ Suite "Dictation lifecycle and recovery" passed after 0.412 seconds.
+✔ Suite "Preparation and termination ordering" passed after 0.412 seconds.
+✔ Test run with 80 tests in 20 suites passed after 0.412 seconds.
+✔ Suite "Custom shortcut validation" passed after 0.001 seconds.
+✔ Suite "Panel target focus" passed after 0.001 seconds.
+✔ Suite "Transcription model" passed after 0.001 seconds.
+✔ Suite "Speech range detection" passed after 0.001 seconds.
+✔ Suite "OpenAI error messages" passed after 0.001 seconds.
+✔ Suite "Error descriptions" passed after 0.001 seconds.
+✔ Suite "Trim planning" passed after 0.001 seconds.
+✔ Suite "Settings" passed after 0.001 seconds.
+✔ Suite "Failed recording retention" passed after 0.001 seconds.
+✔ Test run with 29 tests in 9 suites passed after 0.001 seconds.

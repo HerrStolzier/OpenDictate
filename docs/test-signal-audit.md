@@ -120,3 +120,15 @@ Python tests, strict Swift formatting, six shell syntax checks and
 `git diff --check` (exit 0 each). No live microphone, provider, Keychain or
 installed-app check was run. Test code changed by +8/-20 lines; production
 code changed by zero lines. The remaining stronger recovery test passed.
+
+## Measured 20% reduction · 25 September 2026
+
+The subsequent explicitly requested reduction removes 28 of 137 Swift test
+declarations (20.44%), leaving 109 including the four retained opt-in checks.
+The unchanged production source loses 0.367150 percentage points of line
+coverage (33.893720% to 33.526570%; 1.083238% relative loss). Core decreases
+by 5.277778 points; App coverage is unchanged. Lower-priority assertion losses
+are accepted for this bounded reduction, not described as wholly redundant.
+The [coverage report and reproducible evidence](test-audit-2026-09-25/README.md)
+include per-file metrics, unchanged source hashes, independent review and three
+negative controls for retained safety-relevant tests.

@@ -40,13 +40,6 @@ struct SettingsTests {
 
     // MARK: - Model
 
-    @Test("The environment variable is used when nothing was picked in the menu")
-    func modelFromEnvironment() {
-        let s = settings(env: ["OPENAI_TRANSCRIBE_MODEL": "whisper-1"])
-        #expect(s.model == .whisper1)
-        #expect(s.modelSource == "OPENAI_TRANSCRIBE_MODEL")
-    }
-
     @Test("A menu choice beats the environment variable")
     func storedModelWinsOverEnvironment() {
         let s = settings(env: ["OPENAI_TRANSCRIBE_MODEL": "whisper-1"])
@@ -55,22 +48,11 @@ struct SettingsTests {
         #expect(s.modelSource == "menu")
     }
 
-    @Test("An empty environment variable is ignored")
-    func emptyEnvironmentIgnored() {
-        let s = settings(env: ["OPENAI_TRANSCRIBE_MODEL": ""])
-        #expect(s.model == .gptTranscribe)
-    }
-
     // MARK: - Language
 
     @Test("No language configured means automatic detection")
     func languageDefaultsToAuto() {
         #expect(settings().language == nil)
-    }
-
-    @Test("The environment language is used until something is picked")
-    func languageFromEnvironment() {
-        #expect(settings(env: ["OPENAI_TRANSCRIBE_LANGUAGE": "de"]).language == "de")
     }
 
     @Test("Picking Auto overrides an environment language instead of falling through")
@@ -81,13 +63,6 @@ struct SettingsTests {
     }
 
     // MARK: - Hotkey
-
-    @Test("A picked shortcut round-trips")
-    func shortcutRoundTrip() {
-        let s = settings()
-        s.shortcut = .f5
-        #expect(s.shortcut == .f5)
-    }
 
     @Test("A stored shortcut that matches no preset falls back to the default")
     func unknownStoredShortcutFallsBack() {
@@ -121,23 +96,6 @@ struct SettingsTests {
         #expect(s.shortcut == .default)
         #expect(s.autoPaste)
         #expect(s.prompt == "environment prompt")
-    }
-
-    // MARK: - Environment only
-
-    @Test("Prompt comes from the environment, empty means unset")
-    func environmentOnlyValues() {
-        #expect(settings(env: ["OPENAI_TRANSCRIBE_PROMPT": "OpenDictate"]).prompt == "OpenDictate")
-        #expect(settings(env: ["OPENAI_TRANSCRIBE_PROMPT": ""]).prompt == nil)
-    }
-}
-
-@Suite("Hotkey shortcuts")
-struct HotKeyShortcutTests {
-    @Test("Presets are distinct, so no two menu entries register the same key")
-    func presetsAreDistinct() {
-        let pairs = HotKeyShortcut.presets.map { "\($0.keyCode)-\($0.modifiers)" }
-        #expect(Set(pairs).count == pairs.count)
     }
 
 }
