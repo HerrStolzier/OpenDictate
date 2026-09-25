@@ -1,6 +1,6 @@
 # Aktueller Stand und verbleibende Abnahme
 
-Stand: 24. September 2026. Dies ist die einzige aktuelle Übergabedatei.
+Stand: 25. September 2026. Dies ist die einzige aktuelle Übergabedatei.
 Produktziel: [PROJECT.md](../PROJECT.md); Regeln: [AGENTS.md](../AGENTS.md);
 Prüfverfahren: [CHECKS.md](../CHECKS.md); belegte frühere Testbudgets:
 [APPROVALS.md](../APPROVALS.md). Linux-Plan:
@@ -10,6 +10,28 @@ Zwei Arbeitspfade: **macOS-Produktabnahme** (Plan 1 für den belegten internen
 Grundablauf abgeschlossen; Paket, Beta und Release offen) und **Linux Phase 1**
 (Kern in `main`, noch nicht in `PROJECT.md`). Linux markiert keinen Mac-Release
 als erledigt.
+
+## Plan 2: Paketvorbereitung gestartet · 25. September 2026
+
+Basti hat Registrierung und Zahlung der Apple-Developer-Mitgliedschaft bestätigt
+und Plan 2 beauftragt. Die gelesene Accountseite zeigte danach noch keine aktive
+Mitgliedschaft, sondern den Kaufhinweis mit bis zu 48 Stunden Bearbeitungszeit.
+Das ist kein Nachweis eines fehlgeschlagenen Kaufs und kein Anlass für eine
+zweite Zahlung. Lokal liefert `security find-identity -v -p codesigning` noch
+keine gültige Signieridentität. Der Paketbau wird vorbereitet; ein signierter,
+notarisierter Betakandidat ist noch nicht hergestellt oder freigegeben.
+
+Der Wechsel des lokal installierten Schlüsselbundhelfers benötigt eine eigene
+kontrollierte Migration: Der vorhandene Helfer wird nicht automatisch ersetzt
+und muss dasselbe Zertifikat wie die App haben. Beim Wechsel von der lokalen
+Signatur auf Developer ID darf vorhandener Schlüsselbund- oder Aufnahmedatenbestand
+nicht gelöscht werden. Nachweise und nächste Schritte stehen im
+[Plan-2-Vorbereitungsbericht](release-plans/evidence/2026-09-25-plan2-vorbereitung.md).
+
+Die spätere [20-Prozent-Testbereinigung](test-audit-2026-09-25/README.md)
+ist inzwischen über PR #28 in `main`: 109 statt 137 Swift-Testdeklarationen,
+vier Opt-in-Prüfungen übersprungen, Gesamt-Zeilenabdeckung 33,89 → 33,53 Prozent.
+Der Produktionscode und der installierte Build wurden dabei nicht verändert.
 
 ## Dokumentationsstand
 
