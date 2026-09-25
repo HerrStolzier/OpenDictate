@@ -16,7 +16,7 @@ bash -n scripts/tests/test-verify-app.sh
 git diff --check
 ```
 
-CI uses strict formatting, warnings-as-errors tests and six shell syntax checks
+CI uses strict formatting, warnings-as-errors tests and seven shell syntax checks
 on macOS 15. A separate macOS 14 Apple-Silicon job selects the
 runner's Xcode 16.2 and runs the offline Swift tests plus an ad-hoc bundle
 build and verification. This is a native macOS 14 runtime check, but cannot
@@ -113,12 +113,15 @@ the temporary ZIP and JSON result outside the repository:
 set -euo pipefail
 : "${NOTARY_PROFILE:?Set this to the name of an existing notarytool Keychain profile}"
 WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/opendictate-notary.XXXXXX")"
-trap 'rm -rf "$WORK_DIR"' EXIT
+printf 'Retain notarization evidence from: %s\n' "$WORK_DIR"
 NOTARY_ZIP="$WORK_DIR/OpenDictate-notary.zip"
 NOTARY_RESULT="$WORK_DIR/notary-result.json"
 ditto -c -k --sequesterRsrc --keepParent .build/OpenDictate.app "$NOTARY_ZIP"
 xcrun notarytool submit "$NOTARY_ZIP" --keychain-profile "$NOTARY_PROFILE" \
   --wait --no-progress --output-format json > "$NOTARY_RESULT"
+SUBMISSION_ID="$(plutil -extract id raw -expect string -o - "$NOTARY_RESULT")"
+xcrun notarytool log "$SUBMISSION_ID" --keychain-profile "$NOTARY_PROFILE" \
+  "$WORK_DIR/notary-log.json"
 python3 - "$NOTARY_RESULT" <<'PY'
 import json
 import sys
@@ -136,6 +139,10 @@ xcrun stapler validate .build/OpenDictate.app
 )
 ```
 
+Retain the submission result and notary log with the candidate evidence,
+including on failure. Inspect any warnings in the log before distribution.
+After retaining the evidence, remove only this temporary working directory.
+
 The final packaging command verifies the signed and stapled bundle, creates the
 final ZIP and manifest in a new directory outside the checkout, extracts that
 ZIP into a temporary directory, and verifies the extracted signature, ticket,
@@ -143,7 +150,8 @@ architecture and Gatekeeper assessment before publishing either output file.
 The manifest binds version, build number, clean Git revision, Developer ID team,
 architecture and final ZIP SHA-256. Packaging does not install or launch the
 app and does not check Keychain ACL migration or microphone behavior. The
-release helper is checked locally; CI remains on the ad-hoc development path.
+release helper is syntax-checked in CI; signing and notarization remain local,
+and CI builds only ad-hoc development archives.
 
 Documentation-only changes: run `git diff --check`, verify changed local links
 and review ownership, conflicting rules and evidence scope. Include new files

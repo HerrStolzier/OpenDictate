@@ -58,6 +58,7 @@ jobs:
           bash -n scripts/verify-app.sh
           bash -n scripts/store-api-key.sh
           bash -n scripts/package-ci-app.sh
+          bash -n scripts/package-release-app.sh
           bash -n scripts/tests/test-verify-app.sh
           bash -n script/build_and_run.sh
           git diff --check HEAD^ HEAD

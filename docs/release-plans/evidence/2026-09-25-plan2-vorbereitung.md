@@ -37,3 +37,33 @@ Plan 2 bleibt offen bis Developer-ID-Signierung, erfolgreiche Notarisierung,
 Ticket-/Gatekeeper-Prüfung des entpackten endgültigen ZIPs, kontrollierter
 Installation/Migration und den im Plan genannten echten Bedienungsprüfungen.
 Offline-Bundleprüfungen belegen diese Schritte nicht.
+
+## Implementierung und Offline-Nachweis
+
+Implementierung: `725ed6d34d4ae7384fea4c1db777216e51e7164b`, übernommen
+in den Integrationszweig. Geändert wurden Build-/Prüf-/Packskripte und
+Dokumentation, kein Produktions-Swiftcode.
+
+- Expliziter Release-Modus ohne Ad-hoc-Fallback; saubere Revision, arm64,
+  Developer-ID-Apple-Kette, identische Blattzertifikate für App und Helper,
+  sichere Zeitstempel, Hardened Runtime und Mikrofonentitlement.
+- Lokales Paketieren einer bereits notarisierten App mit angeheftetem Ticket mit
+  erneuter Prüfung des entpackten ZIPs und gebundener SHA-256/Manifestdatei.
+  Notarisierungs-Upload bleibt ein dokumentierter manueller Schritt.
+- Shellsyntax, Syntax des dokumentierten Notary-Blocks und Diff-Prüfung bestanden.
+- `swift build -c release --triple arm64-apple-macosx14.0` baute beide
+  Executables. Zwei Linkerwarnungen betrafen nicht vorhandene Suchpfade der
+  Command Line Tools; der Build wurde erfolgreich abgeschlossen.
+- Ad-hoc-Bundlebau und die bestehenden `scripts/tests/test-verify-app.sh`
+  Fehlerfixtures bestanden. Fehlende und falsch formatierte Release-Identitäten
+  wurden vor dem Build abgewiesen; Release-Verifikation und Packager lehnten
+  das Ad-hoc-Bundle ohne erzeugtes Release-Ausgabeverzeichnis ab.
+- Der eigenständig prüfende Luna-Worktree fand eine unsichere Annahme über den
+  SwiftPM-Ausgabepfad. Der Builder fragt ihn jetzt mit denselben Buildargumenten
+  über `--show-bin-path` ab; der Kritiker bestätigte die Korrektur an `725ed6d`.
+  Keine weiteren wesentlichen Befunde im begrenzten Review.
+- Erzeugtes Testbundle und Iconset wurden im Worker entfernt. Keine Änderung
+  der installierten App, Schlüssel, Berechtigungen oder vorhandenen Aufnahmen.
+
+Der erfolgreiche Developer-ID-/Notarisierungs-/Gatekeeper-Endlauf ist damit
+nicht belegt. Er folgt erst mit freigeschaltetem Konto und eingerichteten Zugängen.
