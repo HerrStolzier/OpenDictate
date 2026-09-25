@@ -13,18 +13,19 @@ The baseline full suite passed in the main checkout. Its coverage export instrum
 was 1,754/5,175 lines (33.8937%), 678/2,094 regions (32.3782%), and
 227/759 functions (29.9078%). Core line coverage was 328/360 (91.111%);
 app line coverage was 1,426/4,720 (30.212%). A separate helper scope reported
-0/95 covered lines. Raw baseline files were preserved at
-/tmp/opendictate-coverage-baseline-7309c02.json and
-/tmp/opendictate-coverage-baseline-7309c02.log.
+0/95 covered lines. Durable evidence is retained in the
+[baseline coverage summary](test-audit-2026-09-25/baseline-coverage.json) and
+[baseline suite outcomes](test-audit-2026-09-25/baseline-tests.txt).
 
 Those figures are suite-wide source coverage, not causal coverage per test. The
 baseline output did not isolate coverage by test file or declaration. The full
 suite result establishes that the 27 files were included and passed together;
-individual file-level pass logs and per-test coverage are unavailable. The
+suite-level outcomes are retained, but separate isolated file runs and
+per-test coverage are unavailable. The
 coverage artifacts came from the main checkout, not this register worktree.
 No tests were run in this worktree before the register was committed.
 
-This register proposes exactly 28 removals. It keeps both audio-content guards
+This register records the implemented selection of exactly 28 removals. It keeps both audio-content guards
 SpeechRangeAccumulatorTests.spansFirstToLast and TrimPlannerTests.padsBothSides.
 Those prevent loss of later speech and clipping at the start/end padding. They
 were replaced in the removal set by the lower-priority configuration edges
@@ -32,10 +33,11 @@ SettingsTests.emptyEnvironmentIgnored and SettingsTests.environmentOnlyValues.
 The resulting selection is 21 Core and 7 System declarations. This is a
 20.4% reduction in declarations, rounded to the requested 20% scope.
 
-The earlier 28-case skip pilot used the uncorrected selection, so its coverage
-delta is not evidence for this corrected set. The corrected selection must be
-measured separately after the register commit. No production changes are
-proposed. No test was reclassified F (repair) or C (merge); the review found no
+The final run after the corrected 28 deletions passed with 109 declarations
+and four opt-in skips. Production line coverage is 1,735/5,175 (33.526570%),
+a loss of 0.367150 percentage points, or 1.083238% relatively. See the
+[complete coverage comparison](test-audit-2026-09-25/README.md), including
+the larger Core-module loss. All production source hashes are unchanged. No test was reclassified F (repair) or C (merge); the review found no
 assertion to repair and no selected contract that needed a new owner.
 
 Disposition key: R = retain with the named contract and plausible regression;
@@ -61,7 +63,7 @@ Every declaration below has one disposition.
 - R · padsBothSides (line 24): preserves configured audio around speech on both sides; retained as a content-integrity guard.
 - D · neverNegativeStart (line 33): lower-clamps padding at time zero; see D2.
 - R · clampsToEnd (line 40): upper-clamps the planned range to recording duration.
-- D · shorterThanPadding (line 48): returns a sane plan when the source is shorter than padding; see D2.
+- D · shorterThanPadding (line 48): rejects a source shorter than padding with a generic OpenDictateError; see D2.
 - R · skipsPointlessExport (line 58): avoids a re-encode when savings are below the threshold.
 - R · errorCarriesDurations (line 68): returns the specific too-short error with actual and required durations.
 
@@ -104,7 +106,7 @@ Every declaration below has one disposition.
 
 ### Settings and shortcuts · OpenDictateSystemTests/HotKeyTransactionTests.swift
 
-- R · collisionKeepsPreviousRegistration (line 9): a failed replacement preserves the previous registration and preference.
+- R · collisionKeepsPreviousRegistration (line 9): a failed replacement preserves the previous registration and registered shortcut.
 
 ### Settings and shortcuts · OpenDictateSystemTests/NativeHotKeyRegistrationTests.swift
 
@@ -118,7 +120,7 @@ Every declaration below has one disposition.
 
 ### Transcription contract and errors · OpenDictateCoreTests/OpenAIAPIErrorTests.swift
 
-- D · invalidKey (line 13): maps HTTP 401 to the API-key guidance; see D5.
+- D · invalidKey (line 13): maps the invalid_api_key provider code in an HTTP 401 response to API-key guidance; see D5.
 - R · exhaustedQuota (line 22): distinguishes exhausted quota from temporary rate limiting.
 - R · rateLimited (line 31): tells the user to wait for a rate limit.
 - D · malformedBody (line 39): maps an unparseable HTTP 413 to shorter-recording guidance; see D5.
@@ -129,7 +131,7 @@ Every declaration below has one disposition.
 
 ### Transcription contract and errors · OpenDictateCoreTests/FormattingTests.swift
 
-- R · skippedClassification (line 9): skipped audio is not formatted as a real failure.
+- R · skippedClassification (line 9): classifies skipped audio separately from failure.
 - D · tooShortMessage (line 18): user message includes actual and minimum durations; see D6.
 - D · noSpeechMessage (line 25): no-speech guidance avoids exposing raw measurements; see D6.
 - R · frameworkMessage (line 31): framework errors receive a safe next action without raw details.
@@ -215,7 +217,7 @@ Every declaration below has one disposition.
 - R · realRecoveryCopyAuthenticatesAndPreservesOriginal (line 11): authenticated copy is created while the original survives.
 - R · filesystemRecoveryFailurePreservesOriginalOnBothCancellationPaths (line 28): failed copy preserves original on both cancellation paths.
 - R · filenamePolicy (line 72): only generated audio names qualify for recovery.
-- R · readsRegularFile (line 80): authenticated read is limited to a regular bounded file.
+- R · readsRegularFile (line 80): bounded regular-file read returns the expected bytes.
 - R · rejectsSymlink (line 88): secure read rejects symbolic links.
 - R · rejectsWrongTypeAndSize (line 98): secure read rejects directories and oversized files.
 - R · authenticationBindsPayload (line 108): authentication covers both filename and exact audio bytes.
@@ -286,18 +288,19 @@ spansFirstToLast remains because the broad pipeline fixture does not protect
 speech on both sides of a pause. No production helper is made unused and no
 test-only helper is removed. Risk: regressions in helper boundary values can
 escape until the synthetic WAV path or an installed-app recording exposes
-them. Check with swift test --filter 'AudioLevelsTests|AudioPipelineTests'.
+them. Check with swift test --filter 'SpeechRangeAccumulatorTests|AudioPipelineTests'.
 
 ### D2 · TrimPlannerTests
 
 Source: Tests/OpenDictateCoreTests/TrimPlannerTests.swift lines 33 and 48.
 Production caller: AudioPreprocessor.plan calls TrimPlanner.plan before AAC
 export. History: both declarations date to e052c0d. neverNegativeStart asserts
-the lower clamp at recording start; shorterThanPadding asserts a sane plan
-when duration is below padding. padsBothSides remains to protect both padding
+the lower clamp at recording start; shorterThanPadding expects a generic
+OpenDictateError when the source duration is below padding. padsBothSides remains to protect both padding
 margins for interior speech, clampsToEnd protects the upper bound, and
-errorCarriesDurations protects the too-short error contract. None proves the
-lower clamp or the short-source plan exactly. The pipeline fixture exercises
+errorCarriesDurations protects the too-short error contract. The retained
+no-export case checks a zero start; the exporting lower-clamp and short-source
+edge are no longer independently asserted. The pipeline fixture exercises
 actual synthetic analysis/export but checks broad duration and playability.
 No production helper becomes unused. Risk: altered start clamping or short
 recording arithmetic could create an invalid export range. Check with
@@ -317,9 +320,9 @@ direct simple getter assertion; resetToEnvironment covers environment
 precedence after reset. shortcutRoundTrip loses the Settings-level valid
 shortcut write/read check; UserDefaultsStoreTests only checks the generic
 adapter, while unknownStoredShortcutFallsBack and partialStoredShortcutFallsBack
-cover invalid persisted forms. environmentOnlyValues loses prompt pass-through
-and empty-means-unset assertions; no remaining test asserts that prompt
-configuration. presetsAreDistinct loses unique key/modifier pairs for all
+cover invalid persisted forms. environmentOnlyValues loses the empty-prompt
+means-unset assertion; nonempty environment prompt handling remains checked
+in resetToEnvironment. presetsAreDistinct loses unique key/modifier pairs for all
 offered presets; HotKeyTransactionTests protects replacement rollback, not
 preset uniqueness. The presets themselves are consumed by MenuBarController
 and Settings. No production helper becomes unused; SettingsTests helpers are
@@ -345,7 +348,7 @@ swift test --filter TranscriptionModelTests.
 Source: Tests/OpenDictateCoreTests/OpenAIAPIErrorTests.swift lines 13, 39,
 45, and 60. Production caller: OpenAITranscriber maps provider HTTP errors to
 the user-facing status. History: these cases date to e052c0d. invalidKey
-asserts the 401-specific API-key guidance; malformedBody checks 413 fallback
+asserts API-key guidance for the invalid_api_key provider code in HTTP 401; malformedBody checks 413 fallback
 when provider JSON is invalid; emptyBody checks a server-error fallback;
 unknownCodeWithoutMessage checks the unknown-code fallback without a message.
 The retained quota/rate-limit cases preserve their distinct wording;
@@ -369,7 +372,7 @@ pipeline tests exercise no-speech classification, not this user-facing text.
 frameworkMessage retains the safe-framework-error style boundary. No formatting
 helper becomes unused and no other assertion preserves these exact messages.
 Risk: the user can receive less actionable or overly revealing status text.
-Check with swift test --filter FormattingTests.
+Check with swift test --filter OpenDictateErrorTests.
 
 ### D7 · AppLifecycleTests
 
@@ -391,7 +394,7 @@ may have less direct detection; the most dramatic setup test name implies
 stronger real-Keychain evidence than its fake callback proves. The successful
 Build 7 installed TextEdit path in
 docs/release-plans/evidence/2026-09-24-keychain-and-plan1.md covers normal
-setup and insertion only, not nested quit. DictationPanel.swift is unchanged
+recording and insertion, not nested quit or fresh first-run setup. DictationPanel.swift is unchanged
 between c92cbc9 and this base commit. Check with swift test --filter AppLifecycleTests.
 
 ### D8 · DictationFlowTests.automaticInsertionReceivesTheExactTrimmedTranscript
@@ -419,7 +422,8 @@ record action still works after setup. cancelledOrFailedSetupKeepsItsActionAvail
 checks action availability after a cancelled or failed attempt. The retained
 setupRefreshCannotReplaceAnActiveRecording covers interaction with active
 state. DictationPanelTests.setupUpdatesKeepTheirActionAvailableWithoutOpeningOrRecording
-retains the no-recording/setup-action check while setup is visible. The
+retains the no-recording/setup-action check during setup and explicitly
+asserts zero recordings after successful setup reaches the ready state. The
 post-success ready-state click has no equivalent automated assertion after
 removal; it has historical Build 7 installed TextEdit evidence in
 docs/release-plans/evidence/2026-09-24-keychain-and-plan1.md, under
@@ -462,15 +466,16 @@ declaration is listed exactly once.
 The retained recovery, credential, clipboard-target, transactional hotkey,
 cancellation, failed-delivery and quit/drain cases are deliberate. None is
 removed to meet the quota. Their remaining production paths are unchanged.
-The candidate removals delete assertions, not production code. The only
-possible helper cleanup is in test source; inspect the final patch for any
-helper left with no caller. No empty test suite is intended.
+The removals delete assertions, not production code. Two empty test-suite
+containers were removed. The final patch changes ten test files, removes
+263 test lines and leaves no empty suite from these deletions.
 
 This is an inventory and evidence assessment, not an installed-app acceptance
 claim. It does not prove microphone quality, Keychain ACL behavior, target
 field delivery or VoiceOver. The app-level release evidence cited above applies
-only to its recorded candidate and flow. A separate critic reviewed the
-corrected selection and reported no further material safety or data-integrity
-finding; that review outcome was relayed by the main task and is not an attached
-review artifact here. The corrected coverage result remains pending in the main
-checkout.
+only to its recorded candidate and flow. A separate Luna Max worktree critic
+reviewed the corrected selection and then the exact implementation commit
+2ab2a95ea63a331473ca9eaa82f769f205b60dad against the baseline. It confirmed
+all 28 removals, preservation of the audio and setup guards, and no production
+source changes or further material findings. The main task verified the final
+coverage and retained the results in the linked comparison report.

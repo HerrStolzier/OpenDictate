@@ -19,7 +19,8 @@ exclude tests, generated runners and dependencies. The enum-only
 The primary gate is at most two percentage points of lost line coverage.
 Also report relative loss, region and function coverage, and module totals.
 Coverage shows execution, not assertion quality or end-to-end acceptance.
-Deletion decisions additionally need the per-test contract register.
+Deletion decisions are recorded in the
+[per-test contract register](../test-audit-2026-09-25-register.md).
 
 ## Reproduction
 
@@ -125,3 +126,9 @@ no existing test cases were merely grouped, and production code is unchanged.
 The ten changed test files lose 263 lines. The four opt-in checks remain skipped.
 Linux tests and real microphone/provider/permission/VoiceOver checks were not
 rerun because those paths and their sources were unchanged.
+
+The critic also checked implementation commit
+`2ab2a95ea63a331473ca9eaa82f769f205b60dad` against the baseline and confirmed
+the exact corrected deletion set with no further material findings.
+[CI for that implementation](https://github.com/HerrStolzier/OpenDictate/actions/runs/36104926083)
+passed on macOS 14 and macOS 15.
