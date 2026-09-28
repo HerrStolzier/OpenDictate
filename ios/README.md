@@ -1,6 +1,6 @@
 # OpenDictate iOS Tastatur-Prototyp
 
-Dieser kleine iOS-Prototyp belegt zunächst nur den Textpfad: Eine eigene
+Dieser kleine iOS-Prototyp soll zunächst nur den Textpfad prüfen: Eine eigene
 Tastatur fügt nach bewusstem Tastendruck vorbereiteten synthetischen Text in
 das gerade fokussierte Feld ein. Die Safari-Fixture und der sichtbare Ablauf
 stehen in [PRUEFPLAN.md](PRUEFPLAN.md).

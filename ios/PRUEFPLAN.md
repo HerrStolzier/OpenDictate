@@ -77,7 +77,7 @@ Simulatoroberfläche nicht.
 
 ## Abnahmekriterien und Grenzen
 
-Bestanden ist nur der sichtbare Simulatorpfad für diesen Prototyp, die
+Abgenommen werden kann nur der sichtbare Simulatorpfad für diesen Prototyp, die
 genannte Simulator-iOS-Version und die statische Safari-Fixture. Die Prüfung
 belegt weder Mikrofonaufnahme im Hintergrund noch Diktatqualität, Provider,
 Weitergabe von Text, Full-Access-Verhalten, dauerhafte Feldidentität,
