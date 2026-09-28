@@ -269,8 +269,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func returnFocusFromPanel(to target: NSRunningApplication?) {
-        // Only an explicit panel action may return focus. Passive updates and
-        // delivery never reactivate a target after the user switches apps.
+        // Only an explicit panel action uses this focus-return path. Delivery
+        // applies its separate activation and validation rules in PasteboardInserter.
         guard currentFrontmostApplication() == nil, let target, !target.isTerminated,
             PanelTargetPolicy.canReturnFocus(
                 target: target.processIdentifier,

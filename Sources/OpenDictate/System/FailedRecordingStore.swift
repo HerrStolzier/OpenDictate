@@ -3,8 +3,8 @@ import Darwin
 import Foundation
 import OpenDictateCore
 
-/// Keeps recordings whose transcription failed. Only recordings authenticated
-/// with a device-local Keychain key are eligible for retry or automatic pruning.
+/// Keeps failed recordings. Authenticated recordings are eligible for retry;
+/// retention pruning also removes expired managed files from earlier versions.
 enum FailedRecordingStore {
     struct RetryPayload: Sendable {
         let url: URL
