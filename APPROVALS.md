@@ -25,6 +25,20 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
   Einrichtung ist abgeschlossen; dies ist keine pauschale Erlaubnis für
   spätere Schlüssel- oder Zertifikatsänderungen.
 
+## Lokaler Notarisierungszugang — 2026-09-28
+
+- **Quelle:** Direkte Antwort „Ja, Notarisierungszugang vorbereiten“ in
+  Hauptaufgabe `01a0e819-2220-7da2-8d9b-f82ce6f0cef4`.
+- **Umfang:** Eigenes lokales Schlüsselbundprofil `OpenDictate-Notary`
+  vorbereiten und bei Apple validieren. Ein nötiges anwendungsspezifisches
+  Apple-Passwort erstellt Basti selbst und trägt es direkt in die verdeckte
+  lokale Eingabe ein, nicht in den Chat, Befehlsargumente oder Dateien.
+- **Stand:** Das Profil war bei der Vorprüfung nicht vorhanden. Accountseite
+  und Befehl zur persönlichen Eingabe sind vorbereitet; eine erfolgreiche
+  Speicherung oder Validierung ist noch nicht belegt.
+- **Grenze:** Diese Zustimmung erlaubt keinen App-Upload zur Notarisierung,
+  keine Installation/Migration und keine Veröffentlichung.
+
 ## Dokumentationspilot — 2026-09-14
 
 - **Umfang:** OpenDictate-Dokumentation bereinigen, PROJECT und APPROVALS ergänzen,

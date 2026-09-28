@@ -32,9 +32,12 @@ und der Schlüsselbundzugriff des neuen App-Kandidaten sind noch nicht geprüft.
 
 Der vorbereitete Paketbau ist über PR #29 in `main` (`dbf48bf`) integriert;
 der CI-Lauf dieses Standes ist erfolgreich. Ein signierter, notarisierter
-Betakandidat ist noch nicht hergestellt oder freigegeben. Der Notarisierungszugang,
-Apple-Upload und die kontrollierte Installation/Migration mit Live-Abnahme
-bleiben die nächsten Schritte und benötigen die jeweils passende Freigabe.
+Betakandidat ist noch nicht hergestellt oder freigegeben. Die Vorbereitung und
+Validierung des lokalen Notarisierungsprofils `OpenDictate-Notary` ist konkret
+freigegeben. Das Profil fehlte bei der Vorprüfung; Bastis persönliche Eingabe
+des anwendungsspezifischen Apple-Passworts und der Validierungsnachweis sind
+noch offen. Apple-Upload und kontrollierte Installation/Migration mit
+Live-Abnahme bleiben gesonderte Freigabeschritte.
 
 Der Wechsel des lokal installierten Schlüsselbundhelfers benötigt eine eigene
 kontrollierte Migration: Der vorhandene Helfer wird nicht automatisch ersetzt
