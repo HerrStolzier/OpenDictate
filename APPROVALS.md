@@ -13,8 +13,11 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 - **Umfang:** Apples kostenloses Xcode 27 samt benötigtem iOS-Simulator auf
   diesem Mac installieren. Mehrere GB Download und lokale Entwicklungssoftware
   waren ausdrücklich Teil der Frage. Bezug über Apples offiziellen App Store.
-- **Stand:** Der Download ist im App Store gestartet. Installation und
-  einsatzfähiger iOS-Simulator sind noch nicht nachgewiesen.
+- **Stand:** Xcode 27.0 (27A266a) ist installiert. Basti bestätigte die
+  Ersteinrichtung selbst; Versionsabfrage und First-Launch-Prüfung bestehen.
+  iOS 27.0 (24A434) ist registriert und startet als iPhone-18-Pro-Simulator
+  bis zum geprüften Home-Bildschirm. Der vorherige Registrierungsfehler des
+  Download-Befehls und die getrennte Startprüfung stehen in der [iOS-Richtung](docs/ios-direction.md).
 - **Grenze:** Keine iPhone-/iPad-Installation, echte Mikrofonaufnahme,
   Anbieteranfrage, neue Signieridentität oder Veröffentlichung freigegeben.
 

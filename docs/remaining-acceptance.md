@@ -16,6 +16,18 @@ iOS ist ausdrücklich besonders wichtig. Basti möchte direkt in anderen Apps
 diktieren; nächster Prüfpunkt ist die erlaubte Aufnahme-/Tastaturkopplung
 ([iOS-Richtung](ios-direction.md)). Der Linux-Diktattest ist inzwischen vorerst zurückgestellt.
 
+## iOS: Umgebung und Offline-Prototyp · 28. September 2026
+
+Xcode 27.0 (27A266a) ist eingerichtet; iOS 27.0 (24A434) startet als
+Simulator bis zum geprüften Home-Bildschirm. Der neue, getrennte
+Tastatur-Prototyp aus `e416a3d` besteht den Offline-Build. Er enthält nur
+synthetischen Testtext und normale Tastatureingabe, keine Aufnahme oder
+Provideranfrage. Die sichtbare Safari-Einfügung ist **noch nicht geprüft**.
+Die konkrete Freigabe zur Installation, zum Start und zur Tastaturaktivierung
+im neuen Simulator wurde angefragt; es wurde noch keine Test-App installiert.
+Ein iPhone-/iPad-Test ist dadurch nicht freigegeben. Details und wiederholbare
+Nachweise: [Simulatorprotokoll](ios-simulator-2026-09-28.md).
+
 ## Aktuelle Projektbereinigung · 28. September 2026
 
 Plattformen und Erweiterungen stehen jetzt zentral in [ROADMAP.md](../ROADMAP.md).
@@ -73,7 +85,7 @@ bestätigt Validierung und Speicherung. Der anschließende eigene Aufruf von
 Apple meldete dabei noch keine bisherigen Einreichungen. Nach Bastis separater
 Uploadfreigabe „Du hast sie“ wurde genau das geprüfte Build-8-ZIP einmal an
 Apple gesendet. Die Einreichung `320efa5c-d9fa-4e3b-980b-1a121ffdd371` vom
-28. September, 17:10:08 UTC, steht um **17:20:29 UTC weiterhin auf In Progress**.
+28. September, 17:10:08 UTC, steht bei der erneuten Abfrage um **19:29:59 UTC weiterhin auf In Progress**.
 Das lokale Warten ist beendet; es läuft keine automatische Überwachung.
 Zur Fortsetzung dieselbe Einreichungs-ID abfragen, nicht erneut hochladen.
 Bei Annahme

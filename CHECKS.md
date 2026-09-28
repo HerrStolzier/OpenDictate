@@ -1,5 +1,21 @@
 # Checks
 
+## iOS keyboard prototype
+
+The isolated `ios/` prototype has its own Xcode project. Use the offline
+simulator build in [ios/README.md](ios/README.md) and lint its Swift sources:
+
+```bash
+swift format lint --strict --configuration .swift-format --recursive ios/Sources
+```
+
+The current CI jobs below check the macOS project, not this iOS project.
+A successful simulator build does not prove keyboard activation or insertion
+in another app. Follow [ios/PRUEFPLAN.md](ios/PRUEFPLAN.md) for the visible
+Safari fixture check. Installing/launching the test app and activating its
+keyboard require the corresponding simulator-test approval. Real-device,
+microphone, provider, credentials and distribution remain separate gates.
+
 ## Required after source changes
 
 ```bash
