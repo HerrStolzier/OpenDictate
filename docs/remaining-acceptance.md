@@ -12,6 +12,22 @@ eingereicht, finale Paket- und Installationsabnahme offen) und **Linux Phase 1**
 (Clipboard-MVP-Kern in `main`, aber ohne Live-Durchstich und UI-Abnahme). Der
 Linux-Pfad ändert keinen Mac-Release-Status.
 
+## Aktuelle Projektbereinigung · 28. September 2026
+
+Plattformen und Erweiterungen stehen jetzt zentral in [ROADMAP.md](../ROADMAP.md).
+Die [Projektprüfung](project-audit-2026-09-28.md) und die direkte
+[Geräteprüfung](platform-audit-2026-09-28.md) begründen die verbleibenden Schritte.
+Linux bestand heute 23 Offline-Tests, Formatierung, Clippy und Release-Build;
+Windows 23 Kern-/Ablaufprüfungen sowie App-/Browser-Host-Build. Keine neue
+sichtbare Produktabnahme, Aufnahme oder Provideranfrage fand statt.
+
+Die kleine Mac-Bereinigung entfernt fünf ungenutzte Sourcezeilen und korrigiert
+zwei Kommentare. Das gewünschte 10–25%-Reduktionsziel blieb unerreicht.
+Swift-Coverage: 33,52657 → 33,55899 %, kein relativer Verlust; alle bisherigen
+Tests und der Rust-Code blieben unverändert. Einzelwerte und Prüfgrenzen:
+[Reduktionsnachweis](code-reduction-2026-09-28.md). Build 8 und sein eingereichtes
+Paket bleiben davon getrennt und unverändert.
+
 ## Plan 2: Build 8 bei Apple eingereicht, Paketabnahme offen · 28. September 2026
 
 Basti hat die Fortsetzung von Plan 2 beauftragt. Die am 28. September lesend
@@ -86,8 +102,8 @@ wurden geprüft. Die aktualisierte Website konnte wegen einer Browser-URL-Sperre
 nicht erneut visuell abgenommen werden. Die spätere öffentliche
 Release-Dokumentation ist damit weiterhin nicht freigegeben.
 
-Die anschließende [Testbereinigung](test-signal-audit.md) entfernt 22
-schwach aussagekräftige oder redundante Testfunktionen. Die verbleibende
+Die damalige [Testbereinigung](test-signal-audit.md) entfernte 22
+schwach aussagekräftige oder redundante Testfunktionen. Die damalige
 Swift-Suite mit 138 Testfunktionen (vier Opt-in-Tests übersprungen) sowie die
 acht Python-Tests bestanden lokal; die zwei Rust-Testlöschungen
 wurden separat auf `omarchy` gegen exakt `ab839fd5ab64ff69cc5a126e859f804b473b59a5`
@@ -97,7 +113,8 @@ Dateien stimmte per SHA-256 überein und wurde nach dem Lauf entfernt; das
 bestehende Remote-Checkout blieb sauber. Details und reproduzierbare Befehle
 stehen im [Testsignal-Audit](test-signal-audit.md). Produktionscode,
 installierter Build und E2E-Nachweise bleiben unverändert. Die Plan-1-Arbeit
-ist auf Bastis erneuten Auftrag wieder aufgenommen.
+war damals auf Bastis erneuten Auftrag wieder aufgenommen; der Abschluss des
+internen Grundablaufs ist im folgenden Absatz dokumentiert.
 
 Die [Fortsetzung vom 24. September](release-plans/evidence/2026-09-24-plan1-fortsetzung.md)
 belegt für den laufenden Build 7 zehn Minuten Leerlauf mit durchschnittlich
@@ -127,7 +144,8 @@ nicht pauschal verworfen.
 Die isolierte Vorschau ergänzt inzwischen alle zehn Panelzustände bei
 340 Punkten Mindestbreite in Hell und Dunkel. Der neue Safari-textarea-Fall
 am Anfang ist vollständig NFC-gleich, aber nicht rohzeichengleich; die
-Akzeptanzentscheidung bleibt offen. Die anfänglich ausgebliebene automatische
+Akzeptanzentscheidung war zunächst offen und wurde wie unten beschrieben
+getroffen. Die anfänglich ausgebliebene automatische
 Safari-`contenteditable`-Übergabe trat auch nach Bastis echten Mausklicks auf.
 Im anschließend neu gebauten Debug-Testprozess funktionierten dagegen sowohl
 die PID-Diagnose als auch der unveränderte globale Produktionsweg am selben
@@ -274,7 +292,7 @@ Mac-Stufen stehen in der [ROADMAP](../ROADMAP.md). Deren konkrete Kriterien
 bleiben in den [fünf Release-Plänen](release-plans/01-interne-produktabnahme.md),
 [Plan-2-Migrationsanleitung](release-plans/plan2-migration.md) und den
 [kandidatenbezogenen Berichten](release-plans/evidence/2026-09-24-plan1-fortsetzung.md).
-Die früheren Build-7-Ereignisse weiter unten in dieser Datei sind historische
+Die früheren Build-7-Ereignisse in dieser Datei sind historische
 Belege und keine Abnahme des Build-8-Pakets.
 
 ## Bekannte offene Grenzen

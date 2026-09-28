@@ -33,6 +33,14 @@ die Quelle ihrer vollständigen Prüfkriterien.
 
 ## Plattformen außerhalb des Mac-Releaseplans
 
+Aktualisierung vom 28.09.: Beide Geräte sind direkt per SSH geprüft. Linux
+bestand 23 Offline-Tests, Formatter, Clippy und Release-Build; Windows 23
+Kern-/Ablaufprüfungen und App-/Browser-Host-Build. 37 Windows-Quelldateien
+stimmen mit der separaten Mac-Kopie überein. Vor weiterer Windows-Umsetzung
+den unversionierten Stand sichern/versionieren und seine widersprüchliche
+README bereinigen. Die [Geräteprüfung](docs/platform-audit-2026-09-28.md)
+ergänzt die datierten sichtbaren Nachweise unten, ersetzt sie aber nicht.
+
 | Plattform | Belegter Stand | Nächstes nötiges Ergebnis | Abhängigkeit | Abschlussnachweis |
 | --- | --- | --- | --- | --- |
 | Windows | Der zuletzt gelesene Plan-/Umsetzungsstand ist vom 12.09.2026: ein separater, nicht in diesem Repo versionierter Prototyp bestand Teilprüfungen mit künstlicher Antwort und Testtext. Echte Transkription/Provideranfrage war dort offen; das ist keine heutige Geräteabnahme. | Ziel A (eigene Nutzung) oder B (öffentliche Verteilung) und Pflichtprogramme festlegen; danach einen aktuellen Quellstand und die nötige Live-Prüfung bestimmen. | Entscheidung zu Ziel und Programmen; echte Mikrofon-/Providerprüfung erst mit eigener aktueller Budgetfreigabe. | Ziel A: installierter Kandidat und vereinbarte Pflichtprogramme auf dem Testgerät abgenommen. Ziel B ergänzt reproduzierbare signierte Verteilung, Update-/Deinstallationsprüfung und eigene Veröffentlichungsfreigabe. Details und Herkunft: [Windows-Plan](docs/windows-plan.md). |
@@ -69,6 +77,7 @@ den unbenutzten Farbhelfer und korrigierte zwei irreführende Kommentare: netto
 fünf Sourcezeilen weniger (0,06 % der Ausgangsbasis). Das 10%-Ziel von mindestens
 801 Zeilen wurde nicht erreicht; eine sichere größere Kürzung innerhalb des
 freigegebenen Mac-Umfangs war nicht belegt und wurde nicht erzwungen. Die
-vorgeschriebenen Offline-Quellchecks bestanden. Nachher-Coverage-Messung und
-Abschlussbewertung bleiben offen; bestehende Tests sowie Verhaltens- und
-Sicherheitsinvarianten blieben unverändert.
+vorgeschriebenen Offline-Quellchecks bestanden. Die Nachhermessung ergibt
+33,55899 % Swift-Coverage (vorher 33,52657 %): kein Verlust. Der Anstieg stammt
+nur von fünf entfernten ungetesteten Zeilen. Bestehende Tests und Rust-Code
+sind bytegleich; Verhaltens- und Sicherheitsregeln wurden nicht geändert.

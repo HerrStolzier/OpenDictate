@@ -12,6 +12,21 @@ Die [ROADMAP](../ROADMAP.md) ist die zentrale Plattform-To-do-Liste. Dieses
 Dokument bewahrt nur die Windows-Planungsdetails und den klar begrenzten
 historischen Prüfstand.
 
+## Direkte Geräteprüfung vom 28. September
+
+SSH zum Windows-PC und SDK 10.0.401 sind aktuell bestätigt. Die 37 verglichenen
+Quell-/Projekt-/Skriptdateien des vorhandenen Prototyps stimmen exakt mit der
+separaten Mac-Arbeitskopie überein. In einer temporären Kopie auf Windows
+bestanden 23 Kern-/Ablaufprüfungen sowie App- und Browser-Host-Build ohne
+Warnung oder Fehler. Die weiteren Schutzprüfungen und sichtbaren Abläufe
+wurden nicht wiederholt. Details und Nachweisgrenzen stehen im
+[Gerätebericht](platform-audit-2026-09-28.md).
+
+Der Quellstand ist weiterhin im separaten Elternrepository unversioniert.
+Die mitgelieferte README enthält widersprüchliche alte Aussagen zur bereits
+vorhandenen Anbieterintegration. Vor weiterer Umsetzung versionieren und
+Statusabschnitte bereinigen; die heutige Offline-Prüfung ist keine Live-Abnahme.
+
 ## Belegter Teilstand vom 12. September
 
 - Ein sichtbarer Windows-Prototyp verband Hotkey, App, lokale Testantwort und
