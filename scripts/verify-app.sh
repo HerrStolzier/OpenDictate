@@ -103,15 +103,15 @@ if [[ "$MODE" == "release" ]]; then
     exit 1
   }
   DEVELOPER_ID_REQUIREMENT="anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] exists and certificate leaf[field.1.2.840.113635.100.6.1.13] exists and certificate leaf[subject.OU] = $EXPECTED_TEAM_ID"
-  if ! codesign --verify --strict --test-requirement "$DEVELOPER_ID_REQUIREMENT" "$APP" >/dev/null 2>&1 || \
-    ! codesign --verify --strict --test-requirement "$DEVELOPER_ID_REQUIREMENT" "$HELPER" >/dev/null 2>&1; then
+  if ! codesign --verify --strict --test-requirement "=$DEVELOPER_ID_REQUIREMENT" "$APP" >/dev/null 2>&1 || \
+    ! codesign --verify --strict --test-requirement "=$DEVELOPER_ID_REQUIREMENT" "$HELPER" >/dev/null 2>&1; then
     echo "App and Keychain helper must satisfy Apple's Developer ID Application certificate requirement." >&2
     exit 1
   fi
   APP_CERT_PREFIX="$VERIFY_TEMP/app-cert-"
   HELPER_CERT_PREFIX="$VERIFY_TEMP/helper-cert-"
-  codesign --display --extract-certificates "$APP_CERT_PREFIX" "$APP" >/dev/null 2>&1
-  codesign --display --extract-certificates "$HELPER_CERT_PREFIX" "$HELPER" >/dev/null 2>&1
+  codesign --display --extract-certificates="$APP_CERT_PREFIX" "$APP" >/dev/null 2>&1
+  codesign --display --extract-certificates="$HELPER_CERT_PREFIX" "$HELPER" >/dev/null 2>&1
   [[ -s "${APP_CERT_PREFIX}0" && -s "${HELPER_CERT_PREFIX}0" ]] || {
     echo "Could not extract the app and Keychain helper signing certificates." >&2
     exit 1
