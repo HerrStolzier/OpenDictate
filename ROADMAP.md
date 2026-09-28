@@ -1,7 +1,7 @@
 # OpenDictate Roadmap
 
 Stand: 28. September 2026. Geprüfter Dokumentations- und Code-Ausgangspunkt:
-`main` `5b95535b8f80d1cc868318594860f64566294386`.
+`main` `1f895537e9b36d962eb1425113423da377e95b1b`.
 
 Diese Datei ist die **einzige laufende Feature- und Plattform-To-do-Liste**.
 Sie hält belegten Status, den nächsten nötigen Arbeitsschritt, Abhängigkeiten
@@ -35,24 +35,31 @@ die Quelle ihrer vollständigen Prüfkriterien.
 
 Aktualisierung vom 28.09.: Beide Geräte sind direkt per SSH geprüft. Linux
 bestand 23 Offline-Tests, Formatter, Clippy und Release-Build; Windows 23
-Kern-/Ablaufprüfungen und App-/Browser-Host-Build. 37 Windows-Quelldateien
-stimmen mit der separaten Mac-Kopie überein. Vor weiterer Windows-Umsetzung
-den unversionierten Stand sichern/versionieren und seine widersprüchliche
-README bereinigen. Die [Geräteprüfung](docs/platform-audit-2026-09-28.md)
-ergänzt die datierten sichtbaren Nachweise unten, ersetzt sie aber nicht.
+Kern-/Ablaufprüfungen, nach separater Freigabe 18 Schutzprüfungen und
+App-/Browser-Host-Build. 37 Windows-Quelldateien
+stimmen mit der separaten Mac-Kopie überein; vier ergänzende Originaldateien
+wurden anschließend ebenfalls direkt gegen den Windows-PC geprüft. Der
+Quellsnapshot ist unter [windows/](windows/README.md) versioniert und seine
+README bereinigt; unabhängiger Review ohne wesentliche Befunde im
+begrenzten Integritäts-/Dokumentationsumfang. Die [Geräteprüfung](docs/platform-audit-2026-09-28.md)
+und die [Fortsetzung](docs/platform-continuation-2026-09-28.md) ergänzen
+die datierten sichtbaren Nachweise unten, ersetzen sie aber nicht.
 
 | Plattform | Belegter Stand | Nächstes nötiges Ergebnis | Abhängigkeit | Abschlussnachweis |
 | --- | --- | --- | --- | --- |
-| Windows | Der zuletzt gelesene Plan-/Umsetzungsstand ist vom 12.09.2026: ein separater, nicht in diesem Repo versionierter Prototyp bestand Teilprüfungen mit künstlicher Antwort und Testtext. Echte Transkription/Provideranfrage war dort offen; das ist keine heutige Geräteabnahme. | Ziel A (eigene Nutzung) oder B (öffentliche Verteilung) und Pflichtprogramme festlegen; danach einen aktuellen Quellstand und die nötige Live-Prüfung bestimmen. | Entscheidung zu Ziel und Programmen; echte Mikrofon-/Providerprüfung erst mit eigener aktueller Budgetfreigabe. | Ziel A: installierter Kandidat und vereinbarte Pflichtprogramme auf dem Testgerät abgenommen. Ziel B ergänzt reproduzierbare signierte Verteilung, Update-/Deinstallationsprüfung und eigene Veröffentlichungsfreigabe. Details und Herkunft: [Windows-Plan](docs/windows-plan.md). |
-| Linux | Phase 0 ist als Wegwahl belegt; der Phase-1-Clipboard-MVP-Kern ist in `main` vorhanden und offline geprüft. Phase 1 ist **nicht** abgenommen: Live-Upload, reale Fehlerfälle, physischer Hotkey sowie Tray/Panel fehlen als Nachweise. | Erst eine neue begrenzte Live-Freigabe festlegen; dann den realen Aufnahme-, Keyring-, Provider-, Clipboard- und Fehlerpfad prüfen. Anschließend Tray/Panel und physischen Hyprland-Hotkey abnehmen; Paketierung folgt danach. | Zielsystem Omarchy/Hyprland; neue Mikrofon-/Providerfreigabe. Keine Änderung der Nutzer-Hyprland-Konfiguration ohne eigenen Auftrag. | Phase 1 erst nach dem vollständigen Durchstich samt Fehler-/Abbruchfällen, physischem Hotkey und UI-Minimum. Automatisches Einfügen ist eine spätere Phase und braucht eine belegte Zielfensterregel oder einen begründeten Clipboard-only-Ship. [Linux-Detailplan](docs/linux-build-plan.md), [Phase-1-Bericht](docs/linux-phase1-core-2026-09-22.md). |
-| iOS | In den geprüften Quellen als dritte Plattform in der Reihenfolge vom 12.09. erwähnt; kein iOS-Plan oder Implementierungsnachweis in diesem Repository gefunden. | Ziel, Produktnutzen und gewünschte Abnahme festlegen, wenn die Plattform aufgegriffen wird. | In der zuletzt ausdrücklich dokumentierten Reihenfolge nach Windows und Linux; technische Gates sind offen. | Noch nicht definiert; vor Umsetzung im Rahmen eines konkreten Plattformplans festlegen. |
+| Windows | Ziel B (öffentliche Verteilung vorbereiten) ist gewählt. Der bislang separate Prototyp bestand aktuell 41/41 Offline-Prüfungen und beide Builds. Der geprüfte Quellsnapshot ist unter `windows/` versioniert; echte Diktate sind nicht abgenommen. | Reproduzierbare Paketierung und die konkrete Produktabnahme gemäß [Releaseplan](windows/RELEASE-PLAN.md) vorbereiten. | Vor Live-Abnahme Pflichtprogramme und Mikrofon-/Providerumfang festlegen. Installation, Signierzugang und Veröffentlichung brauchen jeweils passende Freigaben. | Versionierter, reproduzierbar gebauter Kandidat; belegte Diktat-, Installations-, Update- und Deinstallationswege sowie signierte Auslieferung vor eigener Veröffentlichungsfreigabe. [Windows-Plan](docs/windows-plan.md). |
+| Linux | Phase 0 ist als Wegwahl belegt; der Phase-1-Clipboard-MVP-Kern ist in `main` vorhanden und offline geprüft. Phase 1 ist **nicht** abgenommen: Live-Upload, reale Fehlerfälle, physischer Hotkey sowie Tray/Panel fehlen als Nachweise. | Beide lokalen Schlüssel sind nach genehmigter Einrichtung vorhanden. Der Linux-Diktattest ist auf Bastis Wunsch vorerst zurückgestellt. Erst nach Wiederaufnahme Mikrofon klären und begrenzte Live-Freigabe festlegen; dann den realen Aufnahme-, Keyring-, Provider-, Clipboard- und Fehlerpfad prüfen. Anschließend Tray/Panel und physischen Hyprland-Hotkey abnehmen; Paketierung folgt danach. | Zielsystem Omarchy/Hyprland; neue Mikrofon-/Providerfreigabe. Keine Änderung der Nutzer-Hyprland-Konfiguration ohne eigenen Auftrag. | Phase 1 erst nach dem vollständigen Durchstich samt Fehler-/Abbruchfällen, physischem Hotkey und UI-Minimum. Automatisches Einfügen ist eine spätere Phase und braucht eine belegte Zielfensterregel oder einen begründeten Clipboard-only-Ship. [Linux-Detailplan](docs/linux-build-plan.md), [Phase-1-Bericht](docs/linux-phase1-core-2026-09-22.md). |
+| iOS — besonders wichtig | Basti hat iOS am 28.09. ausdrücklich als besonders wichtig hervorgehoben. Gewünschter Ablauf: direkt in anderen Apps diktieren. Noch kein Implementierungsnachweis; erste technische Grenzen sind in der [iOS-Richtung](docs/ios-direction.md) belegt. | Zuerst einen erlaubten Aufnahme-/Tastaturablauf für dieses Ziel nachweisen; danach die kleinste Produktumsetzung festlegen. | Zielgerät, genaue Sitzungsbedienung und Verteilungsweg sind offen. Eigene Tastaturen dürfen nicht selbst das Mikrofon nutzen. Die alte Reihenfolge vom 12.09. ist kein Beleg einer heutigen niedrigen Priorität. | Vor Umsetzung ein bestätigtes Ziel und prüfbare Akzeptanzkriterien; anschließend sichtbarer Diktierablauf auf einem konkret benannten Zielgerät. |
 | Android | In den geprüften Quellen als vierte und letzte Plattform in der Reihenfolge vom 12.09. erwähnt; kein Android-Plan oder Implementierungsnachweis in diesem Repository gefunden. | Ziel, Produktnutzen und gewünschte Abnahme festlegen, wenn die Plattform aufgegriffen wird. | In der zuletzt ausdrücklich dokumentierten Reihenfolge nach Windows, Linux und iOS; technische Gates sind offen. | Noch nicht definiert; vor Umsetzung im Rahmen eines konkreten Plattformplans festlegen. |
 
 Der Windows-Plan vom **12.09.2026** nannte ausdrücklich die Reihenfolge
-**Windows → Linux → iOS → Android**. Das bleibt die zuletzt ausdrücklich
-dokumentierte Plattformreihenfolge. Seitdem sind Linux-Vorarbeiten mit
-Phase-1-Code vorhanden; daraus wird hier keine neue Priorisierung abgeleitet,
-und die Linux-Live-Abnahme bleibt offen.
+**Windows → Linux → iOS → Android**. Das ist die historische Reihenfolge;
+am 28.09. hat Basti iOS zusätzlich als **besonders wichtig** hervorgehoben.
+Eine neue vollständige Reihenfolge hat er damit nicht festgelegt. Die ebenfalls
+beauftragte Windows-/Linux-Fortsetzung während der Apple-Wartezeit bleibt
+bestehen; der Linux-Diktattest wurde danach vorerst zurückgestellt.
+Der iOS-Zielablauf ist jetzt konkretisiert; Implementierungsdetails und
+Live-Prüfungen sind noch offen. Eine Android-Umsetzung ist nicht beauftragt.
 
 ## Belegte künftige Erweiterungen und offene Produktfragen
 

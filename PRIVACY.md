@@ -1,5 +1,11 @@
 # Privacy
 
+This document describes the macOS app. The separate Windows prototype and
+Linux CLI have different local storage and delivery paths; see their
+[Windows preparation notes](windows/RELEASE-PLAN.md) and
+[Linux behavior and retention rules](linux/README.md). They have not completed
+product acceptance and are not public releases.
+
 OpenDictate records microphone audio only while a dictation is active. It does
 not include telemetry or analytics.
 

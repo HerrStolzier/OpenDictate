@@ -6,6 +6,57 @@ geht vor; ausdrücklich einmalige oder befristete Zustimmung bleibt begrenzt.
 Technische Berechtigungsprüfungen bleiben bestehen. Keine Secrets oder privaten
 Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 
+## iOS-Vorbereitung: Xcode und Simulator — 2026-09-28
+
+- **Quelle:** Direkte Antwort „Ja, Xcode und iOS-Simulator installieren“
+  auf die konkrete Frage zur fehlenden lokalen iOS-Entwicklungsumgebung.
+- **Umfang:** Apples kostenloses Xcode 27 samt benötigtem iOS-Simulator auf
+  diesem Mac installieren. Mehrere GB Download und lokale Entwicklungssoftware
+  waren ausdrücklich Teil der Frage. Bezug über Apples offiziellen App Store.
+- **Stand:** Der Download ist im App Store gestartet. Installation und
+  einsatzfähiger iOS-Simulator sind noch nicht nachgewiesen.
+- **Grenze:** Keine iPhone-/iPad-Installation, echte Mikrofonaufnahme,
+  Anbieteranfrage, neue Signieridentität oder Veröffentlichung freigegeben.
+
+## Linux: lokale Schlüssel einrichten — 2026-09-28
+
+- **Quelle:** Direkte Antwort „Ja, Linux-Schlüssel einrichten“ auf die
+  konkrete Frage zur Einrichtung der beiden fehlenden OpenDictate-Schlüssel
+  im bestehenden geschützten Schlüsselbund auf `omarchy`.
+- **Umfang:** Basti gibt den OpenAI-API-Schlüssel selbst verdeckt am
+  Linux-Rechner ein. Der Schutzschlüssel für Aufnahmen wird dort erzeugt.
+  Das geprüfte Skript überspringt einen bereits vorhandenen API-Schlüssel.
+  Kein Schlüssel gelangt in Chat, Befehlsargumente, Umgebungsvariablen oder Dateien.
+- **Stand:** Der Aufnahmeschutzschlüssel wurde erzeugt und sein vorhandener
+  Schlüsselbundeintrag ohne Lesen des Inhalts nachgewiesen. Basti hat den API-Schlüssel
+  selbst verdeckt eingegeben. Die anschließende Metadatenprüfung bestätigt
+  beide Einträge; ihre Inhalte wurden nicht ausgelesen. Die Anbieterprüfung
+  des API-Schlüssels ist noch offen.
+- **Grenze:** Keine Aufnahme, Anbieteranfrage, Installation, Änderung der
+  Hyprland-Konfiguration oder Veröffentlichung. Diese Einrichtung ist keine
+  pauschale Freigabe späterer Zugangsdatenänderungen.
+
+## Windows: Verteilungsvorbereitung und Schutztests — 2026-09-28
+
+- **Zielentscheidung:** Auf die Rückfrage zum nächsten Windows-Ziel wählte
+  Basti ausdrücklich „Direkt öffentliche Verteilung vorbereiten“. Der
+  Fortsetzungsauftrag umfasst die technische Vorbereitung, nicht deren
+  tatsächliche Veröffentlichung, Zertifikatskauf oder Softwareinstallation.
+- **Testfreigabe:** Auf die konkrete Frage zu den vorhandenen Windows-
+  Schutztests antwortete Basti „Ja, Windows-Schutztests ausführen“.
+  Erlaubt sind künstliche temporäre Dateien sowie ein eindeutig benannter
+  Testeintrag mit erfundenen Zugangsdaten, der danach entfernt wird.
+  Echter API-Schlüssel und Nutzeraufnahmen bleiben unverändert.
+- **Ausgeführt:** 18/18 Schutztests im angemeldeten Windows-Desktop mit
+  normalen Benutzerrechten bestanden. Der vorausgegangene SSH-Lauf hatte
+  16/18 bestanden; Credential-Zugriffe in Session 0 meldeten Win32-Fehler
+  1312. Der Desktop-Lauf verwendete denselben unveränderten Quellstand.
+  Die eigene temporäre Startaufgabe und Prüfkopie wurden entfernt; die
+  Tests bestätigten das Entfernen ihres Dummy-Zugangseintrags.
+- **Grenze:** Keine reale Schlüsseländerung, Mikrofonaufnahme, Anbieteranfrage,
+  Produkt-App-Installation oder Veröffentlichung freigegeben. Der Nachweis
+  steht in der aktuellen Plattform-Fortsetzung.
+
 ## Developer-ID-Signieridentität — 2026-09-28
 
 - **Quelle:** Direkte Antwort „Ja, diese Signieridentität einrichten“ in der
