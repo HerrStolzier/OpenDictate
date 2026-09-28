@@ -44,7 +44,9 @@ kontrollierte Migration: Der vorhandene Helfer wird nicht automatisch ersetzt
 und muss dasselbe Zertifikat wie die App haben. Beim Wechsel von der lokalen
 Signatur auf Developer ID darf vorhandener Schlüsselbund- oder Aufnahmedatenbestand
 nicht gelöscht werden. Nachweise und nächste Schritte stehen im
-[Plan-2-Vorbereitungsbericht](release-plans/evidence/2026-09-25-plan2-vorbereitung.md).
+[Plan-2-Vorbereitungsbericht](release-plans/evidence/2026-09-25-plan2-vorbereitung.md)
+und in der [manuellen Migrationsanleitung](release-plans/plan2-migration.md).
+Die Anleitung wurde noch nicht an der installierten App ausgeführt.
 
 Die spätere [20-Prozent-Testbereinigung](test-audit-2026-09-25/README.md)
 ist inzwischen über PR #28 in `main`: 109 statt 137 Swift-Testdeklarationen,

@@ -70,8 +70,13 @@ ROLLBACK="$(mktemp -d "$SUPPORT/plan2-rollback/run.XXXXXX")"
 chmod 700 "$ROLLBACK"
 printf 'Rollback-Verzeichnis: %s\n' "$ROLLBACK"
 
-test -d "$APP" && test -x "$HELPER" && test -d "$CANDIDATE"
-test ! -e "$STAGED" && test ! -e "$APP_OLD"
+test -d "$APP"
+test -x "$HELPER"
+test -d "$CANDIDATE"
+test ! -e "$STAGED"
+test ! -L "$STAGED"
+test ! -e "$APP_OLD"
+test ! -L "$APP_OLD"
 ditto --rsrc --extattr --acl "$APP" "$ROLLBACK/OpenDictate-local.app"
 codesign --verify --deep --strict "$ROLLBACK/OpenDictate-local.app"
 codesign --verify --strict "$HELPER"
@@ -159,10 +164,19 @@ prüfen und jeweils festhalten:
    ```
 
 Für den Rückweg die Developer-ID-App vollständig beenden. App und Helper
-gemeinsam zurücksetzen, damit sie wieder dasselbe lokale Zertifikat tragen:
+gemeinsam zurücksetzen, damit sie wieder dasselbe lokale Zertifikat tragen.
+Fehlt eine der alten Komponenten oder ist das Sicherungsziel bereits belegt,
+vor jeder Verschiebung stoppen. Den Rückweg nicht blind erneut ausführen:
 
 ```bash
 set -euo pipefail
+test -d "$APP"
+test -d "$APP_OLD"
+test -x "$ROLLBACK/KeychainHelper-v1.pre-migration"
+test ! -e "$ROLLBACK/KeychainHelper-v1.developer-id"
+test ! -L "$ROLLBACK/KeychainHelper-v1.developer-id"
+codesign --verify --deep --strict "$APP_OLD"
+codesign --verify --strict "$ROLLBACK/KeychainHelper-v1.pre-migration"
 FAILED_DIR="$(mktemp -d "$HOME/Applications/.opendictate-plan2-failed.XXXXXX")"
 mv "$APP" "$FAILED_DIR/OpenDictate-developer-id-failed.app"
 if test -e "$HELPER"; then
@@ -185,8 +199,8 @@ wieder erreichbar sind.
 ## Bereits vorhandene Belege
 
 - [Vorbereitungsbericht](evidence/2026-09-25-plan2-vorbereitung.md): Sein
-  Zugangsstand vom 25. September ist durch Bastis spätere Bestätigung der
-  aktiven Mitgliedschaft und gültigen Identität überholt. Der lokale Helper-
+  Zugangsstand vom 25. September ist durch die direkte Prüfung am 28. September
+  der aktiven Mitgliedschaft und gültigen Identität überholt. Der lokale Helper-
   Wechsel und die Paketmigration wurden dort noch nicht live ausgeführt.
 - [KeychainBridge](../../Sources/OpenDictate/System/KeychainBridge.swift) und
   [Recovery-Speicher](../../Sources/OpenDictate/System/FailedRecordingStore.swift):
