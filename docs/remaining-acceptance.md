@@ -50,7 +50,10 @@ bestätigt Validierung und Speicherung. Der anschließende eigene Aufruf von
 Apple meldete dabei noch keine bisherigen Einreichungen. Nach Bastis separater
 Uploadfreigabe „Du hast sie“ wurde genau das geprüfte Build-8-ZIP einmal an
 Apple gesendet. Die Einreichung `320efa5c-d9fa-4e3b-980b-1a121ffdd371` vom
-28. September, 17:10:08 UTC, steht zuletzt auf **In Progress**. Bei Annahme
+28. September, 17:10:08 UTC, steht um **17:20:29 UTC weiterhin auf In Progress**.
+Das lokale Warten ist beendet; es läuft keine automatische Überwachung.
+Zur Fortsetzung dieselbe Einreichungs-ID abfragen, nicht erneut hochladen.
+Bei Annahme
 sind Ticket und endgültige Verpackung freigegeben. Kontrollierte
 Installation/Migration, Live-Abnahme und Veröffentlichung bleiben getrennte
 Freigabeschritte.
