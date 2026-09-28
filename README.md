@@ -5,6 +5,11 @@ shortcut, speak, then work with text in your chosen application. This is the
 scope of the planned first public Mac release. OpenDictate uses your own OpenAI API key.
 Audio is sent to OpenAI over HTTPS; transcription incurs separate API charges.
 
+The Windows development snapshot and its separate acceptance limits are in
+[windows/README.md](windows/README.md). The [Linux CLI](linux/README.md) is also
+an unfinished platform implementation. Neither is a public product release;
+the instructions below describe the macOS app.
+
 ## First dictation
 
 You need a Mac, internet access and an OpenAI API key. A public signed and

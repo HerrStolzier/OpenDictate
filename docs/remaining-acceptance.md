@@ -7,10 +7,14 @@ Prüfverfahren: [CHECKS.md](../CHECKS.md); frühere Freigaben: [APPROVALS.md](..
 Diese Datei hält nur den aktuellen Übergabe- und Abnahmestand. Detailpläne und
 datierte Belege sind jeweils an ihrer zuständigen Quelle verlinkt.
 
-Zwei getrennte Abnahmepfade bleiben offen: **macOS Plan 2** (Build 8 bei Apple
-eingereicht, finale Paket- und Installationsabnahme offen) und **Linux Phase 1**
-(Clipboard-MVP-Kern in `main`, aber ohne Live-Durchstich und UI-Abnahme). Der
-Linux-Pfad ändert keinen Mac-Release-Status.
+Drei getrennte Pfade bleiben offen: **macOS Plan 2** (Build 8 bei Apple
+eingereicht, finale Paket- und Installationsabnahme offen), **Windows**
+(öffentliche Verteilung vorbereiten) und **Linux Phase 1** (Clipboard-MVP-Kern
+in `main`, aber ohne Live-Durchstich und UI-Abnahme). Windows und Linux laufen
+auf Bastis Auftrag parallel zur Apple-Wartezeit; sie ändern keinen Mac-Release-Status.
+iOS ist ausdrücklich besonders wichtig. Basti möchte direkt in anderen Apps
+diktieren; nächster Prüfpunkt ist die erlaubte Aufnahme-/Tastaturkopplung
+([iOS-Richtung](ios-direction.md)). Der Linux-Diktattest ist inzwischen vorerst zurückgestellt.
 
 ## Aktuelle Projektbereinigung · 28. September 2026
 
@@ -18,7 +22,9 @@ Plattformen und Erweiterungen stehen jetzt zentral in [ROADMAP.md](../ROADMAP.md
 Die [Projektprüfung](project-audit-2026-09-28.md) und die direkte
 [Geräteprüfung](platform-audit-2026-09-28.md) begründen die verbleibenden Schritte.
 Linux bestand heute 23 Offline-Tests, Formatierung, Clippy und Release-Build;
-Windows 23 Kern-/Ablaufprüfungen sowie App-/Browser-Host-Build. Keine neue
+Windows inzwischen 23 Kern-/Ablaufprüfungen und 18 Schutzprüfungen sowie
+App-/Browser-Host-Build. Die separat genehmigten Windows-Schutztests und ihre
+Bereinigung stehen in der [Plattform-Fortsetzung](platform-continuation-2026-09-28.md). Keine neue
 sichtbare Produktabnahme, Aufnahme oder Provideranfrage fand statt.
 
 Die kleine Mac-Bereinigung entfernt fünf ungenutzte Sourcezeilen und korrigiert
@@ -270,6 +276,18 @@ Laufzeit- und Linux-Ergebnisse bleiben in den verlinkten
 [Plan-1-Berichten](release-plans/evidence/2026-09-24-plan1-fortsetzung.md) und
 [Linux-Berichten](linux-phase1-core-2026-09-22.md) an ihren Kandidaten gebunden.
 
+## Windows-Abnahmeübergabe
+
+Basti hat die direkte Vorbereitung öffentlicher Verteilung als nächstes
+Windows-Ziel gewählt. Der bestehende Arbeitschat sichert dafür den zuvor
+unversionierten Prototyp in einem getrennten Worktree; Integration und
+unabhängige Prüfung sind noch offen. 41/41 vorhandene Offline-Prüfungen sind
+jetzt erneut bestanden, einschließlich des genehmigten isolierten
+Zugangsspeicher-Tests. Ein echter Diktatdurchlauf und die Abnahme von
+Installation, Update und Deinstallation bleiben offen. Quelle und Grenzen:
+[Plattform-Fortsetzung](platform-continuation-2026-09-28.md),
+[Windows-Plan](windows-plan.md), [APPROVALS](../APPROVALS.md).
+
 ## Linux-Abnahmeübergabe
 
 Phase 0 und der offline geprüfte Phase-1-Clipboard-MVP-Kern sind über PR #16
@@ -278,6 +296,13 @@ Formatter, Clippy und Release-Build bestanden; er enthält keinen Live-Upload,
 Mikrofontest oder physischen Hotkey-Nachweis. Der Code ist vorhanden, Phase 1
 aber noch nicht abgenommen. Es braucht einen neuen eng begrenzten Auftrag für
 den echten Zielsystem-Durchstich; diese Historie selbst ist keine Freigabe.
+Die Fortsetzung ist inzwischen beauftragt. Die separat genehmigte
+Schlüsseleinrichtung ist abgeschlossen: Aufnahmeschutz- und API-Schlüssel
+sind nach Bastis verdeckter Eingabe per Metadatenprüfung nachgewiesen. Der isolierte aktuelle Kandidat wurde gebaut und nach Abschluss der
+Schlüsseleinrichtung wieder entfernt. Basti hat den Linux-Diktattest wegen
+des noch ungeklärten Mikrofons vorerst zurückgestellt; Mikrofon-/Providerprüfung
+bleibt ein eigener Freigabeschritt. Details:
+[Plattform-Fortsetzung](platform-continuation-2026-09-28.md).
 
 Der [Linux-Detailplan](linux-build-plan.md) ist die zuständige Quelle für
 Phasen, Modulkarte, Schutzpolitik und Checks. Der [Phase-1-Bericht](linux-phase1-core-2026-09-22.md)

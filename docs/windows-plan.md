@@ -9,8 +9,24 @@ Abstand fest. Diese historische Quelle ist keine heutige Geräteabnahme oder
 Freigabe.
 
 Die [ROADMAP](../ROADMAP.md) ist die zentrale Plattform-To-do-Liste. Dieses
-Dokument bewahrt nur die Windows-Planungsdetails und den klar begrenzten
-historischen Prüfstand.
+Dokument bewahrt Windows-Planungsdetails und trennt neue Entscheidungen
+vom klar begrenzten historischen Prüfstand.
+
+## Aktuelle Fortsetzung vom 28. September
+
+Basti hat **Ziel B – öffentliche Verteilung vorbereiten** gewählt.
+Das ist keine Veröffentlichungsfreigabe. Der vorhandene Quellstand wird
+im getrennten Arbeitschat für die Aufnahme unter `windows/` vorbereitet.
+Produktcode und Original-Arbeitskopie bleiben dabei unverändert;
+Integration und unabhängige Prüfung sind noch offen.
+
+Nach gesonderter Freigabe bestanden auch die 18 Windows-Schutzprüfungen im
+angemeldeten Desktop: zusammen mit den 23 Kern-/Ablaufprüfungen **41/41**.
+Dummy-Zugangseintrag und eigene Prüfartefakte wurden entfernt. Der frühere
+SSH-Teiltest und die Grenzen bleiben im
+[Fortsetzungsnachweis](platform-continuation-2026-09-28.md) sichtbar.
+Echte Diktate sowie Installations-, Update- und Deinstallationsabnahme
+sind dadurch nicht geprüft.
 
 ## Direkte Geräteprüfung vom 28. September
 
@@ -44,9 +60,10 @@ Statusabschnitte bereinigen; die heutige Offline-Prüfung ist keine Live-Abnahme
   mit eigener Herkunft, reproduzierbaren Builds und Checks versioniert und
   geprüft werden. Nicht in `main` kopieren oder als macOS-Code-Reduktion zählen.
 
-## Offene Umfangsentscheidungen
+## Historische Zieloptionen und heutige Entscheidung
 
-Die Quelle unterschied zwei noch nicht gewählte Abschlussziele:
+Die Quelle vom 12. September unterschied zwei damals offene Abschlussziele;
+am 28. September wurde Ziel B gewählt:
 
 1. **Ziel A – eigene Nutzung:** ein installierter, im Alltag abgenommener
    Kandidat auf dem gewählten Windows-Testgerät mit einer vereinbarten Liste
@@ -61,7 +78,7 @@ allgemeine Unterstützung oder neue Zielprogramme fest.
 
 ## Nächste Ergebnisse und Abnahme
 
-Vor einem Umsetzungsschritt sind Ziel A oder B, Pflichtprogramme und ein
+Ziel B steht fest. Vor einer Produktabnahme sind Pflichtprogramme und ein
 prüfbarer aktueller Quellstand festzulegen. Datenerhalt und sichere lokale
 Wiederherstellung müssen vor echter Provider-Nutzung geprüft werden. Echte
 Mikrofon-/Transkriptionsläufe benötigen eine eigene aktuelle Freigabe für

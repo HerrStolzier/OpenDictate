@@ -40,6 +40,16 @@ einer einzelnen Person. Der aktuelle Plan steht in der
 - Ein Linux-Clipboard-MVP-Kern und ein separater Windows-Prototyp belegen noch
   keinen plattformweiten Produktumfang. Die aktuellen Stände, offenen Abnahmen
   und nicht festgelegten Plattformziele stehen in [ROADMAP](ROADMAP.md).
+- Für Windows hat Basti am 28. September die direkte Vorbereitung öffentlicher
+  Verteilung als nächstes Ziel gewählt. Ein versionierter Ausgangsstand,
+  reproduzierbare Paketierung und belegte Installation/Abnahme sind dafür
+  Voraussetzungen. Dies ist kein Nachweis eines fertigen Windows-Produkts
+  und keine Freigabe seiner Veröffentlichung.
+- iOS ist nach Bastis ausdrücklicher Aussage vom 28. September besonders
+  wichtig. Gewünschter Ablauf: direkt in anderen Apps diktieren. Die erlaubte
+  Aufnahme-/Tastaturkopplung und ihre Abnahme werden zuerst geklärt;
+  [iOS-Richtung](docs/ios-direction.md). Die historische Plattformreihenfolge
+  bestimmt keine heutige niedrige Priorität.
 - Künftige Preise, Vertrieb und Firmengründung bleiben offen; dieser
   Dokumentationsstand entscheidet sie nicht.
 - Die Website ist ein lokaler Entwurf mit illustrativer Demo, kein Diktiernachweis.
