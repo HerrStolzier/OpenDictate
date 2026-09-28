@@ -1,6 +1,6 @@
 # Aktueller Stand und verbleibende Abnahme
 
-Stand: 25. September 2026. Dies ist die einzige aktuelle Übergabedatei.
+Stand: 28. September 2026. Dies ist die einzige aktuelle Übergabedatei.
 Produktziel: [PROJECT.md](../PROJECT.md); Regeln: [AGENTS.md](../AGENTS.md);
 Prüfverfahren: [CHECKS.md](../CHECKS.md); belegte frühere Testbudgets:
 [APPROVALS.md](../APPROVALS.md). Linux-Plan:
@@ -11,22 +11,42 @@ Grundablauf abgeschlossen; Paket, Beta und Release offen) und **Linux Phase 1**
 (Kern in `main`, noch nicht in `PROJECT.md`). Linux markiert keinen Mac-Release
 als erledigt.
 
-## Plan 2: Paketvorbereitung gestartet · 25. September 2026
+## Plan 2: Signieridentität eingerichtet, Paketabnahme offen · 28. September 2026
 
-Basti hat Registrierung und Zahlung der Apple-Developer-Mitgliedschaft bestätigt
-und Plan 2 beauftragt. Die gelesene Accountseite zeigte danach noch keine aktive
-Mitgliedschaft, sondern den Kaufhinweis mit bis zu 48 Stunden Bearbeitungszeit.
-Das ist kein Nachweis eines fehlgeschlagenen Kaufs und kein Anlass für eine
-zweite Zahlung. Lokal liefert `security find-identity -v -p codesigning` noch
-keine gültige Signieridentität. Der Paketbau wird vorbereitet; ein signierter,
-notarisierter Betakandidat ist noch nicht hergestellt oder freigegeben.
+Basti hat die Fortsetzung von Plan 2 beauftragt. Die am 28. September lesend
+geprüfte Apple-Accountseite zeigt jetzt die Apple-Developer-Mitgliedschaft mit
+Verlängerung im September 2027; die Zertifikatsverwaltung ist erreichbar.
+Der Bearbeitungsstatus vom 25. September ist damit überholt. Nach Bastis
+konkreter Freigabe wurde über den macOS-Zertifikatsassistenten ein lokaler
+Signierschlüssel mit öffentlicher Zertifikatsanfrage erzeugt. Apple stellte
+ein Developer-ID-Application-Zertifikat aus. Dieses und das von Apple bezogene,
+gegen die vorhandene Apple-Root-Kette geprüfte G2-Zwischenzertifikat wurden
+im Anmeldeschlüsselbund installiert. `security verify-cert -p codeSign`
+bestätigt die Zertifikatskette; `security find-identity -v -p codesigning`
+meldet jetzt eine gültige Identität. Keine Vertrauenseinstellung wurde geändert
+und kein privater Schlüssel exportiert.
+
+App und installierter Schlüsselbundhelfer tragen weiterhin die lokale selbst
+signierte Identität. Der Developer-ID-Build, ein tatsächlicher Signiervorgang
+und der Schlüsselbundzugriff des neuen App-Kandidaten sind noch nicht geprüft.
+
+Der vorbereitete Paketbau ist über PR #29 in `main` (`dbf48bf`) integriert;
+der CI-Lauf dieses Standes ist erfolgreich. Ein signierter, notarisierter
+Betakandidat ist noch nicht hergestellt oder freigegeben. Die Vorbereitung und
+Validierung des lokalen Notarisierungsprofils `OpenDictate-Notary` ist konkret
+freigegeben. Das Profil fehlte bei der Vorprüfung; Bastis persönliche Eingabe
+des anwendungsspezifischen Apple-Passworts und der Validierungsnachweis sind
+noch offen. Apple-Upload und kontrollierte Installation/Migration mit
+Live-Abnahme bleiben gesonderte Freigabeschritte.
 
 Der Wechsel des lokal installierten Schlüsselbundhelfers benötigt eine eigene
 kontrollierte Migration: Der vorhandene Helfer wird nicht automatisch ersetzt
 und muss dasselbe Zertifikat wie die App haben. Beim Wechsel von der lokalen
 Signatur auf Developer ID darf vorhandener Schlüsselbund- oder Aufnahmedatenbestand
 nicht gelöscht werden. Nachweise und nächste Schritte stehen im
-[Plan-2-Vorbereitungsbericht](release-plans/evidence/2026-09-25-plan2-vorbereitung.md).
+[Plan-2-Vorbereitungsbericht](release-plans/evidence/2026-09-25-plan2-vorbereitung.md)
+und in der [manuellen Migrationsanleitung](release-plans/plan2-migration.md).
+Die Anleitung wurde noch nicht an der installierten App ausgeführt.
 
 Die spätere [20-Prozent-Testbereinigung](test-audit-2026-09-25/README.md)
 ist inzwischen über PR #28 in `main`: 109 statt 137 Swift-Testdeklarationen,

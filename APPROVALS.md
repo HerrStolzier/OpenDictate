@@ -6,6 +6,39 @@ geht vor; ausdrücklich einmalige oder befristete Zustimmung bleibt begrenzt.
 Technische Berechtigungsprüfungen bleiben bestehen. Keine Secrets oder privaten
 Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 
+## Developer-ID-Signieridentität — 2026-09-28
+
+- **Quelle:** Direkte Antwort „Ja, diese Signieridentität einrichten“ in der
+  Hauptaufgabe `01a0e819-2220-7da2-8d9b-f82ce6f0cef4` auf die konkrete
+  Rückfrage zur Einrichtung einer Developer ID Application für OpenDictate.
+- **Umfang:** Privaten Signierschlüssel auf diesem Mac erzeugen, öffentliche
+  Zertifikatsanfrage an Apple senden und das ausgestellte Zertifikat im
+  Anmeldeschlüsselbund einrichten. Bestehende Zertifikate, App und Aufnahmen
+  bleiben unverändert.
+- **Ausgeführt:** Lokale Anfrage über den macOS-Zertifikatsassistenten,
+  Ausstellung durch Apple, Import des Application-Zertifikats und des
+  offiziellen, gegen Apple Root CA geprüften G2-Zwischenzertifikats.
+  macOS meldet eine gültige Signieridentität. Keine Änderung von
+  Vertrauenseinstellungen und kein Export des privaten Schlüssels.
+- **Grenze:** Kein Notarisierungszugang eingerichtet, kein App-Upload,
+  App-/Helper-Austausch oder Live-Diktat durch diese Freigabe. Die
+  Einrichtung ist abgeschlossen; dies ist keine pauschale Erlaubnis für
+  spätere Schlüssel- oder Zertifikatsänderungen.
+
+## Lokaler Notarisierungszugang — 2026-09-28
+
+- **Quelle:** Direkte Antwort „Ja, Notarisierungszugang vorbereiten“ in
+  Hauptaufgabe `01a0e819-2220-7da2-8d9b-f82ce6f0cef4`.
+- **Umfang:** Eigenes lokales Schlüsselbundprofil `OpenDictate-Notary`
+  vorbereiten und bei Apple validieren. Ein nötiges anwendungsspezifisches
+  Apple-Passwort erstellt Basti selbst und trägt es direkt in die verdeckte
+  lokale Eingabe ein, nicht in den Chat, Befehlsargumente oder Dateien.
+- **Stand:** Das Profil war bei der Vorprüfung nicht vorhanden. Accountseite
+  und Befehl zur persönlichen Eingabe sind vorbereitet; eine erfolgreiche
+  Speicherung oder Validierung ist noch nicht belegt.
+- **Grenze:** Diese Zustimmung erlaubt keinen App-Upload zur Notarisierung,
+  keine Installation/Migration und keine Veröffentlichung.
+
 ## Dokumentationspilot — 2026-09-14
 
 - **Umfang:** OpenDictate-Dokumentation bereinigen, PROJECT und APPROVALS ergänzen,

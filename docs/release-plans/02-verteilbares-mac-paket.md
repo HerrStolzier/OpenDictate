@@ -35,7 +35,8 @@ Die internen Plan-1-Grenzen werden hier nicht als bestandene Tests ausgegeben. V
    Keychain-Zugriff und macOS-Berechtigungen tatsächlich beobachten,
    nötige erneute Freigaben verständlich dokumentieren. Danach einen
    vollständigen Diktat- und einen Zwischenablage-Lauf auf dem verteilten
-   Paket prüfen.
+   Paket prüfen. Vorbedingungen, Sicherung, Rückweg und Abschlussprüfung stehen
+   in der [manuellen Migrationsanleitung](plan2-migration.md).
    Keine zusätzliche Laufzeit, Hintergrund-App oder Registrierung für
    OpenDictate einführen. Den entpackten `.app`-Umfang messen; Ziel sind
    höchstens 8 MiB für den Apple-Silicon-Build (lokaler Ausgangswert:
