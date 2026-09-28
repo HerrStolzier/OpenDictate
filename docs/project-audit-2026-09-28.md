@@ -125,6 +125,31 @@ eigenen Abhängigkeiten und reproduzierbaren Checks versionieren. Erst danach
 Ordner löschen, in die Mac-Reduktionsquote aufnehmen oder alles unbesehen in
 `main` kopieren. In diesem Auftrag bleibt er lesend geprüft.
 
+## Unabhängiger Erstpass: Linux, Werkzeuge und Website
+
+Der separate Kritiker prüfte lesend dieselbe Ausgangsrevision. Er fand in
+Linux, Skripten und Website keinen belegten größeren, funktionsneutralen
+Codeschnitt. Ähnliche CI- und Release-Schritte haben unterschiedliche
+Prüfverträge und rechtfertigen allein keine Zusammenlegung.
+
+Ein konkreter Dokumentationsfehler betrifft `linux/README.md`: Die Angabe
+Rust 1.70+ passt nicht zum vorhandenen Lockdateiformat v4. Die vorhandenen
+Linux-Nachweise nennen tatsächlich Rust 1.98.1. Deshalb die geprüfte Version
+angeben und eine niedrigere Mindestversion offenlassen, bis sie geprüft ist.
+Dies verlangt keine Änderung des Rust-Codes oder der Lockdatei.
+
+Linux Phase 1 bezeichnet einen offline geprüften Kern. Mikrofon bis Anbieter,
+physischer Hyprland-Hotkey, Tray/Panel und Packaging bleiben offen; Auto-Insert
+gehört zu Phase 2. Die Website ist ein lokaler Entwurf. Ihr Textstand vom
+24. September wurde laut `website/README.md` noch nicht erneut visuell
+abgenommen. Diese Grenzen gehören in die zentrale Planung und dürfen nicht
+als fertige Plattformen oder veröffentlichte Website erscheinen.
+
+Die Reihenfolge Windows → Linux → iOS → Android ist eine datierte Vorgabe aus
+dem Windows-Plan vom 12. September. Später vorhandener Linux-Code und der
+Ausschluss anderer Plattformen aus dem aktuellen Mac-Produktumfang belegen
+keine neue Prioritätsentscheidung. Die Roadmap muss Herkunft und Datum nennen.
+
 ## Duplikate mit begrenztem Nutzen einer Zusammenlegung
 
 - Die beiden Debug-Fixtures
@@ -173,8 +198,9 @@ Exakter SHA-256-Vergleich aller versionierten Dateien fand drei Paare:
 - Die Swift-Tests wurden am 24./25. September bereits gezielt reduziert.
   [Testsignal-Audit](test-signal-audit.md) und
   [Messung](test-audit-2026-09-25/README.md) begründen die verbleibenden Pfade.
-  Aktuell sind 109 Deklarationen vorhanden; die damalige Coverage ist ein
-  historischer Nachweis, kein heute neu gemessener Wert. Keine weitere
+  Aktuell sind 109 Deklarationen vorhanden; die frische
+  [Baseline](code-reduction-2026-09-28.md) reproduziert die damalige Coverage
+  mit unveränderten Quell- und Testdateien. Keine weitere
   pauschale Prozentvorgabe zur Testlöschung ableiten.
 - Debug-Vorschauen sind durch `#if DEBUG` abgegrenzt und dienen wiederholbaren
   Prüfungen. Nicht mit ausgelieferten Produktfunktionen verwechseln.
