@@ -6,6 +6,25 @@ geht vor; ausdrücklich einmalige oder befristete Zustimmung bleibt begrenzt.
 Technische Berechtigungsprüfungen bleiben bestehen. Keine Secrets oder privaten
 Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 
+## Developer-ID-Signieridentität — 2026-09-28
+
+- **Quelle:** Direkte Antwort „Ja, diese Signieridentität einrichten“ in der
+  Hauptaufgabe `01a0e819-2220-7da2-8d9b-f82ce6f0cef4` auf die konkrete
+  Rückfrage zur Einrichtung einer Developer ID Application für OpenDictate.
+- **Umfang:** Privaten Signierschlüssel auf diesem Mac erzeugen, öffentliche
+  Zertifikatsanfrage an Apple senden und das ausgestellte Zertifikat im
+  Anmeldeschlüsselbund einrichten. Bestehende Zertifikate, App und Aufnahmen
+  bleiben unverändert.
+- **Ausgeführt:** Lokale Anfrage über den macOS-Zertifikatsassistenten,
+  Ausstellung durch Apple, Import des Application-Zertifikats und des
+  offiziellen, gegen Apple Root CA geprüften G2-Zwischenzertifikats.
+  macOS meldet eine gültige Signieridentität. Keine Änderung von
+  Vertrauenseinstellungen und kein Export des privaten Schlüssels.
+- **Grenze:** Kein Notarisierungszugang eingerichtet, kein App-Upload,
+  App-/Helper-Austausch oder Live-Diktat durch diese Freigabe. Die
+  Einrichtung ist abgeschlossen; dies ist keine pauschale Erlaubnis für
+  spätere Schlüssel- oder Zertifikatsänderungen.
+
 ## Dokumentationspilot — 2026-09-14
 
 - **Umfang:** OpenDictate-Dokumentation bereinigen, PROJECT und APPROVALS ergänzen,
