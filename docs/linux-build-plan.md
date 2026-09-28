@@ -1,10 +1,14 @@
 # Linux-App-Plan (OpenDictate)
 
-Stand: 22. September 2026. Phase 0 ist über PR #16 in `main`; der Phase-1-Kern
-ist über PR #17 als `83c944f` in `main`. Er implementiert den offline geprüften
-Clipboard-MVP-Pfad, ist aber ohne Live-Upload, Tray und physischen Hotkey noch
-nicht als Phase 1 abgenommen. macOS-CI bleibt unverändert. Aktuelle Übergabe:
-[remaining-acceptance.md](remaining-acceptance.md).
+Stand des technischen Detailplans: 22. September 2026. Phase 0 ist über PR #16
+in `main`; der Phase-1-Kern ist über PR #17 als `83c944f` in `main`. Der Kern
+implementiert den offline geprüften Clipboard-MVP-Pfad, ist aber ohne
+Live-Upload, reale Fehler-/Abbruchfälle, physischen Hotkey und Tray/Panel noch
+nicht als Phase 1 abgenommen. Der geprüfte `main`-Ausgangspunkt vom
+28. September ist `5b95535`; daran ändert dieser Statushinweis keine
+Geräteabnahme. macOS-CI bleibt unverändert. Die zentrale Feature-/Plattform-
+Liste steht in [ROADMAP.md](../ROADMAP.md); der aktuelle technische
+Übergabestand in [remaining-acceptance.md](remaining-acceptance.md).
 
 ## Ziel (fest)
 
@@ -99,6 +103,24 @@ Sources/OpenDictate*   # macOS unverändert
 docs/linux-build-plan.md
 ```
 
+## Modulübersicht des Phase-1-Kerns
+
+Diese Karte beschreibt den eingeführten Codepfad, keine Live-Abnahme:
+
+| Datei | Rolle |
+|---|---|
+| `linux/src/main.rs` | CLI: Toggle, Status, Cancel, Retry, Settings, Secrets und Worker-Ablauf |
+| `linux/src/record.rs` | cpal-Aufnahme, 1/90-s-Grenzen, −45-dB-Analyse, Padding und WAV-Trim |
+| `linux/src/ipc.rs`, `state.rs` | Exklusiver Unix-Socket, vier Zustände und Abbruchmarker |
+| `linux/src/keyring.rs` | `secret-tool`; Secret-Service-Zugriff für API-Key und Recording-Auth |
+| `linux/src/clipboard.rs` | Wayland-Clipboard über `wl-copy`; Fehler ohne `WAYLAND_DISPLAY` |
+| `linux/src/transcribe.rs` | HTTPS-Multipart-Upload und begrenzte Fehlerdekodierung; Offline-Stubtests |
+| `linux/src/recovery.rs` | HMAC-SHA256, exakt authentifizierte Bytes, fünf Dateien/24 Stunden |
+| `linux/src/settings.rs` | Owner-only Modell-/Sprachkonfiguration, kein Secret |
+| `linux/src/window.rs` | `hyprctl activewindow -j`: nur Adresse und Klasse, kein Fenstertitel |
+| `linux/src/paths.rs` | XDG runtime/state/config; geschützte Anwendungsverzeichnisse |
+| `linux/hyprland.conf.example` | Beispiel-Bind; wird nicht in Nutzerkonfiguration installiert |
+
 ## Pflichtpolitik (Phase 1, mit Tests)
 
 Zahlen und Regeln aus dem aktuellen macOS-Client. Abweichung braucht eine
@@ -120,7 +142,7 @@ bewusste Produktentscheidung, keinen stillen Skip.
 
 ## Phasen
 
-### Phase 0 — Spike (Weg klären, 1–3 Tage)
+### Phase 0 — Spike (Wegwahl abgeschlossen)
 
 Auf **dieser** omarchy/Hyprland-Session, ohne Insert:
 
@@ -196,8 +218,10 @@ begründeter Clipboard-only-Ship mit klarem Wayland-Status.
 - gnome-keyring auf omarchy (oft ungesperrter Login-Keyring, LUKS als Platte)
   ist schwächer als macOS-Keychain-ACLs; trotzdem Secret Service, nie Datei
 
-## Nicht-Ziele v1
+## Nicht-Ziele dieses Linux-MVP
 
 Streaming, Hold-to-talk, Windows, öffentliches Publish, macOS ersetzen,
 iOS/Android, garantiertes Insert unter jedem Wayland-Compositor, X11-Session als
-Nachweis, Tauri-Skeleton als Spike-Start, zweites Distro.
+Nachweis, Tauri-Skeleton als Spike-Start und ein zweites Distro gehören nicht
+zum beschriebenen Linux-MVP. Die plattformübergreifenden Wünsche und Stände
+stehen in der [ROADMAP](../ROADMAP.md).
