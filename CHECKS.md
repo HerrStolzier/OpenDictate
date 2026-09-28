@@ -174,6 +174,29 @@ separate attended verification and are not default tests. The transcription
 tests may use loopback stub HTTP only. Never pass an API key as a command
 argument or environment variable.
 
+## Windows snapshot checks
+
+The separate [Windows README](windows/README.md) defines the current build
+and check scope. On Windows, from the repository root:
+
+```powershell
+./windows/scripts/check.ps1
+```
+
+This runs 23 core/flow checks and builds the app, browser host and Windows
+protection checker. It does not execute the 18 protection checks. After
+specific authorization for synthetic files and an isolated dummy Credential
+Manager entry, run those from a separate test copy in the signed-in Windows
+desktop with normal user privileges:
+
+```powershell
+dotnet run --no-restore --project windows/OpenDictate.WindowsChecks -c Release
+```
+
+Verify deletion of the dummy credential and owned test files afterwards.
+SSH Session 0 is not equivalent to an interactive desktop credential test.
+Neither command proves live dictation, installation or public release readiness.
+
 ## Meaning of checks
 
 The rationale for the retained and removed isolated tests is recorded in

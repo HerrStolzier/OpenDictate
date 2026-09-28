@@ -47,3 +47,13 @@ Noch keine iOS-Implementierung, Geräteinstallation, Aufnahme oder Übertragung
 ausgeführt. Zielgerät, Mindest-iOS, genaue Sitzungsbedienung und erste
 Zielprogramme sind offen. Der erste technische Prüfpunkt ist die erlaubte
 Aufnahme-/Tastaturkopplung, nicht eine Portierung der Mac-Oberfläche.
+
+## Lokale Build-Voraussetzung
+
+Die Prüfung am 28. September fand auf diesem Mac nur die ausgewählten
+Command Line Tools. `xcodebuild` meldet, dass vollständiges Xcode erforderlich
+ist; weder in den beiden üblichen Programmeordnern noch im Spotlight-Index
+wurde Xcode gefunden. macOS 27.0 ist installiert, etwa 212 GiB sind frei.
+Die Installation von Apples kostenlosem Xcode 27 samt benötigtem iOS-Simulator
+ist angefragt, aber noch nicht genehmigt oder begonnen.
+[Offizielle Xcode-Ausgabe](https://apps.apple.com/de/app/xcode/id497799835).
