@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "OpenDictate – lokale Browserprobe",
+  "version": "0.1.0",
+  "description": "Lokale Testanbindung an OpenDictate. Nur für die isolierte Browserprobe.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxfCvTjuW6TKpOgZvINLEn8+IYyBrfZgXe4zW1pmg7KDoCvMyXSLVktWsr0o9CtIg77Ms5c5PrKAgn3dYe/iAMVnFMepsBBkTiY1gAeFnB52BsqDE/2Txd70faKGL3+XfiYWg6ZptD4OYd0xU+xOsashWW835Qt/QlCdxr/pWdS5IkaSHXwB0AExUAu+NIl4m/0OfOMHbrCTtgyGlF4qwzJlxua/qkPiJJsAE9/aECZPcecYOyt+NwoO0RSsuAEJ2l76I1SHnAsKd8yX1mIRUu/EFFfAg4y1kly8PbSHBbjaJfhGxGcUkkQbTILYt953OtvtdAbqsvjssKnHu53CUswIDAQAB",
+  "permissions": [
+    "nativeMessaging",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Mit OpenDictate verbinden"
+  }
+}

@@ -1,0 +1,45 @@
+<!doctype html><meta charset="utf-8"><title>OpenDictate – Browser-Integrationstest</title>
+<style>body{font:18px system-ui;max-width:850px;margin:40px auto;background:#fafafa;color:#111}textarea,input,[contenteditable]{display:block;width:90%;padding:12px;margin:14px 0;border:1px solid #aaa;background:white}#result{white-space:pre-wrap;font:14px monospace}</style>
+<h1>OpenDictate – isolierter Browser-Test</h1><p>Nur künstliche Testtexte. Keine Anmeldung, Aufnahme oder Übertragung.</p>
+<textarea id="a" aria-label="Testfeld A">PREFIXSUFFIX</textarea>
+<input id="b" aria-label="Testfeld B" value="SECOND">
+<div id="rich" contenteditable="true" role="textbox" aria-label="Formatierbares Testfeld">PREFIXSUFFIX</div>
+<input id="secret" type="password" aria-label="Gesperrtes Passwort-Testfeld">
+<pre id="result">Tests werden vorbereitet …</pre>
+<script src="insertion-core.js"></script>
+<script>
+window.runTests = async function () {
+ const a=document.querySelector('#a'), b=document.querySelector('#b'), rich=document.querySelector('#rich');
+ const results=[]; let clock=0;
+ const session=OpenDictateInsertion.create({now:()=>clock,maxAgeMs:1000});
+ const tick=()=>new Promise(r=>setTimeout(r,30));
+ const expect=(name,condition)=>{results.push({name,passed:!!condition});if(!condition)throw Error(name)};
+ async function plain(start=6,end=start){a.value='PREFIXSUFFIX';a.focus();a.setSelectionRange(start,end);await tick();return session.capture();}
+ const text='Grüße – äöü ß. 日本語 🧪';
+ try {
+  expect('visible focused browser',document.hasFocus() && document.visibilityState==='visible');
+  let capture=await plain();expect('capture has no field contents',capture.ok && Object.keys(capture).sort().join(',')==='kind,ok,token');
+  expect('caret and Unicode',session.apply(capture.token,text).ok && a.value==='PREFIX'+text+'SUFFIX');
+  expect('single use',!session.apply(capture.token,text).ok && a.value==='PREFIX'+text+'SUFFIX');
+  capture=await plain(6,12);expect('selection replacement',session.apply(capture.token,text).ok && a.value==='PREFIX'+text);
+  expect('native undo',document.execCommand('undo') && a.value==='PREFIXSUFFIX');
+  capture=await plain();expect('multiline textarea',session.apply(capture.token,'eins\nzwei').ok && a.value==='PREFIXeins\nzweiSUFFIX');
+  capture=await plain();b.focus();await tick();expect('field change',!session.apply(capture.token,text).ok && a.value==='PREFIXSUFFIX' && b.value==='SECOND');
+  capture=await plain();b.focus();a.focus();a.setSelectionRange(6,6);await tick();expect('focus round trip',!session.apply(capture.token,text).ok && a.value==='PREFIXSUFFIX');
+  capture=await plain();session.cancel(capture.token);expect('cancel',!session.apply(capture.token,text).ok && a.value==='PREFIXSUFFIX');
+  capture=await plain();clock+=1001;expect('expired result',!session.apply(capture.token,text).ok && a.value==='PREFIXSUFFIX');
+  capture=await plain();a.value='USER CHANGE';expect('programmatic field change',!session.apply(capture.token,text).ok && a.value==='USER CHANGE');
+  capture=await plain();a.setSelectionRange(0,0);expect('caret change',!session.apply(capture.token,text).ok && a.value==='PREFIXSUFFIX');
+  document.querySelector('#secret').focus();await tick();expect('password rejected',!session.capture().ok);
+  a.readOnly=true;a.focus();await tick();expect('readonly rejected',!session.capture().ok);a.readOnly=false;
+  capture=await plain();a.addEventListener('beforeinput',e=>e.preventDefault(),{once:true});expect('page cancellation',!session.apply(capture.token,text).ok && a.value==='PREFIXSUFFIX');
+  capture=await plain();a.addEventListener('beforeinput',()=>b.focus(),{once:true});expect('beforeinput focus change',!session.apply(capture.token,text).ok && a.value==='PREFIXSUFFIX' && b.value==='SECOND');
+  rich.textContent='PREFIXSUFFIX';rich.focus();let range=document.createRange();range.setStart(rich.firstChild,6);range.setEnd(rich.firstChild,12);document.getSelection().removeAllRanges();document.getSelection().addRange(range);await tick();capture=session.capture();
+  expect('rich selection',capture.ok && session.apply(capture.token,text).ok && rich.textContent==='PREFIX'+text);
+  expect('rich undo',document.execCommand('undo') && rich.textContent==='PREFIXSUFFIX');
+ } catch(error){results.push({error:error.message})}
+ finally{session.dispose()}
+ const report={passed:results.filter(x=>x.passed).length,failed:results.filter(x=>x.passed===false || x.error).length,results};
+ document.querySelector('#result').textContent=JSON.stringify(report,null,2);return report;
+};
+</script>
