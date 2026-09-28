@@ -42,6 +42,17 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 - **Grenze:** Diese Zustimmung erlaubt keinen App-Upload zur Notarisierung,
   keine Installation/Migration und keine Veröffentlichung.
 
+## Lokale Signierung von Build 8 — 2026-09-28
+
+- **Quelle:** Fortsetzungsauftrag „Dann weiter mit der Agentensteuerung“ und
+  anschließende Antwort „Dialog bestätigt“ auf die konkrete Rückfrage zum
+  Zugriff von `codesign` auf den OpenDictate-Developer-ID-Schlüssel.
+- **Ausgeführt:** Basti bestätigte den macOS-Zugriffsdialog selbst. App und
+  Helper des getrennten lokalen Build-8-Kandidaten wurden mit der bestehenden
+  Identität und sicheren Apple-Zeitstempeln signiert und geprüft.
+- **Grenze:** Keine Freigabe für Schlüssel-/Zertifikatsänderungen, globale
+  Schlüsselbund-/ACL-Eingriffe, App-Upload, Installation oder Live-Diktat.
+
 ## Dokumentationspilot — 2026-09-14
 
 - **Umfang:** OpenDictate-Dokumentation bereinigen, PROJECT und APPROVALS ergänzen,

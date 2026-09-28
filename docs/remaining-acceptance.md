@@ -11,7 +11,7 @@ Grundablauf abgeschlossen; Paket, Beta und Release offen) und **Linux Phase 1**
 (Kern in `main`, noch nicht in `PROJECT.md`). Linux markiert keinen Mac-Release
 als erledigt.
 
-## Plan 2: Signieridentität eingerichtet, Paketabnahme offen · 28. September 2026
+## Plan 2: lokaler Developer-ID-Kandidat, Paketabnahme offen · 28. September 2026
 
 Basti hat die Fortsetzung von Plan 2 beauftragt. Die am 28. September lesend
 geprüfte Apple-Accountseite zeigt jetzt die Apple-Developer-Mitgliedschaft mit
@@ -26,13 +26,22 @@ bestätigt die Zertifikatskette; `security find-identity -v -p codesigning`
 meldet jetzt eine gültige Identität. Keine Vertrauenseinstellung wurde geändert
 und kein privater Schlüssel exportiert.
 
-App und installierter Schlüsselbundhelfer tragen weiterhin die lokale selbst
-signierte Identität. Der Developer-ID-Build, ein tatsächlicher Signiervorgang
-und der Schlüsselbundzugriff des neuen App-Kandidaten sind noch nicht geprüft.
+Die installierte App und ihr installierter Schlüsselbundhelfer tragen weiterhin
+die lokale selbst signierte Identität. Ein getrennter Developer-ID-Kandidat
+0.1.0 Build 8 wurde inzwischen aus dem sauberen Commit `b786d4c` gebaut und
+signiert. App, Helper und erneut entpacktes ZIP bestehen die Release-Prüfung.
+Zwei dabei gefundene Argumentfehler im Prüfer wurden minimal korrigiert;
+positive und negative Paketprüfungen sowie beide CI-Jobs bestehen. Der
+unabhängige Kritiker hat genau dieses ZIP selbst entpackt und geprüft:
+keine wesentlichen Befunde. Der Prüfer-Fix ist über
+[PR #31](https://github.com/HerrStolzier/OpenDictate/pull/31) integriert.
+Der Schlüsselbundzugriff der laufenden neuen App ist noch nicht geprüft.
+Artefaktidentität, Hash, wiederholbare Prüfung und offene Grenzen stehen im
+[Build-8-Nachweis](release-plans/evidence/2026-09-28-plan2-build8.md).
 
 Der vorbereitete Paketbau ist über PR #29 in `main` (`dbf48bf`) integriert;
-der CI-Lauf dieses Standes ist erfolgreich. Ein signierter, notarisierter
-Betakandidat ist noch nicht hergestellt oder freigegeben. Die Vorbereitung und
+der CI-Lauf dieses Standes ist erfolgreich. Ein notarisierter Betakandidat
+ist noch nicht hergestellt oder freigegeben. Die Vorbereitung und
 Validierung des lokalen Notarisierungsprofils `OpenDictate-Notary` ist konkret
 freigegeben und abgeschlossen. Basti hat das anwendungsspezifische Apple-Passwort
 selbst über die verdeckte Terminal-Eingabe gespeichert. Die Werkzeugausgabe
