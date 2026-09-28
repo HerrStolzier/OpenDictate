@@ -33,9 +33,12 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
   vorbereiten und bei Apple validieren. Ein nötiges anwendungsspezifisches
   Apple-Passwort erstellt Basti selbst und trägt es direkt in die verdeckte
   lokale Eingabe ein, nicht in den Chat, Befehlsargumente oder Dateien.
-- **Stand:** Das Profil war bei der Vorprüfung nicht vorhanden. Accountseite
-  und Befehl zur persönlichen Eingabe sind vorbereitet; eine erfolgreiche
-  Speicherung oder Validierung ist noch nicht belegt.
+- **Ausgeführt:** Basti hat das anwendungsspezifische Passwort selbst erstellt
+  und über die verdeckte Terminal-Eingabe gespeichert. Die zurückgemeldete
+  Werkzeugausgabe bestätigt Validierung und Speicherung im Anmeldeschlüsselbund.
+  Ein anschließender eigener Aufruf von `notarytool history` mit dem Profil
+  und diesem Schlüsselbund war erfolgreich; Apple meldet keine bisherigen
+  Einreichungen. Der Zugang ist damit verwendbar geprüft, ohne App-Upload.
 - **Grenze:** Diese Zustimmung erlaubt keinen App-Upload zur Notarisierung,
   keine Installation/Migration und keine Veröffentlichung.
 

@@ -34,9 +34,11 @@ Der vorbereitete Paketbau ist über PR #29 in `main` (`dbf48bf`) integriert;
 der CI-Lauf dieses Standes ist erfolgreich. Ein signierter, notarisierter
 Betakandidat ist noch nicht hergestellt oder freigegeben. Die Vorbereitung und
 Validierung des lokalen Notarisierungsprofils `OpenDictate-Notary` ist konkret
-freigegeben. Das Profil fehlte bei der Vorprüfung; Bastis persönliche Eingabe
-des anwendungsspezifischen Apple-Passworts und der Validierungsnachweis sind
-noch offen. Apple-Upload und kontrollierte Installation/Migration mit
+freigegeben und abgeschlossen. Basti hat das anwendungsspezifische Apple-Passwort
+selbst über die verdeckte Terminal-Eingabe gespeichert. Die Werkzeugausgabe
+bestätigt Validierung und Speicherung. Der anschließende eigene Aufruf von
+`notarytool history` mit dem Profil im Anmeldeschlüsselbund war erfolgreich;
+Apple meldet keine bisherigen Einreichungen. Apple-Upload und kontrollierte Installation/Migration mit
 Live-Abnahme bleiben gesonderte Freigabeschritte.
 
 Der Wechsel des lokal installierten Schlüsselbundhelfers benötigt eine eigene
