@@ -13,6 +13,11 @@ Sicherheits- oder Plattformabnahme. Die zentrale Aufgabenliste steht in
 [ROADMAP.md](../ROADMAP.md); dieser datierte Bericht begründet die dortigen
 Bereinigungspakete, führt aber keine zweite laufende To-do-Liste.
 
+Nachtrag desselben Auftrags: Auf ausdrückliche Bitte wurden Linux und Windows
+direkt verbunden und ihre Quellen/Offline-Prüfungen lokal geprüft. Die genauen
+Stände, Ergebnisse und Grenzen stehen im
+[Gerätebericht](platform-audit-2026-09-28.md).
+
 Bestandsaufnahme aller 262 versionierten Dateien am Ausgangsstand:
 
 | Bereich | Bestand | Prüfung |
@@ -55,7 +60,9 @@ Historische Bildschirmaufnahmen und Prüfberichte sind keine App-Laufzeitlast.
 
 **Abschlussprüfung:** Vollständige Referenzsuche, Source-Checks aus
 [CHECKS.md](../CHECKS.md), Diff ohne veränderte Farbwerte, Fokus- oder
-Löschentscheidung. Diese Codeänderungen sind hier nur vorgeschlagen.
+Löschentscheidung. Diese drei kleinen Wartungsänderungen wurden anschließend
+in `a9165fd` umgesetzt und bestanden die Source-Checks sowie die
+[Coverage-Nachmessung](code-reduction-2026-09-28.md).
 
 ### B: Vorbereitung eines Diktats einmal ausführen
 
@@ -214,6 +221,8 @@ direkt geprüft. In der Ausgangsrevision wurden keine fehlenden relativen
 Markdown-Dateiziele gefunden; das prüft keine externen Webseiten oder sämtliche
 Anker. Die Codelektüre konzentriert sich auf die benannten Verantwortlichkeiten
 und Risiken, sie ist kein formaler Beweis, dass jede Zeile fehlerfrei ist.
-Es gab für diesen Auftrag keine neue App-/Geräteausführung, Audioaufnahme,
-Provideranfrage, Zugangsdatenänderung oder Veröffentlichung. Größere Refactorings
-und Code-/Assetlöschungen wurden nicht umgesetzt.
+Offline-Testprogramme und Builds wurden auf Mac, Linux und Windows ausgeführt;
+keine Produkt-App wurde neu gestartet oder installiert. Es gab keine Aufnahme,
+Provideranfrage, Zugangsdatenänderung oder Veröffentlichung. Entfernt wurde nur
+der belegte unbenutzte Farbhelfer. Größere Refactorings und Assetlöschungen
+wurden nicht umgesetzt; die gewünschte 10–25%-Codekürzung blieb unerreicht.

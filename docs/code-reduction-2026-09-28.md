@@ -84,9 +84,58 @@ It contains `baseline-inventory.json`, `baseline-tests.log`,
 Source hashes match the earlier retained coverage measurement; the new run
 independently reproduced its aggregate. No installed app was replaced or launched.
 
-## Candidate and final acceptance
+## Candidate result
 
-Pending implementation and independent review. No reduction or successful
-post-change coverage result is claimed yet. The central task status belongs in
+Source candidate: `a9165fd4bb1b52e2e84282c494a374f2e11614f5`.
+Removed the unreferenced `PanelColors.hex` implementation (five lines) and
+corrected two policy comments without changing runtime behavior. The source
+inventory changes from **8,009 to 8,004 lines: 5 lines / 0.06243% reduction**.
+The requested 10–25% reduction was **not achieved**. Documentation savings
+are not included. No source moved elsewhere and no tests were deleted.
+
+The reviewed larger candidates do not justify forcing the quota: credential
+sampling changes timing across permission waits; a settings rewrite affects
+focus, accessibility and refresh; a shared menu-construction helper offers no
+meaningful net saving; Linux paths implement distinct safety contracts.
+These are documented opportunities with costs, not implemented reductions.
+
+All existing source checks passed: strict Swift formatting, warnings-as-errors
+Swift tests (80 System / 29 Core, four opt-in cases skipped), eight Python
+checks, seven shell syntax checks and whitespace checks. A second isolated
+Swift run with the same baseline coverage options passed. All 27 Swift test
+files and all 13 Rust source files are byte-identical to the fixed baseline.
+
+| Module | Covered / instrumented lines | Candidate coverage |
+| --- | ---: | ---: |
+| All Swift production sources | 1,735 / 5,170 | 33.5589941973% |
+| OpenDictate | 1,426 / 4,715 | 30.2439024390% |
+| OpenDictateCore | 309 / 360 | 85.8333333333% |
+| Keychain helper | 0 / 95 | 0% |
+
+Relative aggregate change: **+0.0967118%**, therefore no coverage loss and the
+2% relative-loss gate passes. The increase comes entirely from removing five
+uncovered lines; it does not mean more behavior was exercised. No executable
+path was added or changed. Coverage does not establish installed-app E2E.
+Fresh Linux and Windows offline evidence is separate in the
+[device report](platform-audit-2026-09-28.md); neither platform has a measured
+coverage percentage in this run.
+
+Evidence: `candidate-tests.log`, `candidate-coverage-raw.json`,
+`candidate-coverage.json`, `candidate-comparison.json` and `candidate-build/`
+in the same durable evidence directory. To reproduce the export, use the
+following four products with the merged profile for either scratch build:
+
+```sh
+xcrun llvm-cov export "$PRODUCTS/OpenDictateSystemTests.xctest/Contents/MacOS/OpenDictateSystemTests" \
+  -object "$PRODUCTS/OpenDictateCoreTests.xctest/Contents/MacOS/OpenDictateCoreTests" \
+  -object "$PRODUCTS/OpenDictate" -object "$PRODUCTS/OpenDictateKeychainHelper" \
+  -instr-profile "$PRODUCTS/codecov/default.profdata"
+```
+
+`PRODUCTS` is the scratch build's `out/Products/Debug` directory. Sum the
+`summary.lines` covered/count values of unique production `Sources/` files,
+including the app and helper files with zero hits; do not average percentages.
+Independent review and Git integration remain pending at this measurement.
+The central task status belongs in
 [ROADMAP.md](../ROADMAP.md); broader findings are in the
 [project audit](project-audit-2026-09-28.md).
