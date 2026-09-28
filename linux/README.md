@@ -11,7 +11,8 @@ Zustandsmaschine und authentifizierte Recovery. Auto-Insert bleibt Phase 2.
 
 ## Bauen und prüfen
 
-Rust 1.70+; auf omarchy mit rustc 1.98 geprüft:
+Geprüft mit `rustc 1.98.1`. Eine niedrigere Mindestversion ist nicht
+verifiziert:
 
 ```bash
 cargo fmt --manifest-path linux/Cargo.toml -- --check

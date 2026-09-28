@@ -88,20 +88,31 @@ Keychain state. This path prepares a private candidate and does not announce a
 public release. See Apple's [Developer ID code-signing requirement](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements)
 and [notarization workflow](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution).
 
-## Linux Phase-0 spike
+## Linux CLI and offline MVP core
 
-The crate under [`linux/`](../linux/README.md) is a Hyprland/omarchy CLI spike,
-not a product build. It is absent from the macOS Swift CI workflow. On a Linux
-host:
+[`linux/`](../linux/README.md) contains the Hyprland/omarchy CLI path and the
+Phase-1 Clipboard-MVP core. Phase 0 selected and exercised the OS path; Phase 1
+added the tested workflow, recovery and upload core. Offline format, tests,
+Clippy and release-build checks passed on omarchy. These results do not complete
+Phase 1: live microphone/provider use, real error cases, a physical hotkey and
+the tray/panel still need their own target-system acceptance. The separate
+[Linux detail plan](linux-build-plan.md) records phases and criteria; the
+[roadmap](../ROADMAP.md) is the central cross-platform task list. Linux is
+separate from the macOS Swift CI workflow.
+
+On a Linux host, the offline checks are:
 
 ```bash
+cargo fmt --manifest-path linux/Cargo.toml -- --check
 cargo test --manifest-path linux/Cargo.toml
+cargo clippy --manifest-path linux/Cargo.toml --all-targets -- -D warnings
 cargo build --release --manifest-path linux/Cargo.toml
 ```
 
 `opendictate toggle` records without a window. Do not put an API key on the
-command line or in the environment. Live microphone, Secret Service and
-clipboard checks are attended and are not implied by `cargo test`.
+command line or in the environment. Live microphone, Secret Service, provider,
+physical-hotkey and clipboard acceptance is attended and is not implied by
+these offline checks.
 
 ## Isolated design preview
 

@@ -33,15 +33,22 @@ einer einzelnen Person. Der aktuelle Plan steht in der
 - Kein Versprechen fehlerfreier Sprache, garantierter Latenz oder bestätigter
   Annahme in jedem Zieltextfeld. Repräsentative Programme sind Testbeispiele,
   keine pauschale Supportzusage. Zwischenablage bleibt der verlustfreie manuelle Rückweg.
-- Streaming und Hold-to-talk sind zurückgestellt, keine aktiven Funktionen.
-- Windows-/Linux-Umfang, künftige Preise, Vertrieb und Firmengründung werden
-  hier nicht festgelegt; dieser Dokumentationsauftrag entscheidet sie nicht.
+- Streaming ist ausdrücklich als spätere Erweiterung gewünscht; technische
+  Gestaltung und Preisentscheidung sind offen. Hold-to-talk bleibt eine
+  zurückgestellte Erweiterung. Beides ist nicht implementiert und kein Teil des
+  aktuellen Funktionsumfangs; Wünsche und Planungsstand stehen in [ROADMAP](ROADMAP.md).
+- Ein Linux-Clipboard-MVP-Kern und ein separater Windows-Prototyp belegen noch
+  keinen plattformweiten Produktumfang. Die aktuellen Stände, offenen Abnahmen
+  und nicht festgelegten Plattformziele stehen in [ROADMAP](ROADMAP.md).
+- Künftige Preise, Vertrieb und Firmengründung bleiben offen; dieser
+  Dokumentationsstand entscheidet sie nicht.
 - Die Website ist ein lokaler Entwurf mit illustrativer Demo, kein Diktiernachweis.
 
 ## Zuständige Quellen
 
 [AGENTS](AGENTS.md) enthält technische Invarianten, [CHECKS](CHECKS.md) die
-Prüfwege, [remaining-acceptance](docs/remaining-acceptance.md) den aktuellen
-Übergabestand und offene Nachweise, [APPROVALS](APPROVALS.md) belegte Freigaben.
+Prüfwege, [ROADMAP](ROADMAP.md) die zentrale Feature-/Plattform-Liste,
+[remaining-acceptance](docs/remaining-acceptance.md) den aktuellen
+Abnahme- und Übergabestand und [APPROVALS](APPROVALS.md) belegte Freigaben.
 Produktentscheidungen hier nur bei geänderter Entscheidung aktualisieren;
 Testergebnisse und laufende Aufgaben gehören nicht hierher.

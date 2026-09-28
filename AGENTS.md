@@ -2,8 +2,9 @@
 
 ## Project context and authorized work
 
-- Read `PROJECT.md` for product scope and `docs/remaining-acceptance.md` for the
-  single current handoff. Verify checkout state before relying on that handoff.
+- Read `PROJECT.md` for product scope, `ROADMAP.md` for the sole cross-platform
+  feature/platform backlog, and `docs/remaining-acceptance.md` for the single
+  current acceptance handoff. Verify checkout state before relying on it.
 - Consult `APPROVALS.md` for evidenced project approvals; the record does not
   expand the original authorization or override later restrictions.
 - Routine commits, pushes to this repository and merges of verified changes
@@ -51,13 +52,21 @@ or one successful dictation into a general speech-quality claim.
 ## Documentation ownership
 
 - `PROJECT.md`: product goal, scope, non-goals and grounded decisions.
+- `ROADMAP.md`: sole current feature/platform to-do list; status, next result,
+  dependency and completion evidence. It does not grant implementation or
+  publication approval.
 - `APPROVALS.md`: evidenced project authorization, scope and validity.
 - `README.md`: current product behavior and setup.
 - `PRIVACY.md`: complete current data flow and retention behavior.
 - `CHECKS.md`: reproducible verification commands and explicit live-test gates.
 - `docs/compatibility-matrix.md`: current product-wide text-field and focus
   acceptance plan; programs are representative examples, not blanket support claims.
-- `docs/remaining-acceptance.md`: single current handoff and behavior not yet evidenced.
+- `docs/remaining-acceptance.md`: single current technical handoff and behavior
+  not yet evidenced; it is not a second feature/platform backlog.
+- `docs/linux-build-plan.md` and `docs/windows-plan.md`: platform-specific
+  implementation and acceptance detail linked from the roadmap.
+- `docs/release-plans/`: detailed acceptance steps for the five Mac-release
+  stages; dated evidence applies only to its recorded candidate.
 - Dated acceptance files: historical evidence for that exact candidate only.
 
 Update these documents in the same change whenever their claimed behavior changes.

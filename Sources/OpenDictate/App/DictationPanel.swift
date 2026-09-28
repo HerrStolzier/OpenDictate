@@ -507,11 +507,6 @@ private final class DictationUtilityPanel: NSPanel {
 
 @MainActor
 enum PanelColors {
-    static func hex(_ value: Int) -> NSColor {
-        NSColor(
-            srgbRed: CGFloat((value >> 16) & 255) / 255, green: CGFloat((value >> 8) & 255) / 255,
-            blue: CGFloat(value & 255) / 255, alpha: 1)
-    }
     static func pair(_ light: Int, _ dark: Int) -> NSColor {
         NSColor(name: nil) { appearance in
             let value = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? dark : light
