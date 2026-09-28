@@ -165,6 +165,13 @@ prüfen und jeweils festhalten:
 
 Für den Rückweg die Developer-ID-App vollständig beenden. App und Helper
 gemeinsam zurücksetzen, damit sie wieder dasselbe lokale Zertifikat tragen.
+Dieses Snippet gilt nur nach vollständig abgeschlossenem Dateitausch. Wurde
+der Wechsel unterbrochen und fehlt etwa `$APP`, **hier stoppen**: weder den
+Wechsel noch dieses Snippet erneut ausführen. Zuerst die vorhandenen Pfade
+`APP`, `APP_OLD`, `STAGED`, `HELPER` und den gesicherten alten Helper lesend
+abgleichen und daraus einen passenden Wiederherstellungsschritt festlegen.
+Keine Datei überschreiben oder löschen; die alte App und ihr Helper müssen
+vor jeder Wiederherstellung eindeutig identifiziert sein.
 Fehlt eine der alten Komponenten oder ist das Sicherungsziel bereits belegt,
 vor jeder Verschiebung stoppen. Den Rückweg nicht blind erneut ausführen:
 
