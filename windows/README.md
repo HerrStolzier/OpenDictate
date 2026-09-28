@@ -42,7 +42,9 @@ im [Windows-Releaseplan](RELEASE-PLAN.md); Herkunft und Prüfsummen stehen in
 Der [Plattformbericht](../docs/platform-audit-2026-09-28.md) hält die
 ursprüngliche 37-Datei-Prüfung und die ersten 23 Offline-Checks fest. Die dort
 noch offenen 18 Schutzchecks bestanden anschließend im interaktiven Desktoplauf;
-der aktuelle Gesamtstand ist oben mit 41/41 angegeben. Historische Editor- und
+der aktuelle Gesamtstand ist oben mit 41/41 angegeben. Der spätere Lauf ist
+in der [Plattform-Fortsetzung](../docs/platform-continuation-2026-09-28.md)
+mit Prüfweg und Bereinigung dokumentiert. Historische Editor- und
 isolierte Chrome-Prüfungen gelten nur für den dort benannten Kandidaten, die
 konkret geprüften Felder und Zeitpunkte. Sie versprechen keine Unterstützung
 beliebiger Editoren, Browser oder Webseiten.

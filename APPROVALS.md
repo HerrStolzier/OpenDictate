@@ -6,6 +6,18 @@ geht vor; ausdrücklich einmalige oder befristete Zustimmung bleibt begrenzt.
 Technische Berechtigungsprüfungen bleiben bestehen. Keine Secrets oder privaten
 Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 
+## iOS-Vorbereitung: Xcode und Simulator — 2026-09-28
+
+- **Quelle:** Direkte Antwort „Ja, Xcode und iOS-Simulator installieren“
+  auf die konkrete Frage zur fehlenden lokalen iOS-Entwicklungsumgebung.
+- **Umfang:** Apples kostenloses Xcode 27 samt benötigtem iOS-Simulator auf
+  diesem Mac installieren. Mehrere GB Download und lokale Entwicklungssoftware
+  waren ausdrücklich Teil der Frage. Bezug über Apples offiziellen App Store.
+- **Stand:** Der Download ist im App Store gestartet. Installation und
+  einsatzfähiger iOS-Simulator sind noch nicht nachgewiesen.
+- **Grenze:** Keine iPhone-/iPad-Installation, echte Mikrofonaufnahme,
+  Anbieteranfrage, neue Signieridentität oder Veröffentlichung freigegeben.
+
 ## Linux: lokale Schlüssel einrichten — 2026-09-28
 
 - **Quelle:** Direkte Antwort „Ja, Linux-Schlüssel einrichten“ auf die

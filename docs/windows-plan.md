@@ -3,9 +3,10 @@
 Diese Kurzfassung stammt aus den externen, lesend geprüften Notizen
 `OpenDictate-Windows-Plan.md` und `OpenDictate-Windows-Umsetzungsstand.md`,
 Stand **12. September 2026**. Die Originale bleiben außerhalb dieses
-Repositories. Der separate Windows-Quellbaum ist hier nicht versioniert; der
-[Projekt-Audit](project-audit-2026-09-28.md) hält den geprüften Repository-
-Abstand fest. Diese historische Quelle ist keine heutige Geräteabnahme oder
+Repositories. Den damals separaten Quellbaum hält der
+[Projekt-Audit](project-audit-2026-09-28.md) in seinem historischen
+Repository-Abstand fest. Der aktuelle Snapshot steht unter
+[windows/](../windows/README.md). Diese historische Quelle ist keine heutige Geräteabnahme oder
 Freigabe.
 
 Die [ROADMAP](../ROADMAP.md) ist die zentrale Plattform-To-do-Liste. Dieses
@@ -15,10 +16,11 @@ vom klar begrenzten historischen Prüfstand.
 ## Aktuelle Fortsetzung vom 28. September
 
 Basti hat **Ziel B – öffentliche Verteilung vorbereiten** gewählt.
-Das ist keine Veröffentlichungsfreigabe. Der vorhandene Quellstand wird
-im getrennten Arbeitschat für die Aufnahme unter `windows/` vorbereitet.
-Produktcode und Original-Arbeitskopie bleiben dabei unverändert;
-Integration und unabhängige Prüfung sind noch offen.
+Das ist keine Veröffentlichungsfreigabe. Der vorhandene Quellstand wurde
+im getrennten Arbeitschat unter `windows/` gesichert und nach unabhängiger
+Integritäts-/Statusprüfung ohne wesentliche Befunde im Integrationszweig
+übernommen. Produktionsdateien und Original-Arbeitskopie blieben unverändert.
+Die konkreten Verteilungsgates stehen im [Releaseplan](../windows/RELEASE-PLAN.md).
 
 Nach gesonderter Freigabe bestanden auch die 18 Windows-Schutzprüfungen im
 angemeldeten Desktop: zusammen mit den 23 Kern-/Ablaufprüfungen **41/41**.
@@ -28,7 +30,7 @@ SSH-Teiltest und die Grenzen bleiben im
 Echte Diktate sowie Installations-, Update- und Deinstallationsabnahme
 sind dadurch nicht geprüft.
 
-## Direkte Geräteprüfung vom 28. September
+## Frühere Geräteprüfung vom 28. September
 
 SSH zum Windows-PC und SDK 10.0.401 sind aktuell bestätigt. Die 37 verglichenen
 Quell-/Projekt-/Skriptdateien des vorhandenen Prototyps stimmen exakt mit der
@@ -38,10 +40,10 @@ Warnung oder Fehler. Die weiteren Schutzprüfungen und sichtbaren Abläufe
 wurden nicht wiederholt. Details und Nachweisgrenzen stehen im
 [Gerätebericht](platform-audit-2026-09-28.md).
 
-Der Quellstand ist weiterhin im separaten Elternrepository unversioniert.
-Die mitgelieferte README enthält widersprüchliche alte Aussagen zur bereits
-vorhandenen Anbieterintegration. Vor weiterer Umsetzung versionieren und
-Statusabschnitte bereinigen; die heutige Offline-Prüfung ist keine Live-Abnahme.
+Zum Zeitpunkt dieser frühen Prüfung war der Quellstand im separaten
+Elternrepository unversioniert und seine README widersprüchlich. Die oben
+beschriebene spätere Snapshot-Übernahme und README-Neufassung schließen diese
+Lücke. Die ursprüngliche Arbeitskopie bleibt erhalten.
 
 ## Belegter Teilstand vom 12. September
 
@@ -55,10 +57,10 @@ Statusabschnitte bereinigen; die heutige Offline-Prüfung ist keine Live-Abnahme
   Bericht **nicht** abgenommen. Die genannten Programmnamen und Versionen
   belegen nur genau diese historischen Prüfläufe, keine allgemeine
   Programm-Unterstützung.
-- Der geprüfte Windows-Prototyp ist ein separater lokaler Quellbaum, kein
-  Bestandteil des macOS-Repositories. Er muss vor einer künftigen Integration
-  mit eigener Herkunft, reproduzierbaren Builds und Checks versioniert und
-  geprüft werden. Nicht in `main` kopieren oder als macOS-Code-Reduktion zählen.
+- Der damalige Windows-Prototyp war ein separater lokaler Quellbaum. Die
+  spätere Snapshot-Übernahme ist oben mit Herkunft und Prüfgrenzen bezeichnet;
+  reproduzierbare Releasepakete bleiben offen. Diese Übernahme zählt nicht
+  als macOS-Code-Reduktion.
 
 ## Historische Zieloptionen und heutige Entscheidung
 

@@ -71,3 +71,17 @@ zurückgestellt. Es wurde kein Live-Test begonnen. Das eigene temporäre
 Quell-/Buildverzeichnis wurde nach Prüfung auf laufende Kandidatenprozesse
 und Audiodateien entfernt; beide genehmigt eingerichteten Schlüssel bleiben
 im Schlüsselbund.
+
+## Windows-Snapshot und unabhängige Prüfung
+
+Der Worker sicherte 45 Dateien im Commit `a7e7d21b8efe1b6705f1b13c80b39d960e6a1188`.
+37 ursprüngliche und vier ergänzende Originaldateien stimmen direkt mit dem
+Windows-PC überein. README, Herkunft, Releaseplan und Hashliste beschreiben
+den Entwicklungsstand; das Hashmanifest bindet 42 Projektdateien.
+Der unabhängige Kritiker prüfte diesen exakten Snapshot sowie den
+Dokumentationscommit `1543d33` auf Basis `1f895537`: keine wesentlichen Befunde
+im begrenzten Integritäts-/Statusumfang. Er wiederholte keine Geräte- oder
+Credentialtests und führte kein vollständiges Windows-Sicherheitsaudit durch.
+Die Hauptaufgabe verglich alle 45 Dateien zusätzlich mit dem eingefrorenen
+Review-Snapshot, bevor sie den Commit übernahm. Kleine anschließende
+Status-/Querverweisänderungen wurden separat auf Links und Prüfsummen geprüft.

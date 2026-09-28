@@ -279,9 +279,11 @@ Laufzeit- und Linux-Ergebnisse bleiben in den verlinkten
 ## Windows-Abnahmeübergabe
 
 Basti hat die direkte Vorbereitung öffentlicher Verteilung als nächstes
-Windows-Ziel gewählt. Der bestehende Arbeitschat sichert dafür den zuvor
-unversionierten Prototyp in einem getrennten Worktree; Integration und
-unabhängige Prüfung sind noch offen. 41/41 vorhandene Offline-Prüfungen sind
+Windows-Ziel gewählt. Der bestehende Arbeitschat hat den zuvor
+unversionierten Prototyp in einem getrennten Worktree gesichert. Der
+unabhängige Review fand keine wesentlichen Befunde im begrenzten
+Integritäts-/Dokumentationsumfang. Der bytegleiche Quellsnapshot ist
+unter [windows/](../windows/README.md) versioniert. 41/41 vorhandene Offline-Prüfungen sind
 jetzt erneut bestanden, einschließlich des genehmigten isolierten
 Zugangsspeicher-Tests. Ein echter Diktatdurchlauf und die Abnahme von
 Installation, Update und Deinstallation bleiben offen. Quelle und Grenzen:

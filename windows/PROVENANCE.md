@@ -53,3 +53,12 @@ Protokolle oder historischen Bildschirmnachweise übernommen. Der Browser-
 Installationshelfer wurde nicht ausgeführt. Der Schlüssel im Extension-Manifest
 ist der öffentliche Identitätsschlüssel der lokalen Testextension; ein privater
 Signierschlüssel oder ein Browserprofil wurde nicht übernommen.
+
+## Ergänzender Abgleich durch die Hauptaufgabe
+
+Nach der Snapshot-Erstellung wurden auch die vier unveränderten Ergänzungen
+oben per `Get-FileHash -Algorithm SHA256` direkt auf dem Windows-PC geprüft:
+4/4 stimmen überein. Damit sind insgesamt 41 unverändert übernommene
+Originaldateien gegen denselben Windows-Quellbaum abgeglichen. Die README
+wurde separat neu geschrieben. Der lokale Zusatzbeleg liegt unter
+`~/.codex/artifacts/opendictate/platform-resume-20260928/windows-supplemental-hashes.json`.

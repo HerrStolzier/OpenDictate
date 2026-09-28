@@ -55,5 +55,6 @@ Command Line Tools. `xcodebuild` meldet, dass vollständiges Xcode erforderlich
 ist; weder in den beiden üblichen Programmeordnern noch im Spotlight-Index
 wurde Xcode gefunden. macOS 27.0 ist installiert, etwa 212 GiB sind frei.
 Die Installation von Apples kostenlosem Xcode 27 samt benötigtem iOS-Simulator
-ist angefragt, aber noch nicht genehmigt oder begonnen.
+ist ausdrücklich genehmigt. Der App-Store-Download wurde gestartet;
+Installation und Simulatorbereitschaft sind noch nicht nachgewiesen.
 [Offizielle Xcode-Ausgabe](https://apps.apple.com/de/app/xcode/id497799835).
