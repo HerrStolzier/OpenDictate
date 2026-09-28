@@ -11,7 +11,7 @@ Grundablauf abgeschlossen; Paket, Beta und Release offen) und **Linux Phase 1**
 (Kern in `main`, noch nicht in `PROJECT.md`). Linux markiert keinen Mac-Release
 als erledigt.
 
-## Plan 2: lokaler Developer-ID-Kandidat, Paketabnahme offen · 28. September 2026
+## Plan 2: Build 8 bei Apple eingereicht, Paketabnahme offen · 28. September 2026
 
 Basti hat die Fortsetzung von Plan 2 beauftragt. Die am 28. September lesend
 geprüfte Apple-Accountseite zeigt jetzt die Apple-Developer-Mitgliedschaft mit
@@ -47,8 +47,13 @@ freigegeben und abgeschlossen. Basti hat das anwendungsspezifische Apple-Passwor
 selbst über die verdeckte Terminal-Eingabe gespeichert. Die Werkzeugausgabe
 bestätigt Validierung und Speicherung. Der anschließende eigene Aufruf von
 `notarytool history` mit dem Profil im Anmeldeschlüsselbund war erfolgreich;
-Apple meldet keine bisherigen Einreichungen. Apple-Upload und kontrollierte Installation/Migration mit
-Live-Abnahme bleiben gesonderte Freigabeschritte.
+Apple meldete dabei noch keine bisherigen Einreichungen. Nach Bastis separater
+Uploadfreigabe „Du hast sie“ wurde genau das geprüfte Build-8-ZIP einmal an
+Apple gesendet. Die Einreichung `320efa5c-d9fa-4e3b-980b-1a121ffdd371` vom
+28. September, 17:10:08 UTC, steht zuletzt auf **In Progress**. Bei Annahme
+sind Ticket und endgültige Verpackung freigegeben. Kontrollierte
+Installation/Migration, Live-Abnahme und Veröffentlichung bleiben getrennte
+Freigabeschritte.
 
 Der Wechsel des lokal installierten Schlüsselbundhelfers benötigt eine eigene
 kontrollierte Migration: Der vorhandene Helfer wird nicht automatisch ersetzt

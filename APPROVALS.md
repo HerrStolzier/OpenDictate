@@ -53,6 +53,20 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 - **Grenze:** Keine Freigabe für Schlüssel-/Zertifikatsänderungen, globale
   Schlüsselbund-/ACL-Eingriffe, App-Upload, Installation oder Live-Diktat.
 
+## Apple-Notarisierung von Build 8 — 2026-09-28
+
+- **Quelle:** Direkte Antwort „Du hast sie“ in Hauptaufgabe
+  `01a0e819-2220-7da2-8d9b-f82ce6f0cef4` auf die konkrete Frage zum Upload
+  des lokal und unabhängig geprüften Build-8-Pakets an Apple.
+- **Umfang:** Genau das Kandidaten-ZIP mit SHA-256
+  `cee6fcc5d7c2bc311eacbad82f1e6e7538148d1c8808fd61b18b598a0b199a82`
+  (0.1.0 Build 8, saubere Quellrevision
+  `b786d4ccd75462b902d3a1439c247bd1a5aeeca8`, 3.487.252 Bytes) über das
+  bestehende Profil `OpenDictate-Notary` an Apple senden. Bei Annahme das
+  Prüfticket anheften und das endgültige Paket erzeugen und prüfen.
+- **Grenze:** Keine Installation, Migration, App-/Live-Diktat-Abnahme oder
+  Veröffentlichung; keine Änderung von Zugangsdaten oder Schlüsselbundrechten.
+
 ## Dokumentationspilot — 2026-09-14
 
 - **Umfang:** OpenDictate-Dokumentation bereinigen, PROJECT und APPROVALS ergänzen,
