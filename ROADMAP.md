@@ -64,7 +64,11 @@ Duplikatbehandlung und erhaltenswerte Sicherheits-/Recovery-Pfade ein. Die
 jetzt ausdrücklich beauftragten Versuch: Die gemessene Ausgangsbasis beträgt
 8.009 Sourcezeilen; das Reduktionsziel liegt bei 10–25 %. Die Coverage-Baseline
 beträgt 33,526570 %, die zulässige Untergrenze bei höchstens 2 % relativem
-Verlust 32,856039 %. Implementierung, Nachhermessung, übrige Checks und
-unabhängige Prüfung stehen noch aus. Der technische Versuch folgt in diesem
-Arbeitszweig; bestehende Tests und Verhaltens-/Sicherheitsinvarianten bleiben
-erhalten.
+Verlust 32,856039 %. Der sichere Wartungsdurchlauf in Commit `a9165fd` entfernte
+den unbenutzten Farbhelfer und korrigierte zwei irreführende Kommentare: netto
+fünf Sourcezeilen weniger (0,06 % der Ausgangsbasis). Das 10%-Ziel von mindestens
+801 Zeilen wurde nicht erreicht; eine sichere größere Kürzung innerhalb des
+freigegebenen Mac-Umfangs war nicht belegt und wurde nicht erzwungen. Die
+vorgeschriebenen Offline-Quellchecks bestanden. Nachher-Coverage-Messung und
+Abschlussbewertung bleiben offen; bestehende Tests sowie Verhaltens- und
+Sicherheitsinvarianten blieben unverändert.
