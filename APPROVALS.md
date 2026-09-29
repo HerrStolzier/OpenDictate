@@ -22,7 +22,9 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
   Vollzugriff bestanden. Die Bildschirmtastatur bleibt auch nach Neustart
   und Entfernung des Prototyps verborgen. Eigene Test-App, sichtbarer
   Tastatureintrag, Safari-Tab und lokaler Server sind abschließend bereinigt.
-  [Nachweis](docs/ios-simulator-2026-09-29.md).
+  [Historischer Nachweis](docs/ios-simulator-2026-09-29.md). Der anschließend
+  separat genehmigte Gerätevergleich ermöglichte den bestandenen
+  [synthetischen Texttest](docs/ios-keyboard-e2e-2026-09-29.md).
 
 ## iOS: Neustart zur Diagnose — 2026-09-29
 
@@ -36,6 +38,22 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
   abgeschlossen. Die Bildschirmtastatur bleibt verborgen.
 - **Grenze:** Kein Erase, kein neues Simulatorgerät, keine Neuinstallation
   von Xcode oder iOS, keine globale Dienst-/Konfigurationsänderung.
+
+## iOS: separater Simulatorvergleich mit Bereinigung — 2026-09-29
+
+- **Quelle:** Basti stimmte dem frischen separaten Simulator mit Prüfung der
+  Systemtastatur zu und verlangte seine anschließende Bereinigung, falls er
+  das Problem nicht löst.
+- **Umfang:** Ein zusätzliches iPhone-18-Pro-Testgerät mit der vorhandenen
+  iOS-27-Runtime anlegen und die Systemtastatur prüfen. Bei erfolglosem
+  Vergleich ausschließlich dieses selbst angelegte Gerät wieder entfernen.
+- **Grenze:** Bestehende Simulatorgeräte erhalten; kein Runtime-Download,
+  kein echtes Gerät, keine Aufnahme, Anbieteranfrage oder Zugangsdatenänderung.
+- **Stand:** Systemtastatur und anschließend der bereits freigegebene
+  synthetische Tastaturtest funktionieren im frischen Gerät. Test-App,
+  Tastatureintrag, eigener Safari-Tab, Server und Log-Helfer sind bereinigt.
+  Das erfolgreiche Diagnosegerät bleibt ausgeschaltet gespeichert; alle
+  bestehenden Geräte sind erhalten. [Nachweis](docs/ios-keyboard-e2e-2026-09-29.md).
 
 ## iOS-Vorbereitung: Xcode und Simulator — 2026-09-28
 

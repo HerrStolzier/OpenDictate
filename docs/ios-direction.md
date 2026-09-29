@@ -1,6 +1,6 @@
 # iOS: gewünschter Ablauf und nächster Nachweis
 
-Stand: 28. September 2026. Basti hat iOS ausdrücklich als **besonders wichtig**
+Stand: 29. September 2026. Basti hat iOS ausdrücklich als **besonders wichtig**
 benannt und den Ablauf **„Direkt in anderen Apps diktieren“** gewählt.
 Eine App, die nur aufnimmt und anschließend Kopieren/Teilen anbietet, erfüllt
 dieses Ziel nicht. Die zentrale Aufgabenliste bleibt [ROADMAP](../ROADMAP.md).
@@ -75,12 +75,15 @@ Simulator hat den Erststart abgeschlossen; Home-Bildschirm und Bedienhierarchie
 sind geprüft. Der Download-Befehl endete zuvor mit Exit 70 wegen einer fehlenden
 Personalisierungs-Manifestdatei bei der Registrierung. Deshalb wird die erfolgreiche
 Startprüfung getrennt vom fehlgeschlagenen Downloader protokolliert. Der erste
-Offline-Build von Host-App und Tastaturerweiterung ist erfolgreich; die
-eigentliche Textübergabe bleibt offen. [Datiertes Protokoll](ios-simulator-2026-09-28.md).
+Offline-Build von Host-App und Tastaturerweiterung war erfolgreich; die
+Textübergabe war damals offen. [Datiertes Protokoll](ios-simulator-2026-09-28.md).
 [Offizielle Xcode-Ausgabe](https://apps.apple.com/de/app/xcode/id497799835).
 
-Die separat freigegebene Simulator-Fortsetzung am 29. September bestätigt
-Installation und sichtbaren App-Start. Die automatisierte Bedienung bleibt
-blockiert; Tastaturaktivierung und Textübergabe sind noch nicht belegt.
-Test-App und eigener Server wurden bereinigt.
-[Aktueller Teilnachweis](ios-simulator-2026-09-29.md).
+Die separat freigegebene Simulator-Fortsetzung am 29. September besteht auf
+einem frischen Diagnosegerät: sichtbare Tastaturaktivierung ohne Vollzugriff,
+bewusste synthetische Einfügung, normale Eingabe, Feld-/App-/Tastaturwechsel
+und Systemtastatur im Passwortfeld. Das ursprüngliche Gerät bleibt erhalten;
+seine fehlende Bildschirmtastatur ist weiterhin nicht ursächlich erklärt.
+Testressourcen wurden bereinigt, das funktionierende Diagnosegerät ist
+ausgeschaltet gespeichert. [Aktueller E2E-Nachweis](ios-keyboard-e2e-2026-09-29.md).
+Der reale Aufnahme-/Tastaturablauf bleibt offen.

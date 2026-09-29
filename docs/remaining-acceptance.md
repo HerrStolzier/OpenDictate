@@ -16,24 +16,23 @@ iOS ist ausdrücklich besonders wichtig. Basti möchte direkt in anderen Apps
 diktieren; nächster Prüfpunkt ist die erlaubte Aufnahme-/Tastaturkopplung
 ([iOS-Richtung](ios-direction.md)). Der Linux-Diktattest ist inzwischen vorerst zurückgestellt.
 
-## iOS: Simulator-Neustart ohne Behebung, Test bereinigt · 29. September 2026
+## iOS: synthetischer Safari-Textpfad bestanden · 29. September 2026
 
-Der unabhängig geprüfte Offline-Tastatur-Prototyp aus `e416a3d` besteht Build,
-Installation und sichtbaren Start. Explizite Touch-Ereignisse ermöglichten
-seine Aktivierung ohne Vollzugriff. Die Bildschirmtastatur erschien jedoch
-weder in der lokalen Safari-Fixture noch in Safaris eigener Adresszeile.
-Basti berichtet dasselbe nach Ausschalten des Tastatursymbols und Trennen
-seiner Bluetooth-Tastatur. Auch der danach ausdrücklich genehmigte Neustart
-von Device Hub und demselben Simulator sowie die Entfernung des Prototyps
-beheben das Verhalten nicht. Die Ursache bleibt unbewiesen.
+Der unabhängig geprüfte Offline-Tastatur-Prototyp aus `e416a3d` besteht nun
+auch den sichtbaren E2E-Test auf dem separat genehmigten frischen iPhone-18-Pro-
+Simulator: Aktivierung ohne Vollzugriff, bewusste Einfügung, normale Eingabe,
+Feld-/App-/Tastaturwechsel und Systemtastatur im leeren Passwortfeld.
+Die installierten Binärhashes entsprechen dem bereits geprüften Kandidaten;
+keine iOS-Quelländerung war nötig. [Nachweis](ios-keyboard-e2e-2026-09-29.md).
 
-Die eigene Test-App ist entfernt; die sichtbare Tastaturliste enthält wieder
-nur Deutsch und Emoji. Der eigene Safari-Tab ist geschlossen, der lokale
-Server beendet. Der zuvor geöffnete Simulator bleibt gestartet. Safari-
-Einfügung, Feldwechsel und Passwortfeldverhalten bleiben ungeprüft; PR #34
-bleibt Entwurf. Nächster möglicher Vergleich: ein getrenntes frisches
-Simulatorgerät mit Systemtastatur, ohne den bestehenden Simulator zu löschen.
-Dieser zusätzliche Vergleich ist noch nicht beauftragt. [Nachweis](ios-simulator-2026-09-29.md).
+Test-App, sichtbarer Tastatureintrag, eigener Safari-Tab, Server und Log-Helfer
+sind bereinigt. Das funktionierende Diagnosegerät bleibt ausgeschaltet
+vorhanden, alle alten Geräte sind erhalten. Die genaue Ursache der fehlenden
+Tastatur im ursprünglichen Gerät bleibt unbewiesen.
+
+Offen bleiben der reale Aufnahme-/Tastaturablauf auf einem benannten iPhone,
+Provider, Diktatqualität, weitere Ziel-Apps und Barrierefreiheit. Der bestandene
+synthetische Textpfad ist keine fertige iOS-Diktier-App oder Veröffentlichungsfreigabe.
 
 ## Aktuelle Projektbereinigung · 28. September 2026
 

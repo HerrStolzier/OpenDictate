@@ -3,6 +3,10 @@
 Stand: 29. September 2026. Fortsetzung des [Buildnachweises](ios-simulator-2026-09-28.md)
 nach Bastis konkreter Freigabe für den Simulator-Test in [APPROVALS](../APPROVALS.md).
 
+Historischer Befund am ursprünglichen Gerät. Der später genehmigte Vergleich
+mit einem frischen Gerät besteht einschließlich synthetischer Textübergabe:
+[aktueller E2E-Nachweis und Bereinigung](ios-keyboard-e2e-2026-09-29.md).
+
 ## Erster Versuch: geprüft
 
 - Kandidat: iOS-Quellen aus `e416a3d`, unverändert in PR #34, Head `7973d3a`.
@@ -127,7 +131,7 @@ wiederholt: weiterhin keine Bildschirmtastatur
 TextInput.kbd liefen; die begrenzte Fehlerabfrage lieferte keine belegte Ursache.
 Dies ist keine bestandene Abnahme und keine bewiesene Ursache in OpenDictate
 oder Xcode. Ein getrenntes frisches Simulatorgerät wäre ein nächster möglicher
-Vergleich mit Systemtastatur; es wurde nicht angelegt.
+Vergleich mit Systemtastatur; zu diesem Zeitpunkt war es noch nicht angelegt.
 
 Abschließende Bereinigung: `get_app_container` findet unsere Test-App nicht
 mehr; die sichtbare Tastaturliste zeigt nur Deutsch und Emoji. Der eigene

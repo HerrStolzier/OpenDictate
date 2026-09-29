@@ -15,8 +15,10 @@ stehen in [PRUEFPLAN.md](PRUEFPLAN.md).
   bestimmtes Zielfeld.
 - Das QWERTZ-Layout ist ein einfacher Funktionsnachweis, keine fertige
   Tastatur oder Produktabnahme.
-- Der Simulator-Build belegt nicht die sichtbare Einfügung in Safari. Dafür
-  ist die separat koordinierte E2E-Prüfung nötig.
+- Der Simulator-Build allein belegt keine sichtbare Einfügung. Die separate
+  [Safari-E2E-Prüfung vom 29.09.](../docs/ios-keyboard-e2e-2026-09-29.md)
+  besteht auf dem frischen Diagnosegerät mit synthetischem Text, einschließlich
+  Feld-, App- und Tastaturwechsel sowie Systemtastatur im Passwortfeld.
 - Das technische Deployment-Ziel im Xcode-Projekt ist nur eine Einstellung
   dieses Prototyps und entscheidet keine Produkt-Mindestversion.
 
