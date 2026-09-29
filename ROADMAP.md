@@ -79,7 +79,7 @@ Duplikatbehandlung und erhaltenswerte Sicherheits-/Recovery-Pfade ein. Die
 jetzt ausdrücklich beauftragten Versuch: Die gemessene Ausgangsbasis beträgt
 8.009 Sourcezeilen; das Reduktionsziel liegt bei 10–25 %. Die Coverage-Baseline
 beträgt 33,526570 %, die zulässige Untergrenze bei höchstens 2 % relativem
-Verlust 32,856039 %. Der sichere Wartungsdurchlauf in Commit `a9165fd` entfernte
+Verlust 32,856039 %. Der sichere Wartungsdurchlauf in Commit `6f5f2a9` entfernte
 den unbenutzten Farbhelfer und korrigierte zwei irreführende Kommentare: netto
 fünf Sourcezeilen weniger (0,06 % der Ausgangsbasis). Das 10%-Ziel von mindestens
 801 Zeilen wurde nicht erreicht; eine sichere größere Kürzung innerhalb des
