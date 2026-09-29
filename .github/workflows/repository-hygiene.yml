@@ -20,8 +20,8 @@ jobs:
           persist-credentials: false
       - name: Lint GitHub Actions workflows
         run: bash scripts/ci/check-workflows.sh
-      - name: Scan changed Git history without verifying credentials
+      - name: Scan Git history without verifying credentials
         env:
           SCAN_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-          SCAN_HEAD: ${{ github.event.pull_request.head.sha || github.event.after }}
+          SCAN_HEAD: ${{ github.sha }}
         run: bash scripts/ci/scan-secrets.sh "$SCAN_BASE" "$SCAN_HEAD"

@@ -61,12 +61,51 @@ else
 fi
 
 # Gitleaks scans commit patches locally; it never validates or contacts providers.
-# Redaction is mandatory so a finding cannot print the detected credential.
-"$gitleaks_bin" git \
+# Redact the temporary JSON report, then print only safe finding metadata.
+report_path="$tool_dir/findings.json"
+unset GITLEAKS_CONFIG GITLEAKS_CONFIG_TOML
+if "$gitleaks_bin" git \
+  --gitleaks-ignore-path="$ROOT/.gitleaksignore" \
   --log-opts="$log_opts" \
-  --redact \
+  --report-format=json \
+  --report-path="$report_path" \
+  --redact=100 \
   --no-banner \
   --no-color \
   --log-level=error \
   --timeout=300 \
-  "$ROOT"
+  "$ROOT"; then
+  scan_status=0
+else
+  scan_status=$?
+fi
+
+if [[ ! -s "$report_path" ]]; then
+  echo "Gitleaks exited with status $scan_status without a redacted report." >&2
+  if [[ "$scan_status" -eq 0 ]]; then exit 1; fi
+  exit "$scan_status"
+fi
+
+if ! python3 - "$report_path" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+report = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+if not isinstance(report, list):
+    raise SystemExit("Gitleaks produced an unexpected report format.")
+if not report:
+    print("Gitleaks scan completed with no new findings.")
+for finding in report:
+    metadata = {
+        key: finding.get(key)
+        for key in ("RuleID", "File", "StartLine", "EndLine", "Commit", "Fingerprint")
+    }
+    print(json.dumps(metadata, sort_keys=True, ensure_ascii=True))
+PY
+then
+  echo 'Could not parse the redacted Gitleaks report.' >&2
+  exit 1
+fi
+
+exit "$scan_status"

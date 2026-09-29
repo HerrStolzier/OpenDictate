@@ -162,12 +162,13 @@ and review ownership, conflicting rules and evidence scope. Include new files
 in that review. Do not rerun app tests solely for prose changes.
 
 Linux changes (`linux/`): run these on a Linux host. They are not part of
-the macOS Swift CI workflow. CI and the local script pin Rust 1.98.1 and use
-the checked-in lockfile. Install the Rust components and ALSA headers once, then
-run the same entry point as CI:
+the macOS Swift CI workflow. CI installs and selects Rust 1.98.1; the local
+script disables Rustup auto-install and requires that exact active Rust and
+Cargo version. It does not change toolchains. Both use the checked-in lockfile.
+With the required toolchain and ALSA headers already available, run the same
+entry point as CI:
 
-```sh
-rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
+```bash
 bash scripts/ci/check-linux.sh
 ```
 
@@ -235,12 +236,26 @@ Workflow lint downloads pinned actionlint 1.7.12 to a temporary directory and
 checks every external action reference for a full commit SHA. The secret scan
 downloads Gitleaks 8.30.1 to a temporary directory, verifies its published
 SHA-256, and scans only the selected Git commit range. CI passes the pull
-request base/head SHAs or the push before/after SHAs. Merge commits are scanned
-against their first parent so changes resolved during a merge are included.
+request base SHA and checked-out `github.sha` (the merge result), or the push
+before/after SHAs. Merge commits are scanned against their first parent so
+changes resolved during a merge are included.
 With no arguments, the local script scans the full history reachable from
 current `HEAD`. Gitleaks redacts findings in output and does not contact
 providers to validate credentials.
-Temporary scanner files are deleted when the script exits.
+The scanner keeps its redacted JSON report in its private temporary directory,
+then prints only rule, file, line, commit and fingerprint metadata; it omits
+secret content and commit author details. Temporary scanner files are deleted
+when the script exits.
+
+The full-history scan allows only 31 exact fingerprints in
+`.gitleaksignore`. They cover a Chrome extension manifest public key and
+30 SHA-256 source/test-file digests in the dated coverage reports; each digest
+was checked against its source blob at the recorded revision. The Chrome
+manifest key is public by design and keeps the extension ID stable ([Chrome
+manifest key](https://developer.chrome.com/docs/extensions/reference/manifest/key)).
+The findings were suppressed by commit, path, rule and line fingerprint, not
+by excluding files or directories ([Gitleaks fingerprint ignores](https://github.com/gitleaks/gitleaks#additional-configuration)).
+New or changed findings remain visible and fail the scan.
 
 Dependabot groups weekly updates for the repository's Actions, Cargo and NuGet
 manifests, with at most three open update pull requests.
