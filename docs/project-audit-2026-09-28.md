@@ -61,7 +61,7 @@ Historische Bildschirmaufnahmen und Prüfberichte sind keine App-Laufzeitlast.
 **Abschlussprüfung:** Vollständige Referenzsuche, Source-Checks aus
 [CHECKS.md](../CHECKS.md), Diff ohne veränderte Farbwerte, Fokus- oder
 Löschentscheidung. Diese drei kleinen Wartungsänderungen wurden anschließend
-in `6f5f2a9` umgesetzt und bestanden die Source-Checks sowie die
+in `1f895537` umgesetzt und bestanden die Source-Checks sowie die
 [Coverage-Nachmessung](code-reduction-2026-09-28.md).
 
 ### B: Vorbereitung eines Diktats einmal ausführen

@@ -86,7 +86,7 @@ independently reproduced its aggregate. No installed app was replaced or launche
 
 ## Candidate result
 
-Reachable source candidate: `6f5f2a9b050e343ed5e10551ba36ca7eb295b2f1`.
+Reachable integrated candidate: `1f895537e9b36d962eb1425113423da377e95b1b`.
 Removed the unreferenced `PanelColors.hex` implementation (five lines) and
 corrected two policy comments without changing runtime behavior. The source
 inventory changes from **8,009 to 8,004 lines: 5 lines / 0.06243% reduction**.
