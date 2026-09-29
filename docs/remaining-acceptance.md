@@ -25,8 +25,9 @@ geprüft. Der anschließende Reparaturversuch fand mit explizitem Touch-Drücken
 und Loslassen einen funktionierenden Bedienweg. Die Tastatur ist jetzt ohne
 Vollzugriff hinzugefügt und die lokale Safari-Fixture geöffnet. Die
 Bildschirmtastatur bleibt jedoch verborgen; automatisierte Tastaturkürzel
-ändern die Ansicht nicht. Ein manueller Cmd+K-Versuch im iPhone-Fenster wurde
-angefragt. Die Ursache ist nicht belegt.
+ändern die Ansicht nicht. Auch manuelles Cmd+K blieb laut Basti wirkungslos. iOS zeigt eine
+Hardwaretastatur; als Nächstes ist der Device-Hub-Menüeintrag
+„Simulate Hardware Keyboard“ direkt zu prüfen. Die Ursache ist nicht belegt.
 
 Safari-Einfügung und der eigentliche Diktierablauf bleiben ungeprüft.
 Test-App, Tastatur, eigener Safari-Tab und lokaler Server bleiben für den

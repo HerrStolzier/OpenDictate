@@ -22,7 +22,7 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
   anschließenden Reparaturauftrag ließ sich die Tastatur mit expliziten
   Touch-Ereignissen ohne Vollzugriff aktivieren. Safari-Fixture geöffnet;
   Einblenden der Bildschirmtastatur und Einfügung bleiben offen. Für den
-  angefragten manuellen Cmd+K-Versuch bleiben Test-App, Tastatur, eigener Tab
+  weiteren Versuch über das Device-Hub-Menü bleiben Test-App, Tastatur, eigener Tab
   und Server vorbereitet; danach steht ihre Bereinigung an.
   [Nachweis](docs/ios-simulator-2026-09-29.md).
 

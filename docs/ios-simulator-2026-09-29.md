@@ -66,11 +66,11 @@ XcodeBuildMCP-CLI-Befehle `toggle-software-keyboard` und
 `toggle-connect-hardware-keyboard` melden jeweils das Senden des Kürzels,
 ändern aber den sichtbaren Bildschirm nicht. Ein erneuter nativer Zugriff
 auf Device Hub endet mit Timeout. Eine Hardwaretastatur-Verbindung ist damit
-nicht als Ursache belegt. Basti wurde gebeten, das iPhone-Fenster selbst
-anzuklicken und einmal Cmd+K zu drücken.
+nicht als Ursache belegt. Basti bestätigte anschließend: Auch manuelles Cmd+K im iPhone-Fenster
+hat keine sichtbare Wirkung.
 
 **Übergabestand:** Test-App, aktivierte Testtastatur und eigener Safari-Tab
-bleiben für diesen unmittelbar ausstehenden Versuch vorbereitet. Der eigene
+bleiben für die weitere Prüfung des Device-Hub-Tastaturmenüs vorbereitet. Der eigene
 Fixture-Server läuft auf `127.0.0.1:8766` (Log `fixture-server-retry.log`).
 Nach Abschluss sind eigener Tab, Test-App/Tastatur und Server zu entfernen;
 der zuvor von Basti geöffnete Simulator bleibt erhalten. Die Bereinigung des
@@ -82,3 +82,23 @@ Fixture mit Fokus. Safari-Einfügung, normale Tasteneingabe, Feldwechsel und
 Passwortfeld bleiben ungeprüft. PR #34 bleibt Entwurf. Keine Produktions-
 oder Prototyp-Quelländerung, keine neuen Installationspakete, keine Aufnahme,
 Anbieteranfrage, Zugangsdatenänderung oder Veröffentlichung.
+
+## Ergänzende Diagnose nach manuellem Cmd+K
+
+Ein dreisekündiges Prozess-Sample von Device Hub zeigt den Hauptthread in
+der regulären AppKit-Ereignisschleife, keinen darin belegten Hänger
+(`devicehub-sample.txt` im Artefaktordner). Schließen und erneutes Fokussieren
+von Feld Eins in Safari funktionieren, zeigen aber keine Bildschirmtastatur.
+iOS-Einstellungen > Tastatur zeigen eine Hardwaretastatur; deren Untermenü
+bietet Layout, Sondertasten und Tastaturtyp, keinen sichtbaren Schalter zum
+Einblenden. Danach wurde wieder Safari geöffnet.
+
+Die [Apple-Hinweise zu Xcode 27](https://developer.apple.com/documentation/xcode-release-notes/xcode-27-release-notes)
+bestätigen den Menüeintrag „Simulate Hardware Keyboard“ und eine Einstellung
+zur Weiterleitung von Tastenkombinationen. Die tatsächlich sichtbare
+Menüstruktur und der Schalterzustand dieser Device-Hub-Instanz sind wegen
+der nativen Zugriffssperre noch nicht geprüft. Nächster Schritt: direkte
+Sichtprüfung dieses Menüs, statt weitere Tastenkürzel zu wiederholen.
+Apples bekannter Fehler beim Softwaretastatur-Umschalter betrifft ausdrücklich
+iPad-Simulatoren; er erklärt diesen iPhone-Befund nicht nachweislich. Keine
+Voreinstellung geändert, kein Dienst oder Simulator neu gestartet.
