@@ -1,0 +1,27 @@
+name: Repository hygiene
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: hygiene-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Lint GitHub Actions workflows
+        run: bash scripts/ci/check-workflows.sh
+      - name: Scan changed Git history without verifying credentials
+        env:
+          SCAN_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          SCAN_HEAD: ${{ github.event.pull_request.head.sha || github.event.after }}
+        run: bash scripts/ci/scan-secrets.sh "$SCAN_BASE" "$SCAN_HEAD"
