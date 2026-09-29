@@ -57,7 +57,7 @@ Signierschlüssel oder ein Browserprofil wurde nicht übernommen.
 ## Entwicklung nach dem Snapshot
 
 `SOURCE-SHA256SUMS` bleibt das historische Importmanifest des unveränderten
-Windows-Snapshots aus Commit `2f9d81c27507904768965b0cf5fcbb8c9aa274c2`.
+Windows-Snapshots aus dem retained Merge-Commit `9bf554ea7d2c48b87022469ddb4d6a36a5cf7cd0`.
 Spätere, normal versionierte Änderungen unter `windows/` ändern die aktuellen
 Dateien, ohne dieses Herkunftsmanifest umzuschreiben. Für den ursprünglichen
 Windows-PC-Abgleich ist deshalb dieser Snapshot-Commit maßgeblich, nicht der
