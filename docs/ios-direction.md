@@ -78,3 +78,9 @@ Startprüfung getrennt vom fehlgeschlagenen Downloader protokolliert. Der erste
 Offline-Build von Host-App und Tastaturerweiterung ist erfolgreich; die
 eigentliche Textübergabe bleibt offen. [Datiertes Protokoll](ios-simulator-2026-09-28.md).
 [Offizielle Xcode-Ausgabe](https://apps.apple.com/de/app/xcode/id497799835).
+
+Die separat freigegebene Simulator-Fortsetzung am 29. September bestätigt
+Installation und sichtbaren App-Start. Die automatisierte Bedienung bleibt
+blockiert; Tastaturaktivierung und Textübergabe sind noch nicht belegt.
+Test-App und eigener Server wurden bereinigt.
+[Aktueller Teilnachweis](ios-simulator-2026-09-29.md).

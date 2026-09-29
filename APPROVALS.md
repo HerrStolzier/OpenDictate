@@ -6,6 +6,23 @@ geht vor; ausdrücklich einmalige oder befristete Zustimmung bleibt begrenzt.
 Technische Berechtigungsprüfungen bleiben bestehen. Keine Secrets oder privaten
 Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 
+## iOS: abgegrenzter Simulator-Test — 2026-09-29
+
+- **Quelle:** Bastis direktes „ja“ zur Installation der Test-App und zum
+  Tastaturtest mit künstlichem Text ausschließlich im bereits eingerichteten
+  Simulator.
+- **Umfang:** Die gebaute App „OpenDictate Tastaturtest“ installieren und
+  starten, ihre Tastatur ohne Vollzugriff aktivieren und synthetischen Text
+  in einer lokalen Safari-Fixture prüfen. Anschließend Test-App und eigene
+  Testseite entfernen.
+- **Grenze:** Kein echtes iPhone/iPad, kein Mikrofon, keine API-Schlüssel,
+  Anbieteranfragen oder Veröffentlichung. Die Freigabe gilt für diesen
+  begrenzten Simulator-Test, nicht für den späteren Diktierablauf.
+- **Ausgeführt:** Installation und sichtbarer Start bestanden. Die weitere
+  Bedienung des Simulators blieb ohne sichtbare Wirkung; Tastaturaktivierung
+  und Safari-Einfügung sind offen. Test-App und eigener Fixture-Server wurden
+  entfernt bzw. beendet. [Nachweis](docs/ios-simulator-2026-09-29.md).
+
 ## iOS-Vorbereitung: Xcode und Simulator — 2026-09-28
 
 - **Quelle:** Direkte Antwort „Ja, Xcode und iOS-Simulator installieren“
