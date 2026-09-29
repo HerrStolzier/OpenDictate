@@ -10,11 +10,12 @@
 <script>
 window.runTests = async function () {
  const a=document.querySelector('#a'), b=document.querySelector('#b'), rich=document.querySelector('#rich');
- const results=[]; let clock=0;
+ const results=[]; let clock=0, policyClock=0;
  const session=OpenDictateInsertion.create({now:()=>clock,maxAgeMs:1000});
+ const policySession=OpenDictateInsertion.create({now:()=>policyClock});
  const tick=()=>new Promise(r=>setTimeout(r,30));
  const expect=(name,condition)=>{results.push({name,passed:!!condition});if(!condition)throw Error(name)};
- async function plain(start=6,end=start){a.value='PREFIXSUFFIX';a.focus();a.setSelectionRange(start,end);await tick();return session.capture();}
+ async function plain(start=6,end=start,target=session){a.value='PREFIXSUFFIX';a.focus();a.setSelectionRange(start,end);await tick();return target.capture();}
  const text='Grüße – äöü ß. 日本語 🧪';
  try {
   expect('visible focused browser',document.hasFocus() && document.visibilityState==='visible');
@@ -28,6 +29,7 @@ window.runTests = async function () {
   capture=await plain();b.focus();a.focus();a.setSelectionRange(6,6);await tick();expect('focus round trip',!session.apply(capture.token,text).ok && a.value==='PREFIXSUFFIX');
   capture=await plain();session.cancel(capture.token);expect('cancel',!session.apply(capture.token,text).ok && a.value==='PREFIXSUFFIX');
   capture=await plain();clock+=1001;expect('expired result',!session.apply(capture.token,text).ok && a.value==='PREFIXSUFFIX');
+  capture=await plain(6,6,policySession);policyClock=150001;expect('default lifetime spans max dictation',policySession.apply(capture.token,text).ok && a.value==='PREFIX'+text+'SUFFIX');
   capture=await plain();a.value='USER CHANGE';expect('programmatic field change',!session.apply(capture.token,text).ok && a.value==='USER CHANGE');
   capture=await plain();a.setSelectionRange(0,0);expect('caret change',!session.apply(capture.token,text).ok && a.value==='PREFIXSUFFIX');
   document.querySelector('#secret').focus();await tick();expect('password rejected',!session.capture().ok);
@@ -38,7 +40,7 @@ window.runTests = async function () {
   expect('rich selection',capture.ok && session.apply(capture.token,text).ok && rich.textContent==='PREFIX'+text);
   expect('rich undo',document.execCommand('undo') && rich.textContent==='PREFIXSUFFIX');
  } catch(error){results.push({error:error.message})}
- finally{session.dispose()}
+ finally{session.dispose();policySession.dispose()}
  const report={passed:results.filter(x=>x.passed).length,failed:results.filter(x=>x.passed===false || x.error).length,results};
  document.querySelector('#result').textContent=JSON.stringify(report,null,2);return report;
 };

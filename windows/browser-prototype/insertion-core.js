@@ -3,7 +3,10 @@
 (() => {
   'use strict';
   if (globalThis.OpenDictateInsertion) return;
-  function create({ document: doc = document, now = () => performance.now(), maxAgeMs = 120000 } = {}) {
+  // Match the extension-side ticket: 90 s recording + 60 s provider timeout
+  // plus 30 s for preparation and delivery.
+  const defaultMaxAgeMs = 180000;
+  function create({ document: doc = document, now = () => performance.now(), maxAgeMs = defaultMaxAgeMs } = {}) {
     const win = doc.defaultView;
     let current = null;
     let delivering = false;
