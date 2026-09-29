@@ -16,24 +16,24 @@ iOS ist ausdrücklich besonders wichtig. Basti möchte direkt in anderen Apps
 diktieren; nächster Prüfpunkt ist die erlaubte Aufnahme-/Tastaturkopplung
 ([iOS-Richtung](ios-direction.md)). Der Linux-Diktattest ist inzwischen vorerst zurückgestellt.
 
-## iOS: Tastatur aktiviert, Einblenden noch blockiert · 29. September 2026
+## iOS: Simulator-Neustart ohne Behebung, Test bereinigt · 29. September 2026
 
-Xcode 27 und iOS 27 sind eingerichtet. Der unabhängig geprüfte Offline-
-Tastatur-Prototyp aus `e416a3d` besteht den Build. Nach Bastis konkreter
-Testfreigabe wurden Installation und sichtbarer Start der Anleitungsapp
-geprüft. Der anschließende Reparaturversuch fand mit explizitem Touch-Drücken
-und Loslassen einen funktionierenden Bedienweg. Die Tastatur ist jetzt ohne
-Vollzugriff hinzugefügt und die lokale Safari-Fixture geöffnet. Die
-Bildschirmtastatur bleibt jedoch verborgen; automatisierte Tastaturkürzel
-ändern die Ansicht nicht. Auch manuelles Cmd+K blieb laut Basti wirkungslos. iOS zeigt eine
-Hardwaretastatur; als Nächstes ist der Device-Hub-Menüeintrag
-„Simulate Hardware Keyboard“ direkt zu prüfen. Die Ursache ist nicht belegt.
+Der unabhängig geprüfte Offline-Tastatur-Prototyp aus `e416a3d` besteht Build,
+Installation und sichtbaren Start. Explizite Touch-Ereignisse ermöglichten
+seine Aktivierung ohne Vollzugriff. Die Bildschirmtastatur erschien jedoch
+weder in der lokalen Safari-Fixture noch in Safaris eigener Adresszeile.
+Basti berichtet dasselbe nach Ausschalten des Tastatursymbols und Trennen
+seiner Bluetooth-Tastatur. Auch der danach ausdrücklich genehmigte Neustart
+von Device Hub und demselben Simulator sowie die Entfernung des Prototyps
+beheben das Verhalten nicht. Die Ursache bleibt unbewiesen.
 
-Safari-Einfügung und der eigentliche Diktierablauf bleiben ungeprüft.
-Test-App, Tastatur, eigener Safari-Tab und lokaler Server bleiben für den
-ausstehenden Versuch vorbereitet; ihre abschließende Bereinigung ist offen.
-PR #34 bleibt Entwurf; die konkrete Simulator-Testfreigabe gilt für denselben
-Umfang weiter. [Nachweis und Bereinigung](ios-simulator-2026-09-29.md).
+Die eigene Test-App ist entfernt; die sichtbare Tastaturliste enthält wieder
+nur Deutsch und Emoji. Der eigene Safari-Tab ist geschlossen, der lokale
+Server beendet. Der zuvor geöffnete Simulator bleibt gestartet. Safari-
+Einfügung, Feldwechsel und Passwortfeldverhalten bleiben ungeprüft; PR #34
+bleibt Entwurf. Nächster möglicher Vergleich: ein getrenntes frisches
+Simulatorgerät mit Systemtastatur, ohne den bestehenden Simulator zu löschen.
+Dieser zusätzliche Vergleich ist noch nicht beauftragt. [Nachweis](ios-simulator-2026-09-29.md).
 
 ## Aktuelle Projektbereinigung · 28. September 2026
 

@@ -18,13 +18,24 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 - **Grenze:** Kein echtes iPhone/iPad, kein Mikrofon, keine API-Schlüssel,
   Anbieteranfragen oder Veröffentlichung. Die Freigabe gilt für diesen
   begrenzten Simulator-Test, nicht für den späteren Diktierablauf.
-- **Ausgeführt:** Installation und sichtbarer Start bestanden. Nach dem
-  anschließenden Reparaturauftrag ließ sich die Tastatur mit expliziten
-  Touch-Ereignissen ohne Vollzugriff aktivieren. Safari-Fixture geöffnet;
-  Einblenden der Bildschirmtastatur und Einfügung bleiben offen. Für den
-  weiteren Versuch über das Device-Hub-Menü bleiben Test-App, Tastatur, eigener Tab
-  und Server vorbereitet; danach steht ihre Bereinigung an.
+- **Ausgeführt:** Installation, sichtbarer Start und Aktivierung ohne
+  Vollzugriff bestanden. Die Bildschirmtastatur bleibt auch nach Neustart
+  und Entfernung des Prototyps verborgen. Eigene Test-App, sichtbarer
+  Tastatureintrag, Safari-Tab und lokaler Server sind abschließend bereinigt.
   [Nachweis](docs/ios-simulator-2026-09-29.md).
+
+## iOS: Neustart zur Diagnose — 2026-09-29
+
+- **Quelle:** Bastis ausdrückliches „Ja, starte neu.“ zur Frage nach dem
+  Neustart von Device Hub und dem iPhone-Simulator.
+- **Umfang:** Laufende Simulator-Apps beenden, Apps und gespeicherte Daten
+  erhalten; Device Hub und denselben iPhone-18-Pro-Simulator neu starten.
+- **Ausgeführt:** Simulator sauber heruntergefahren. Device Hub reagierte
+  nicht auf SIGTERM und wurde nach dem Simulator-Stopp gezielt beendet.
+  Derselbe Simulator und Device Hub wurden wieder geöffnet; Bootstatus
+  abgeschlossen. Die Bildschirmtastatur bleibt verborgen.
+- **Grenze:** Kein Erase, kein neues Simulatorgerät, keine Neuinstallation
+  von Xcode oder iOS, keine globale Dienst-/Konfigurationsänderung.
 
 ## iOS-Vorbereitung: Xcode und Simulator — 2026-09-28
 

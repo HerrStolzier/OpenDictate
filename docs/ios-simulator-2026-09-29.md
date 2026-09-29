@@ -1,4 +1,4 @@
-# iOS-Simulator: Touch-Steuerung wieder nutzbar, Bildschirmtastatur offen
+# iOS-Simulator: Neustart ohne Behebung, Test bereinigt
 
 Stand: 29. September 2026. Fortsetzung des [Buildnachweises](ios-simulator-2026-09-28.md)
 nach Bastis konkreter Freigabe für den Simulator-Test in [APPROVALS](../APPROVALS.md).
@@ -69,7 +69,7 @@ auf Device Hub endet mit Timeout. Eine Hardwaretastatur-Verbindung ist damit
 nicht als Ursache belegt. Basti bestätigte anschließend: Auch manuelles Cmd+K im iPhone-Fenster
 hat keine sichtbare Wirkung.
 
-**Übergabestand:** Test-App, aktivierte Testtastatur und eigener Safari-Tab
+**Zwischenstand vor dem späteren Neustart:** Test-App, aktivierte Testtastatur und eigener Safari-Tab
 bleiben für die weitere Prüfung des Device-Hub-Tastaturmenüs vorbereitet. Der eigene
 Fixture-Server läuft auf `127.0.0.1:8766` (Log `fixture-server-retry.log`).
 Nach Abschluss sind eigener Tab, Test-App/Tastatur und Server zu entfernen;
@@ -102,3 +102,36 @@ Sichtprüfung dieses Menüs, statt weitere Tastenkürzel zu wiederholen.
 Apples bekannter Fehler beim Softwaretastatur-Umschalter betrifft ausdrücklich
 iPad-Simulatoren; er erklärt diesen iPhone-Befund nicht nachweislich. Keine
 Voreinstellung geändert, kein Dienst oder Simulator neu gestartet.
+
+## Autorisierter Neustart und abschließende Bereinigung
+
+Basti bestätigte „Ja, starte neu.“ für Device Hub und den iPhone-Simulator.
+Zuvor berichtete er, dass auch das Ausschalten des Tastatursymbols und das
+Trennen seiner Bluetooth-Tastatur keine Bildschirmtastatur hervorbringen.
+Die Gegenprobe in Safaris eigener Adresszeile zeigte ebenfalls keine
+Bildschirmtastatur (`native-address-keyboard-hidden.jpg`); es ist damit nicht
+nur ein beobachtetes Verhalten der HTML-Testfelder.
+
+Derselbe Simulator wurde mit `simctl shutdown` sauber heruntergefahren.
+Device Hub beendete sich nach SIGTERM nicht; nach beendetem Simulator wurde
+ausschließlich dessen Oberflächenprozess beendet (SIGKILL, PID 14325).
+Anschließend wurden dasselbe Gerät und Device Hub neu gestartet. Bootstatus
+meldet abgeschlossen, Device Hub hat PID 54118. Kein Simulator wurde gelöscht,
+kein globaler CoreSimulator-Dienst neu gestartet und keine Voreinstellung
+geändert. Der native Steuerungszugriff auf Device Hub endet weiter mit Timeout.
+
+Auch nach diesem Neustart blieb Safaris fokussierte Adresszeile ohne
+Bildschirmtastatur. Nach Entfernung unserer App wurde dieselbe Gegenprobe
+wiederholt: weiterhin keine Bildschirmtastatur
+(`after-restart-without-prototype.jpg`). Die Tastaturdienste InputUI und
+TextInput.kbd liefen; die begrenzte Fehlerabfrage lieferte keine belegte Ursache.
+Dies ist keine bestandene Abnahme und keine bewiesene Ursache in OpenDictate
+oder Xcode. Ein getrenntes frisches Simulatorgerät wäre ein nächster möglicher
+Vergleich mit Systemtastatur; es wurde nicht angelegt.
+
+Abschließende Bereinigung: `get_app_container` findet unsere Test-App nicht
+mehr; die sichtbare Tastaturliste zeigt nur Deutsch und Emoji. Der eigene
+Safari-Fixture-Tab wurde geschlossen, der eindeutig zugeordnete Python-Server
+(PID 38794) beendet; Port 8766 hat keinen Listener. Der Simulator bleibt
+geöffnet und gestartet. Nachweis: `cleanup-after-restart.json`. Keine echten
+Aufnahmen, Anbieteranfragen, Zugangsdatenänderungen oder Veröffentlichung.
