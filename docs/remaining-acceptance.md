@@ -16,18 +16,21 @@ iOS ist ausdrücklich besonders wichtig. Basti möchte direkt in anderen Apps
 diktieren; nächster Prüfpunkt ist die erlaubte Aufnahme-/Tastaturkopplung
 ([iOS-Richtung](ios-direction.md)). Der Linux-Diktattest ist inzwischen vorerst zurückgestellt.
 
-## iOS: Installation bestanden, Simulator-Bedienung blockiert · 29. September 2026
+## iOS: Tastatur aktiviert, Einblenden noch blockiert · 29. September 2026
 
 Xcode 27 und iOS 27 sind eingerichtet. Der unabhängig geprüfte Offline-
 Tastatur-Prototyp aus `e416a3d` besteht den Build. Nach Bastis konkreter
 Testfreigabe wurden Installation und sichtbarer Start der Anleitungsapp
-geprüft. Die Aktivierung der Tastatur scheitert derzeit an der Bedienbarkeit:
-Automatisierte Klicks und Texteingaben in den iOS-Einstellungen melden Erfolg,
-zeigen aber keine Wirkung; ein zweiter Bedienweg endet mit Timeout.
-Die Ursache ist unklar. Ein manueller Prüfklick wurde angefragt.
+geprüft. Der anschließende Reparaturversuch fand mit explizitem Touch-Drücken
+und Loslassen einen funktionierenden Bedienweg. Die Tastatur ist jetzt ohne
+Vollzugriff hinzugefügt und die lokale Safari-Fixture geöffnet. Die
+Bildschirmtastatur bleibt jedoch verborgen; automatisierte Tastaturkürzel
+ändern die Ansicht nicht. Ein manueller Cmd+K-Versuch im iPhone-Fenster wurde
+angefragt. Die Ursache ist nicht belegt.
 
 Safari-Einfügung und der eigentliche Diktierablauf bleiben ungeprüft.
-Die Test-App wurde wieder deinstalliert und der eigene lokale Server beendet.
+Test-App, Tastatur, eigener Safari-Tab und lokaler Server bleiben für den
+ausstehenden Versuch vorbereitet; ihre abschließende Bereinigung ist offen.
 PR #34 bleibt Entwurf; die konkrete Simulator-Testfreigabe gilt für denselben
 Umfang weiter. [Nachweis und Bereinigung](ios-simulator-2026-09-29.md).
 

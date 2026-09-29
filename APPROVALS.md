@@ -18,10 +18,13 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 - **Grenze:** Kein echtes iPhone/iPad, kein Mikrofon, keine API-Schlüssel,
   Anbieteranfragen oder Veröffentlichung. Die Freigabe gilt für diesen
   begrenzten Simulator-Test, nicht für den späteren Diktierablauf.
-- **Ausgeführt:** Installation und sichtbarer Start bestanden. Die weitere
-  Bedienung des Simulators blieb ohne sichtbare Wirkung; Tastaturaktivierung
-  und Safari-Einfügung sind offen. Test-App und eigener Fixture-Server wurden
-  entfernt bzw. beendet. [Nachweis](docs/ios-simulator-2026-09-29.md).
+- **Ausgeführt:** Installation und sichtbarer Start bestanden. Nach dem
+  anschließenden Reparaturauftrag ließ sich die Tastatur mit expliziten
+  Touch-Ereignissen ohne Vollzugriff aktivieren. Safari-Fixture geöffnet;
+  Einblenden der Bildschirmtastatur und Einfügung bleiben offen. Für den
+  angefragten manuellen Cmd+K-Versuch bleiben Test-App, Tastatur, eigener Tab
+  und Server vorbereitet; danach steht ihre Bereinigung an.
+  [Nachweis](docs/ios-simulator-2026-09-29.md).
 
 ## iOS-Vorbereitung: Xcode und Simulator — 2026-09-28
 

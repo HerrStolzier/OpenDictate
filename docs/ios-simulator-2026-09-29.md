@@ -1,9 +1,9 @@
-# iOS-Simulator: Installation geprüft, Bedienung blockiert
+# iOS-Simulator: Touch-Steuerung wieder nutzbar, Bildschirmtastatur offen
 
 Stand: 29. September 2026. Fortsetzung des [Buildnachweises](ios-simulator-2026-09-28.md)
 nach Bastis konkreter Freigabe für den Simulator-Test in [APPROVALS](../APPROVALS.md).
 
-## Geprüft
+## Erster Versuch: geprüft
 
 - Kandidat: iOS-Quellen aus `e416a3d`, unverändert in PR #34, Head `7973d3a`.
   Die beiden Binärhashes stimmen mit `candidate-manifest.json` des Buildnachweises
@@ -14,7 +14,7 @@ nach Bastis konkreter Freigabe für den Simulator-Test in [APPROVALS](../APPROVA
   Screenshot und Accessibility-Ausgabe zeigen die Anleitungsoberfläche mit
   dem Hinweis auf vorbereiteten synthetischen Text und fehlende Aufnahme.
 
-## Konkrete Prüfsperre
+## Erster Versuch: konkrete Prüfsperre
 
 Die iOS-Einstellungen starten und sind lesbar. Zwei über XcodeBuildMCP
 ausgeführte Klicks auf „Allgemein“ melden Erfolg, öffnen aber keine Unterseite.
@@ -31,7 +31,7 @@ normale Bedienbarkeit von der automatisierten Steuerung zu unterscheiden.
 Es wurden keine Systemdienste neu gestartet oder Einstellungen zur Umgehung
 der Sperre verändert. PR #34 bleibt Entwurf; keine Zusammenführung.
 
-## Bereinigung und Belege
+## Erster Versuch: Bereinigung und Belege
 
 Die eigene Test-App wurde wieder deinstalliert. `simctl get_app_container`
 findet sie anschließend nicht mehr. Die Tastatur wurde nicht aktiviert.
@@ -48,3 +48,37 @@ Lokale Belege: `~/.codex/artifacts/opendictate/ios-simulator-20260929/`:
 `fixture-server.log`. Wiederholung nach Klärung der Bedienbarkeit:
 [bestehender Prüfplan](../ios/PRUEFPLAN.md). Die Freigabe muss für denselben
 unveränderten Testumfang nicht erneut eingeholt werden.
+
+## Fortsetzung: belegter Bedienweg
+
+Auf Bastis anschließenden Reparaturauftrag wurde derselbe unveränderte
+Prototyp erneut im bereits gestarteten Simulator installiert. XcodeBuildMCP
+`touch` mit aktuellem `elementRef`, `down: true`, `up: true` und `delay: 0.15`
+öffnete sichtbar Allgemein, Tastatur und die Tastaturliste. Darüber wurde
+„OpenDictate Tastaturtest“ hinzugefügt. Die Liste enthält danach Deutsch,
+Emoji-Symbole und die Erweiterung; Vollzugriff wurde nicht aktiviert.
+Dies belegt einen funktionierenden Bedienweg, noch keine Ursache für das
+vorher wirkungslose `tap`.
+
+Die lokale Safari-Fixture wurde geöffnet. Textfeld Zwei ist sichtbar
+fokussiert und leer; die Bildschirmtastatur bleibt verborgen. Die vorhandenen
+XcodeBuildMCP-CLI-Befehle `toggle-software-keyboard` und
+`toggle-connect-hardware-keyboard` melden jeweils das Senden des Kürzels,
+ändern aber den sichtbaren Bildschirm nicht. Ein erneuter nativer Zugriff
+auf Device Hub endet mit Timeout. Eine Hardwaretastatur-Verbindung ist damit
+nicht als Ursache belegt. Basti wurde gebeten, das iPhone-Fenster selbst
+anzuklicken und einmal Cmd+K zu drücken.
+
+**Übergabestand:** Test-App, aktivierte Testtastatur und eigener Safari-Tab
+bleiben für diesen unmittelbar ausstehenden Versuch vorbereitet. Der eigene
+Fixture-Server läuft auf `127.0.0.1:8766` (Log `fixture-server-retry.log`).
+Nach Abschluss sind eigener Tab, Test-App/Tastatur und Server zu entfernen;
+der zuvor von Basti geöffnete Simulator bleibt erhalten. Die Bereinigung des
+ersten Versuchs oben beschreibt nicht diesen späteren Zwischenstand.
+
+Neue lokale Belege im selben Artefaktordner: `touch-retry.json` dokumentiert
+die aktivierte Tastaturliste; `safari-keyboard-hidden.jpg` zeigt die leere
+Fixture mit Fokus. Safari-Einfügung, normale Tasteneingabe, Feldwechsel und
+Passwortfeld bleiben ungeprüft. PR #34 bleibt Entwurf. Keine Produktions-
+oder Prototyp-Quelländerung, keine neuen Installationspakete, keine Aufnahme,
+Anbieteranfrage, Zugangsdatenänderung oder Veröffentlichung.
