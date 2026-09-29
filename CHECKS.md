@@ -23,12 +23,16 @@ build and verification. This is a native macOS 14 runtime check, but cannot
 exercise microphone, permission dialogs, VoiceOver or target-field insertion
 without an interactive desktop. [GitHub plans to retire the macOS-14 runner
 on 2 November 2026](https://github.com/actions/runner-images/issues/13518),
-with temporary brownouts in October; this gate needs another host before then. CI
-records the macOS, architecture, Swift and formatter versions so runner
+with temporary brownouts beginning 5 October 2026; this gate needs another host
+before then. CI records the macOS, architecture, Swift and formatter versions so runner
 updates are visible without changing the selected toolchain. Its
 whitespace check compares the checked-out commit with its first parent
 (`git diff --check HEAD^ HEAD`); on pull requests this covers the merge diff
 against the base branch. Local `git diff --check` checks uncommitted edits.
+
+The local Mac runs macOS 27 and exposes only the macOS 27 SDK. It cannot
+reproduce the macOS 14 runtime gate; a passing local build on macOS 27 does not
+replace that runner's compatibility evidence.
 
 On the macOS 27 / Swift 6.4 Command Line Tools host, the default build may fail
 to discover `TestingMacros`. The verified local workaround uses the installed
@@ -158,15 +162,18 @@ and review ownership, conflicting rules and evidence scope. Include new files
 in that review. Do not rerun app tests solely for prose changes.
 
 Linux changes (`linux/`): run these on a Linux host. They are not part of
-the macOS Swift CI workflow.
+the macOS Swift CI workflow. CI installs and selects Rust 1.98.1; the local
+script disables Rustup auto-install and requires that exact active Rust and
+Cargo version. It does not change toolchains. Both use the checked-in lockfile.
+With the required toolchain and ALSA headers already available, run the same
+entry point as CI:
 
 ```bash
-cargo fmt --manifest-path linux/Cargo.toml -- --check
-cargo test --manifest-path linux/Cargo.toml
-cargo clippy --manifest-path linux/Cargo.toml --all-targets -- -D warnings
-cargo build --release --manifest-path linux/Cargo.toml
-git diff --check
+bash scripts/ci/check-linux.sh
 ```
+
+The script runs formatting, locked tests, locked Clippy and a locked release
+build. On Ubuntu, CI installs `libasound2-dev` and `pkg-config` first.
 
 Do not add this crate to `.github/workflows/checks.yml`. Live microphone,
 Secret Service writes, OpenAI requests and Wayland clipboard checks require
@@ -196,6 +203,62 @@ dotnet run --no-restore --project windows/OpenDictate.WindowsChecks -c Release
 Verify deletion of the dummy credential and owned test files afterwards.
 SSH Session 0 is not equivalent to an interactive desktop credential test.
 Neither command proves live dictation, installation or public release readiness.
+
+The Windows workflow uses `windows-2025`, selects the SDK from
+`windows/global.json`, and runs only `windows/scripts/check.ps1`. It does not
+run the interactive Credential Manager checks.
+
+## iOS prototype
+
+When the optional iOS project is present, run the same formatter and unsigned
+simulator-target build used by CI:
+
+```bash
+bash scripts/ci/check-ios-prototype.sh
+```
+
+On a ref without `ios/OpenDictateKeyboardDemo.xcodeproj`, the script prints
+`SKIP` and performs no iOS build. A present project must include the shared
+`OpenDictateKeyboardDemo` scheme; format or build failures stop the check. The
+build uses a generic iOS Simulator destination and does not boot a simulator or
+prove keyboard installation or live text insertion.
+
+## Workflow and secret checks
+
+Run the same repository-hygiene checks as CI:
+
+```bash
+bash scripts/ci/check-workflows.sh
+bash scripts/ci/scan-secrets.sh [base-commit] [head-commit]
+```
+
+Workflow lint downloads pinned actionlint 1.7.12 to a temporary directory and
+checks every external action reference for a full commit SHA. The secret scan
+downloads Gitleaks 8.30.1 to a temporary directory, verifies its published
+SHA-256, and scans only the selected Git commit range. CI passes the pull
+request base SHA and checked-out `github.sha` (the merge result), or the push
+before/after SHAs. Merge commits are scanned against their first parent so
+changes resolved during a merge are included.
+With no arguments, the local script scans the full history reachable from
+current `HEAD`. Gitleaks redacts findings in output and does not contact
+providers to validate credentials.
+The scanner keeps its redacted JSON report in its private temporary directory,
+then prints only rule, file, line, commit and fingerprint metadata; it omits
+secret content and commit author details. Temporary scanner files are deleted
+when the script exits.
+
+The full-history scan allows only 31 exact fingerprints in
+`.gitleaksignore`. They cover a Chrome extension manifest public key and
+30 SHA-256 source/test-file digests in the dated coverage reports; each digest
+was checked against its source blob at the recorded revision. The Chrome
+manifest key is public by design and keeps the extension ID stable ([Chrome
+manifest key](https://developer.chrome.com/docs/extensions/reference/manifest/key)).
+The findings were suppressed by commit, path, rule and line fingerprint, not
+by excluding files or directories ([Gitleaks fingerprint ignores](https://github.com/gitleaks/gitleaks#additional-configuration)).
+New or changed findings remain visible and fail the scan.
+
+Dependabot groups weekly updates for the repository's Actions, Cargo and NuGet
+manifests, with at most three open update pull requests.
 
 ## Meaning of checks
 
