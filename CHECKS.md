@@ -181,6 +181,9 @@ separate attended verification and are not default tests. The transcription
 tests may use loopback stub HTTP only. Never pass an API key as a command
 argument or environment variable.
 
+The dated [HTTP-fixture concurrency evidence](docs/linux-ci-fixture-race-2026-09-30.md)
+records the isolated test-file repair and its bounded regression checks.
+
 ## Windows snapshot checks
 
 The separate [Windows README](windows/README.md) defines the current build
@@ -221,7 +224,13 @@ On a ref without `ios/OpenDictateKeyboardDemo.xcodeproj`, the script prints
 `SKIP` and performs no iOS build. A present project must include the shared
 `OpenDictateKeyboardDemo` scheme; format or build failures stop the check. The
 build uses a generic iOS Simulator destination and does not boot a simulator or
-prove keyboard installation or live text insertion.
+prove keyboard installation or live text insertion. Follow
+[ios/PRUEFPLAN.md](ios/PRUEFPLAN.md) for the visible Safari fixture check;
+[simulator evidence](docs/ios-keyboard-e2e-2026-09-29.md) and
+[physical-device evidence](docs/ios-device-2026-09-30.md) identify their exact scope.
+Installing/launching the test app and activating its keyboard require the
+corresponding test approval. Microphone, provider, credentials and distribution
+remain separate gates.
 
 ## Workflow and secret checks
 

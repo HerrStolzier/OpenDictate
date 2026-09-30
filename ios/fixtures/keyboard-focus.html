@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>OpenDictate Tastaturtest</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font: 17px -apple-system, BlinkMacSystemFont, sans-serif;
+      }
+
+      body {
+        max-width: 44rem;
+        margin: 0 auto;
+        padding: 1.5rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      label {
+        display: block;
+        margin: 1.5rem 0 0.5rem;
+        font-weight: 600;
+      }
+
+      textarea,
+      input {
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 7rem;
+        padding: 0.75rem;
+        border: 1px solid #888;
+        border-radius: 0.5rem;
+        font: inherit;
+      }
+
+      input[type="password"] {
+        min-height: 3rem;
+      }
+
+      p {
+        line-height: 1.45;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>OpenDictate Tastaturtest</h1>
+      <p>Lokale Testseite. Kein Skript und keine externen Ressourcen oder Anfragen.</p>
+
+      <label for="field-one">Textfeld Eins</label>
+      <textarea id="field-one" name="field-one" aria-label="Textfeld Eins"></textarea>
+
+      <label for="field-two">Textfeld Zwei</label>
+      <textarea id="field-two" name="field-two" aria-label="Textfeld Zwei"></textarea>
+
+      <label for="password">Passwortfeld (Systemtastatur erwartet)</label>
+      <input id="password" name="password" type="password" aria-label="Passwortfeld, nur Tastaturtest">
+      <p>Für den Test kein echtes Passwort eingeben.</p>
+    </main>
+  </body>
+</html>
