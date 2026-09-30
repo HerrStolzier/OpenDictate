@@ -25,7 +25,10 @@ Das alte Entwicklungszertifikat wurde nicht widerrufen. Die fernbediente
 Device-Hub-Steuerung bleibt blockiert; Basti bedient die aktivierte Tastatur.
 Einfügung in beide Textfelder ist per Screenshot belegt. Im Passwortfeld
 bestätigt Basti die Apple-Tastatur direkt am Display; die Aufnahme zeigt sie
-nicht. Abschließende Eingabe-/App-Wechselprüfung und echte Aufnahme sind offen.
+nicht. Der frische Wiederholungslauf bestätigt Anfang und erwarteten Endzustand
+nach Eingabe, Löschen und vom Nutzer bestätigtem App-Wechsel. Die Test-App
+ist wieder deinstalliert; Basti bestätigte das Schließen der eigenen Safari-Tabs.
+Der begrenzte synthetische Textpfad ist bestanden. Echte Aufnahme bleibt offen.
 [Aktueller Gerätenachweis](ios-device-2026-09-30.md).
 
 Der unabhängig geprüfte Offline-Tastatur-Prototyp aus `e416a3d` besteht nun

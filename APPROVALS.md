@@ -25,7 +25,10 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 - **Aktuelle Grenze:** Die native Device-Hub-Steuerung endet weiterhin mit
   Timeout. Basti hat aktiviert und bedient; Einfügung in beiden Textfeldern
   ist bildlich belegt, die Apple-Tastatur im Passwortfeld durch seine direkte
-  Beobachtung. Abschließende Eingabe-/App-Wechselprüfung offen. Kein Mikrofon, Provider oder
+  Beobachtung. Ein frischer Wiederholungslauf nach USB-Unterbrechung bestätigt den
+  erwarteten Endzustand nach normaler Eingabe, Löschen und App-Wechsel.
+  Die eigene App ist deinstalliert; Basti bestätigte das Schließen der
+  eigenen Safari-Tabs. Kein Mikrofon, Provider oder
   Veröffentlichungsweg wurde gestartet.
   [Gerätenachweis](docs/ios-device-2026-09-30.md).
 

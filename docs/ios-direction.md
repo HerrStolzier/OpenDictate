@@ -86,4 +86,7 @@ und Systemtastatur im Passwortfeld. Das ursprüngliche Gerät bleibt erhalten;
 seine fehlende Bildschirmtastatur ist weiterhin nicht ursächlich erklärt.
 Testressourcen wurden bereinigt, das funktionierende Diagnosegerät ist
 ausgeschaltet gespeichert. [Aktueller E2E-Nachweis](ios-keyboard-e2e-2026-09-29.md).
-Der reale Aufnahme-/Tastaturablauf bleibt offen.
+Am 30. September besteht auch der begleitete synthetische Textpfad auf
+Bastis iPhone 15 mit iOS 27.0.1, mit beobachtetem Anfang und Endzustand
+sowie Nutzerbestätigung der Touch-Folge und Systemtastatur im Passwortfeld.
+[Gerätenachweis](ios-device-2026-09-30.md). Der reale Aufnahme-/Tastaturablauf bleibt offen.

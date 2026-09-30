@@ -1,10 +1,10 @@
-# iPhone-Test: signiert installiert und sichtbar gestartet
+# iPhone-Test: begrenzter synthetischer Textpfad bestanden
 
 Stand: 30. September 2026. Fortsetzung des bestandenen
 [synthetischen Simulator-Tests](ios-keyboard-e2e-2026-09-29.md) mit Bastis
 [Freigabe](../APPROVALS.md) für das angeschlossene echte Gerät.
 
-## Direkt geprüft
+## Ausgangsprüfung vor Installation
 
 - iPhone 15, iOS 27.0.1 (24A446), per Kabel verbunden und gekoppelt;
   Entwicklermodus aktiv. Keine Gerätekennung oder Seriennummer hier gespeichert.
@@ -97,13 +97,50 @@ Bedienfehler. Aus den Screenshots allein lässt sich dieser Prüfpunkt nicht
 beurteilen; eine technische Ursache des abweichenden Aufnahmebilds wurde
 nicht behauptet oder diagnostiziert. Kein echtes Passwort eingegeben.
 
-Normale Eingabe/Löschen, Rückkehr nach App-Wechsel und der gemeinsame
-Endzustand beider Felder sind zur abschließenden Prüfung angefragt. Sie
-werden erst nach dem Ergebnis als bestanden geführt.
+## Frischer Wiederholungslauf nach USB-Unterbrechung
+
+Basti bat um einen neuen Durchlauf, nachdem er das iPhone zwischenzeitlich
+abgezogen hatte und Safari nach seiner Beobachtung nicht mehr lud. Die
+Ursache dieser Ladebeobachtung wurde nicht belegt. `devicectl list devices`
+bestätigte erneut das verbundene iPhone. Die Fixture wurde frisch als
+`data:`-URL geladen; ein statischer HTML-Kommentar unterscheidet die Sitzung.
+Die Seite benötigt weder USB noch einen Server, um ihre Felder darzustellen;
+USB ist der hier verwendete Weg zum Starten und zur Nachweisaufnahme.
+
+`rerun-01/initial-fields.png` zeigt beide Felder leer und wurde angesehen.
+Basti führte die vorgegebene Bedienfolge aus und bestätigte sie mit „done“:
+
+1. Ein bewusster Testknopfdruck in Feld Eins.
+2. Ein bewusster Testknopfdruck in Feld Zwei, danach ` abc`, einmal Löschen.
+3. Zur OpenDictate-App und zurück zu Safari wechseln, ohne erneut einzufügen.
+4. Passwortfeld ohne Eingabe prüfen, Tastatur schließen, nach oben scrollen.
+
+Das tatsächlich angesehene `rerun-01/final-fields.png` zeigt:
+
+- Feld Eins: genau `OpenDictate Testtext (synthetisch)`.
+- Feld Zwei: genau `OpenDictate Testtext (synthetisch) ab`.
+- Passwortfeld leer, Tastatur geschlossen.
+
+Damit stimmt der Endzustand für Einfügen, Feldwechsel, normale Eingabe,
+Löschen und Rückkehr nach App-Wechsel. Die Touch-Folge wurde vom Nutzer
+bestätigt; der Bildnachweis dokumentiert Anfang und Ende, keine lückenlose
+Aufzeichnung der einzelnen Tasten. Die Apple-Tastatur im Passwortfeld war
+bereits im ersten Durchlauf ausdrücklich am tatsächlichen Display bestätigt.
+Der Wiederholungslauf enthält dazu lediglich die allgemeine Abschlussantwort,
+keinen zusätzlichen separaten Bildnachweis. Return, weitere Apps und
+Barrierefreiheit auf diesem iPhone wurden hier nicht zusätzlich geprüft.
+
+Lokale Sitzungsbelege unter `rerun-01/`: `session.json`, die tatsächlich
+geladene `keyboard-focus.html` sowie beide Screenshots mit SHA-256-Bindung.
+Der installierte Kandidat bleibt durch `signed-candidate-manifest.json` gebunden.
+Keine Quelländerung oder Neuinstallation war für die Wiederholung nötig.
 
 ## Bereinigung und verbleibende Grenzen
 
-Test-App und eigener Safari-Tab bleiben für die laufende Prüfung vorhanden.
+Die eigene Test-App wurde nach gesichertem Endbild per `devicectl`
+deinstalliert. Die anschließende gefilterte App-Abfrage findet keine
+OpenDictate-App. Basti wurde um Schließen ausschließlich der eigenen
+Safari-Testseiten gebeten; er bestätigte anschließend „sind zu“.
 Keine Aufnahme, Anbieteranfrage, Testserver oder neues Simulatorgerät gestartet.
 Die freigegebenen dauerhaften Entwicklungszertifikate und Profile bleiben erhalten.
 Der reale Aufnahme-/Tastaturablauf, weitere Ziel-Apps, Barrierefreiheit und

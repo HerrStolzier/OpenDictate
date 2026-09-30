@@ -19,6 +19,10 @@ stehen in [PRUEFPLAN.md](PRUEFPLAN.md).
   [Safari-E2E-Prüfung vom 29.09.](../docs/ios-keyboard-e2e-2026-09-29.md)
   besteht auf dem frischen Diagnosegerät mit synthetischem Text, einschließlich
   Feld-, App- und Tastaturwechsel sowie Systemtastatur im Passwortfeld.
+- Der [begleitete iPhone-Test vom 30.09.](../docs/ios-device-2026-09-30.md)
+  bestätigt den begrenzten synthetischen Textpfad auf iPhone 15 / iOS 27.0.1.
+  Anfang und Ende sind bildlich geprüft; Basti bediente das Gerät und
+  bestätigte die Apple-Tastatur im Passwortfeld direkt am Display.
 - Das technische Deployment-Ziel im Xcode-Projekt ist nur eine Einstellung
   dieses Prototyps und entscheidet keine Produkt-Mindestversion.
 
