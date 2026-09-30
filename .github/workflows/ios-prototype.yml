@@ -1,0 +1,29 @@
+name: iOS prototype
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ios/**'
+      - 'scripts/ci/check-ios-prototype.sh'
+      - '.github/workflows/ios-prototype.yml'
+  pull_request:
+    paths:
+      - 'ios/**'
+      - 'scripts/ci/check-ios-prototype.sh'
+      - '.github/workflows/ios-prototype.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  simulator-build:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Check the optional iOS prototype
+        run: bash scripts/ci/check-ios-prototype.sh
