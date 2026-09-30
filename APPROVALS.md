@@ -6,6 +6,81 @@ geht vor; ausdrücklich einmalige oder befristete Zustimmung bleibt begrenzt.
 Technische Berechtigungsprüfungen bleiben bestehen. Keine Secrets oder privaten
 Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 
+## iOS: Test auf dem angeschlossenen iPhone — 2026-09-30
+
+- **Quelle:** Basti benannte sein per USB angeschlossenes iPhone und gab
+  anschließend ausdrücklich die Freigabe zur Fortsetzung.
+- **Ziel:** iPhone 15 mit iOS 27.0.1; Verbindung und aktivierter
+  Entwicklermodus wurden direkt geprüft.
+- **Umfang:** Den vorhandenen Offline-Tastatur-Prototyp für das Gerät
+  vorbereiten, installieren und seinen synthetischen Textpfad prüfen.
+- **Stand:** Basti hat die Xcode-Anmeldung selbst abgeschlossen. Ein neues
+  Apple-Development-Zertifikat ist lokal vorhanden; das ältere Zertifikat
+  ohne lokalen Schlüssel und die Mac-Identität bleiben erhalten. Profile
+  für App und Tastatur enthalten das freigegebene Gerät. Signierter Build,
+  Signaturprüfung, Installation und sichtbarer Start auf dem iPhone bestanden.
+- **Zusätzliche Freigabe:** Basti bestätigte mit „go“ die konkrete Frage
+  nach lokalem Entwicklungsschlüssel und Apple-Development-Zertifikat,
+  Registrierung dieses iPhones bei Apple sowie Profilen für App und Tastatur.
+- **Aktuelle Grenze:** Die native Device-Hub-Steuerung endet weiterhin mit
+  Timeout. Basti hat aktiviert und bedient; Einfügung in beiden Textfeldern
+  ist bildlich belegt, die Apple-Tastatur im Passwortfeld durch seine direkte
+  Beobachtung. Ein frischer Wiederholungslauf nach USB-Unterbrechung bestätigt den
+  erwarteten Endzustand nach normaler Eingabe, Löschen und App-Wechsel.
+  Die eigene App ist deinstalliert; Basti bestätigte das Schließen der
+  eigenen Safari-Tabs. Kein Mikrofon, Provider oder
+  Veröffentlichungsweg wurde gestartet.
+  [Gerätenachweis](docs/ios-device-2026-09-30.md).
+
+## iOS: abgegrenzter Simulator-Test — 2026-09-29
+
+- **Quelle:** Bastis direktes „ja“ zur Installation der Test-App und zum
+  Tastaturtest mit künstlichem Text ausschließlich im bereits eingerichteten
+  Simulator.
+- **Umfang:** Die gebaute App „OpenDictate Tastaturtest“ installieren und
+  starten, ihre Tastatur ohne Vollzugriff aktivieren und synthetischen Text
+  in einer lokalen Safari-Fixture prüfen. Anschließend Test-App und eigene
+  Testseite entfernen.
+- **Grenze:** Kein echtes iPhone/iPad, kein Mikrofon, keine API-Schlüssel,
+  Anbieteranfragen oder Veröffentlichung. Die Freigabe gilt für diesen
+  begrenzten Simulator-Test, nicht für den späteren Diktierablauf.
+- **Ausgeführt:** Installation, sichtbarer Start und Aktivierung ohne
+  Vollzugriff bestanden. Die Bildschirmtastatur bleibt auch nach Neustart
+  und Entfernung des Prototyps verborgen. Eigene Test-App, sichtbarer
+  Tastatureintrag, Safari-Tab und lokaler Server sind abschließend bereinigt.
+  [Historischer Nachweis](docs/ios-simulator-2026-09-29.md). Der anschließend
+  separat genehmigte Gerätevergleich ermöglichte den bestandenen
+  [synthetischen Texttest](docs/ios-keyboard-e2e-2026-09-29.md).
+
+## iOS: Neustart zur Diagnose — 2026-09-29
+
+- **Quelle:** Bastis ausdrückliches „Ja, starte neu.“ zur Frage nach dem
+  Neustart von Device Hub und dem iPhone-Simulator.
+- **Umfang:** Laufende Simulator-Apps beenden, Apps und gespeicherte Daten
+  erhalten; Device Hub und denselben iPhone-18-Pro-Simulator neu starten.
+- **Ausgeführt:** Simulator sauber heruntergefahren. Device Hub reagierte
+  nicht auf SIGTERM und wurde nach dem Simulator-Stopp gezielt beendet.
+  Derselbe Simulator und Device Hub wurden wieder geöffnet; Bootstatus
+  abgeschlossen. Die Bildschirmtastatur bleibt verborgen.
+- **Grenze:** Kein Erase, kein neues Simulatorgerät, keine Neuinstallation
+  von Xcode oder iOS, keine globale Dienst-/Konfigurationsänderung.
+
+## iOS: separater Simulatorvergleich mit Bereinigung — 2026-09-29
+
+- **Quelle:** Basti stimmte dem frischen separaten Simulator mit Prüfung der
+  Systemtastatur zu und verlangte seine anschließende Bereinigung, falls er
+  das Problem nicht löst.
+- **Umfang:** Ein zusätzliches iPhone-18-Pro-Testgerät mit der vorhandenen
+  iOS-27-Runtime anlegen und die Systemtastatur prüfen. Bei erfolglosem
+  Vergleich ausschließlich dieses selbst angelegte Gerät wieder entfernen.
+- **Grenze:** Bestehende Simulatorgeräte erhalten; kein Runtime-Download,
+  kein echtes Gerät, keine Aufnahme, Anbieteranfrage oder Zugangsdatenänderung.
+- **Stand:** Systemtastatur und anschließend der bereits freigegebene
+  synthetische Tastaturtest funktionieren im frischen Gerät. Test-App,
+  Tastatureintrag, eigener Safari-Tab, Server und Log-Helfer sind bereinigt.
+  Das erfolgreiche Diagnosegerät bleibt ausgeschaltet gespeichert; alle
+  bestehenden Geräte sind erhalten. [Nachweis](docs/ios-keyboard-e2e-2026-09-29.md).
+
 ## iOS-Vorbereitung: Xcode und Simulator — 2026-09-28
 
 - **Quelle:** Direkte Antwort „Ja, Xcode und iOS-Simulator installieren“
@@ -13,8 +88,11 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 - **Umfang:** Apples kostenloses Xcode 27 samt benötigtem iOS-Simulator auf
   diesem Mac installieren. Mehrere GB Download und lokale Entwicklungssoftware
   waren ausdrücklich Teil der Frage. Bezug über Apples offiziellen App Store.
-- **Stand:** Der Download ist im App Store gestartet. Installation und
-  einsatzfähiger iOS-Simulator sind noch nicht nachgewiesen.
+- **Stand:** Xcode 27.0 (27A266a) ist installiert. Basti bestätigte die
+  Ersteinrichtung selbst; Versionsabfrage und First-Launch-Prüfung bestehen.
+  iOS 27.0 (24A434) ist registriert und startet als iPhone-18-Pro-Simulator
+  bis zum geprüften Home-Bildschirm. Der vorherige Registrierungsfehler des
+  Download-Befehls und die getrennte Startprüfung stehen in der [iOS-Richtung](docs/ios-direction.md).
 - **Grenze:** Keine iPhone-/iPad-Installation, echte Mikrofonaufnahme,
   Anbieteranfrage, neue Signieridentität oder Veröffentlichung freigegeben.
 

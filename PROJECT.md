@@ -13,6 +13,31 @@ daher nach Feldkategorien und Fokuswechseln, nicht nach der persönlichen App-Li
 einer einzelnen Person. Der aktuelle Plan steht in der
 [Kompatibilitätsmatrix](docs/compatibility-matrix.md).
 
+## Marken- und Gestaltungsrichtung
+
+Basti hat am 29. September 2026 die langfristige Richtung konkretisiert:
+Marketing, Markenauftritt und Produktoberfläche sollen zusammen eine
+eigenständige, wiedererkennbare Identität bilden, die Lust auf das Produkt
+macht und Freude an seiner Nutzung vermittelt. Die bisherige ruhige
+Mockup-/Panel-Optik ist ein Zwischenstand, kein finales Gestaltungsziel.
+Der schlanke Umfang und die einfache Bedienung bleiben dabei erhalten.
+
+Als visuelle Referenzen dienen seine sechs bereitgestellten Screenshots:
+CUA mit Maskottchen und inszeniertem Markenauftritt; Omarchy mit prägnanter
+Pixelschrift, Farben und zusammenhängenden Themes; Meeting Recorder mit
+gestalteten Aufnahme- und Transkriptionszuständen, Wellenformen und Retro-Grafik.
+Entscheidend ist für Basti das Zusammenspiel von Typografie, Grafikdesign,
+Farben, möglichen Maskottchen und Animationen über App und Marketing hinweg.
+Die Referenzen legen weder einen bestimmten Retro-/Pixelstil noch ein
+Maskottchen oder konkrete Markenbestandteile für OpenDictate fest.
+
+Die spätere Gestaltung soll an tatsächlichen Produktzuständen und einem
+Marketingbeispiel sichtbar beurteilt werden: Wiedererkennbarkeit, Freude an
+der Nutzung, klare Zustände, Lesbarkeit und Bedienbarkeit einschließlich
+reduzierter Bewegung. Stilwahl, konkrete Ausgestaltung und Zeitpunkt bleiben
+offen. Diese Ergänzung beauftragt die Planung, noch keine Neugestaltung;
+der nächste Arbeitsschritt steht ausschließlich in [ROADMAP](ROADMAP.md).
+
 ## Belegter Produktumfang
 
 - Native Menüleisten-App für macOS 14+, SwiftPM und Swift 6.

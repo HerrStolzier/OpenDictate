@@ -1,6 +1,6 @@
 # Aktueller Stand und verbleibende Abnahme
 
-Stand: 28. September 2026. Dies ist die einzige aktuelle Übergabedatei.
+Stand: 30. September 2026. Dies ist die einzige aktuelle Übergabedatei.
 Produktziel und Umfang: [PROJECT.md](../PROJECT.md); die einzige Feature-/
 Plattform-To-do-Liste: [ROADMAP.md](../ROADMAP.md); Regeln: [AGENTS.md](../AGENTS.md);
 Prüfverfahren: [CHECKS.md](../CHECKS.md); frühere Freigaben: [APPROVALS.md](../APPROVALS.md).
@@ -15,6 +15,37 @@ auf Bastis Auftrag parallel zur Apple-Wartezeit; sie ändern keinen Mac-Release-
 iOS ist ausdrücklich besonders wichtig. Basti möchte direkt in anderen Apps
 diktieren; nächster Prüfpunkt ist die erlaubte Aufnahme-/Tastaturkopplung
 ([iOS-Richtung](ios-direction.md)). Der Linux-Diktattest ist inzwischen vorerst zurückgestellt.
+
+## iOS: synthetischer Safari-Textpfad bestanden · 29. September 2026
+
+Fortsetzung am 30. September: Bastis iPhone 15 mit iOS 27.0.1 ist per USB
+verbunden. Nach eigener Xcode-Anmeldung und genehmigter Entwicklungssignierung
+bestehen signierter Build, Signaturprüfung, Installation und sichtbarer Start.
+Das alte Entwicklungszertifikat wurde nicht widerrufen. Die fernbediente
+Device-Hub-Steuerung bleibt blockiert; Basti bedient die aktivierte Tastatur.
+Einfügung in beide Textfelder ist per Screenshot belegt. Im Passwortfeld
+bestätigt Basti die Apple-Tastatur direkt am Display; die Aufnahme zeigt sie
+nicht. Der frische Wiederholungslauf bestätigt Anfang und erwarteten Endzustand
+nach Eingabe, Löschen und vom Nutzer bestätigtem App-Wechsel. Die Test-App
+ist wieder deinstalliert; Basti bestätigte das Schließen der eigenen Safari-Tabs.
+Der begrenzte synthetische Textpfad ist bestanden. Echte Aufnahme bleibt offen.
+[Aktueller Gerätenachweis](ios-device-2026-09-30.md).
+
+Der unabhängig geprüfte Offline-Tastatur-Prototyp aus `e416a3d` besteht nun
+auch den sichtbaren E2E-Test auf dem separat genehmigten frischen iPhone-18-Pro-
+Simulator: Aktivierung ohne Vollzugriff, bewusste Einfügung, normale Eingabe,
+Feld-/App-/Tastaturwechsel und Systemtastatur im leeren Passwortfeld.
+Die installierten Binärhashes entsprechen dem bereits geprüften Kandidaten;
+keine iOS-Quelländerung war nötig. [Nachweis](ios-keyboard-e2e-2026-09-29.md).
+
+Test-App, sichtbarer Tastatureintrag, eigener Safari-Tab, Server und Log-Helfer
+sind bereinigt. Das funktionierende Diagnosegerät bleibt ausgeschaltet
+vorhanden, alle alten Geräte sind erhalten. Die genaue Ursache der fehlenden
+Tastatur im ursprünglichen Gerät bleibt unbewiesen.
+
+Offen bleiben der reale Aufnahme-/Tastaturablauf auf einem benannten iPhone,
+Provider, Diktatqualität, weitere Ziel-Apps und Barrierefreiheit. Der bestandene
+synthetische Textpfad ist keine fertige iOS-Diktier-App oder Veröffentlichungsfreigabe.
 
 ## Aktuelle Projektbereinigung · 28. September 2026
 
@@ -73,7 +104,7 @@ bestätigt Validierung und Speicherung. Der anschließende eigene Aufruf von
 Apple meldete dabei noch keine bisherigen Einreichungen. Nach Bastis separater
 Uploadfreigabe „Du hast sie“ wurde genau das geprüfte Build-8-ZIP einmal an
 Apple gesendet. Die Einreichung `320efa5c-d9fa-4e3b-980b-1a121ffdd371` vom
-28. September, 17:10:08 UTC, steht um **17:20:29 UTC weiterhin auf In Progress**.
+28. September, 17:10:08 UTC, steht bei der erneuten Abfrage um **19:29:59 UTC weiterhin auf In Progress**.
 Das lokale Warten ist beendet; es läuft keine automatische Überwachung.
 Zur Fortsetzung dieselbe Einreichungs-ID abfragen, nicht erneut hochladen.
 Bei Annahme
