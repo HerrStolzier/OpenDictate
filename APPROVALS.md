@@ -14,15 +14,17 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
   Entwicklermodus wurden direkt geprüft.
 - **Umfang:** Den vorhandenen Offline-Tastatur-Prototyp für das Gerät
   vorbereiten, installieren und seinen synthetischen Textpfad prüfen.
-- **Stand:** Gerätespezifischer Build ohne Signierung bestanden. Keine
-  OpenDictate-App vorgefunden oder installiert. Die signierte Variante
-  scheitert an fehlenden Entwicklungsprofilen für App und Tastatur.
+- **Stand:** Basti hat die Xcode-Anmeldung selbst abgeschlossen. Ein neues
+  Apple-Development-Zertifikat ist lokal vorhanden; das ältere Zertifikat
+  ohne lokalen Schlüssel und die Mac-Identität bleiben erhalten. Profile
+  für App und Tastatur enthalten das freigegebene Gerät. Signierter Build,
+  Signaturprüfung, Installation und sichtbarer Start auf dem iPhone bestanden.
 - **Zusätzliche Freigabe:** Basti bestätigte mit „go“ die konkrete Frage
   nach lokalem Entwicklungsschlüssel und Apple-Development-Zertifikat,
   Registrierung dieses iPhones bei Apple sowie Profilen für App und Tastatur.
-- **Aktuelle Grenze:** Automatische Provisionierung scheitert derzeit mit
-  „No Accounts“: Xcode hat noch keinen Apple-Account hinterlegt. Der
-  Anmeldedialog ist für Basti geöffnet. Kein Mikrofon, Provider oder
+- **Aktuelle Grenze:** Die native Device-Hub-Steuerung endet weiterhin mit
+  Timeout. Basti wurde um Aktivierung der Tastatur ohne Vollzugriff gebeten;
+  die reale Einfügung bleibt noch offen. Kein Mikrofon, Provider oder
   Veröffentlichungsweg wurde gestartet.
   [Build- und Blockernachweis](docs/ios-device-2026-09-30.md).
 

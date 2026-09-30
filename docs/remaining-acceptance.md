@@ -19,11 +19,12 @@ diktieren; nächster Prüfpunkt ist die erlaubte Aufnahme-/Tastaturkopplung
 ## iOS: synthetischer Safari-Textpfad bestanden · 29. September 2026
 
 Fortsetzung am 30. September: Bastis iPhone 15 mit iOS 27.0.1 ist per USB
-verbunden; der freigegebene Gerätetest ist vorbereitet. Der unsignierte
-Gerätebuild besteht, die Installation wartet auf Entwicklungssignierung
-und Geräteprofile. Die separate Freigabe liegt vor; Xcode meldet noch
-„No Accounts“. Basti muss sich im geöffneten Xcode-Dialog anmelden.
-Keine Installation oder Aufnahme erfolgt. [Aktueller Gerätenachweis](ios-device-2026-09-30.md).
+verbunden. Nach eigener Xcode-Anmeldung und genehmigter Entwicklungssignierung
+bestehen signierter Build, Signaturprüfung, Installation und sichtbarer Start.
+Das alte Entwicklungszertifikat wurde nicht widerrufen. Die fernbediente
+Device-Hub-Steuerung bleibt blockiert; Basti wurde um Aktivierung der Tastatur
+ohne Vollzugriff gebeten. Reale Einfügung und Aufnahme bleiben ungeprüft.
+[Aktueller Gerätenachweis](ios-device-2026-09-30.md).
 
 Der unabhängig geprüfte Offline-Tastatur-Prototyp aus `e416a3d` besteht nun
 auch den sichtbaren E2E-Test auf dem separat genehmigten frischen iPhone-18-Pro-

@@ -1,4 +1,4 @@
-# iPhone-Test: Build vorbereitet, Xcode-Anmeldung offen
+# iPhone-Test: signiert installiert und sichtbar gestartet
 
 Stand: 30. September 2026. Fortsetzung des bestandenen
 [synthetischen Simulator-Tests](ios-keyboard-e2e-2026-09-29.md) mit Bastis
@@ -34,18 +34,52 @@ Lokale Nachweise im selben Artefaktordner: `device-build.log`,
 Der Build belegt Kompilierbarkeit für ein echtes Gerät, keine Installation
 oder sichtbare Funktion. Der Simulator-Nachweis wird nicht zur Geräteabnahme.
 
-## Nächste Voraussetzung und Bereinigung
+## Signierung und sichtbarer Start
 
-Vor Installation sind eine passende Entwicklungssignieridentität und
-Geräteprofile nötig. Basti hat die konkrete Einrichtung und Registrierung
-bei Apple inzwischen mit „go“ freigegeben. Der anschließende Build mit
-`-allowProvisioningUpdates -allowProvisioningDeviceRegistration` scheitert
-mit „No Accounts“. Xcodes Account-Einstellungen bestätigen, dass keine
-Anmeldung vorliegt. Der Anmeldedialog wurde für Basti geöffnet; persönliche
-Anmeldung und Zwei-Faktor-Abfrage bleiben bei ihm. Signierung und
-Installation sind damit noch nicht abgeschlossen.
-Keine App installiert, kein Aufnahme- oder Anbieterprozess gestartet,
-kein Testserver oder neues Simulatorgerät angelegt. Auf dem iPhone gibt es
-daher bislang keine eigenen Testressourcen zu entfernen.
+Basti bestätigte die Einrichtung mit „go“ und meldete sich selbst in Xcode
+an. Der erste automatische Versuch meldete ein bereits bestehendes
+Entwicklungszertifikat ohne lokalen privaten Schlüssel und schlug Widerruf
+vor. Dieses Zertifikat wurde **nicht widerrufen**. Über Xcodes
+Zertifikatsverwaltung ließ sich stattdessen eine zusätzliche Apple-Development-
+Identität für diesen Mac anlegen. Die bestehende Developer-ID-Identität bleibt
+ebenfalls erhalten; `security find-identity` bestätigt beide lokalen Identitäten.
 
-Der reale Textpfad sowie der spätere Aufnahme-/Tastaturablauf bleiben offen.
+Nach Profilbereitstellung verwies ein Build auf eine nicht vorhandene
+Profildatei. Download der Profile und ein frischer, getrennter Buildordner
+führten zu **BUILD SUCCEEDED**. Keine Projekt- oder Quelländerung nötig.
+Beide eingebetteten Profile enthalten das genehmigte iPhone, passende
+Bundle-IDs und das richtige Team. `RequestsOpenAccess=false` bleibt erhalten.
+
+Wiederholbarer signierter Build nach vorhandener Freigabe und Anmeldung:
+
+```sh
+xcodebuild -project ios/OpenDictateKeyboardDemo.xcodeproj \
+  -scheme OpenDictateKeyboardDemo -configuration Debug \
+  -destination 'id=<genehmigte Gerätekennung>' \
+  -derivedDataPath "$HOME/.codex/artifacts/opendictate/ios-device-20260930/SignedDerivedData" \
+  DEVELOPMENT_TEAM=K5AF446C3N \
+  -allowProvisioningUpdates -allowProvisioningDeviceRegistration build
+```
+
+Der Quellstand ist `1e00093`; gegenüber dem Simulator-Kandidaten sind die
+iOS-Quellen unverändert. `codesign --verify --deep --strict` besteht.
+`devicectl device install app` bestätigt Installation,
+`devicectl device process launch` bestätigt Start. Screenshot `host-launch.png`
+wurde tatsächlich angesehen und zeigt die Prototyp-Anleitung auf dem iPhone.
+
+Weitere lokale Belege: `device-signed-build.log` (fehlende Profildatei),
+`device-signed-fresh-build.log` (erfolgreich), `signed-candidate-manifest.json`
+mit Binärhashes, Profilprüfung und Kandidatenbindung. Kennungen des persönlichen
+Geräts werden nicht in diesem Repository veröffentlicht.
+
+## Offene Bedienprüfung und Bereinigung
+
+Der native Steuerungszugriff auf Device Hub endet mit Timeout. Daher wurde
+Basti um den einzigen aktuell nicht fernbedienbaren Aktivierungsschritt in
+Einstellungen gebeten. Sichtbarer App-Start ist keine erfolgreiche
+Tastatureinfügung. Die eigentliche Geräte-E2E und der spätere
+Aufnahme-/Tastaturablauf bleiben offen.
+
+Die Test-App bleibt für diese laufende Prüfung installiert. Keine Aufnahme,
+Anbieteranfrage, Testserver oder neues Simulatorgerät gestartet. Die
+freigegebenen dauerhaften Entwicklungszertifikate und Profile bleiben erhalten.
