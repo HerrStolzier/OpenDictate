@@ -1,4 +1,4 @@
-# iPhone-Test: Build vorbereitet, Entwicklungssignierung offen
+# iPhone-Test: Build vorbereitet, Xcode-Anmeldung offen
 
 Stand: 30. September 2026. Fortsetzung des bestandenen
 [synthetischen Simulator-Tests](ios-keyboard-e2e-2026-09-29.md) mit Bastis
@@ -29,15 +29,21 @@ xcodebuild -project ios/OpenDictateKeyboardDemo.xcodeproj \
 ```
 
 Lokale Nachweise im selben Artefaktordner: `device-build.log`,
-`device-signing-check.log` und `candidate-manifest.json`.
+`device-signing-check.log`, `device-provisioning-build.log` und
+`candidate-manifest.json`.
 Der Build belegt Kompilierbarkeit für ein echtes Gerät, keine Installation
 oder sichtbare Funktion. Der Simulator-Nachweis wird nicht zur Geräteabnahme.
 
 ## Nächste Voraussetzung und Bereinigung
 
 Vor Installation sind eine passende Entwicklungssignieridentität und
-Geräteprofile nötig. Die konkrete Freigabe zur Einrichtung und Registrierung
-bei Apple wurde angefragt; keine automatische Provisionierung ausgeführt.
+Geräteprofile nötig. Basti hat die konkrete Einrichtung und Registrierung
+bei Apple inzwischen mit „go“ freigegeben. Der anschließende Build mit
+`-allowProvisioningUpdates -allowProvisioningDeviceRegistration` scheitert
+mit „No Accounts“. Xcodes Account-Einstellungen bestätigen, dass keine
+Anmeldung vorliegt. Der Anmeldedialog wurde für Basti geöffnet; persönliche
+Anmeldung und Zwei-Faktor-Abfrage bleiben bei ihm. Signierung und
+Installation sind damit noch nicht abgeschlossen.
 Keine App installiert, kein Aufnahme- oder Anbieterprozess gestartet,
 kein Testserver oder neues Simulatorgerät angelegt. Auf dem iPhone gibt es
 daher bislang keine eigenen Testressourcen zu entfernen.

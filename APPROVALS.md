@@ -17,9 +17,13 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 - **Stand:** Gerätespezifischer Build ohne Signierung bestanden. Keine
   OpenDictate-App vorgefunden oder installiert. Die signierte Variante
   scheitert an fehlenden Entwicklungsprofilen für App und Tastatur.
-- **Grenze:** Eine gesonderte Freigabe für neue Entwicklungssigniermittel
-  und Registrierung des Geräts bei Apple wurde angefragt und steht aus.
-  Kein Mikrofon, Provider oder Veröffentlichungsweg wurde gestartet.
+- **Zusätzliche Freigabe:** Basti bestätigte mit „go“ die konkrete Frage
+  nach lokalem Entwicklungsschlüssel und Apple-Development-Zertifikat,
+  Registrierung dieses iPhones bei Apple sowie Profilen für App und Tastatur.
+- **Aktuelle Grenze:** Automatische Provisionierung scheitert derzeit mit
+  „No Accounts“: Xcode hat noch keinen Apple-Account hinterlegt. Der
+  Anmeldedialog ist für Basti geöffnet. Kein Mikrofon, Provider oder
+  Veröffentlichungsweg wurde gestartet.
   [Build- und Blockernachweis](docs/ios-device-2026-09-30.md).
 
 ## iOS: abgegrenzter Simulator-Test — 2026-09-29

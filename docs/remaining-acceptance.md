@@ -21,7 +21,8 @@ diktieren; nächster Prüfpunkt ist die erlaubte Aufnahme-/Tastaturkopplung
 Fortsetzung am 30. September: Bastis iPhone 15 mit iOS 27.0.1 ist per USB
 verbunden; der freigegebene Gerätetest ist vorbereitet. Der unsignierte
 Gerätebuild besteht, die Installation wartet auf Entwicklungssignierung
-und Geräteprofile. Die dafür notwendige separate Freigabe wurde angefragt.
+und Geräteprofile. Die separate Freigabe liegt vor; Xcode meldet noch
+„No Accounts“. Basti muss sich im geöffneten Xcode-Dialog anmelden.
 Keine Installation oder Aufnahme erfolgt. [Aktueller Gerätenachweis](ios-device-2026-09-30.md).
 
 Der unabhängig geprüfte Offline-Tastatur-Prototyp aus `e416a3d` besteht nun
