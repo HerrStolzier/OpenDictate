@@ -181,6 +181,9 @@ separate attended verification and are not default tests. The transcription
 tests may use loopback stub HTTP only. Never pass an API key as a command
 argument or environment variable.
 
+The dated [HTTP-fixture concurrency evidence](docs/linux-ci-fixture-race-2026-09-30.md)
+records the isolated test-file repair and its bounded regression checks.
+
 ## Windows snapshot checks
 
 The separate [Windows README](windows/README.md) defines the current build
