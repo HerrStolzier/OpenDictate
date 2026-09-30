@@ -23,8 +23,12 @@ Grenze, manueller App-Wechsel, sitzungsgebundener Tastatur-Stopp und bewusstes
 Einfügen von markiertem Testtext. Keine Transkription oder Übertragung.
 Unsigned Simulator-/Gerätebuilds und sechs isolierte Bridge-Prüfungen bestehen;
 die neue Kopplung ist noch nicht installiert oder am Mikrofon geprüft.
-Apple-App-Gruppe/Profile sowie höchstens drei lokale Aufnahmeprüfungen
-benötigen konkrete Freigabe. [Kandidat und Grenzen](../ios/README.md),
+Die konkrete Freigabe ist erteilt. Apple-App-Gruppe und beide Profile sind
+eingerichtet; signierter Gerätebuild und Signaturen bestehen mit der vorhandenen
+Entwicklungsidentität. Installation und höchstens drei lokale Aufnahmeprüfungen
+stehen noch aus; die Entwicklerverbindung zum iPhone ist aktuell nicht verfügbar.
+Das Gerät muss dafür per USB verbunden und entsperrt sein und bis zur bestätigten
+Bereinigung angeschlossen bleiben. [Kandidat und Grenzen](../ios/README.md),
 [Prüfplan](../ios/PRUEFPLAN.md), [Offline-Nachweis](ios-recording-coupling-2026-09-30.md).
 Die folgenden Texttest-Nachweise gelten nur
 für den früheren Kandidaten.

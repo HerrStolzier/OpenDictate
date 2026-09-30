@@ -21,6 +21,8 @@ Zielgerät ist Bastis iPhone 15 / iOS 27.0.1. Vor der Live-Prüfung sind die
 konkrete App-Group-Registrierung bei Apple, Profile mit der bestehenden
 Entwicklungsidentität, Installation dieses geänderten Kandidaten und höchstens
 drei lokale Mikrofonaufnahmen à maximal 15 Sekunden separat freizugeben.
+Basti hat diese konkrete Freigabe am 30. September erteilt
+([Freigaben](../APPROVALS.md)).
 Kein Provider-Upload oder Veröffentlichungsauftrag. Die frühere reine
 Texttest-Freigabe deckt diese Aufnahmeprüfung nicht ab.
 
@@ -92,6 +94,13 @@ verbrauchen insgesamt höchstens 45 Sekunden. Die Kategorie `.record` kann
 während der Aufnahme andere Wiedergabe stummschalten; nach Ende muss sie
 deaktiviert werden. Keine TCC-Rücksetzung oder fingierten Anrufe.
 
+**USB-Hinweis vor jedem betreffenden Schritt:** Das iPhone muss für
+Installation, Start der Testseite vom Mac, Nachweisaufnahme, Auslesen der
+eigenen Testdateien und Deinstallation verbunden und entsperrt sein. Für diesen
+begleiteten Durchlauf bleibt es bis zur bestätigten Bereinigung angeschlossen.
+Die Aufnahme und die bereits geladene statische Seite benötigen selbst keine
+USB-Verbindung. Erst nach der Abschlussmeldung kann Basti das iPhone abstecken.
+
 1. **Aktivierung:** OpenDictate Testkeyboard lässt sich hinzufügen. Der
    Vollzugriff-Schalter bleibt zunächst aus; normale Eingabe und separaten
    Texttest prüfen. Danach schaltet Basti ihn für den Kopplungstest selbst ein.
@@ -131,6 +140,8 @@ deaktiviert werden. Keine TCC-Rücksetzung oder fingierten Anrufe.
     selbst erzeugten WAV-Dateien/Gruppenmetadaten deinstallieren und nur eigene
     Safari-Testtabs schließen. Apple-Gruppe/Profile sind dauerhafte, benannte
     Entwicklungsressourcen; keine fremden Profile/Zertifikate entfernen.
+    Anschließend Apples Tastatur und Diktieren prüfen; erst nach bestätigtem
+    Ergebnis den USB-Durchlauf abschließen.
 
 ## Abnahmekriterien und Grenzen
 

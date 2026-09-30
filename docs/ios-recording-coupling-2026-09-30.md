@@ -66,12 +66,40 @@ Tastatur verwendeten Dateischnittstelle. Der vorherige UIKit-Fehler ist durch
 Codeprüfung belegt; ein unveränderter UI-Vorherlauf wurde nicht ausgeführt.
 Diese Offline-Prüfung ersetzt nicht den späteren sichtbaren Gerätelauf.
 
+## Einrichtung nach konkreter Freigabe
+
+Basti bestätigte die konkrete Frage nach Apple-Gruppe, Profilen, Installation,
+höchstens drei lokalen Aufnahmen à 15 Sekunden und Bereinigung mit
+„Du hast die Freigabe“. Über Xcodes vorhandene Apple-Anmeldung wurden die
+beiden Targets einer getrennten lokalen Signierungsprojektkopie dem bestehenden
+Team zugeordnet. Der geprüfte Projekt-/Quellstand im Repository blieb dabei
+unverändert. Xcode richtete `group.com.opendictate.ios.keyboarddemo` und passende
+Entwicklungsprofile für App und Tastatur ein.
+
+Beide eingebetteten Profile enthalten genau die benötigte App-Gruppe, das
+genehmigte iPhone und die vorhandene Apple-Development-Identität. Der anschließende
+Gerätebuild aus dem unveränderten Projekt besteht ohne weitere Provisionierungs-
+Änderung. Host und Erweiterung bestehen `codesign --verify --deep --strict`.
+Die Mikrofon-/Hintergrunddeklaration ist nur im Host vorhanden; die Erweiterung
+fordert weiterhin Vollzugriff für die Kopplung an. Elf Implementierungs-/Projekt-
+und Testdateien stimmen mit dem unabhängig geprüften Manifest überein.
+
+Lokale Nachweise unter
+`/Users/basti/.codex/artifacts/opendictate/ios-coupling-live-20260930/`:
+`signed-build-final.log`, `profile-check.json`, `signed-candidate-manifest.json`.
+Das Manifest bindet die beiden signierten Binärdateien per SHA-256. Keine
+Aufnahme entstand durch Einrichtung oder Build.
+
 ## Offene Abnahme
 
-Die Apple-App-Gruppe und zugehörige Profile sind noch nicht eingerichtet;
-der geänderte Kandidat ist nicht installiert, aktiviert oder veröffentlicht.
-Für die Einrichtung mit der bestehenden Entwicklungsidentität und maximal
-drei lokale Aufnahmeprüfungen fehlt die konkrete Freigabe. Der Prüfplan benennt
+Der geänderte Kandidat ist noch nicht installiert, aktiviert oder veröffentlicht.
+Die aktuelle Entwicklerverbindung zum gekoppelten iPhone ist nicht verfügbar;
+auch die direkte Lock-State-Abfrage schlägt fehl. Basti wurde um Anschließen
+per USB und Entsperren gebeten. Das Gerät bleibt für Installation, Nachweisaufnahme,
+Auslesen der eigenen Testdateien und Deinstallation bis zur bestätigten Bereinigung
+angeschlossen. Die geladene Testseite und die Aufnahme benötigen selbst kein USB.
+
+Die Freigabe für maximal drei lokale Aufnahmeprüfungen liegt vor. Der Prüfplan benennt
 Kopplung, automatische Grenze, Fokuswechsel, einmalige Einfügung, Abbruch und
 Bereinigung. Sichtbarer Mikrofonstopp, Hintergrund-Timer, tatsächliche Dauer,
 iOS-Dateischutz und die neue Ansicht sind erst am Gerät zu prüfen.

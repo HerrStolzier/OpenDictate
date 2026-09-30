@@ -69,8 +69,10 @@ Sitzungsmetadaten und Marker. Normale Tastatureingabe bleibt ohne Vollzugriff
 verfügbar. [Prüfplan](../ios/PRUEFPLAN.md).
 
 Der neue Kandidat ist noch nicht auf dem iPhone installiert oder mit dessen
-Mikrofon geprüft. Die Apple-App-Gruppe und Profile sind erst nach konkreter
-Freigabe einzurichten; ebenso die Live-Prüfung. Das technische Deployment-Ziel
+Mikrofon geprüft. Die konkrete Freigabe ist inzwischen erteilt; Apple-App-Gruppe
+und beide Profile sind mit der vorhandenen Entwicklungsidentität eingerichtet,
+der signierte Gerätebuild ist geprüft. Für Installation und begleitete Live-Prüfung
+muss das iPhone per USB verbunden und entsperrt sein. Das technische Deployment-Ziel
 16.0 legt noch keine Produkt-Mindestversion fest. Vollständiges Diktieren,
 weitere Zielprogramme, Zugänglichkeit und Verteilung bleiben offen.
 

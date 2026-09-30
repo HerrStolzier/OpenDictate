@@ -11,9 +11,15 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 **Nachfolgender Auftrag:** Nach Abschluss und Bereinigung des synthetischen
 Texttests gab Basti mit „go“ die Fortsetzung frei. Die nächste Umsetzung
 bereitet den lokalen Aufnahme-/Tastatur-Kopplungsnachweis samt Offline-Prüfungen
-vor. Neue Mikrofonprüfung, App-Group-Registrierung, Profile und Installation
-des geänderten Kandidaten sind noch nicht konkret freigegeben. Keine
-Übertragung oder Veröffentlichung. [Prüfumfang](ios/PRUEFPLAN.md).
+vor. Anschließend bestätigte Basti mit „Du hast die Freigabe“ die konkrete
+Frage zu `group.com.opendictate.ios.keyboarddemo`, passenden Profilen mit der
+vorhandenen Entwicklungsidentität, Installation des geprüften Kandidaten aus
+PR #40 und höchstens drei lokalen Mikrofonaufnahmen à maximal 15 Sekunden
+auf seinem iPhone 15. Tastatur und Vollzugriff aktiviert Basti selbst.
+Anschließend werden nur diese Test-App samt selbst erzeugten Testaufnahmen und
+Gruppenmetadaten entfernt und die eigenen Safari-Testtabs geschlossen.
+Die benannten Apple-Entwicklungsressourcen bleiben erhalten. Keine
+Anbieterübertragung oder Veröffentlichung. [Prüfumfang](ios/PRUEFPLAN.md).
 
 - **Quelle:** Basti benannte sein per USB angeschlossenes iPhone und gab
   anschließend ausdrücklich die Freigabe zur Fortsetzung.

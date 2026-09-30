@@ -16,7 +16,10 @@ nicht auf dem iPhone installiert oder mit dessen Mikrofon geprüft.
   Tastatureingaben. Der Audio-Hintergrundmodus erlaubt den zu prüfenden App-Wechsel;
   er startet keine Aufnahme. Kein automatischer Neustart nach Unterbrechungen.
 - Beide Targets verwenden `group.com.opendictate.ios.keyboarddemo`.
-  Apple-Registrierung und passende Profile fehlen für diesen neuen Kandidaten.
+  Apple-Gruppe und passende Entwicklungsprofile sind nach konkreter Freigabe
+  eingerichtet; beide enthalten das genehmigte iPhone und die bestehende
+  Entwicklungsidentität. Der signierte Kandidat ist geprüft, aber noch nicht
+  installiert. [Einrichtungsnachweis](../docs/ios-recording-coupling-2026-09-30.md).
   Ohne verfügbaren Gruppencontainer startet die Haupt-App nicht.
 - `RequestsOpenAccess` ist für die neue Kopplung eingeschaltet. Basti muss
   „Vollen Zugriff erlauben“ selbst aktivieren, bevor die Tastatur Stopp- und
