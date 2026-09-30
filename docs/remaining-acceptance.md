@@ -1,6 +1,6 @@
 # Aktueller Stand und verbleibende Abnahme
 
-Stand: 28. September 2026. Dies ist die einzige aktuelle Übergabedatei.
+Stand: 30. September 2026. Dies ist die einzige aktuelle Übergabedatei.
 Produktziel und Umfang: [PROJECT.md](../PROJECT.md); die einzige Feature-/
 Plattform-To-do-Liste: [ROADMAP.md](../ROADMAP.md); Regeln: [AGENTS.md](../AGENTS.md);
 Prüfverfahren: [CHECKS.md](../CHECKS.md); frühere Freigaben: [APPROVALS.md](../APPROVALS.md).
@@ -17,6 +17,12 @@ diktieren; nächster Prüfpunkt ist die erlaubte Aufnahme-/Tastaturkopplung
 ([iOS-Richtung](ios-direction.md)). Der Linux-Diktattest ist inzwischen vorerst zurückgestellt.
 
 ## iOS: synthetischer Safari-Textpfad bestanden · 29. September 2026
+
+Fortsetzung am 30. September: Bastis iPhone 15 mit iOS 27.0.1 ist per USB
+verbunden; der freigegebene Gerätetest ist vorbereitet. Der unsignierte
+Gerätebuild besteht, die Installation wartet auf Entwicklungssignierung
+und Geräteprofile. Die dafür notwendige separate Freigabe wurde angefragt.
+Keine Installation oder Aufnahme erfolgt. [Aktueller Gerätenachweis](ios-device-2026-09-30.md).
 
 Der unabhängig geprüfte Offline-Tastatur-Prototyp aus `e416a3d` besteht nun
 auch den sichtbaren E2E-Test auf dem separat genehmigten frischen iPhone-18-Pro-

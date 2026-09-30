@@ -6,6 +6,22 @@ geht vor; ausdrücklich einmalige oder befristete Zustimmung bleibt begrenzt.
 Technische Berechtigungsprüfungen bleiben bestehen. Keine Secrets oder privaten
 Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 
+## iOS: Test auf dem angeschlossenen iPhone — 2026-09-30
+
+- **Quelle:** Basti benannte sein per USB angeschlossenes iPhone und gab
+  anschließend ausdrücklich die Freigabe zur Fortsetzung.
+- **Ziel:** iPhone 15 mit iOS 27.0.1; Verbindung und aktivierter
+  Entwicklermodus wurden direkt geprüft.
+- **Umfang:** Den vorhandenen Offline-Tastatur-Prototyp für das Gerät
+  vorbereiten, installieren und seinen synthetischen Textpfad prüfen.
+- **Stand:** Gerätespezifischer Build ohne Signierung bestanden. Keine
+  OpenDictate-App vorgefunden oder installiert. Die signierte Variante
+  scheitert an fehlenden Entwicklungsprofilen für App und Tastatur.
+- **Grenze:** Eine gesonderte Freigabe für neue Entwicklungssigniermittel
+  und Registrierung des Geräts bei Apple wurde angefragt und steht aus.
+  Kein Mikrofon, Provider oder Veröffentlichungsweg wurde gestartet.
+  [Build- und Blockernachweis](docs/ios-device-2026-09-30.md).
+
 ## iOS: abgegrenzter Simulator-Test — 2026-09-29
 
 - **Quelle:** Bastis direktes „ja“ zur Installation der Test-App und zum
