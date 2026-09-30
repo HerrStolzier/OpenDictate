@@ -8,6 +8,13 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 
 ## iOS: Test auf dem angeschlossenen iPhone — 2026-09-30
 
+**Nachfolgender Auftrag:** Nach Abschluss und Bereinigung des synthetischen
+Texttests gab Basti mit „go“ die Fortsetzung frei. Die nächste Umsetzung
+bereitet den lokalen Aufnahme-/Tastatur-Kopplungsnachweis samt Offline-Prüfungen
+vor. Neue Mikrofonprüfung, App-Group-Registrierung, Profile und Installation
+des geänderten Kandidaten sind noch nicht konkret freigegeben. Keine
+Übertragung oder Veröffentlichung. [Prüfumfang](ios/PRUEFPLAN.md).
+
 - **Quelle:** Basti benannte sein per USB angeschlossenes iPhone und gab
   anschließend ausdrücklich die Freigabe zur Fortsetzung.
 - **Ziel:** iPhone 15 mit iOS 27.0.1; Verbindung und aktivierter

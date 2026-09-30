@@ -18,6 +18,17 @@ diktieren; nächster Prüfpunkt ist die erlaubte Aufnahme-/Tastaturkopplung
 
 ## iOS: synthetischer Safari-Textpfad bestanden · 29. September 2026
 
+Nächster Kandidat am 30. September: Host-Aufnahme mit nativer 15-Sekunden-
+Grenze, manueller App-Wechsel, sitzungsgebundener Tastatur-Stopp und bewusstes
+Einfügen von markiertem Testtext. Keine Transkription oder Übertragung.
+Unsigned Simulator-/Gerätebuilds und sechs isolierte Bridge-Prüfungen bestehen;
+die neue Kopplung ist noch nicht installiert oder am Mikrofon geprüft.
+Apple-App-Gruppe/Profile sowie höchstens drei lokale Aufnahmeprüfungen
+benötigen konkrete Freigabe. [Kandidat und Grenzen](../ios/README.md),
+[Prüfplan](../ios/PRUEFPLAN.md), [Offline-Nachweis](ios-recording-coupling-2026-09-30.md).
+Die folgenden Texttest-Nachweise gelten nur
+für den früheren Kandidaten.
+
 Fortsetzung am 30. September: Bastis iPhone 15 mit iOS 27.0.1 ist per USB
 verbunden. Nach eigener Xcode-Anmeldung und genehmigter Entwicklungssignierung
 bestehen signierter Build, Signaturprüfung, Installation und sichtbarer Start.

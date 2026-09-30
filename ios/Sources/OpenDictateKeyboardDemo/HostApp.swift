@@ -10,17 +10,19 @@ struct OpenDictateKeyboardDemoApp: App {
 }
 
 private struct PrototypeInstructionsView: View {
+    @StateObject private var recording = RecordingCoordinator()
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("OpenDictate Tastaturtest")
+                Text("OpenDictate Kopplungstest")
                     .font(.largeTitle.bold())
 
-                Text("Nur ein Textpfad-Prototyp")
+                Text("Aufnahme und Tastatur prüfen")
                     .font(.headline)
 
                 Text(
-                    "Die Tastatur fügt nach bewusstem Tastendruck vorbereiteten synthetischen Testtext in das aktuelle Textfeld ein."
+                    "Aufnahme hier starten, manuell zur Ziel-App wechseln, dort in OpenDictate stoppen. Danach lässt sich markierter Testtext bewusst einfügen. Noch keine Transkription."
                 )
 
                 Divider()
@@ -32,7 +34,32 @@ private struct PrototypeInstructionsView: View {
                     "Einstellungen → Allgemein → Tastatur → Tastaturen → Neue Tastatur hinzufügen → OpenDictate Tastaturtest."
                 )
 
-                Text("„Allow Full Access“ ausgeschaltet lassen. Der Prototyp benötigt es nicht.")
+                Text(
+                    "Für Stopp und Übergabe ist „Vollen Zugriff erlauben“ nötig. Normale Tasten und der bisherige Testknopf funktionieren weiterhin ohne diesen Zugriff."
+                )
+
+                if !recording.hasAppGroup {
+                    Text(
+                        "Die gemeinsame App-Gruppe ist noch nicht für diesen Kandidaten eingerichtet. Aufnahme gesperrt."
+                    )
+                    .foregroundStyle(.secondary)
+                }
+
+                Text(recording.message)
+                    .accessibilityIdentifier("recording.status")
+
+                Button("Aufnahme starten · maximal 15 Sekunden") { recording.start() }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!recording.canStart)
+                    .accessibilityIdentifier("recording.start")
+
+                if recording.isRecording {
+                    Button("Aufnahme stoppen") { recording.stop() }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("recording.stop")
+                    Button("Abbrechen · Audio behalten") { recording.cancel() }
+                        .accessibilityIdentifier("recording.cancel")
+                }
 
                 Divider()
 
@@ -40,11 +67,13 @@ private struct PrototypeInstructionsView: View {
                     .font(.headline)
 
                 Text(
-                    "Die Hauptaufgabe öffnet die lokale Fixture unter 127.0.0.1. Folge für Feldwechsel und Passwortfeld dem Prüfplan."
+                    "Die Hauptaufgabe öffnet die lokale Testseite. Tippe dort in ein leeres Feld und wähle die OpenDictate-Tastatur. Folge dem Prüfplan."
                 )
 
-                Text("Keine Aufnahme, kein Mikrofon, kein Provider und kein Netzwerkzugriff.")
-                    .foregroundStyle(.secondary)
+                Text(
+                    "Nur lokaler Machbarkeitsnachweis. Höchstens drei Aufnahmedateien, kein Anbieter oder Netzwerk. Testaudio wird nicht automatisch gelöscht."
+                )
+                .foregroundStyle(.secondary)
             }
             .frame(maxWidth: 560, alignment: .leading)
             .padding(24)

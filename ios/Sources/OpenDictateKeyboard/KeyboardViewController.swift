@@ -2,11 +2,12 @@ import UIKit
 
 @MainActor
 final class KeyboardViewController: UIInputViewController {
-    private static let syntheticText = "OpenDictate Testtext (synthetisch)"
-
     private let keyboardStack = UIStackView()
     private let availabilityLabel = UILabel()
     private var insertButton: UIButton?
+    private var sessionButton: UIButton?
+    private var displayedAction: RecordingBridge.Action?
+    private var refreshTimer: Timer?
     private var letterButtons: [UIButton] = []
     private var isShifted = false
     private var isKeyboardPresentationActive = false
@@ -21,10 +22,16 @@ final class KeyboardViewController: UIInputViewController {
         super.viewDidAppear(animated)
         isKeyboardPresentationActive = true
         updateAvailability()
+        refreshTimer?.invalidate()
+        refreshTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.updateAvailability() }
+        }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         isKeyboardPresentationActive = false
+        refreshTimer?.invalidate()
+        refreshTimer = nil
         updateAvailability()
         super.viewWillDisappear(animated)
     }
@@ -42,7 +49,7 @@ final class KeyboardViewController: UIInputViewController {
     private func buildKeyboard() {
         view.backgroundColor = .secondarySystemBackground
 
-        let height = view.heightAnchor.constraint(equalToConstant: 286)
+        let height = view.heightAnchor.constraint(equalToConstant: 360)
         height.priority = UILayoutPriority(999)
         height.isActive = true
 
@@ -60,7 +67,7 @@ final class KeyboardViewController: UIInputViewController {
             keyboardStack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -8)
         ])
 
-        availabilityLabel.text = "TEST · vorbereiteter synthetischer Text · keine Aufnahme"
+        availabilityLabel.text = "TEST · keine Transkription"
         availabilityLabel.font = .systemFont(ofSize: 12, weight: .medium)
         availabilityLabel.textAlignment = .center
         availabilityLabel.adjustsFontSizeToFitWidth = true
@@ -69,7 +76,7 @@ final class KeyboardViewController: UIInputViewController {
         keyboardStack.addArrangedSubview(availabilityLabel)
 
         let testButton = makeButton(
-            title: "TESTTEXT EINFÜGEN",
+            title: "SEPARATER TEXTTEST",
             identifier: "openDictate.insertSyntheticText",
             backgroundColor: .systemBlue
         ) { [weak self] in
@@ -77,6 +84,14 @@ final class KeyboardViewController: UIInputViewController {
         }
         insertButton = testButton
         keyboardStack.addArrangedSubview(testButton)
+
+        let couplingButton = makeButton(
+            title: "Keine Aufnahmesitzung",
+            identifier: "openDictate.recordingSession",
+            backgroundColor: .systemOrange
+        ) { [weak self] in self?.handleSessionAction() }
+        sessionButton = couplingButton
+        keyboardStack.addArrangedSubview(couplingButton)
 
         keyboardStack.addArrangedSubview(makeEqualRow("qwertzuiop"))
         keyboardStack.addArrangedSubview(makeEqualRow("asdfghjkl"))
@@ -178,7 +193,7 @@ final class KeyboardViewController: UIInputViewController {
             return
         }
 
-        textDocumentProxy.insertText(Self.syntheticText)
+        textDocumentProxy.insertText(RecordingSnapshot.testText)
         availabilityLabel.text = "Synthetischer Testtext eingefügt"
     }
 
@@ -234,9 +249,66 @@ final class KeyboardViewController: UIInputViewController {
     private func updateAvailability() {
         let available = isKeyboardPresentationActive
         insertButton?.isEnabled = available
-        availabilityLabel.text =
-            available
-            ? "TEST · vorbereitet · Einfügen ins aktuelle Feld"
-            : "Tastatur nicht aktiv"
+        guard available else {
+            sessionButton?.isEnabled = false
+            displayedAction = nil
+            availabilityLabel.text = "Tastatur nicht aktiv"
+            return
+        }
+        // Keep the displayed meaning stable while a finger is holding this button.
+        guard sessionButton?.isTracking != true else { return }
+        sessionButton?.isEnabled = false
+        displayedAction = nil
+        guard let bridge else {
+            availabilityLabel.text = "TEST · normale Tasten ohne Vollzugriff"
+            sessionButton?.setTitle("Kopplung braucht vollen Zugriff", for: .normal)
+            return
+        }
+        guard let current = try? bridge.snapshot(at: Date()) else {
+            availabilityLabel.text = "TEST · keine aktuelle Aufnahmesitzung"
+            sessionButton?.setTitle("Keine Aufnahmesitzung", for: .normal)
+            return
+        }
+        switch current.phase {
+        case .recording:
+            let requested = bridge.hasStopRequest(id: current.id)
+            availabilityLabel.text = "Aufnahme in Haupt-App · maximal 15 Sekunden"
+            sessionButton?.setTitle(requested ? "Stopp angefordert" : "AUFNAHME STOPPEN", for: .normal)
+            sessionButton?.isEnabled = !requested
+            if !requested { displayedAction = .stop(current.id) }
+        case .ready:
+            let claimed = bridge.hasDeliveryClaim(id: current.id)
+            availabilityLabel.text = "Aufnahme beendet · nur synthetischer Text"
+            sessionButton?.setTitle(
+                claimed ? "Texttest bereits verwendet" : "TESTTEXT NACH STOPP EINFÜGEN", for: .normal)
+            sessionButton?.isEnabled = !claimed
+            if !claimed { displayedAction = .insert(current.id) }
+        case .failed:
+            availabilityLabel.text = "Aufnahmesitzung fehlgeschlagen oder abgebrochen"
+            sessionButton?.setTitle("Kein Ergebnis dieser Sitzung", for: .normal)
+        }
+    }
+
+    private var bridge: RecordingBridge? {
+        guard hasFullAccess else { return nil }
+        return FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: RecordingSnapshot.groupIdentifier
+        )
+        .map { RecordingBridge(directory: $0.appendingPathComponent("recording-coupling-v1")) }
+    }
+
+    private func handleSessionAction() {
+        guard isKeyboardPresentationActive, let bridge, let action = displayedAction else { return }
+        do {
+            // The displayed action owns its ID and meaning; a stop tap can never become an insertion.
+            // No suspended work and no retained text proxy: insertion belongs to this tap.
+            if let text = try bridge.perform(action, at: Date()) {
+                textDocumentProxy.insertText(text)
+            }
+            updateAvailability()
+        } catch {
+            sessionButton?.isEnabled = false
+            availabilityLabel.text = "Kopplung nicht verfügbar · normale Tasten bleiben nutzbar"
+        }
     }
 }

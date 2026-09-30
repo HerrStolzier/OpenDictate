@@ -6,6 +6,41 @@ Linux CLI have different local storage and delivery paths; see their
 [Linux behavior and retention rules](linux/README.md). They have not completed
 product acceptance and are not public releases.
 
+## Separate iOS coupling prototype
+
+The [iOS feasibility prototype](ios/README.md) is not the macOS app and has no
+provider, network requests, API key or transcription. Its new recording flow
+has not yet been accepted on a physical device. Only an explicit foreground
+start in the host app, after iOS microphone permission, records a local WAV for
+at most 15 seconds. The host's audio background mode permits the ongoing
+recording to continue while switching apps; it never starts or restarts one.
+There are at most three WAV files under the host's private
+`Documents/RecordingCouplingTests`. Files use `0600`, iOS protection
+`completeUnlessOpen` and backup exclusion before capturing samples. Audio is
+retained on completion, cancellation and failure. There is no recovery upload,
+automatic deletion or separate application-level encryption. Device acceptance
+must check actual file protection, durations and microphone shutdown.
+
+The App Group `group.com.opendictate.ios.keyboarddemo` holds only bounded
+session metadata (format version, random ID, timestamps, phase and duration)
+and empty stop/delivery markers. It contains no audio, real transcript or
+typed input. Metadata uses iOS complete file protection and is unusable after
+its access-time deadlines (15 seconds for an active session; 60 seconds after
+a result). Expiry does not delete the private audio or old metadata files.
+The keyboard needs explicitly enabled Full Access to write these markers;
+it has no microphone access and implements no networking or input collection.
+Ordinary keys and the standalone synthetic text button work without Full Access.
+Completed sessions can insert a fixed, visibly synthetic string once, only at
+the deliberate button press into the then-current text proxy. Status updates
+and delayed recording callbacks never insert text automatically. The keyboard
+does not bind or inspect a specific target field.
+
+The bounded device test requires separate authorization. Its own app, test
+audio/group files and Safari fixture tabs are to be cleaned afterwards with the
+corresponding approval; Apple signing resources are not revoked as cleanup.
+
+The following sections describe the macOS product.
+
 OpenDictate records microphone audio only while a dictation is active. It does
 not include telemetry or analytics.
 

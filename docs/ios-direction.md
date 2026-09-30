@@ -1,6 +1,6 @@
 # iOS: gewünschter Ablauf und nächster Nachweis
 
-Stand: 29. September 2026. Basti hat iOS ausdrücklich als **besonders wichtig**
+Stand: 30. September 2026. Basti hat iOS ausdrücklich als **besonders wichtig**
 benannt und den Ablauf **„Direkt in anderen Apps diktieren“** gewählt.
 Eine App, die nur aufnimmt und anschließend Kopieren/Teilen anbietet, erfüllt
 dieses Ziel nicht. Die zentrale Aufgabenliste bleibt [ROADMAP](../ROADMAP.md).
@@ -13,8 +13,10 @@ noch kein Nachweis eines funktionierenden OpenDictate-Ablaufs.
 [Apple: Textinteraktionen](https://developer.apple.com/documentation/uikit/handling-text-interactions-in-custom-keyboards).
 
 Die Tastaturerweiterung hat keinen eigenen Mikrofonzugriff. „Voller Zugriff“
-ergänzt unter anderem Netzwerk und gemeinsamen App-Container, hebt diese
-Mikrofongrenze aber nicht auf.
+ergänzt unter anderem Netzwerk und Schreibzugriff im gemeinsamen App-Container,
+hebt diese Mikrofongrenze aber nicht auf. Apples aktuelle Dokumentation erlaubt
+ohne Vollzugriff bereits lesenden Containerzugriff; die neue Stopp-/Zustellkopplung
+braucht Schreibzugriff.
 [Apple: Open Access](https://developer.apple.com/documentation/uikit/configuring-open-access-for-a-custom-keyboard).
 
 Für eine App-Store-Verteilung darf die Tastatur außerdem keine anderen Apps
@@ -56,13 +58,21 @@ Abschlusskriterien vor einer Produktumsetzung:
 - Grenzen bei geschützten Feldern und Apps, die eigene Tastaturen ausschließen,
   werden anhand der gewählten Zielprogramme geprüft und klar benannt.
 
-Ein begrenzter Offline-Tastatur-Prototyp ist separat gebaut. Er prüft
-zunächst vorbereiteten synthetischen Text und enthält weder Aufnahme noch
-Provider oder App-Group-Übergabe. Der vollständige Diktierablauf bleibt offen.
-Noch keine Installation auf einem iPhone/iPad, Aufnahme oder Übertragung
-ausgeführt. Zielgerät, Mindest-iOS, genaue Sitzungsbedienung und erste
-Zielprogramme sind offen. Der erste technische Prüfpunkt ist die erlaubte
-Aufnahme-/Tastaturkopplung, nicht eine Portierung der Mac-Oberfläche.
+Der bisherige reine Texttest ist auf Simulator und iPhone 15 / iOS 27.0.1
+bestanden; seine exakten Belege stehen unten. Auf Bastis Fortsetzungsauftrag
+wird jetzt der [Kopplungs-Kandidat](../ios/README.md) vorbereitet: bewusst in
+OpenDictate starten, manuell zu Safari wechseln, über die Tastatur stoppen
+und danach markierten synthetischen Text bewusst einfügen. Höchstens drei
+lokale WAV-Dateien mit jeweils 15 Sekunden; keine Transkription oder Übertragung.
+Audio bleibt ausschließlich im privaten Host-Container, die App-Gruppe hält
+Sitzungsmetadaten und Marker. Normale Tastatureingabe bleibt ohne Vollzugriff
+verfügbar. [Prüfplan](../ios/PRUEFPLAN.md).
+
+Der neue Kandidat ist noch nicht auf dem iPhone installiert oder mit dessen
+Mikrofon geprüft. Die Apple-App-Gruppe und Profile sind erst nach konkreter
+Freigabe einzurichten; ebenso die Live-Prüfung. Das technische Deployment-Ziel
+16.0 legt noch keine Produkt-Mindestversion fest. Vollständiges Diktieren,
+weitere Zielprogramme, Zugänglichkeit und Verteilung bleiben offen.
 
 ## Lokale Build-Voraussetzung
 
