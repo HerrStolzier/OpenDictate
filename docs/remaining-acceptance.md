@@ -13,25 +13,45 @@ eingereicht, finale Paket- und Installationsabnahme offen), **Windows**
 in `main`, aber ohne Live-Durchstich und UI-Abnahme). Windows und Linux laufen
 auf Bastis Auftrag parallel zur Apple-Wartezeit; sie ändern keinen Mac-Release-Status.
 iOS ist ausdrücklich besonders wichtig. Basti möchte direkt in anderen Apps
-diktieren; nächster Prüfpunkt ist die erlaubte Aufnahme-/Tastaturkopplung
+diktieren; der begrenzte Aufnahme-/Tastaturpfad und seine Prüflücken stehen unten
 ([iOS-Richtung](ios-direction.md)). Der Linux-Diktattest ist inzwischen vorerst zurückgestellt.
 
-## iOS: synthetischer Safari-Textpfad bestanden · 29. September 2026
+## iOS: begrenzter Aufnahme-/Tastaturpfad belegt · 30. September 2026
 
-Nächster Kandidat am 30. September: Host-Aufnahme mit nativer 15-Sekunden-
+Kopplungs-Kandidat vom 30. September: Host-Aufnahme mit nativer 15-Sekunden-
 Grenze, manueller App-Wechsel, sitzungsgebundener Tastatur-Stopp und bewusstes
 Einfügen von markiertem Testtext. Keine Transkription oder Übertragung.
 Unsigned Simulator-/Gerätebuilds und sechs isolierte Bridge-Prüfungen bestehen;
-die neue Kopplung ist noch nicht installiert oder am Mikrofon geprüft.
+der signierte Kandidat wurde auf dem iPhone installiert und begleitet geprüft.
 Die konkrete Freigabe ist erteilt. Apple-App-Gruppe und beide Profile sind
 eingerichtet; signierter Gerätebuild und Signaturen bestehen mit der vorhandenen
-Entwicklungsidentität. Installation und höchstens drei lokale Aufnahmeprüfungen
-stehen noch aus; die Entwicklerverbindung zum iPhone ist aktuell nicht verfügbar.
-Das Gerät muss dafür per USB verbunden und entsperrt sein und bis zur bestätigten
-Bereinigung angeschlossen bleiben. [Kandidat und Grenzen](../ios/README.md),
-[Prüfplan](../ios/PRUEFPLAN.md), [Offline-Nachweis](ios-recording-coupling-2026-09-30.md).
+Entwicklungsidentität. Nach Bastis USB-Anschluss bestehen Geräteverbindung,
+Installation und sichtbarer Start; die App-Gruppe wird am Gerät erkannt.
+Die eigene Dokumentablage ist vor der Aufnahme leer. Basti entsperrte Safari
+und aktivierte die Tastatur zunächst ohne Vollzugriff. Die Testseite, das leere
+erste Feld und der gesperrte Kopplungsknopf sind bildlich geprüft.
+Basti aktivierte danach den Vollzugriff. Der positive Kopplungsweg und die
+korrigierte Berührungsfolge sind belegt: In Feld Eins und Feld Zwei steht jeweils
+genau ein synthetischer Testtext. Die Bildfolge zeigt Feld Zwei noch leer nach
+Aufnahmeende und die gesperrte Zustellung erst nach frischem Einfügedruck.
+Berührung, Mikrofonende und Wiederholungsdruck sind von Basti bestätigt.
+Alle drei freigegebenen WAV-Dateien sind mit 15,0, 14,006625 und 15,0 Sekunden,
+`0600` und Backup-Ausschluss direkt geprüft. Keine weitere Aufnahmefreigabe bleibt.
+Die Test-App ist deinstalliert, ihre Container sind nicht mehr direkt verfügbar,
+private Mac-Prüfkopien sind entfernt. Basti bestätigt geschlossene Testseiten
+und funktionierende Apple-Tastatur sowie Apple-Diktieren. USB-Durchlauf abgeschlossen.
+
+**Prüflücken:** Host-Abbruch und weitere Unterbrechungs-/Fehlerfälle wurden nicht
+ausgeführt. Gruppenmarker lassen sich über die direkte Dateischnittstelle nicht
+auslesen; iOS-Dateischutzklasse ist nur im Quellstand gesetzt, nicht unabhängig
+am Gerät nachgewiesen. Keine Ursache oder fehlende Kopplung daraus ableiten.
+Vor weiterer Live-Prüfung konkrete Freigabe und erneuten USB-Anschluss festlegen.
+[Kandidat und Grenzen](../ios/README.md),
+[Prüfplan](../ios/PRUEFPLAN.md), [Kandidat und Gerätebelege](ios-recording-coupling-2026-09-30.md).
 Die folgenden Texttest-Nachweise gelten nur
 für den früheren Kandidaten.
+
+### Frühere reine Texttests
 
 Fortsetzung am 30. September: Bastis iPhone 15 mit iOS 27.0.1 ist per USB
 verbunden. Nach eigener Xcode-Anmeldung und genehmigter Entwicklungssignierung
@@ -43,7 +63,7 @@ bestätigt Basti die Apple-Tastatur direkt am Display; die Aufnahme zeigt sie
 nicht. Der frische Wiederholungslauf bestätigt Anfang und erwarteten Endzustand
 nach Eingabe, Löschen und vom Nutzer bestätigtem App-Wechsel. Die Test-App
 ist wieder deinstalliert; Basti bestätigte das Schließen der eigenen Safari-Tabs.
-Der begrenzte synthetische Textpfad ist bestanden. Echte Aufnahme bleibt offen.
+Der damalige begrenzte synthetische Textpfad ist bestanden; er prüfte keine Aufnahme.
 [Aktueller Gerätenachweis](ios-device-2026-09-30.md).
 Nach der Bereinigung meldete Basti zunächst einen Ausfall von Apples Diktieren,
 dann dessen Rückkehr. Keine Reparatur wurde vorgenommen; die Ursache ist offen.
@@ -61,8 +81,8 @@ sind bereinigt. Das funktionierende Diagnosegerät bleibt ausgeschaltet
 vorhanden, alle alten Geräte sind erhalten. Die genaue Ursache der fehlenden
 Tastatur im ursprünglichen Gerät bleibt unbewiesen.
 
-Offen bleiben der reale Aufnahme-/Tastaturablauf auf einem benannten iPhone,
-Provider, Diktatqualität, weitere Ziel-Apps und Barrierefreiheit. Der bestandene
+Offen bleiben die zusätzliche Aufnahme-/Fehlerabnahme, Provider, Diktatqualität,
+weitere Ziel-Apps und Barrierefreiheit. Der bestandene
 synthetische Textpfad ist keine fertige iOS-Diktier-App oder Veröffentlichungsfreigabe.
 
 ## Aktuelle Projektbereinigung · 28. September 2026

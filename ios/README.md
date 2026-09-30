@@ -1,11 +1,15 @@
 # OpenDictate iOS Kopplungs-Prototyp
 
-Der nächste Machbarkeitsnachweis prüft **Aufnahme in der Haupt-App → manueller
+Der Prototyp prüft **Aufnahme in der Haupt-App → manueller
 Wechsel zu Safari → Stopp über die Tastatur → bewusstes Einfügen von Testtext**.
 Der Text bleibt synthetisch; es gibt noch keine Transkription. Aufbau und
-Abnahme stehen in [PRUEFPLAN.md](PRUEFPLAN.md). Dieser neue Kandidat ist noch
-nicht auf dem iPhone installiert oder mit dessen Mikrofon geprüft.
-[Offline-Nachweis](../docs/ios-recording-coupling-2026-09-30.md).
+Abnahme stehen in [PRUEFPLAN.md](PRUEFPLAN.md). Auf dem iPhone 15 / iOS 27.0.1
+sind der begrenzte positive Kopplungsweg und die korrigierte Berührungsfolge
+belegt: Mikrofonende von Basti bestätigt, Feld-Endzustände und drei WAV-Dauern
+direkt geprüft. Test-App/-seiten und private Mac-Audioprüfkopien sind bereinigt;
+Apples Tastatur und Diktieren funktionieren laut Basti. Host-Abbruch und weitere
+Fehlerfälle bleiben offen. Noch keine vollständige Produktabnahme.
+[Kandidat und Gerätebelege](../docs/ios-recording-coupling-2026-09-30.md).
 
 ## Grenzen
 
@@ -18,8 +22,9 @@ nicht auf dem iPhone installiert oder mit dessen Mikrofon geprüft.
 - Beide Targets verwenden `group.com.opendictate.ios.keyboarddemo`.
   Apple-Gruppe und passende Entwicklungsprofile sind nach konkreter Freigabe
   eingerichtet; beide enthalten das genehmigte iPhone und die bestehende
-  Entwicklungsidentität. Der signierte Kandidat ist geprüft, aber noch nicht
-  installiert. [Einrichtungsnachweis](../docs/ios-recording-coupling-2026-09-30.md).
+  Entwicklungsidentität. Der signierte Kandidat wurde geprüft und am Gerät
+  installiert; die App-Gruppe wurde erkannt. Die Test-App ist wieder entfernt.
+  [Einrichtungsnachweis](../docs/ios-recording-coupling-2026-09-30.md).
   Ohne verfügbaren Gruppencontainer startet die Haupt-App nicht.
 - `RequestsOpenAccess` ist für die neue Kopplung eingeschaltet. Basti muss
   „Vollen Zugriff erlauben“ selbst aktivieren, bevor die Tastatur Stopp- und

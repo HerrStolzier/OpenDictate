@@ -60,7 +60,7 @@ Abschlusskriterien vor einer Produktumsetzung:
 
 Der bisherige reine Texttest ist auf Simulator und iPhone 15 / iOS 27.0.1
 bestanden; seine exakten Belege stehen unten. Auf Bastis Fortsetzungsauftrag
-wird jetzt der [Kopplungs-Kandidat](../ios/README.md) vorbereitet: bewusst in
+ist der [Kopplungs-Kandidat](../ios/README.md) umgesetzt: bewusst in
 OpenDictate starten, manuell zu Safari wechseln, über die Tastatur stoppen
 und danach markierten synthetischen Text bewusst einfügen. Höchstens drei
 lokale WAV-Dateien mit jeweils 15 Sekunden; keine Transkription oder Übertragung.
@@ -68,11 +68,17 @@ Audio bleibt ausschließlich im privaten Host-Container, die App-Gruppe hält
 Sitzungsmetadaten und Marker. Normale Tastatureingabe bleibt ohne Vollzugriff
 verfügbar. [Prüfplan](../ios/PRUEFPLAN.md).
 
-Der neue Kandidat ist noch nicht auf dem iPhone installiert oder mit dessen
-Mikrofon geprüft. Die konkrete Freigabe ist inzwischen erteilt; Apple-App-Gruppe
+Der Kandidat ist am iPhone begrenzt geprüft: positiver Kopplungsweg, native
+Aufnahmegrenze, bewusste einmalige Einfügung in beide Felder und die korrigierte
+Berührungsfolge. Gerätebilder und WAV-Header ergänzen Bastis Beobachtung.
+Alle drei Aufnahmen der konkreten Freigabe sind verbraucht; Host-Abbruch und
+weitere Fehlerfälle bleiben offen. Test-App/-seiten und private Mac-Audioprüfkopien
+sind bereinigt; Basti bestätigt Apples Tastatur und Diktieren nach der Bereinigung.
+Der USB-Durchlauf ist abgeschlossen. Apple-App-Gruppe
 und beide Profile sind mit der vorhandenen Entwicklungsidentität eingerichtet,
-der signierte Gerätebuild ist geprüft. Für Installation und begleitete Live-Prüfung
-muss das iPhone per USB verbunden und entsperrt sein. Das technische Deployment-Ziel
+der signierte Gerätebuild ist geprüft. Für eine weitere Installation und
+begleitete Live-Prüfung muss das iPhone erneut per USB verbunden und entsperrt
+sein; zusätzliche Aufnahmen brauchen neue konkrete Freigabe. Das technische Deployment-Ziel
 16.0 legt noch keine Produkt-Mindestversion fest. Vollständiges Diktieren,
 weitere Zielprogramme, Zugänglichkeit und Verteilung bleiben offen.
 

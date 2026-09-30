@@ -136,6 +136,11 @@ USB-Verbindung. Erst nach der Abschlussmeldung kann Basti das iPhone abstecken.
    auch ohne Stoppmarker. Nach 60 Sekunden ist das Ergebnis nicht mehr nutzbar.
 10. **Aufnahme 3, Abbruch:** In der Haupt-App starten und nach wenigen Sekunden
     abbrechen. Mikrofon endet, WAV bleibt lokal, Kopplung bietet kein Ergebnis.
+    Für den Durchlauf am 30. September galt die belegte Zählung: Nach der ersten
+    geführten Bedienfolge waren bereits zwei WAV-Dateien vorhanden. Die letzte
+    Aufnahme wurde für Schritt 9 verwendet; Schritt 10 wurde nicht zusätzlich
+    gestartet. Abbruch bleibt ausdrücklich eine Prüflücke. Alle drei Aufnahmen
+    sind verbraucht; [Gerätebelege und Bereinigung](../docs/ios-recording-coupling-2026-09-30.md).
 11. **Bereinigung:** Nach freigegebener Prüfung genau diese Test-App samt
     selbst erzeugten WAV-Dateien/Gruppenmetadaten deinstallieren und nur eigene
     Safari-Testtabs schließen. Apple-Gruppe/Profile sind dauerhafte, benannte

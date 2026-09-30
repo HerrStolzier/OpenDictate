@@ -21,6 +21,16 @@ Gruppenmetadaten entfernt und die eigenen Safari-Testtabs geschlossen.
 Die benannten Apple-Entwicklungsressourcen bleiben erhalten. Keine
 Anbieterübertragung oder Veröffentlichung. [Prüfumfang](ios/PRUEFPLAN.md).
 
+**Aktueller Kopplungsstand:** Nach erneutem USB-Anschluss bestehen Installation
+und sichtbarer Start des signierten Kandidaten. Die Sperre ohne Vollzugriff,
+danach der positive Kopplungsweg und die korrigierte Berührungsfolge sind
+begrenzt belegt. Alle drei freigegebenen WAV-Dateien wurden direkt geprüft:
+15,0, 14,006625 und 15,0 Sekunden. Die Test-App ist deinstalliert; private
+Mac-Audioprüfkopien sind entfernt. Basti bestätigt geschlossene Testseiten sowie
+funktionierende Apple-Tastatur und Apple-Diktieren. Der USB-Durchlauf ist
+abgeschlossen. Keine weitere Aufnahme aus dieser Freigabe; Host-Abbruch bleibt offen.
+[Nachweis](docs/ios-recording-coupling-2026-09-30.md).
+
 - **Quelle:** Basti benannte sein per USB angeschlossenes iPhone und gab
   anschließend ausdrücklich die Freigabe zur Fortsetzung.
 - **Ziel:** iPhone 15 mit iOS 27.0.1; Verbindung und aktivierter
