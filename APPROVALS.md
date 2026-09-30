@@ -23,10 +23,11 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
   nach lokalem Entwicklungsschlüssel und Apple-Development-Zertifikat,
   Registrierung dieses iPhones bei Apple sowie Profilen für App und Tastatur.
 - **Aktuelle Grenze:** Die native Device-Hub-Steuerung endet weiterhin mit
-  Timeout. Basti wurde um Aktivierung der Tastatur ohne Vollzugriff gebeten;
-  die reale Einfügung bleibt noch offen. Kein Mikrofon, Provider oder
+  Timeout. Basti hat aktiviert und bedient; Einfügung in beiden Textfeldern
+  ist bildlich belegt, die Apple-Tastatur im Passwortfeld durch seine direkte
+  Beobachtung. Abschließende Eingabe-/App-Wechselprüfung offen. Kein Mikrofon, Provider oder
   Veröffentlichungsweg wurde gestartet.
-  [Build- und Blockernachweis](docs/ios-device-2026-09-30.md).
+  [Gerätenachweis](docs/ios-device-2026-09-30.md).
 
 ## iOS: abgegrenzter Simulator-Test — 2026-09-29
 

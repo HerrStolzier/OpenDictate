@@ -72,14 +72,39 @@ Weitere lokale Belege: `device-signed-build.log` (fehlende Profildatei),
 mit Binärhashes, Profilprüfung und Kandidatenbindung. Kennungen des persönlichen
 Geräts werden nicht in diesem Repository veröffentlicht.
 
-## Offene Bedienprüfung und Bereinigung
+## Reale Bedienprüfung mit synthetischem Text
 
-Der native Steuerungszugriff auf Device Hub endet mit Timeout. Daher wurde
-Basti um den einzigen aktuell nicht fernbedienbaren Aktivierungsschritt in
-Einstellungen gebeten. Sichtbarer App-Start ist keine erfolgreiche
-Tastatureinfügung. Die eigentliche Geräte-E2E und der spätere
-Aufnahme-/Tastaturablauf bleiben offen.
+Basti bedient das iPhone, die Hauptaufgabe prüft die sichtbaren Ergebnisse
+über `devicectl`-Screenshots. Die native Device-Hub-Steuerung bleibt mit
+Timeout blockiert. Dies ist ein begleiteter echter Gerätepfad mit künstlichem
+Text, keine automatische Geräte-E2E und kein Diktat.
 
-Die Test-App bleibt für diese laufende Prüfung installiert. Keine Aufnahme,
-Anbieteranfrage, Testserver oder neues Simulatorgerät gestartet. Die
-freigegebenen dauerhaften Entwicklungszertifikate und Profile bleiben erhalten.
+Die unveränderte `ios/fixtures/keyboard-focus.html` wurde als Base64-`data:`-URL
+über `devicectl device process launch --payload-url` in Safari geöffnet.
+Kein HTTP-Server, kein LAN-Zugriff und keine externe Ressource nötig.
+Basti entsperrte Safari selbst per Face ID. Der Screenshot
+`safari-after-unlock.png` zeigt die lokale Fixture mit zwei leeren Textfeldern.
+
+| Prüfschritt | Ergebnis und Beleg |
+| --- | --- |
+| Aktivierung | Basti bestätigte das Hinzufügen ohne Vollzugriff; die Erweiterung ist anschließend im Screenshot sichtbar. |
+| Feld Eins | Ein bewusster Testknopfdruck; genau einmal `OpenDictate Testtext (synthetisch)` und die aktive OpenDictate-Tastatur sichtbar (`first-device-insert.png`). |
+| Feld Zwei | Nach Fokuswechsel und bewusstem Testknopfdruck genau einmal derselbe Text sichtbar (`second-insert-secure-field.png`). |
+| Passwortfeld | Leer und fokussiert, keine OpenDictate-Tasten im Screenshot. Die Apple-Tastatur selbst fehlt in den Aufnahmen. Basti bestätigte ausdrücklich ihre Sichtbarkeit auf dem tatsächlichen Display: sowohl nach Wechsel von OpenDictate als auch nach vorheriger Wahl der Apple-Tastatur. Dieser Teil beruht auf seiner direkten Beobachtung, nicht auf einem Bildnachweis der Systemtastatur. |
+
+Die zunächst vermutete fehlende Systemtastatur ist damit kein bestätigter
+Bedienfehler. Aus den Screenshots allein lässt sich dieser Prüfpunkt nicht
+beurteilen; eine technische Ursache des abweichenden Aufnahmebilds wurde
+nicht behauptet oder diagnostiziert. Kein echtes Passwort eingegeben.
+
+Normale Eingabe/Löschen, Rückkehr nach App-Wechsel und der gemeinsame
+Endzustand beider Felder sind zur abschließenden Prüfung angefragt. Sie
+werden erst nach dem Ergebnis als bestanden geführt.
+
+## Bereinigung und verbleibende Grenzen
+
+Test-App und eigener Safari-Tab bleiben für die laufende Prüfung vorhanden.
+Keine Aufnahme, Anbieteranfrage, Testserver oder neues Simulatorgerät gestartet.
+Die freigegebenen dauerhaften Entwicklungszertifikate und Profile bleiben erhalten.
+Der reale Aufnahme-/Tastaturablauf, weitere Ziel-Apps, Barrierefreiheit und
+Verteilung sind durch diese Textprüfung nicht abgenommen.

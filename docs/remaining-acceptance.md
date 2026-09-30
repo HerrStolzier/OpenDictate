@@ -22,8 +22,10 @@ Fortsetzung am 30. September: Bastis iPhone 15 mit iOS 27.0.1 ist per USB
 verbunden. Nach eigener Xcode-Anmeldung und genehmigter Entwicklungssignierung
 bestehen signierter Build, Signaturprüfung, Installation und sichtbarer Start.
 Das alte Entwicklungszertifikat wurde nicht widerrufen. Die fernbediente
-Device-Hub-Steuerung bleibt blockiert; Basti wurde um Aktivierung der Tastatur
-ohne Vollzugriff gebeten. Reale Einfügung und Aufnahme bleiben ungeprüft.
+Device-Hub-Steuerung bleibt blockiert; Basti bedient die aktivierte Tastatur.
+Einfügung in beide Textfelder ist per Screenshot belegt. Im Passwortfeld
+bestätigt Basti die Apple-Tastatur direkt am Display; die Aufnahme zeigt sie
+nicht. Abschließende Eingabe-/App-Wechselprüfung und echte Aufnahme sind offen.
 [Aktueller Gerätenachweis](ios-device-2026-09-30.md).
 
 Der unabhängig geprüfte Offline-Tastatur-Prototyp aus `e416a3d` besteht nun
