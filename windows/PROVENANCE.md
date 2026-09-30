@@ -54,6 +54,15 @@ Installationshelfer wurde nicht ausgeführt. Der Schlüssel im Extension-Manifes
 ist der öffentliche Identitätsschlüssel der lokalen Testextension; ein privater
 Signierschlüssel oder ein Browserprofil wurde nicht übernommen.
 
+## Entwicklung nach dem Snapshot
+
+`SOURCE-SHA256SUMS` bleibt das historische Importmanifest des unveränderten
+Windows-Snapshots aus dem retained Merge-Commit `9bf554ea7d2c48b87022469ddb4d6a36a5cf7cd0`.
+Spätere, normal versionierte Änderungen unter `windows/` ändern die aktuellen
+Dateien, ohne dieses Herkunftsmanifest umzuschreiben. Für den ursprünglichen
+Windows-PC-Abgleich ist deshalb dieser Snapshot-Commit maßgeblich, nicht der
+jeweilige Stand von `main`.
+
 ## Ergänzender Abgleich durch die Hauptaufgabe
 
 Nach der Snapshot-Erstellung wurden auch die vier unveränderten Ergänzungen
