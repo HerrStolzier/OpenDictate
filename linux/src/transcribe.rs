@@ -190,9 +190,11 @@ mod tests {
         })
     }
 
-    fn audio_file() -> std::path::PathBuf {
-        let path =
-            std::env::temp_dir().join(format!("opendictate-http-{}.wav", std::process::id()));
+    fn audio_file(case: &str) -> std::path::PathBuf {
+        let path = std::env::temp_dir().join(format!(
+            "opendictate-http-{}-{case}.wav",
+            std::process::id()
+        ));
         std::fs::write(&path, b"RIFF-test-audio").unwrap();
         path
     }
@@ -200,7 +202,7 @@ mod tests {
     #[test]
     fn stub_receives_multipart_and_returns_trimmed_text() {
         let (endpoint, server) = serve("200 OK", r#"{"text":"  Hallo Linux.  "}"#);
-        let path = audio_file();
+        let path = audio_file("success");
         let settings = Settings::default();
         let text = Transcriber::with_endpoint(&endpoint)
             .transcribe(&path, "test-key", &settings)
@@ -218,7 +220,7 @@ mod tests {
     #[test]
     fn stub_error_does_not_expose_provider_body() {
         let (endpoint, server) = serve("401 Unauthorized", r#"{"error":"private detail"}"#);
-        let path = audio_file();
+        let path = audio_file("error");
         let error = Transcriber::with_endpoint(&endpoint)
             .transcribe(&path, "test-key", &Settings::default())
             .unwrap_err();
