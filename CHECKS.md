@@ -1,21 +1,5 @@
 # Checks
 
-## iOS keyboard prototype
-
-The isolated `ios/` prototype has its own Xcode project. Use the offline
-simulator build in [ios/README.md](ios/README.md) and lint its Swift sources:
-
-```bash
-swift format lint --strict --configuration .swift-format --recursive ios/Sources
-```
-
-The current CI jobs below check the macOS project, not this iOS project.
-A successful simulator build does not prove keyboard activation or insertion
-in another app. Follow [ios/PRUEFPLAN.md](ios/PRUEFPLAN.md) for the visible
-Safari fixture check. Installing/launching the test app and activating its
-keyboard require the corresponding simulator-test approval. Real-device,
-microphone, provider, credentials and distribution remain separate gates.
-
 ## Required after source changes
 
 ```bash
@@ -237,7 +221,13 @@ On a ref without `ios/OpenDictateKeyboardDemo.xcodeproj`, the script prints
 `SKIP` and performs no iOS build. A present project must include the shared
 `OpenDictateKeyboardDemo` scheme; format or build failures stop the check. The
 build uses a generic iOS Simulator destination and does not boot a simulator or
-prove keyboard installation or live text insertion.
+prove keyboard installation or live text insertion. Follow
+[ios/PRUEFPLAN.md](ios/PRUEFPLAN.md) for the visible Safari fixture check;
+[simulator evidence](docs/ios-keyboard-e2e-2026-09-29.md) and
+[physical-device evidence](docs/ios-device-2026-09-30.md) identify their exact scope.
+Installing/launching the test app and activating its keyboard require the
+corresponding test approval. Microphone, provider, credentials and distribution
+remain separate gates.
 
 ## Workflow and secret checks
 
