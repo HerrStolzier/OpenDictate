@@ -41,6 +41,9 @@ nach Eingabe, Löschen und vom Nutzer bestätigtem App-Wechsel. Die Test-App
 ist wieder deinstalliert; Basti bestätigte das Schließen der eigenen Safari-Tabs.
 Der begrenzte synthetische Textpfad ist bestanden. Echte Aufnahme bleibt offen.
 [Aktueller Gerätenachweis](ios-device-2026-09-30.md).
+Nach der Bereinigung meldete Basti zunächst einen Ausfall von Apples Diktieren,
+dann dessen Rückkehr. Keine Reparatur wurde vorgenommen; die Ursache ist offen.
+Der nächste Tastaturtest muss auch Apples Diktieren nach der Bereinigung prüfen.
 
 Der unabhängig geprüfte Offline-Tastatur-Prototyp aus `e416a3d` besteht nun
 auch den sichtbaren E2E-Test auf dem separat genehmigten frischen iPhone-18-Pro-

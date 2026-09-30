@@ -148,3 +148,15 @@ Keine Aufnahme, Anbieteranfrage, Testserver oder neues Simulatorgerät gestartet
 Die freigegebenen dauerhaften Entwicklungszertifikate und Profile bleiben erhalten.
 Der reale Aufnahme-/Tastaturablauf, weitere Ziel-Apps, Barrierefreiheit und
 Verteilung sind durch diese Textprüfung nicht abgenommen.
+
+## Rückmeldung zu Apples Diktierfunktion nach der Bereinigung
+
+Basti meldete anschließend, dass Apples Diktieren auf dem iPhone nicht mehr
+funktionierte. Er bestätigte den aktivierten Diktier-Schalter und die vorhandene
+Mikrofontaste. Danach meldete er: „Es geht wieder, keine Ahnung warum“.
+In dieser Diagnose wurden keine iPhone-Einstellungen geändert, keine App
+installiert und keine Aufnahme gestartet. Eine Reparatur oder Ursache ist damit
+nicht nachgewiesen; die wieder funktionierende Diktierfunktion beruht auf seiner
+direkten Rückmeldung. Eine Prüfung von Apples Diktieren unmittelbar nach der
+Testbereinigung hatte im ursprünglichen Ablauf gefehlt. Künftige Tastaturtests
+sollen diesen Rückweg vor dem Abschluss prüfen.
