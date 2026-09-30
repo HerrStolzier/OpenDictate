@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "reachableSourceCommit": "bd81fdafc22e8f8fa6c1012e15087f5b5a5a828c",
+  "historicalLocalReviewCommit": "e416a3d71a0a7d62bed204aec7d401d4d0b586cf",
+  "sourceFiles": [
+    {
+      "path": "ios/OpenDictateKeyboardDemo.xcodeproj/project.pbxproj",
+      "digest": "c79eeded7322930c5a6101aed2195566fe1149b35e9a9281e72d5ac02ad35506"
+    },
+    {
+      "path": "ios/OpenDictateKeyboardDemo.xcodeproj/xcshareddata/xcschemes/OpenDictateKeyboardDemo.xcscheme",
+      "digest": "9fc7f3a5b07b245f165b00ba97d5032058948c70ce92ae4be8ad4e6184687fc8"
+    },
+    {
+      "path": "ios/Sources/OpenDictateKeyboard/Info.plist",
+      "digest": "8d9d01eb4cfcbe29390823d3b1e57de18094844c83a5fc09c3adbb6685140408"
+    },
+    {
+      "path": "ios/Sources/OpenDictateKeyboard/KeyboardViewController.swift",
+      "digest": "b0e5f44718d7196fda679c0c1a020abc173934a88827e6c56a4c50f2855268d3"
+    },
+    {
+      "path": "ios/Sources/OpenDictateKeyboardDemo/HostApp.swift",
+      "digest": "bc9d0e0b582ef70d2424bfbe1cd12c640a21b48f56c41396caacf2dd0eeeefe5"
+    }
+  ],
+  "simulatorBinaries": [
+    {
+      "path": "OpenDictateKeyboardDemo",
+      "digest": "2c8fcb36220b87a95ee4ae4ecabe9fd9ac8bc2f293e2a5d469874987ed2189ac"
+    },
+    {
+      "path": "PlugIns/OpenDictateKeyboard.appex/OpenDictateKeyboard",
+      "digest": "17272dd7d8333fd19d67bd64a365ca9aeeef72843830f18677ebd8478ca2f5e4"
+    }
+  ],
+  "physicalDeviceSourceCommit": "1e0009347756b3c5b8754391e6079155c41080e2",
+  "physicalDeviceBinaries": [
+    {
+      "path": "OpenDictateKeyboardDemo",
+      "digest": "95574cb01d8991fee7612ff37f003f269d20d25493ff41e7b68446ee3eaa3524"
+    },
+    {
+      "path": "PlugIns/OpenDictateKeyboard.appex/OpenDictateKeyboard",
+      "digest": "3dd00d548618dc2545f172e95da1f5b7da96af012f89b55cb3816acf51959dca"
+    }
+  ],
+  "fixture": {
+    "path": "ios/fixtures/keyboard-focus.html",
+    "digest": "56f9ecd89603d2f1032631d14e2f26a4d001eb141fc966db8595c50363589c1f"
+  },
+  "limits": "Hashes identify the recorded source and local tested binaries. They do not by themselves prove interaction, signing correctness or deterministic rebuilds."
+}

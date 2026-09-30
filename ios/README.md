@@ -28,8 +28,8 @@ stehen in [PRUEFPLAN.md](PRUEFPLAN.md).
 
 ## Offline-Simulator-Build
 
-Der Build schreibt nur nach
-`/Users/basti/.codex/artifacts/opendictate/ios-prototype-20260928/`.
+Die Build-Ausgabe liegt unter
+`$HOME/.codex/artifacts/opendictate/ios-prototype/`.
 `CODE_SIGNING_ALLOWED=NO` und `CODE_SIGNING_REQUIRED=NO` verhindern eine
 Signierung für diesen Simulator-Build.
 
@@ -39,7 +39,7 @@ xcodebuild \
   -scheme OpenDictateKeyboardDemo \
   -configuration Debug \
   -destination 'generic/platform=iOS Simulator' \
-  -derivedDataPath /Users/basti/.codex/artifacts/opendictate/ios-prototype-20260928/DerivedData \
+  -derivedDataPath "$HOME/.codex/artifacts/opendictate/ios-prototype/DerivedData" \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO \
   build
@@ -47,3 +47,27 @@ xcodebuild \
 
 Die lokale Safari-Fixture hat keine externen Ressourcen. Die Hauptaufgabe
 stellt sie für die Simulatorprüfung ausschließlich auf `127.0.0.1` bereit.
+
+## Kandidatenbindung prüfen
+
+Das versionierte [Kandidatenmanifest](../docs/ios-prototype-candidate-2026-09-30.json)
+verweist auf einen öffentlich erreichbaren Commit. Die folgenden Befehle
+prüfen dessen Quelldateien im frisch geklonten Repository, ohne Build oder
+Installation. Im Repository-Hauptordner ausführen:
+
+```sh
+python3 - <<'PYCODE'
+import hashlib, json, subprocess
+from pathlib import Path
+manifest = json.loads(Path("docs/ios-prototype-candidate-2026-09-30.json").read_text())
+for entry in manifest["sourceFiles"]:
+    content = subprocess.check_output([
+        "git", "show", manifest["reachableSourceCommit"] + ":" + entry["path"]
+    ])
+    assert hashlib.sha256(content).hexdigest() == entry["digest"], entry["path"]
+print("Recorded source hashes match the reachable candidate.")
+PYCODE
+```
+
+Die Binärhashes identifizieren die damals lokal getesteten Dateien; ein neuer
+Build muss wegen Toolchain und Signierung nicht dieselben Binärbytes erzeugen.

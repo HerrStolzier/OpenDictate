@@ -5,9 +5,15 @@ des Prototyps nach [Prüfplan](../ios/PRUEFPLAN.md), kein echtes Diktat.
 
 ## Kandidat und Umgebung
 
-- Unveränderte iOS-Quellen aus `e416a3d71a0a7d62bed204aec7d401d4d0b586cf`.
-  Beide installierten Binärhashes stimmen mit dem vorhandenen
-  `candidate-manifest.json` überein. Kein neuer Build, keine Quelländerung.
+- Öffentlich erreichbarer Quellanker:
+  [`bd81fda`](https://github.com/HerrStolzier/OpenDictate/commit/bd81fdafc22e8f8fa6c1012e15087f5b5a5a828c).
+  Seine fünf Build-Quelldateien stimmen bytegenau mit dem lokalen damaligen
+  Reviewstand `e416a3d` und dem Buildmanifest überein. Der lokale Reviewcommit
+  selbst ist kein von einem frischen Repository-Checkout erreichbarer Nachweis.
+- Das versionierte [Kandidatenmanifest](ios-prototype-candidate-2026-09-30.json)
+  enthält diese Dateihashes und die Hashes beider getesteten Simulator-Binärdateien.
+  Die installierten Binärhashes wurden damals gegen das lokale Buildmanifest
+  geprüft. Für diesen Test kein neuer Build und keine Quelländerung.
 - Xcode 27.0 (27A266a), iOS 27.0 (24A434), iPhone 18 Pro.
 - Genehmigtes separates Gerät „OpenDictate Keyboard Diagnose 20260929“,
   `D3DB8C1A-C44E-4980-99E1-6D2E13B9AB61`. Es wurde frisch angelegt.

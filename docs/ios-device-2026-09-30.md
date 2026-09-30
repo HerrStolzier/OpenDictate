@@ -62,7 +62,10 @@ xcodebuild -project ios/OpenDictateKeyboardDemo.xcodeproj \
 ```
 
 Der Quellstand ist `1e00093`; gegenüber dem Simulator-Kandidaten sind die
-iOS-Quellen unverändert. `codesign --verify --deep --strict` besteht.
+iOS-Quellen unverändert. Der öffentlich erreichbare Quellanker `bd81fda`
+und die fünf Build-Dateihashes sowie getesteten Binärhashes stehen im
+[versionierten Kandidatenmanifest](ios-prototype-candidate-2026-09-30.json).
+`codesign --verify --deep --strict` besteht.
 `devicectl device install app` bestätigt Installation,
 `devicectl device process launch` bestätigt Start. Screenshot `host-launch.png`
 wurde tatsächlich angesehen und zeigt die Prototyp-Anleitung auf dem iPhone.
