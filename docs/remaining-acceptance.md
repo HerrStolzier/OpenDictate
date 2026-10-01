@@ -62,6 +62,10 @@ ohne Return prüfen und anschließend aus der Eingabe entfernen. Die Terminalfä
 in [CHECKS](../CHECKS.md) erfassen außerdem Markierung, Secure Event Input und
 mehrzeiligen Fallback. Ein Ereigniszähler belegt gesendete Befehle, nicht
 übernommene Zeichen.
+Chrome (`com.google.Chrome`) ist ein Offline-Kandidat auf dem Unicode-Pfad;
+eine sichtbare `input`/`textarea`-Prüfung mit demselben unkritischen Satz
+gehört erst nach neuer Live-Freigabe dazu. Chrome Canary, Edge und Firefox
+sind nicht Teil dieses Kandidaten.
 Danach frühes menschliches Nutzerfeedback sammeln; die komplette
 [Kompatibilitätsmatrix](compatibility-matrix.md) bleibt das breitere Produktziel.
 
@@ -82,6 +86,14 @@ verwendet. Beim tatsächlichen Pilot Umfang und Audiozeit vorher festlegen.
   belegt werden. Ein misslungener Testwechsel zählt weder als Pass noch als Fehler.
 - Der erste Safari-textarea-Fallback im jüngsten historischen Zieltest bleibt
   ungeklärt, obwohl der Wiederholungsversuch bestand.
+- Safari, Brave, Chrome und Obsidian ohne erfasstes `AXWebArea` nutzen nicht
+  mehr den nativen AX-Pfad. Automatisches Einfügen unterbleibt; die
+  Zwischenablage bleibt der Rückweg. Offline-Tests decken die Pfadwahl ab,
+  ersetzen aber keinen sichtbaren Laufzeitnachweis.
+- Chrome (`com.google.Chrome`) liegt auf dem Unicode-Pfad mit isolierten
+  Zeilenumbrüchen als erster Annahme. Offline-Tests existieren; sichtbare
+  Chrome-Eingabe ist nicht belegt. Chrome Canary, Edge, Firefox und andere
+  Chromium-Apps sind nicht Teil dieser Allowlist.
 - Eine manuelle Cursor-/Auswahlbewegung innerhalb desselben Feldes während
   mehrteiliger Eingabe ist noch zu untersuchen. Die Korrektur der Rückmeldung
   erkennt solche Bewegungen nicht automatisch.

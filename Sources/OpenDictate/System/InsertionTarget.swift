@@ -1,5 +1,6 @@
 import AppKit
 import ApplicationServices
+import OpenDictateCore
 
 /// Identity and selection only. Never retains the destination's text or title.
 @MainActor
@@ -16,7 +17,14 @@ struct InsertionTarget {
     let bundleIdentifier: String?
 
     var requiresTerminalEvents: Bool {
-        bundleIdentifier == "com.apple.Terminal" && role == kAXTextAreaRole && document == nil
+        InsertionDeliveryStrategy.isTerminalTarget(
+            bundleIdentifier: bundleIdentifier, role: role, hasWebDocument: document != nil)
+    }
+
+    func deliveryStrategy(text: String, isSecureInputEnabled: Bool) -> InsertionDeliveryStrategy {
+        InsertionDeliveryStrategy.choose(
+            bundleIdentifier: bundleIdentifier, role: role, hasWebDocument: document != nil,
+            text: text, isSecureInputEnabled: isSecureInputEnabled)
     }
 
     var acceptsInsertion: Bool {

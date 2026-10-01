@@ -42,7 +42,7 @@ element captured at dictation start. It retains only process, window, element,
 web-document identity (when available), role, writability, application bundle
 identifier and selection range, not the target's
 text or title. These references are cleared when the flow becomes idle. An
-external application switch invalidates the automatic target. For Brave, Safari and Obsidian web
+external application switch invalidates the automatic target. For Brave, Safari, Chrome and Obsidian web
 editors, it instead
 sends the exact transcript as Unicode keyboard events addressed to that process.
 It checks that the application is still frontmost and the same Accessibility

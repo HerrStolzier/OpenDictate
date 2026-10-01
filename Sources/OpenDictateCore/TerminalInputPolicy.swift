@@ -2,8 +2,8 @@
 /// line breaks, control characters and AppKit's private function-key range
 /// before sending any chunk. This does not identify the program or prompt
 /// running inside the terminal, nor prove that ordinary keys have no effects.
-enum TerminalInputPolicy {
-    static func permits(_ text: String) -> Bool {
+public enum TerminalInputPolicy {
+    public static func permits(_ text: String) -> Bool {
         !text.isEmpty
             && text.unicodeScalars.allSatisfy {
                 switch $0.value {

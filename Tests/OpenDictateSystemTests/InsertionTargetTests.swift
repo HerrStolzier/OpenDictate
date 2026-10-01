@@ -1,4 +1,5 @@
 import AppKit
+import OpenDictateCore
 import Testing
 
 @testable import OpenDictate
@@ -18,10 +19,9 @@ struct InsertionTargetTests {
         var subrole: String?
         var enabled: Bool? = true
         var settable = true
-        var bundleIdentifier: String?
+        var bundleIdentifier: String? = "com.apple.Safari"
         var secureInput = false
         var missing = false
-        var needsUnicode = true
         var nativeSucceeds = true
         var native: [String] = []
         var unicode: [[UniChar]] = []
@@ -43,10 +43,14 @@ struct InsertionTargetTests {
             settable = false
         }
 
+        func useNativeEditor() {
+            bundleIdentifier = "com.apple.TextEdit"
+            document = nil
+        }
+
         lazy var inserter = PasteboardInserter(
             access: .init(
                 isTrusted: { self.trusted }, frontmostPID: { self.frontmost }, focusedTarget: { _ in self.snapshot },
-                needsUnicodeEvents: { _ in self.needsUnicode },
                 insertSelectedText: { _, text in
                     self.native.append(text)
                     return self.nativeSucceeds
@@ -115,7 +119,7 @@ struct InsertionTargetTests {
 
     @Test func nativeInsertionUsesExactCapturedElementOnce() async {
         let h = Harness()
-        h.document = nil
+        h.useNativeEditor()
         let target = h.inserter.captureTarget(in: 42)
         #expect(await h.inserter.paste("Äpfel 🍏", into: target) == .submitted)
         #expect(h.native == ["Äpfel 🍏"])
@@ -124,8 +128,8 @@ struct InsertionTargetTests {
 
     @Test func nativeTextViewMayOmitEnabledButMustExposeWritableSelection() async {
         let h = Harness()
+        h.useNativeEditor()
         h.enabled = nil
-        h.document = nil
         let target = h.inserter.captureTarget(in: 42)
         #expect(target != nil)
         #expect(await h.inserter.paste("text", into: target) == .submitted)
@@ -146,7 +150,7 @@ struct InsertionTargetTests {
 
     @Test func otherWebEnginesKeepAXRouteWithoutDuplicateFallback() async {
         let h = Harness()
-        h.needsUnicode = false
+        h.bundleIdentifier = "org.mozilla.firefox"
         let target = h.inserter.captureTarget(in: 42)
         #expect(await h.inserter.paste("text", into: target) == .submitted)
         #expect(h.native == ["text"])
@@ -154,15 +158,31 @@ struct InsertionTargetTests {
     }
 
     @Test func browserLineBreakPoliciesPreserveExactText() async {
-        for policy in [
-            UnicodeTextDelivery.LineBreakPolicy.grouped, .isolated, .trailing
-        ] {
+        let cases: [(String, Int)] = [
+            ("md.obsidian", 1),
+            ("com.apple.Safari", 3),
+            ("com.google.Chrome", 3),
+            ("com.brave.Browser", 1)
+        ]
+        for (bundle, chunkCount) in cases {
             let h = Harness()
-            h.inserter.access.unicodeLineBreakPolicy = { _ in policy }
+            h.bundleIdentifier = bundle
             let target = h.inserter.captureTarget(in: 42)
             #expect(await h.inserter.paste("Before\nAfter", into: target) == .submitted)
-            #expect(h.unicode.count == (policy == .isolated ? 3 : 1))
+            #expect(h.unicode.count == chunkCount)
             #expect(String(decoding: h.unicode.flatMap { $0 }, as: UTF16.self) == "Before\nAfter")
+        }
+    }
+
+    @Test func allowlistedEditorWithoutWebDocumentDoesNotFallBackToAX() async {
+        for bundle in InsertionDeliveryStrategy.unicodeBundleIDs {
+            let h = Harness()
+            h.bundleIdentifier = bundle
+            h.document = nil
+            let target = h.inserter.captureTarget(in: 42)
+            #expect(target != nil)
+            #expect(await h.inserter.paste("text", into: target) == .notAttempted)
+            #expect(h.native.isEmpty && h.unicode.isEmpty)
         }
     }
 
@@ -172,6 +192,24 @@ struct InsertionTargetTests {
         h.afterChunk = { h.field = 102 }
         #expect(await h.inserter.paste(String(repeating: "x", count: 70), into: target) == .interrupted)
         #expect(h.unicode.count == 1)
+    }
+
+    @Test func chromeCandidateUsesIsolatedNewlinesAndStopsAfterFocusLoss() async {
+        let h = Harness()
+        h.bundleIdentifier = "com.google.Chrome"
+        let target = h.inserter.captureTarget(in: 42)
+        #expect(await h.inserter.paste("Before\nAfter", into: target) == .submitted)
+        #expect(h.unicode.count == 3)
+        #expect(h.native.isEmpty)
+
+        let interrupted = Harness()
+        interrupted.bundleIdentifier = "com.google.Chrome"
+        let chromeTarget = interrupted.inserter.captureTarget(in: 42)
+        interrupted.afterChunk = { interrupted.frontmost = 43 }
+        #expect(
+            await interrupted.inserter.paste(String(repeating: "x", count: 70), into: chromeTarget) == .interrupted)
+        #expect(interrupted.unicode.count == 1)
+        #expect(interrupted.native.isEmpty)
     }
 
     @Test func explicitPanelCaptureDoesNotRequirePanelToStealFocusBack() async {
@@ -186,7 +224,7 @@ struct InsertionTargetTests {
 
     @Test func nativeErrorDoesNotProveNoInsertionAndNeverRetries() async {
         let h = Harness()
-        h.document = nil
+        h.useNativeEditor()
         h.nativeSucceeds = false
         let target = h.inserter.captureTarget(in: 42)
         #expect(await h.inserter.paste("text", into: target) == .uncertain)
@@ -325,7 +363,7 @@ struct InsertionTargetTests {
 
     @Test func terminalControlCharacterPolicyDoesNotChangeOrdinaryEditors() async {
         let h = Harness()
-        h.document = nil
+        h.useNativeEditor()
         let target = h.inserter.captureTarget(in: 42)
         #expect(await h.inserter.paste("Before\nAfter\tText", into: target) == .submitted)
         #expect(h.native == ["Before\nAfter\tText"])

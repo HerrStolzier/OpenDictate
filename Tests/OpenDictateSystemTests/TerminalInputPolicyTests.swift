@@ -1,6 +1,5 @@
+import OpenDictateCore
 import Testing
-
-@testable import OpenDictate
 
 @Suite("Terminal text without command keys")
 struct TerminalInputPolicyTests {

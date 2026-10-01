@@ -53,9 +53,11 @@ struct UnicodeTextDeliveryTests {
         #expect(brave.allSatisfy { !$0.isEmpty && $0.count <= 20 })
         #expect(brave.dropFirst().allSatisfy { $0.first != 10 && $0.first != 13 })
         #expect(UnicodeTextDelivery.policy(for: "com.apple.Safari") == .isolated)
+        #expect(UnicodeTextDelivery.policy(for: "com.google.Chrome") == .isolated)
         #expect(UnicodeTextDelivery.policy(for: "com.brave.Browser") == .trailing)
         #expect(UnicodeTextDelivery.policy(for: "md.obsidian") == .grouped)
         #expect(UnicodeTextDelivery.policy(for: nil) == .grouped)
+        #expect(UnicodeTextDelivery.policy(for: "com.google.Chrome.canary") == .grouped)
     }
 
     @Test func trailingPolicyKeepsCRLFAndBlankLinesBehindText() {

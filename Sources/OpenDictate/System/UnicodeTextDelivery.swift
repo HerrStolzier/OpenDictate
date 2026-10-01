@@ -4,16 +4,10 @@ import OpenDictateCore
 /// Sends exact text without consulting the global clipboard. Events stay process-scoped.
 @MainActor
 struct UnicodeTextDelivery {
-    enum LineBreakPolicy {
-        case grouped, isolated, trailing
-    }
+    typealias LineBreakPolicy = UnicodeLineBreakPolicy
 
     static func policy(for bundleID: String?) -> LineBreakPolicy {
-        switch bundleID {
-        case "com.apple.Safari": .isolated
-        case "com.brave.Browser": .trailing
-        default: .grouped
-        }
+        InsertionDeliveryStrategy.lineBreakPolicy(for: bundleID)
     }
 
     static func chunks(_ text: String, lineBreakPolicy: LineBreakPolicy = .grouped) -> [[UniChar]] {

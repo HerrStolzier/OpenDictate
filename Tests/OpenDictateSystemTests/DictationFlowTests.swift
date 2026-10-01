@@ -117,9 +117,13 @@ struct DictationFlowTests {
 
     @Test func successfulRetryCopiesWithoutPastingAndRemovesItsSource() async {
         let h = Harness()
+        var statuses: [String] = []
+        h.flow.onStatus = { statuses.append($0) }
         #expect(h.flow.retry(h.payload))
         await h.flow.task?.value
         #expect(h.removed == 1 && h.pasted == 0)
+        #expect(statuses.contains("Wiederholter Text kopiert – nicht automatisch eingefügt"))
+        #expect(!statuses.contains("Text kopiert – automatisches Einfügen abgebrochen"))
     }
 
     @Test func sentPasteIsReportedAsUnconfirmed() async throws {
@@ -168,12 +172,17 @@ struct DictationFlowTests {
     @Test func skippedAudioIsKeptWithoutUpload() async throws {
         let h = Harness()
         h.preparationFails = true
+        var statuses: [String] = []
+        h.flow.onStatus = { statuses.append($0) }
         _ = try h.flow.start()
         _ = h.flow.stop()
         await h.flow.task?.value
         #expect(h.uploads == 0)
         #expect(h.kept == [h.original])
         #expect(h.cleaned == [h.original])
+        #expect(statuses.last?.contains("nichts an OpenAI gesendet") == true)
+        #expect(statuses.last?.contains("bewussten Wiederholung") == true)
+        #expect(statuses.last?.contains("fehlgeschlagen") != true)
     }
 
     @Test func failedPersistenceNeverDeletesOnlyOriginal() async throws {

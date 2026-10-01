@@ -11,10 +11,8 @@ struct PasteboardInserter {
         var isTrusted: @MainActor () -> Bool
         var frontmostPID: @MainActor () -> pid_t?
         var focusedTarget: @MainActor (pid_t) -> InsertionTarget?
-        var needsUnicodeEvents: @MainActor (pid_t) -> Bool
         var insertSelectedText: @MainActor (AXUIElement, String) -> Bool
         var postUnicode: @MainActor (pid_t, [UniChar]) -> Bool
-        var unicodeLineBreakPolicy: @MainActor (pid_t) -> UnicodeTextDelivery.LineBreakPolicy = { _ in .grouped }
         var isSecureInputEnabled: @MainActor () -> Bool = { IsSecureEventInputEnabled() }
 
         static var live: Access {
@@ -22,10 +20,6 @@ struct PasteboardInserter {
                 isTrusted: { AXIsProcessTrusted() },
                 frontmostPID: { NSWorkspace.shared.frontmostApplication?.processIdentifier },
                 focusedTarget: { InsertionTarget.read(pid: $0) },
-                needsUnicodeEvents: {
-                    guard let id = NSRunningApplication(processIdentifier: $0)?.bundleIdentifier else { return false }
-                    return ["com.brave.Browser", "com.apple.Safari", "md.obsidian"].contains(id)
-                },
                 insertSelectedText: {
                     AXUIElementSetAttributeValue($0, kAXSelectedTextAttribute as CFString, $1 as CFString) == .success
                 },
@@ -34,10 +28,6 @@ struct PasteboardInserter {
                     down.postToPid(pid)
                     up.postToPid(pid)
                     return true
-                },
-                unicodeLineBreakPolicy: {
-                    UnicodeTextDelivery.policy(
-                        for: NSRunningApplication(processIdentifier: $0)?.bundleIdentifier)
                 })
         }
     }
@@ -69,15 +59,12 @@ struct PasteboardInserter {
             AppLog.write("Auto-paste unavailable: original target is missing, protected or changed")
             return .notAttempted
         }
-        if target.requiresTerminalEvents {
-            guard !access.isSecureInputEnabled() else {
-                AppLog.write("Auto-paste unavailable: terminal secure input is enabled")
-                return .notAttempted
-            }
-            guard TerminalInputPolicy.permits(text) else {
-                AppLog.write("Auto-paste unavailable: terminal text contains a control or function-key scalar")
-                return .notAttempted
-            }
+        let strategy = target.deliveryStrategy(text: text, isSecureInputEnabled: access.isSecureInputEnabled())
+        switch strategy {
+        case .clipboardOnly:
+            AppLog.write("Auto-paste unavailable: \(strategy.logMessage)")
+            return .notAttempted
+        case .terminalUnicode:
             // Terminal's AX text area describes its display, including scrollback.
             // Even a settable AXSelectedText is not the shell's editable buffer.
             return await UnicodeTextDelivery.send(text) {
@@ -85,18 +72,18 @@ struct PasteboardInserter {
             } post: {
                 access.postUnicode(target.pid, $0)
             }
-        }
-        // These web editors can accept AXSelectedText without applying it. Never retry an
-        // accepted AX command via Unicode: a delayed edit could duplicate text.
-        if target.document != nil && access.needsUnicodeEvents(target.pid) {
-            return await UnicodeTextDelivery.send(text, lineBreakPolicy: access.unicodeLineBreakPolicy(target.pid)) {
+        case .unicode(let policy):
+            // These web editors can accept AXSelectedText without applying it. Never retry an
+            // accepted AX command via Unicode: a delayed edit could duplicate text.
+            return await UnicodeTextDelivery.send(text, lineBreakPolicy: policy) {
                 access.isTrusted() && remainsFocused(target, checkSelection: false)
             } post: {
                 access.postUnicode(target.pid, $0)
             }
+        case .nativeAX:
+            // An AX error (including a timeout) does not prove the destination was unchanged.
+            return access.insertSelectedText(target.element, text) ? .submitted : .uncertain
         }
-        // An AX error (including a timeout) does not prove the destination was unchanged.
-        return access.insertSelectedText(target.element, text) ? .submitted : .uncertain
     }
 
     private func remainsFocused(_ target: InsertionTarget, checkSelection: Bool) -> Bool {

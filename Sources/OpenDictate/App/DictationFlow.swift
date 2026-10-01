@@ -155,12 +155,20 @@ final class DictationFlow {
             } else {
                 mayCleanOriginal = preserve(original)
                 if mayCleanOriginal {
-                    onStatus?(
-                        Task.isCancelled
-                            ? "Abgebrochen – Aufnahme für Wiederholung gesichert"
-                            : "\(OpenDictateError.userMessage(for: error)) – Aufnahme für manuelle Wiederholung gesichert"
-                    )
-                    onOutcome?(Task.isCancelled ? .cancelled : .failed)
+                    if Task.isCancelled {
+                        onStatus?("Abgebrochen – Aufnahme für Wiederholung gesichert")
+                        onOutcome?(.cancelled)
+                    } else if (error as? OpenDictateError)?.isSkippedRecording == true {
+                        onStatus?(
+                            "\(OpenDictateError.userMessage(for: error)) Aufnahme bleibt zur bewussten Wiederholung erhalten."
+                        )
+                        onOutcome?(.failed)
+                    } else {
+                        onStatus?(
+                            "\(OpenDictateError.userMessage(for: error)) – Aufnahme für manuelle Wiederholung gesichert"
+                        )
+                        onOutcome?(.failed)
+                    }
                 }
             }
         }
@@ -190,9 +198,13 @@ final class DictationFlow {
             onOutcome?(.textAvailable)
             return .clipboardFailed
         }
-        guard !Task.isCancelled, allowPaste else {
+        if Task.isCancelled {
             onStatus?("Text kopiert – automatisches Einfügen abgebrochen")
-            if !allowPaste { onStatus?("Wiederholter Text kopiert – nicht automatisch eingefügt") }
+            onOutcome?(.textAvailable)
+            return .copied(.notAttempted)
+        }
+        guard allowPaste else {
+            onStatus?("Wiederholter Text kopiert – nicht automatisch eingefügt")
             onOutcome?(.textAvailable)
             return .copied(.notAttempted)
         }

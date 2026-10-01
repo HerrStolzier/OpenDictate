@@ -47,8 +47,17 @@ struct OpenDictateErrorTests {
         #expect(OpenDictateError.noSpeechDetected(peakDb: -70).isSkippedRecording)
         #expect(OpenDictateError.recordingTooShort(actual: 0.4, minimum: 1).isSkippedRecording)
         #expect(!OpenDictateError.invalidResponse.isSkippedRecording)
+        #expect(!OpenDictateError.audioNotEligibleForUpload.isSkippedRecording)
+        #expect(!OpenDictateError.unusableTranscriptionModel.isSkippedRecording)
         #expect(!OpenDictateError.apiError("boom").isSkippedRecording)
         #expect(!OpenDictateError.missingAPIKey.isSkippedRecording)
+    }
+
+    @Test("Local upload checks do not blame OpenAI")
+    func localValidationMessages() {
+        #expect(OpenDictateError.audioNotEligibleForUpload.errorDescription?.contains("OpenAI") != true)
+        #expect(OpenDictateError.unusableTranscriptionModel.errorDescription?.contains("Modell") == true)
+        #expect(OpenDictateError.invalidResponse.errorDescription?.contains("OpenAI") == true)
     }
 
     @Test("The too-short message names both durations")

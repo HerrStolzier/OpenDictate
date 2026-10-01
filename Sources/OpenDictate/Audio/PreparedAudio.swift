@@ -7,6 +7,16 @@ struct PreparedAudio {
     let uploadDuration: TimeInterval
 }
 
+enum TemporaryAudioAccess {
+    static func restrict(_ url: URL) {
+        do {
+            try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+        } catch {
+            AppLog.write("Could not restrict temporary audio permissions at \(url.path)")
+        }
+    }
+}
+
 struct AudioAnalysis {
     let speechRange: SpeechRange?
     let peakDb: Float

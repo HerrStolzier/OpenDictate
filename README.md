@@ -140,12 +140,16 @@ defined Apple Terminal input path below. Switching to another application during
 a dictation invalidates its automatic target, even if you later return.
 
 Insertion sends the transcript directly to the captured Accessibility text
-element. Brave, Safari and Obsidian web editors use process-scoped Unicode keyboard events
-instead because these editors can accept the Accessibility setter without
-inserting text. This path rechecks the foreground application and focused field
+element. Brave, Safari, Chrome and Obsidian web editors use process-scoped Unicode
+keyboard events instead because these editors can accept the Accessibility setter
+without inserting text. Without a captured web document those apps do not use the
+Accessibility setter as a second strategy; the transcript stays on the clipboard.
+This path rechecks the foreground application and focused field
 between text chunks; it never sends a paste shortcut or consumes the clipboard.
 Safari receives line breaks separately so text following a newline is not lost;
-a CRLF pair remains one line break. Brave binds line breaks to preceding text
+a CRLF pair remains one line break. Chrome currently uses that same isolated-newline
+policy as a first assumption; it is a candidate, not a compatibility claim.
+Brave binds line breaks to preceding text
 and keeps complete graphemes together within each event. Text that cannot fit
 this rule (for example a leading line break or an unusually long grapheme)
 uses the full clipboard fallback before sending any event. Obsidian retains

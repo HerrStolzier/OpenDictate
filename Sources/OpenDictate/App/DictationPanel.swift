@@ -5,7 +5,7 @@ import OpenDictateCore
 @MainActor
 final class DictationPanel: NSWindowController {
     enum Display: String, CaseIterable {
-        case ready, setup, recording, processing, confirmed, manual, unconfirmed, failure, retry, cancelling
+        case ready, setup, recording, processing, manual, unconfirmed, failure, retry, cancelling
 
         var title: String {
             switch self {
@@ -13,7 +13,6 @@ final class DictationPanel: NSWindowController {
             case .setup: "API-Schlüssel einrichten."
             case .recording: "Aufnahme läuft."
             case .processing: "Text wird verarbeitet."
-            case .confirmed: "Text eingefügt."
             case .manual: "Text ist verfügbar."
             case .unconfirmed: "Diktat verarbeitet."
             case .failure: "Vorgang nicht abgeschlossen."
@@ -27,7 +26,6 @@ final class DictationPanel: NSWindowController {
             case .ready, .recording: "mic"
             case .setup: "key"
             case .processing, .cancelling: "text.alignleft"
-            case .confirmed: "checkmark"
             case .manual: "doc.text"
             case .unconfirmed: "arrow.right.doc.on.clipboard"
             case .failure: "exclamationmark.triangle"
@@ -39,7 +37,6 @@ final class DictationPanel: NSWindowController {
             switch self {
             case .recording: PanelColors.pair(0xA53B25, 0xFFB09B)
             case .processing, .manual: PanelColors.pair(0x245DC1, 0x99BFFF)
-            case .confirmed: PanelColors.pair(0x216444, 0x91DFB3)
             case .unconfirmed: PanelColors.pair(0x245DC1, 0x99BFFF)
             case .failure: PanelColors.pair(0xAF293B, 0xFFADB7)
             default: PanelColors.ink
@@ -241,17 +238,19 @@ final class DictationPanel: NSWindowController {
         showForInteraction()
     }
 
-    /// Used by the isolated debug preview, never by production delivery logic.
-    func preview(_ value: Display) {
-        busy = value == .recording || value == .processing || value == .cancelling
-        showingText = value == .manual
-        textView.string = "Wir besprechen den Entwurf am Montag."
-        window?.title = "OpenDictate – Vorschau"
-        set(
-            value,
-            detail: value == .unconfirmed
-                ? Self.pasteDetail : "Gestaltungsvorschau · kein Mikrofon, kein Upload, kein Kopieren.")
-    }
+    #if DEBUG
+        /// Used by the isolated debug preview, never by production delivery logic.
+        func preview(_ value: Display) {
+            busy = value == .recording || value == .processing || value == .cancelling
+            showingText = value == .manual
+            textView.string = "Wir besprechen den Entwurf am Montag."
+            window?.title = "OpenDictate – Vorschau"
+            set(
+                value,
+                detail: value == .unconfirmed
+                    ? Self.pasteDetail : "Gestaltungsvorschau · kein Mikrofon, kein Upload, kein Kopieren.")
+        }
+    #endif
 
     private func set(_ value: Display, detail text: String) {
         let changed = display != value
@@ -372,7 +371,7 @@ final class DictationPanel: NSWindowController {
         secondary.isEnabled = display != .cancelling && (!busy || display == .recording || display == .processing)
         textScroll.isHidden = !showingText
         switch display {
-        case .ready, .confirmed: primary.title = "Aufnahme starten"
+        case .ready: primary.title = "Aufnahme starten"
         case .setup: primary.title = "API-Schlüssel einrichten"
         case .recording: primary.title = "Aufnahme beenden"
         case .manual: primary.title = "Text kopieren"
@@ -423,7 +422,7 @@ final class DictationPanel: NSWindowController {
     }
     @objc private func primaryAction() {
         switch display {
-        case .ready, .confirmed, .recording: onRecord?()
+        case .ready, .recording: onRecord?()
         case .setup: onSetup?()
         case .manual: onCopy?()
         case .unconfirmed:

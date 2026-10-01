@@ -56,6 +56,10 @@ struct AudioPipelineTests {
         let result = try AVAudioFile(forReading: prepared.url)
         #expect(result.length > 0)
         #expect(prepared.uploadDuration >= 1 && prepared.uploadDuration <= 1.6)
+        let permissions =
+            ((try FileManager.default.attributesOfItem(atPath: prepared.url.path)[.posixPermissions]
+                as? NSNumber)?.uint16Value ?? 0) & 0o777
+        #expect(permissions == 0o600)
     }
 
     @Test func shortDetectedSpanDoesNotPretendThereWasNoAudio() throws {

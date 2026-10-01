@@ -24,8 +24,8 @@
             checkboxWithTitle: "Nur Ziel prüfen (ohne Texteingabe)", target: nil, action: nil)
         private let targetApp = NSPopUpButton(frame: .zero, pullsDown: false)
         private let targetIDs = [
-            "local.opendictate.matrixhost", "com.apple.Safari", "com.brave.Browser", "md.obsidian",
-            "com.apple.TextEdit"
+            "local.opendictate.matrixhost", "com.apple.Safari", "com.brave.Browser", "com.google.Chrome",
+            "md.obsidian", "com.apple.TextEdit"
         ]
         private let board = NSPasteboard.withUniqueName()
         private lazy var inserter: PasteboardInserter = {
@@ -81,7 +81,7 @@
             start.action = #selector(arm)
             let quit = NSButton(title: "Prüfung beenden", target: NSApp, action: #selector(NSApplication.terminate(_:)))
             let shortcut = NSButton(title: "Tastaturdialog prüfen", target: self, action: #selector(checkShortcut))
-            targetApp.addItems(withTitles: ["Native Testfelder", "Safari", "Brave", "Obsidian", "TextEdit"])
+            targetApp.addItems(withTitles: ["Native Testfelder", "Safari", "Brave", "Chrome", "Obsidian", "TextEdit"])
             targetApp.setAccessibilityLabel("Erwartete Test-App")
             let progress = NSButton(title: "Aufnahmestatus simulieren", target: self, action: #selector(checkProgress))
             let inspect = NSButton(title: "Ergebnis ansehen", target: self, action: #selector(inspectResult))

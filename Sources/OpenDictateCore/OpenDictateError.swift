@@ -2,11 +2,13 @@ import Foundation
 
 public enum OpenDictateError: LocalizedError {
     case audioPreprocessingFailed(String)
+    case audioNotEligibleForUpload
     case apiError(String)
     case hotKeyRegistrationFailed(OSStatus)
     case invalidResponse
     case keychainStatus(OSStatus)
     case missingAPIKey
+    case unusableTranscriptionModel
     case noActiveRecording
     case noAudioFile
     case noSpeechDetected(peakDb: Float)
@@ -36,6 +38,9 @@ public enum OpenDictateError: LocalizedError {
         case .audioPreprocessingFailed:
             return
                 "Die Aufnahme konnte nicht vorbereitet werden. Öffne die aufbewahrten Aufnahmen oder versuche ein neues Diktat."
+        case .audioNotEligibleForUpload:
+            return
+                "Die Aufnahme kann nicht gesendet werden. Sie ist leer oder zu groß für diesen Übertragungsweg."
         case .apiError(let message):
             return message
         case .hotKeyRegistrationFailed:
@@ -47,6 +52,9 @@ public enum OpenDictateError: LocalizedError {
         case .missingAPIKey:
             return "Der API-Schlüssel fehlt. Nutze „API-Schlüssel einrichten“ "
                 + "im Aufnahmefenster oder in den Einstellungen."
+        case .unusableTranscriptionModel:
+            return
+                "Das eingestellte Modell ist nicht für diesen Aufnahmeweg geeignet. Wähle in den Einstellungen ein anderes Modell."
         case .noActiveRecording:
             return "Es läuft keine Aufnahme. Starte zuerst ein neues Diktat."
         case .noAudioFile:
