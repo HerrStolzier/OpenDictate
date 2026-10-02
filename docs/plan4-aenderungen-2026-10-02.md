@@ -30,7 +30,7 @@ Entschieden am 02.10.2026 von Basti. Grundlage: Architekturbewertung über AGENT
 
 | Feld | Inhalt |
 |---|---|
-| **Status** | Am 02.10. entschieden. Zielgruppe: technisch versierte Nutzer, die mit API-Schlüsseln umgehen können. Verkaufsargument: Kosten pro Nutzung statt Pauschale, plus bessere Transkriptionsqualität als Apples eingebautes Diktieren. Belegte Zahlen siehe oben. |
+| **Status** | Am 02.10. entschieden. Zielgruppe: technisch versierte Nutzer, die mit API-Schlüsseln umgehen können. Verkaufsargument: Kosten pro Nutzung statt Pauschale, plus angestrebt bessere Transkriptionsqualität als das eingebaute Diktieren (noch ohne Vergleichsmessung). Belegte Zahlen siehe oben. |
 | **Nächstes nötiges Ergebnis** | `PROJECT.md`: Zielgruppe und Verkaufsargument ersetzen den Absatz „Zielgruppe, aus diesem Ablauf abgeleitet“. `README.md` und `website/index.html`: Kosten in Preis pro Minute (0,0045 $/min bei gpt-transcribe), ≈ 0,1 Cent pro Diktat, Break-even 18,5 h/Monat gegen 5 $-Pauschale; keine absolute „30 Cent“-Aussage. 90-Sekunden-Kappe pro Diktat als bewusste Produktgrenze benennen. Preisangabe für gpt-4o-mini-transcribe im Modellmenü und README als „ca.“ kennzeichnen (Token-Abrechnung). |
 | **Abhängigkeit / Abschlussprüfung** | Reine Doku, kein Rebuild, kein Live-Test. Abschluss: Produkt-, Preis- und Grenzaussagen in README, PROJECT, Website identisch (AGENTS.md-Regel); Link- und Konsistenzcheck aus `CHECKS.md` bestanden. `PRIVACY.md` bleibt unverändert. |
 
@@ -56,4 +56,4 @@ Entschieden am 02.10.2026 von Basti. Grundlage: Architekturbewertung über AGENT
 
 Ersetzt den Satz „Zielgruppe, aus diesem Ablauf abgeleitet … Marktsegmentierung liegt hier nicht vor“:
 
-> Zielgruppe (Entscheidung vom 2. Oktober 2026): technisch versierte Nutzer, die einen eigenen API-Schlüssel einrichten können. Verkaufsargument: Abrechnung pro gesprochener Minute statt Pauschale (belegt: 0,0045 $/min, rund 0,1 Cent pro Diktat, rund 18,5 Stunden Sprache für den Preis einer 5-$-Monatspauschale) und bessere Transkriptionsqualität als das eingebaute Diktieren. Die Zahlen stammen aus dem eigenen OpenAI-Verbrauch Juli–Oktober 2026 und sind kein Qualitätsnachweis.
+> Zielgruppe (Entscheidung vom 2. Oktober 2026): technisch versierte Nutzer, die einen eigenen API-Schlüssel einrichten können. Verkaufsargument: Abrechnung pro gesprochener Minute statt Pauschale (belegt: 0,0045 $/min, rund 0,1 Cent pro Diktat, rund 18,5 Stunden Sprache für den Preis einer 5-$-Monatspauschale) und angestrebt bessere Transkriptionsqualität als das eingebaute Diktieren (noch ohne Vergleichsmessung). Die Zahlen stammen aus dem eigenen OpenAI-Verbrauch Juli–Oktober 2026 und sind kein Qualitätsnachweis.
