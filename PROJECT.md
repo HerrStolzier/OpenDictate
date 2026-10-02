@@ -3,9 +3,15 @@
 ## Ziel und Nutzen
 
 Gesprochenen Text per Tastenkombination aufnehmen, transkribieren und in der
-zuvor aktiven Mac-Anwendung verfügbar machen. Zielgruppe, aus diesem Ablauf
-abgeleitet: Menschen, die kurze Texte am Mac lieber diktieren als tippen.
-Eine darüber hinaus validierte Marktsegmentierung liegt hier nicht vor.
+zuvor aktiven Mac-Anwendung verfügbar machen. Zielgruppe
+(Entscheidung vom 2. Oktober 2026): technisch versierte Nutzer, die einen
+eigenen API-Schlüssel einrichten können. Verkaufsargument: Abrechnung pro
+gesprochener Minute statt Pauschale (belegt: 0,0045 $/min, rund 0,1 Cent bei
+einem typischen Diktat von rund 15 Sekunden, rund 18,5 Stunden Sprache für den
+Preis einer 5-$-Monatspauschale) und angestrebt bessere Transkriptionsqualität
+als das eingebaute Diktieren (noch ohne Vergleichsmessung). Die Zahlen stammen
+aus dem eigenen OpenAI-Verbrauch Juli–Oktober 2026 und sind kein
+Qualitätsnachweis.
 
 OpenDictate soll als allgemeines macOS-Produkt in repräsentativen Eingabefeldtypen
 und Nutzungssituationen zuverlässig arbeiten. Die Produktabnahme richtet sich

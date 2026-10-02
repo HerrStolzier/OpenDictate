@@ -29,7 +29,8 @@ open .build/OpenDictate.app
    access when recording. Automatic insertion additionally needs macOS
    Accessibility access; clipboard-only use does not need that permission.
 3. Select the destination text field. Press **Option+Shift+Space** to record,
-   speak, then press it again to stop. The maximum recording length is 90 seconds.
+   speak, then press it again to stop. Each dictation is limited to 90 seconds,
+   a deliberate product limit for short texts.
 4. Check the destination. The complete transcript also remains available in the
    panel and on the clipboard. If input was interrupted, part may already be in
    the destination: inspect it before pasting the full transcript manually.
@@ -85,7 +86,8 @@ Changes apply to the next dictation, no restart needed.
 - **Hotkey** — custom modified shortcuts plus `Option+Shift+Space` (default), `Control+Option+D`, or `F5`. Useful
   when another app already claims the default.
 - **Model** — `gpt-transcribe` or `gpt-4o-mini-transcribe`, with the per-minute
-  price next to each.
+  price next to each. The `gpt-4o-mini-transcribe` price is approximate because
+  OpenAI bills that model by tokens, not by minute.
 - **Language** — Auto, German, or English. Auto lets the API detect it.
 - **Vokabular und Kontext** — local prompt setting (up to 2,000 characters in the editor), sent with each dictation. A stored value overrides the legacy environment variable.
 - **Automatisch einfügen** — disable for clipboard-only delivery. At delivery,
@@ -121,12 +123,25 @@ recordings. Temporary originals are outside that action.
 
 Recordings classified as too short or too quiet are retained for a deliberate manual retry. These heuristics do not prove that no speech exists; they never trigger an automatic upload.
 
+## Cost
+
+You pay OpenAI per minute of speech instead of a flat fee. With the default
+`gpt-transcribe` at $0.0045/min, a typical 15-second dictation costs about
+0.1 cent; the price of a $5 monthly subscription buys about 18.5 hours of
+speech. These figures come
+from the maintainer's own OpenAI usage from July to October 2026
+([decision note](docs/plan4-aenderungen-2026-10-02.md)); your cost depends on
+how long you speak.
+
+Transcription uses `gpt-transcribe`, OpenAI's current accuracy-focused model.
+**Vokabular und Kontext** adds your own vocabulary for names and technical terms.
+
 ## Cost controls
 
 OpenDictate keeps API usage lean by default:
 
 - skips recordings shorter than 1 second
-- auto-stops recordings after 90 seconds
+- auto-stops recordings after 90 seconds (deliberate per-dictation limit)
 - trims silence from the beginning and end before upload
 - records speech-focused mono AAC at 24 kHz / 48 kbps
 - defaults to `gpt-transcribe` ($0.0045/min), the accuracy-focused async model
@@ -134,7 +149,7 @@ OpenDictate keeps API usage lean by default:
 Optional environment variables. A choice made in the menu wins over these, so the
 menu is not silently ignored for anyone who exports them:
 
-- `OPENAI_TRANSCRIBE_MODEL`, default `gpt-transcribe`. Set `gpt-4o-mini-transcribe` ($0.003/min) to trade accuracy for cost. Setting `gpt-live-transcribe` is caught at launch with a warning: it targets the realtime endpoint, not this upload flow.
+- `OPENAI_TRANSCRIBE_MODEL`, default `gpt-transcribe`. Set `gpt-4o-mini-transcribe` (approx. $0.003/min, billed by tokens) to trade accuracy for cost. Setting `gpt-live-transcribe` is caught at launch with a warning: it targets the realtime endpoint, not this upload flow.
 - `OPENAI_TRANSCRIBE_LANGUAGE`, for example `de`
 - `OPENAI_TRANSCRIBE_PROMPT`, for vocabulary hints. The in-app vocabulary setting overrides this value.
 
