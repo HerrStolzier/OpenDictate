@@ -8,8 +8,8 @@ zuvor aktiven Mac-Anwendung verfügbar machen. Zielgruppe
 eigenen API-Schlüssel einrichten können. Verkaufsargument: Abrechnung pro
 gesprochener Minute statt Pauschale (belegt: 0,0045 $/min, rund 0,1 Cent bei
 einem typischen Diktat von rund 15 Sekunden, rund 18,5 Stunden Sprache für den
-Preis einer 5-$-Monatspauschale) und
-bessere Transkriptionsqualität als das eingebaute Diktieren. Die Zahlen stammen
+Preis einer 5-$-Monatspauschale) und angestrebt bessere Transkriptionsqualität
+als das eingebaute Diktieren (noch ohne Vergleichsmessung). Die Zahlen stammen
 aus dem eigenen OpenAI-Verbrauch Juli–Oktober 2026 und sind kein
 Qualitätsnachweis.
 
