@@ -2,7 +2,7 @@
 
 Stand: 30. September 2026. Fortsetzung des bestandenen
 [synthetischen Simulator-Tests](ios-keyboard-e2e-2026-09-29.md) mit Bastis
-[Freigabe](../APPROVALS.md) für das angeschlossene echte Gerät.
+[Freigabe](archive/APPROVALS.md) für das angeschlossene echte Gerät.
 
 ## Ausgangsprüfung vor Installation
 

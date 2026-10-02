@@ -219,8 +219,9 @@ roadmap lists them as future requests, not current app behavior.
 Local launchers, isolated previews and API-key setup for older installations are described
 in [development workflows](docs/development.md). Product scope lives in
 [PROJECT.md](PROJECT.md), and the cross-platform feature/platform backlog lives
-in [ROADMAP.md](ROADMAP.md); repository rules and evidenced authorizations live
-in [AGENTS.md](AGENTS.md) and [APPROVALS.md](APPROVALS.md). The
+in [ROADMAP.md](ROADMAP.md); repository rules live in [AGENTS.md](AGENTS.md),
+and earlier approvals are archived in
+[docs/archive/APPROVALS.md](docs/archive/APPROVALS.md). The
 [compatibility matrix](docs/compatibility-matrix.md) defines the broader testing
 goal, and [CHECKS.md](CHECKS.md) provides reproducible verification commands.
 
