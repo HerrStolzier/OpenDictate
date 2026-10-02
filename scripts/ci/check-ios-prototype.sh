@@ -20,7 +20,7 @@ if ! command -v xcodebuild >/dev/null || ! command -v swift >/dev/null; then
 fi
 
 xcodebuild -version
-swift format lint --strict --configuration .swift-format --recursive ios/Sources
+swift format lint --strict --configuration .swift-format --recursive ios/Sources ios/Tests
 
 derived_data="$(mktemp -d "${TMPDIR:-/tmp}/opendictate-ios-derived.XXXXXX")"
 cleanup() {

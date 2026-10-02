@@ -15,6 +15,7 @@ let package = Package(
         // Pure logic: no AppKit, no AVFoundation, no network, no globals.
         // Everything it needs is passed in, so it can be tested directly.
         .target(name: "OpenDictateCore"),
+        .target(name: "OpenDictateIOSBridge", path: "ios/Sources/Bridge"),
         .executableTarget(
             name: "OpenDictate",
             dependencies: ["OpenDictateCore"],
@@ -38,6 +39,11 @@ let package = Package(
         .testTarget(
             name: "OpenDictateSystemTests",
             dependencies: ["OpenDictate"]
+        ),
+        .testTarget(
+            name: "OpenDictateIOSBridgeTests",
+            dependencies: ["OpenDictateIOSBridge"],
+            path: "ios/Tests"
         )
     ]
 )

@@ -3,7 +3,7 @@
 ## Required after source changes
 
 ```bash
-swift format lint --strict --configuration .swift-format --recursive Sources Tests Package.swift
+swift format lint --strict --configuration .swift-format --recursive Sources Tests Package.swift ios/Sources ios/Tests
 swift test -Xswiftc -warnings-as-errors
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/tests -p 'test_*.py' -v
 bash -n scripts/build-app.sh
@@ -231,6 +231,16 @@ prove keyboard installation or live text insertion. Follow
 Installing/launching the test app and activating its keyboard require the
 corresponding test approval. Microphone, provider, credentials and distribution
 remain separate gates.
+
+The Foundation-only `OpenDictateIOSBridgeTests` run with the ordinary SwiftPM
+tests above. Their isolated filesystem fixtures cover session identity, expiry,
+invalid metadata and a single claim under competing deliveries; they never use
+the microphone or a real App Group. The current coupling candidate adds host-only
+microphone/background declarations and shared App Group entitlements. Inspect
+the compiled host and extension Plists after an unsigned build. Those checks do
+not establish background recording, actual audio protection, permission behavior
+or microphone shutdown. The bounded device protocol is in
+[ios/PRUEFPLAN.md](ios/PRUEFPLAN.md).
 
 ## Workflow and secret checks
 

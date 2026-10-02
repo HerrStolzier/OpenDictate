@@ -8,6 +8,29 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 
 ## iOS: Test auf dem angeschlossenen iPhone — 2026-09-30
 
+**Nachfolgender Auftrag:** Nach Abschluss und Bereinigung des synthetischen
+Texttests gab Basti mit „go“ die Fortsetzung frei. Die nächste Umsetzung
+bereitet den lokalen Aufnahme-/Tastatur-Kopplungsnachweis samt Offline-Prüfungen
+vor. Anschließend bestätigte Basti mit „Du hast die Freigabe“ die konkrete
+Frage zu `group.com.opendictate.ios.keyboarddemo`, passenden Profilen mit der
+vorhandenen Entwicklungsidentität, Installation des geprüften Kandidaten aus
+PR #40 und höchstens drei lokalen Mikrofonaufnahmen à maximal 15 Sekunden
+auf seinem iPhone 15. Tastatur und Vollzugriff aktiviert Basti selbst.
+Anschließend werden nur diese Test-App samt selbst erzeugten Testaufnahmen und
+Gruppenmetadaten entfernt und die eigenen Safari-Testtabs geschlossen.
+Die benannten Apple-Entwicklungsressourcen bleiben erhalten. Keine
+Anbieterübertragung oder Veröffentlichung. [Prüfumfang](ios/PRUEFPLAN.md).
+
+**Aktueller Kopplungsstand:** Nach erneutem USB-Anschluss bestehen Installation
+und sichtbarer Start des signierten Kandidaten. Die Sperre ohne Vollzugriff,
+danach der positive Kopplungsweg und die korrigierte Berührungsfolge sind
+begrenzt belegt. Alle drei freigegebenen WAV-Dateien wurden direkt geprüft:
+15,0, 14,006625 und 15,0 Sekunden. Die Test-App ist deinstalliert; private
+Mac-Audioprüfkopien sind entfernt. Basti bestätigt geschlossene Testseiten sowie
+funktionierende Apple-Tastatur und Apple-Diktieren. Der USB-Durchlauf ist
+abgeschlossen. Keine weitere Aufnahme aus dieser Freigabe; Host-Abbruch bleibt offen.
+[Nachweis](docs/ios-recording-coupling-2026-09-30.md).
+
 - **Quelle:** Basti benannte sein per USB angeschlossenes iPhone und gab
   anschließend ausdrücklich die Freigabe zur Fortsetzung.
 - **Ziel:** iPhone 15 mit iOS 27.0.1; Verbindung und aktivierter

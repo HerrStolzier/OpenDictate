@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A00000000000000000000023 /* RecordingCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000026 /* RecordingCoordinator.swift */; };
+		A00000000000000000000024 /* RecordingBridge.swift in Host Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000027 /* RecordingBridge.swift */; };
+		A00000000000000000000025 /* RecordingBridge.swift in Keyboard Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000027 /* RecordingBridge.swift */; };
 		A0000000000000000000000C /* HostApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000007 /* HostApp.swift */; };
 		A0000000000000000000000D /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00000000000000000000008 /* KeyboardViewController.swift */; };
 		A0000000000000000000000E /* OpenDictateKeyboard.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A0000000000000000000000B /* OpenDictateKeyboard.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -37,6 +40,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A00000000000000000000026 /* RecordingCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingCoordinator.swift; sourceTree = "<group>"; };
+		A00000000000000000000027 /* RecordingBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingBridge.swift; sourceTree = "<group>"; };
+		A00000000000000000000028 /* Host Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A00000000000000000000029 /* OpenDictateKeyboardDemo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OpenDictateKeyboardDemo.entitlements; sourceTree = "<group>"; };
+		A0000000000000000000002A /* OpenDictateKeyboard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OpenDictateKeyboard.entitlements; sourceTree = "<group>"; };
 		A00000000000000000000007 /* HostApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostApp.swift; sourceTree = "<group>"; };
 		A00000000000000000000008 /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardViewController.swift; sourceTree = "<group>"; };
 		A00000000000000000000009 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -72,6 +80,7 @@
 			children = (
 				A00000000000000000000005 /* OpenDictateKeyboardDemo */,
 				A00000000000000000000006 /* OpenDictateKeyboard */,
+				A0000000000000000000002B /* Bridge */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -80,6 +89,9 @@
 			isa = PBXGroup;
 			children = (
 				A00000000000000000000007 /* HostApp.swift */,
+				A00000000000000000000026 /* RecordingCoordinator.swift */,
+				A00000000000000000000028 /* Host Info.plist */,
+				A00000000000000000000029 /* OpenDictateKeyboardDemo.entitlements */,
 			);
 			path = OpenDictateKeyboardDemo;
 			sourceTree = "<group>";
@@ -89,8 +101,15 @@
 			children = (
 				A00000000000000000000008 /* KeyboardViewController.swift */,
 				A00000000000000000000009 /* Info.plist */,
+				A0000000000000000000002A /* OpenDictateKeyboard.entitlements */,
 			);
 			path = OpenDictateKeyboard;
+			sourceTree = "<group>";
+		};
+		A0000000000000000000002B /* Bridge */ = {
+			isa = PBXGroup;
+			children = (A00000000000000000000027 /* RecordingBridge.swift */, );
+			path = Bridge;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -172,8 +191,8 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		A0000000000000000000000F /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A0000000000000000000000C /* HostApp.swift in Sources */, ); runOnlyForDeploymentPostprocessing = 0; };
-		A00000000000000000000010 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A0000000000000000000000D /* KeyboardViewController.swift in Sources */, ); runOnlyForDeploymentPostprocessing = 0; };
+		A0000000000000000000000F /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A0000000000000000000000C /* HostApp.swift in Sources */, A00000000000000000000023 /* RecordingCoordinator.swift in Sources */, A00000000000000000000024 /* RecordingBridge.swift in Host Sources */, ); runOnlyForDeploymentPostprocessing = 0; };
+		A00000000000000000000010 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A0000000000000000000000D /* KeyboardViewController.swift in Sources */, A00000000000000000000025 /* RecordingBridge.swift in Keyboard Sources */, ); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -224,11 +243,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = Sources/OpenDictateKeyboardDemo/OpenDictateKeyboardDemo.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "OpenDictate Tastaturtest";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sources/OpenDictateKeyboardDemo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", );
 				MARKETING_VERSION = 0.1.0;
@@ -245,11 +263,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = Sources/OpenDictateKeyboardDemo/OpenDictateKeyboardDemo.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "OpenDictate Tastaturtest";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sources/OpenDictateKeyboardDemo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", );
 				MARKETING_VERSION = 0.1.0;
@@ -267,6 +284,7 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = Sources/OpenDictateKeyboard/OpenDictateKeyboard.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/OpenDictateKeyboard/Info.plist;
@@ -288,6 +306,7 @@
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = Sources/OpenDictateKeyboard/OpenDictateKeyboard.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Sources/OpenDictateKeyboard/Info.plist;
