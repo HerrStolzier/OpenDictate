@@ -19,6 +19,10 @@ Personen mit **bereits vorhandenem** API-Schlüssel. Die Zeit zur Erstellung
 eines OpenAI-Kontos oder zum Einrichten seiner Abrechnung wird nicht als
 App-Einrichtungszeit ausgegeben.
 
+Vorbereitete Unterlagen: [Tester-Anleitung](plan3-tester-anleitung.md),
+[Messbogen](plan3-messbogen.md) und die GitHub-Issue-Vorlage
+„Beta-Rückmeldung“ (`.github/ISSUE_TEMPLATE/beta-rueckmeldung.md`).
+
 ## Arbeit
 
 1. Pro Tester Version, macOS, Mac-Modell, Ziel-App, Sprache und Mikrofon
