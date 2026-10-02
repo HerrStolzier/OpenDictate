@@ -2,7 +2,9 @@
 
 Stand: 2. Oktober 2026. Nachweis für das finale Paket des Build-8-Kandidaten
 aus dem [Build-8-Nachweis](2026-09-28-plan2-build8.md). Er deckt Plan 2,
-Schritte 2 und 3 **ohne** Installation, App-Start, Migration oder Diktat ab.
+Schritt 2 und nur den statischen Prüfteil von Schritt 3 ab. Der erste Start
+des entpackten Pakets mit Quarantäne (Rest von Schritt 3), Installation,
+Migration und Diktat sind **nicht** enthalten.
 
 ## Apple-Ergebnis
 
