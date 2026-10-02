@@ -1,7 +1,7 @@
 # iOS-Simulator: Neustart ohne Behebung, Test bereinigt
 
 Stand: 29. September 2026. Fortsetzung des [Buildnachweises](ios-simulator-2026-09-28.md)
-nach Bastis konkreter Freigabe für den Simulator-Test in [APPROVALS](../APPROVALS.md).
+nach Bastis konkreter Freigabe für den Simulator-Test in [APPROVALS](archive/APPROVALS.md).
 
 Historischer Befund am ursprünglichen Gerät. Der später genehmigte Vergleich
 mit einem frischen Gerät besteht einschließlich synthetischer Textübergabe:

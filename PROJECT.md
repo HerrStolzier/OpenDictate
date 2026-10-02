@@ -40,9 +40,10 @@ Maskottchen oder konkrete Markenbestandteile für OpenDictate fest.
 Die spätere Gestaltung soll an tatsächlichen Produktzuständen und einem
 Marketingbeispiel sichtbar beurteilt werden: Wiedererkennbarkeit, Freude an
 der Nutzung, klare Zustände, Lesbarkeit und Bedienbarkeit einschließlich
-reduzierter Bewegung. Stilwahl, konkrete Ausgestaltung und Zeitpunkt bleiben
-offen. Diese Ergänzung beauftragt die Planung, noch keine Neugestaltung;
-der nächste Arbeitsschritt steht ausschließlich in [ROADMAP](ROADMAP.md).
+reduzierter Bewegung. Stilwahl und konkrete Ausgestaltung bleiben
+offen. Release 1.0 erscheint mit der heutigen ruhigen Optik; die
+Markenidentität folgt mit 1.1. Zeitpunkt und nächster Arbeitsschritt stehen
+ausschließlich in [ROADMAP](ROADMAP.md).
 
 ## Belegter Produktumfang
 
@@ -71,16 +72,21 @@ der nächste Arbeitsschritt steht ausschließlich in [ROADMAP](ROADMAP.md).
 - Ein Linux-Clipboard-MVP-Kern und ein separater Windows-Prototyp belegen noch
   keinen plattformweiten Produktumfang. Die aktuellen Stände, offenen Abnahmen
   und nicht festgelegten Plattformziele stehen in [ROADMAP](ROADMAP.md).
-- Für Windows hat Basti am 28. September die direkte Vorbereitung öffentlicher
-  Verteilung als nächstes Ziel gewählt. Ein versionierter Ausgangsstand,
-  reproduzierbare Paketierung und belegte Installation/Abnahme sind dafür
-  Voraussetzungen. Dies ist kein Nachweis eines fertigen Windows-Produkts
-  und keine Freigabe seiner Veröffentlichung.
-- iOS ist nach Bastis ausdrücklicher Aussage vom 28. September besonders
-  wichtig. Gewünschter Ablauf: direkt in anderen Apps diktieren. Die erlaubte
-  Aufnahme-/Tastaturkopplung und ihre Abnahme werden zuerst geklärt;
-  [iOS-Richtung](docs/ios-direction.md). Die historische Plattformreihenfolge
-  bestimmt keine heutige niedrige Priorität.
+- Es wird immer nur eine Plattform aktiv bearbeitet (Entscheidung vom
+  2. Oktober 2026, [Neuordnung](docs/roadmap-neuordnung-2026-10-02.md)).
+  Über Plattform 2 wird erst nach Stufe 6 (Launch & Zuhören) anhand der
+  Rückmeldungen entschieden; Arbeitshypothese ist Linux vor Windows.
+- Windows wartet auf diese Entscheidung. Das am 28. September gewählte Ziel,
+  öffentliche Verteilung vorzubereiten, gilt erst, wenn die Wahl auf Windows
+  fällt; ein versionierter Ausgangsstand, reproduzierbare Paketierung und
+  belegte Installation/Abnahme bleiben dann Voraussetzungen. Dies ist kein
+  Nachweis eines fertigen Windows-Produkts und keine Freigabe seiner Veröffentlichung.
+- iOS ist seit dem 2. Oktober zurückgestellt, bis Mac-Nutzer in Stufe 6 danach
+  fragen. Tastatur-Erweiterungen dürfen nicht aufnehmen; der mögliche Ablauf
+  über Host-App und App-Wechsel ist umständlicher als das eingebaute Diktieren,
+  und eine Vollzugriff-Tastatur mit Netzwerk und API-Schlüssel ist ein Review-
+  und Vertrauensrisiko. Bei Wiederaufnahme braucht iOS ein eigenes
+  Produktkonzept; bisherige Nachweise: [iOS-Richtung](docs/ios-direction.md).
 - Künftige Preise, Vertrieb und Firmengründung bleiben offen; dieser
   Dokumentationsstand entscheidet sie nicht.
 - Die Website ist ein lokaler Entwurf mit illustrativer Demo, kein Diktiernachweis.
@@ -90,6 +96,7 @@ der nächste Arbeitsschritt steht ausschließlich in [ROADMAP](ROADMAP.md).
 [AGENTS](AGENTS.md) enthält technische Invarianten, [CHECKS](CHECKS.md) die
 Prüfwege, [ROADMAP](ROADMAP.md) die zentrale Feature-/Plattform-Liste,
 [remaining-acceptance](docs/remaining-acceptance.md) den aktuellen
-Abnahme- und Übergabestand und [APPROVALS](APPROVALS.md) belegte Freigaben.
+Abnahme- und Übergabestand. Frühere Freigaben liegen im
+[Archiv](docs/archive/APPROVALS.md) und werden nicht mehr gepflegt.
 Produktentscheidungen hier nur bei geänderter Entscheidung aktualisieren;
 Testergebnisse und laufende Aufgaben gehören nicht hierher.

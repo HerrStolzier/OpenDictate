@@ -18,6 +18,8 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Check commit whitespace
+        run: git diff --check HEAD^ HEAD
       - name: Lint GitHub Actions workflows
         run: bash scripts/ci/check-workflows.sh
       - name: Scan Git history without verifying credentials

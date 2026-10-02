@@ -1,20 +1,21 @@
 # Aktueller Stand und verbleibende Abnahme
 
-Stand: 30. September 2026. Dies ist die einzige aktuelle Übergabedatei.
+Stand: 2. Oktober 2026. Dies ist die einzige aktuelle Übergabedatei.
 Produktziel und Umfang: [PROJECT.md](../PROJECT.md); die einzige Feature-/
 Plattform-To-do-Liste: [ROADMAP.md](../ROADMAP.md); Regeln: [AGENTS.md](../AGENTS.md);
-Prüfverfahren: [CHECKS.md](../CHECKS.md); frühere Freigaben: [APPROVALS.md](../APPROVALS.md).
+Prüfverfahren: [CHECKS.md](../CHECKS.md); frühere Freigaben: [Archiv](archive/APPROVALS.md).
 Diese Datei hält nur den aktuellen Übergabe- und Abnahmestand. Detailpläne und
 datierte Belege sind jeweils an ihrer zuständigen Quelle verlinkt.
 
-Drei getrennte Pfade bleiben offen: **macOS Plan 2** (Build 8 bei Apple
-eingereicht, finale Paket- und Installationsabnahme offen), **Windows**
+Seit dem 2. Oktober wird immer nur eine Plattform aktiv bearbeitet
+([ROADMAP](../ROADMAP.md)). Aktiv ist **macOS Plan 2** (Build 8 bei Apple
+eingereicht, finale Paket- und Installationsabnahme offen). **Windows**
 (öffentliche Verteilung vorbereiten) und **Linux Phase 1** (Clipboard-MVP-Kern
-in `main`, aber ohne Live-Durchstich und UI-Abnahme). Windows und Linux laufen
-auf Bastis Auftrag parallel zur Apple-Wartezeit; sie ändern keinen Mac-Release-Status.
-iOS ist ausdrücklich besonders wichtig. Basti möchte direkt in anderen Apps
-diktieren; nächster Prüfpunkt ist die erlaubte Aufnahme-/Tastaturkopplung
-([iOS-Richtung](ios-direction.md)). Der Linux-Diktattest ist inzwischen vorerst zurückgestellt.
+in `main`, ohne Live-Durchstich und UI-Abnahme) laufen nicht parallel, sondern
+warten auf die Plattform-2-Entscheidung nach Stufe 6; ihre Abschnitte unten
+sind der zuletzt belegte Übergabestand. **iOS** ist bis zu einer Nachfrage aus
+Stufe 6 zurückgestellt; die bisherigen Nachweise unten bleiben erhalten
+([Neuordnung](roadmap-neuordnung-2026-10-02.md)).
 
 ## iOS: synthetischer Safari-Textpfad bestanden · 29. September 2026
 
@@ -230,7 +231,7 @@ bestand; ein echter Providerfehler und tatsächlich unterbrochene Verarbeitung
 bleiben als praktische Nachweise offen.
 Der erste Live-Testblock mit acht Aufnahmen ist verbraucht. Basti hat die
 Fortsetzung von Plan 1 ohne festes Kontingent ausdrücklich freigegeben;
-Details stehen in [APPROVALS.md](../APPROVALS.md).
+Details stehen im [Freigabe-Archiv](archive/APPROVALS.md).
 Die Quellkorrektur zur Aufbewahrung einer Authentifizierungsdatei bei gesperrter
 Audiodatei ist offline getestet und als Build 3 in beiden lokalen App-Pfaden
 installiert. Beim Start dieses Builds meldete die App den verweigerten
@@ -319,7 +320,7 @@ jetzt erneut bestanden, einschließlich des genehmigten isolierten
 Zugangsspeicher-Tests. Ein echter Diktatdurchlauf und die Abnahme von
 Installation, Update und Deinstallation bleiben offen. Quelle und Grenzen:
 [Plattform-Fortsetzung](platform-continuation-2026-09-28.md),
-[Windows-Plan](windows-plan.md), [APPROVALS](../APPROVALS.md).
+[Windows-Plan](windows-plan.md), [Freigabe-Archiv](archive/APPROVALS.md).
 
 ## Linux-Abnahmeübergabe
 

@@ -5,8 +5,8 @@
 - Read `PROJECT.md` for product scope, `ROADMAP.md` for the sole cross-platform
   feature/platform backlog, and `docs/remaining-acceptance.md` for the single
   current acceptance handoff. Verify checkout state before relying on it.
-- Consult `APPROVALS.md` for evidenced project approvals; the record does not
-  expand the original authorization or override later restrictions.
+- Earlier project approvals are archived in `docs/archive/APPROVALS.md` as
+  historical context; the archive is no longer maintained and grants nothing.
 - Routine commits, pushes to this repository and merges of verified changes
   belong to an authorized implementation task under the governing workspace
   rules. Check deployment effects before push/merge; publication, loss of
@@ -43,11 +43,12 @@ Run the source-change checks in `CHECKS.md` after source changes, and its bundle
 checks for release or packaging changes. Documentation-only changes need link,
 consistency and diff checks, not an unrelated source test suite.
 
-Tests remain offline and deterministic by default. Live microphone tests,
-provider requests, app launch/install, Keychain changes, TCC reset, signing-identity
-changes and publication require corresponding authorization. Use applicable
-existing authorization without broadening it. Never turn a synthetic fixture
-or one successful dictation into a general speech-quality claim.
+Tests remain offline and deterministic by default. Live tests (microphone,
+provider requests, app launch/install, Keychain) run when Basti is at the Mac
+and gives an explicit "Go" in the session. There are no counted test blocks,
+quotas or advance approval documents. TCC resets, signing-identity changes and
+publication still need Basti's explicit decision. Never turn a synthetic
+fixture or one successful dictation into a general speech-quality claim.
 
 ## Documentation ownership
 
@@ -55,7 +56,7 @@ or one successful dictation into a general speech-quality claim.
 - `ROADMAP.md`: sole current feature/platform to-do list; status, next result,
   dependency and completion evidence. It does not grant implementation or
   publication approval.
-- `APPROVALS.md`: evidenced project authorization, scope and validity.
+- `docs/archive/APPROVALS.md`: archived approval record up to 2 October 2026; not maintained.
 - `README.md`: current product behavior and setup.
 - `PRIVACY.md`: complete current data flow and retention behavior.
 - `CHECKS.md`: reproducible verification commands and explicit live-test gates.
