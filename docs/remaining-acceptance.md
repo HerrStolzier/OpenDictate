@@ -238,7 +238,7 @@ zeigt zwei native Feldfälle und beide Fokuswechselarten mit künstlichem Text;
 Safari normalisierte im `input` einen kombinierenden Akzent. Für den internen
 Grundablauf ist das kanonisch gleiche Ergebnis akzeptiert. Vor dem Betapaket
 folgen die noch offenen Fehler- und Beenden-Pfade aus Plan 2; die Zeit bis
-zum nutzbaren Text wird im Betatest gemessen. Der Abbruch während Aufnahme
+zum nutzbaren Text wird in der Eigennutzung (Plan 3) gemessen. Der Abbruch während Aufnahme
 bestand; ein echter Providerfehler und tatsächlich unterbrochene Verarbeitung
 bleiben als praktische Nachweise offen.
 Der erste Live-Testblock mit acht Aufnahmen ist verbraucht. Basti hat die
