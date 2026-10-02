@@ -8,8 +8,8 @@ Diese Datei hält nur den aktuellen Übergabe- und Abnahmestand. Detailpläne un
 datierte Belege sind jeweils an ihrer zuständigen Quelle verlinkt.
 
 Seit dem 2. Oktober wird immer nur eine Plattform aktiv bearbeitet
-([ROADMAP](../ROADMAP.md)). Aktiv ist **macOS Plan 2** (Build 8 bei Apple
-eingereicht, finale Paket- und Installationsabnahme offen). **Windows**
+([ROADMAP](../ROADMAP.md)). Aktiv ist **macOS Plan 2** (Build 8 von Apple
+akzeptiert, finales Paket geprüft; Installation und Live-Abnahme offen). **Windows**
 (öffentliche Verteilung vorbereiten) und **Linux Phase 1** (Clipboard-MVP-Kern
 in `main`, ohne Live-Durchstich und UI-Abnahme) laufen nicht parallel, sondern
 warten auf die Plattform-2-Entscheidung nach Stufe 6; ihre Abschnitte unten
@@ -66,7 +66,22 @@ Tests und der Rust-Code blieben unverändert. Einzelwerte und Prüfgrenzen:
 [Reduktionsnachweis](code-reduction-2026-09-28.md). Build 8 und sein eingereichtes
 Paket bleiben davon getrennt und unverändert.
 
-## Plan 2: Build 8 bei Apple eingereicht, Paketabnahme offen · 28. September 2026
+## Plan 2: Build 8 notarisiert, finales Paket geprüft · 2. Oktober 2026
+
+Apple hat die Einreichung `320efa5c-d9fa-4e3b-980b-1a121ffdd371` akzeptiert
+(Abfrage am 2. Oktober; Log ohne Befunde). Aus genau dem eingereichten ZIP
+wurde die App entpackt, das Ticket angeheftet und mit
+`scripts/package-release-app.sh` aus einem sauberen Worktree auf `b786d4c` das
+finale ZIP samt Manifest erzeugt. Das entpackte finale Bundle besteht
+Signatur-, Entitlement-, Ticket- und Gatekeeper-Prüfung, auch mit gesetzter
+Quarantäne; Produkt-Hashes stimmen mit Build 8 überein, Größe 4,14 MiB.
+Finales ZIP (außerhalb des Repositorys) mit SHA-256 `2e994cd8…e335768`:
+[Nachweis](release-plans/evidence/2026-10-02-plan2-build8-final.md). Nichts wurde installiert oder gestartet.
+Offen: erster Start mit Quarantäne, kontrollierte Migration, vollständiger
+Diktat-/Kopierweg und aktiver Beenden-/Recovery-Fall, jeweils mit Bastis Go
+am Mac nach der [Migrationsanleitung](release-plans/plan2-migration.md).
+
+### Vorgeschichte: Build 8 eingereicht · 28. September 2026
 
 Basti hat die Fortsetzung von Plan 2 beauftragt. Die am 28. September lesend
 geprüfte Apple-Accountseite zeigt jetzt die Apple-Developer-Mitgliedschaft mit
@@ -105,11 +120,8 @@ bestätigt Validierung und Speicherung. Der anschließende eigene Aufruf von
 Apple meldete dabei noch keine bisherigen Einreichungen. Nach Bastis separater
 Uploadfreigabe „Du hast sie“ wurde genau das geprüfte Build-8-ZIP einmal an
 Apple gesendet. Die Einreichung `320efa5c-d9fa-4e3b-980b-1a121ffdd371` vom
-28. September, 17:10:08 UTC, steht bei der erneuten Abfrage um **19:29:59 UTC weiterhin auf In Progress**.
-Das lokale Warten ist beendet; es läuft keine automatische Überwachung.
-Zur Fortsetzung dieselbe Einreichungs-ID abfragen, nicht erneut hochladen.
-Bei Annahme
-sind Ticket und endgültige Verpackung freigegeben. Kontrollierte
+28. September, 17:10:08 UTC, stand damals noch auf In Progress und ist seit
+der Abfrage am 2. Oktober **Accepted** (siehe oben). Kontrollierte
 Installation/Migration, Live-Abnahme und Veröffentlichung bleiben getrennte
 Freigabeschritte.
 
