@@ -1,0 +1,37 @@
+{
+  "logFormatVersion": 1,
+  "jobId": "320efa5c-d9fa-4e3b-980b-1a121ffdd371",
+  "status": "Accepted",
+  "statusSummary": "Ready for distribution",
+  "statusCode": 0,
+  "archiveFilename": "OpenDictate-0.1.0-build-8-arm64-notary-candidate.zip",
+  "uploadDate": "2026-09-28T17:10:10.021Z",
+  "sha256": "cee6fcc5d7c2bc311eacbad82f1e6e7538148d1c8808fd61b18b598a0b199a82",
+  "ticketContents": [
+    {
+      "path": "OpenDictate-0.1.0-build-8-arm64-notary-candidate.zip/OpenDictate.app",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "e2092e18ddf04572b492f57790c383c9417a327a",
+      "arch": "arm64"
+    },
+    {
+      "path": "OpenDictate-0.1.0-build-8-arm64-notary-candidate.zip/OpenDictate.app/Contents/Helpers/OpenDictateKeychainHelper",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "4083f51cf4f2f868edeb6ce8ccb3d52e5d25f83a",
+      "arch": "arm64"
+    },
+    {
+      "path": "OpenDictate-0.1.0-build-8-arm64-notary-candidate.zip/OpenDictate.app/Contents/MacOS/OpenDictate",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "e2092e18ddf04572b492f57790c383c9417a327a",
+      "arch": "arm64"
+    },
+    {
+      "path": "OpenDictate-0.1.0-build-8-arm64-notary-candidate.zip/OpenDictate.app/Contents/Helpers/OpenDictateKeychainHelper",
+      "digestAlgorithm": "SHA-256",
+      "cdhash": "4083f51cf4f2f868edeb6ce8ccb3d52e5d25f83a",
+      "arch": "arm64"
+    }
+  ],
+  "issues": null
+}
