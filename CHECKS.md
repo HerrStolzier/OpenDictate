@@ -30,6 +30,18 @@ whitespace check compares the checked-out commit with its first parent
 (`git diff --check HEAD^ HEAD`); on pull requests this covers the merge diff
 against the base branch. Local `git diff --check` checks uncommitted edits.
 
+Pull requests that change only Markdown files, `docs/**` or `website/**` skip
+the Swift, Linux and Windows jobs: a small `changes` job in each of these workflows runs
+`scripts/ci/docs-only-change.sh` against the merge commit's first parent, and
+the heavy jobs are skipped by condition. Skipped jobs satisfy the required
+checks on `main`. Any other path, an empty diff or a failed detection runs the
+full jobs, and pushes to `main` always run them. Repository hygiene always runs
+and checks commit whitespace for documentation-only changes too. CodeQL uses
+GitHub's default setup outside these workflow files and is not skipped.
+The Swift jobs restore `.build` with `actions/cache`, keyed by job, Swift
+toolchain and the hashes of `Package.swift`, `Sources/` and `Tests/`; the
+bundle script still recreates the app bundle on every run.
+
 The local Mac runs macOS 27 and exposes only the macOS 27 SDK. It cannot
 reproduce the macOS 14 runtime gate; a passing local build on macOS 27 does not
 replace that runner's compatibility evidence.

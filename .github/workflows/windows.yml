@@ -10,7 +10,29 @@ concurrency:
   group: windows-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      docs_only: ${{ steps.detect.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Detect documentation-only pull requests
+        id: detect
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [[ "$EVENT_NAME" == pull_request ]]; then
+            bash scripts/ci/docs-only-change.sh HEAD^1 HEAD >> "$GITHUB_OUTPUT"
+          else
+            echo 'docs_only=false' >> "$GITHUB_OUTPUT"
+          fi
   offline-checks:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.docs_only != 'true' }}
     runs-on: windows-2025
     timeout-minutes: 20
     steps:
