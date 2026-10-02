@@ -1,8 +1,12 @@
-# Plan 5: Öffentlicher Mac-Release
+# Plan 5: Öffentlicher Beta-Release
 
 **Ziel:** Die freigegebene erste Mac-Version steht als kostenloser direkter
-Download auf GitHub Releases bereit. Eine öffentliche Produktseite führt zum
-gleichen Paket. Download, Installation, Start und Hilfeweg wurden von außen geprüft.
+Download und als **Pre-Release** auf GitHub Releases bereit. Eine öffentliche
+Produktseite mit Kennzeichnung „Beta“ führt zum gleichen Paket. Fremde
+Nutzer testen danach im öffentlichen Betatest (Stufe 6 der
+[ROADMAP](../../ROADMAP.md)); einen Betatest mit fremden Testern vor dieser
+Veröffentlichung gibt es nicht (Entscheidung vom 2. Oktober 2026).
+Download, Installation, Start und Hilfeweg wurden von außen geprüft.
 Ein Bezahlmodell, Mac App Store, Intel-Macs, Linux und Windows sind nicht Teil
 dieser ersten Veröffentlichung.
 
@@ -15,14 +19,18 @@ zu bestätigen; dieser Plan trifft keine Vertrags- oder Firmenentscheidung.
 ## Arbeit
 
 1. Die korrigierte statische Website aus `website/` über GitHub Pages
-   veröffentlichen. Sie nennt Systemvoraussetzung, eigenen OpenAI-Schlüssel,
+   veröffentlichen und sichtbar als „Beta“ kennzeichnen. Sie nennt
+   Systemvoraussetzung, eigenen OpenAI-Schlüssel,
    zusätzliche API-Kosten, Mikrofon-/Bedienungshilfen-Berechtigung,
    Datenschutz, manuelles Kopieren und bekannte Ziel-/Fokusgrenzen.
    Der Einstieg erklärt die erste Nutzung in drei kurzen Schritten:
    App öffnen und Schlüssel hinterlegen, Berechtigungen geben, Kürzel zweimal
    drücken. Keine Funktionsliste steht vor diesem Ablauf.
-2. Einen GitHub Release mit Versionshinweisen, dem **unveränderten** ZIP aus
-   Plan 4, SHA-256-Wert und Installationsanleitung veröffentlichen. Kein
+2. Ein GitHub **Pre-Release** mit Versionshinweisen, dem **unveränderten** ZIP
+   aus Plan 4, SHA-256-Wert und der
+   [Installationsanleitung](installationsanleitung.md) veröffentlichen. Die
+   private Draft `v0.1.0-beta.8` ist dafür vorgesehen, solange Plan 4 keinen
+   neuen Kandidaten erzeugt. Kein
    Ad-hoc-CI-Archiv als Produktdownload verlinken. Die Website verlinkt genau
    diesen Release und seine Datenschutzhinweise.
 3. Von den öffentlichen Links das ZIP erneut herunterladen, den Hash
@@ -30,7 +38,8 @@ zu bestätigen; dieser Plan trifft keine Vertrags- oder Firmenentscheidung.
    aus dem Download installieren. Sichtbar prüfen: Start, vorhandene
    Berechtigungen, Schlüsselzugriff und ein harmloses Diktat. Der Prüflauf ist auf
    denselben Release-Hash bezogen.
-4. GitHub Issues als öffentlichen Meldeweg prüfen und auf der Seite verlinken.
+4. GitHub Issues mit der Vorlage „Beta-Rückmeldung“ als öffentlichen
+   Meldeweg prüfen und auf der Seite verlinken.
    Release- und Installationsprobleme mit Version, macOS und reproduzierbaren
    Schritten erfassen, ohne API-Schlüssel, Aufnahme oder private Texte
    anzufordern. Bei einem kritischen Problem den Downloadhinweis klar ändern
