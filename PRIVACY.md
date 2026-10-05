@@ -109,7 +109,7 @@ API keys, transcript text, or audio contents. Logging is serialized and rotated 
 
 ## Last transcript and temporary originals
 
-The most recent non-empty transcript is also held in memory until replaced, cleared from the menu or the app exits. No persistent text history is created. If a recovery-store write fails, the original temporary audio is deliberately not deleted and its path is shown in the error status. Historical crash leftovers are not swept automatically because they may contain the only surviving recording.
+The most recent non-empty transcript is also held in memory until replaced, cleared from the menu or the app exits. No persistent text history is created. Temporary recording files are restricted to the current user (permissions 0600) immediately after creation; if that fails, the app logs it. If a recovery-store write fails, the original temporary audio is deliberately not deleted and its path is shown in the error status. Historical crash leftovers are not swept automatically because they may contain the only surviving recording.
 
 ## Linux Clipboard-MVP core (not product scope)
 

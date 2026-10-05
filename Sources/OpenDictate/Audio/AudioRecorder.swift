@@ -40,6 +40,7 @@ final class AudioRecorder: NSObject, AVAudioRecorderDelegate {
 
         self.recorder = recorder
         self.url = fileURL
+        TemporaryAudioAccess.restrict(fileURL)
         started = true
     }
 

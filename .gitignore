@@ -8,4 +8,9 @@ linux/target/
 
 # Local secrets or environment experiments.
 .env
+.env.*
+!.env.example
+*.pem
+*.key
 *.local
+CLAUDE.local.md

@@ -183,6 +183,7 @@ enum AudioPreprocessor {
             exportBox.session.cancelExport()
         }
         try Task.checkCancellation()
+        TemporaryAudioAccess.restrict(outputURL)
         completed = true
         return outputURL
     }
