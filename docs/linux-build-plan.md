@@ -115,6 +115,8 @@ Diese Karte beschreibt den eingeführten Codepfad, keine Live-Abnahme:
 | `linux/src/keyring.rs` | `secret-tool`; Secret-Service-Zugriff für API-Key und Recording-Auth |
 | `linux/src/clipboard.rs` | Wayland-Clipboard über `wl-copy`; Fehler ohne `WAYLAND_DISPLAY` |
 | `linux/src/transcribe.rs` | HTTPS-Multipart-Upload und begrenzte Fehlerdekodierung; Offline-Stubtests |
+| `linux/src/translate.rs` | Optionale Übersetzung des Transkripts über `/v1/chat/completions`; Offline-Stubtests |
+| `linux/src/test_http.rs` | Gemeinsamer Loopback-HTTP-Stub nur für Tests |
 | `linux/src/recovery.rs` | HMAC-SHA256, exakt authentifizierte Bytes, fünf Dateien/24 Stunden |
 | `linux/src/settings.rs` | Owner-only Modell-/Sprachkonfiguration, kein Secret |
 | `linux/src/window.rs` | `hyprctl activewindow -j`: nur Adresse und Klasse, kein Fenstertitel |
@@ -139,6 +141,7 @@ bewusste Produktentscheidung, keinen stillen Skip.
 | Hotkey | Bind nur transaktional ersetzen; bei Fehler alte Bindung und Preference behalten |
 | Logs | kein Key, kein Transkript, kein Audio |
 | Modell | kein realtime-only (`gpt-live-transcribe`) gegen `/v1/audio/transcriptions` |
+| Übersetzung | nur mit gesetzter Zielsprache; Fehler oder leere Übersetzung behalten Audio, nie stiller Rückfall auf den Originaltext |
 
 ## Phasen
 
@@ -161,7 +164,8 @@ Linux-Ziel bleibt. Bericht: [linux-spike-2026-09-20.md](linux-spike-2026-09-20.m
 ### Phase 1 — MVP Clipboard-only
 
 - Shortcut → Aufnahme → Stop → Upload (Key aus Keyring) → Clipboard + Tray/Status
-- Settings-Minimum: Key, Modell, Sprache; UI deutsch wo nutzerseitig
+- Settings-Minimum: Key, Modell, Sprache, optionale Zielsprache für die
+  Übersetzung ([Plan](linux-live-translation-plan.md)); UI deutsch wo nutzerseitig
 - kein Auto-Insert; Panel öffnet nicht ungefragt während der Aufnahme
 - Pflichtpolitik aus der Tabelle, mit Tests
 

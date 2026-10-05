@@ -74,8 +74,9 @@ ausschließlich in [ROADMAP](ROADMAP.md).
   und nicht festgelegten Plattformziele stehen in [ROADMAP](ROADMAP.md).
 - Es wird immer nur eine Plattform aktiv bearbeitet (Entscheidung vom
   2. Oktober 2026, [Neuordnung](docs/roadmap-neuordnung-2026-10-02.md)).
-  Über Plattform 2 wird erst nach Stufe 6 (öffentlicher Betatest & Zuhören) anhand der
-  Rückmeldungen entschieden; Arbeitshypothese ist Linux vor Windows.
+  Seit dem 5. Oktober 2026 ist Linux die aktive Plattform; der Mac ruht auf
+  seinem belegten Stand. Neuer Schwerpunkt ist eine Übersetzung beim Diktieren
+  mit wählbarer Zielsprache ([Plan](docs/linux-live-translation-plan.md)).
 - Windows wartet auf diese Entscheidung. Das am 28. September gewählte Ziel,
   öffentliche Verteilung vorzubereiten, gilt erst, wenn die Wahl auf Windows
   fällt; ein versionierter Ausgangsstand, reproduzierbare Paketierung und

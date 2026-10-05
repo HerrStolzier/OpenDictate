@@ -34,6 +34,8 @@ opendictate retry                   # neueste authentifizierte Aufnahme erneut s
 opendictate settings show
 opendictate settings model gpt-transcribe
 opendictate settings language de    # `auto` für automatische Erkennung
+opendictate settings target en      # Diktat ins Englische übersetzen; `off` aus
+opendictate settings translation-model gpt-5.4-mini
 opendictate secrets status
 ```
 
@@ -55,6 +57,11 @@ echten Secrets nötig; die HTTP-Tests verwenden nur einen lokalen Stub.
 - Unter 1 Sekunde oder ohne 50-ms-Fenster oberhalb −45 dBFS erfolgt kein Upload.
   Erkannte Sprache erhält 0,25 Sekunden Rand; nur Einsparungen ab 0,35 Sekunden
   erzeugen eine zugeschnittene Upload-WAV. Das 90-Sekunden-Limit bleibt aktiv.
+- Mit gesetzter Zielsprache wird das Transkript danach über
+  `/v1/chat/completions` übersetzt und nur die Übersetzung ausgegeben. Scheitert
+  die Übersetzung oder ist sie leer, bleibt die Aufnahme wie bei jedem anderen
+  Fehler erhalten; `retry` übersetzt erneut. Live ist das noch nicht geprüft
+  ([Plan](../docs/linux-live-translation-plan.md)).
 - Ein nichtleeres Transkript wird ausschließlich in die Wayland-Zwischenablage
   geschrieben. Erst nach erfolgreichem Copy darf die zugehörige Aufnahme
   entfernt werden.
