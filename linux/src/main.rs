@@ -9,7 +9,11 @@ mod recovery;
 mod settings;
 mod state;
 mod transcribe;
+mod translate;
 mod window;
+
+#[cfg(test)]
+mod test_http;
 
 use std::fs::{self, OpenOptions};
 use std::io::{self, IsTerminal, Read, Write};
@@ -34,9 +38,11 @@ Befehle:
   secrets status         ob API-Key und Recording-Auth existieren
   secrets set-api-key    API-Key von stdin speichern (kein Argument)
   secrets init-auth      Recording-Auth anlegen, falls fehlend
-  settings show          Modell und Sprache anzeigen
+  settings show          Modell, Sprache und Übersetzung anzeigen
   settings model NAME    Upload-Modell setzen
   settings language CODE Sprache setzen; `auto` für Erkennung
+  settings target CODE   Übersetzen in Zielsprache, z. B. `en`; `off` aus
+  settings translation-model NAME  Modell für die Übersetzung setzen
   record --daemon        interner Aufnahmeprozess
 ";
 
@@ -73,6 +79,8 @@ fn run(args: Vec<String>) -> Result<(), String> {
         ["settings", "show"] => settings_show(),
         ["settings", "model", model] => settings_model(model),
         ["settings", "language", language] => settings_language(language),
+        ["settings", "target", target] => settings_target(target),
+        ["settings", "translation-model", model] => settings_translation_model(model),
         ["record", "--daemon"] => worker(),
         _ => Err("Unbekanntes Kommando. `opendictate help` zeigt die Befehle.".to_string()),
     }
@@ -198,7 +206,10 @@ fn present(exists: bool) -> &'static str {
 
 fn set_api_key() -> Result<(), String> {
     if atty_stdin() {
-        return Err("API-Schlüssel nur über stdin, nicht als Argument.".to_string());
+        return Err(
+            "API-Schlüssel per Pipe übergeben, z. B. `printf %s \"$KEY\" | opendictate secrets set-api-key`."
+                .to_string(),
+        );
     }
     let mut value = String::new();
     io::stdin()
@@ -225,9 +236,11 @@ fn settings_show() -> Result<(), String> {
     let path = paths::settings_path().map_err(path_error)?;
     let settings = settings::Settings::load(&path)?;
     println!(
-        "model={} language={}",
+        "model={} language={} target={} translation-model={}",
         settings.model,
-        settings.language.as_deref().unwrap_or("auto")
+        settings.language.as_deref().unwrap_or("auto"),
+        settings.target_language.as_deref().unwrap_or("off"),
+        settings.translation_model
     );
     Ok(())
 }
@@ -254,6 +267,66 @@ fn settings_language(language: &str) -> Result<(), String> {
     settings.save(&path)?;
     println!("Sprache gespeichert");
     Ok(())
+}
+
+fn settings_target(target: &str) -> Result<(), String> {
+    let path = paths::settings_path().map_err(path_error)?;
+    let mut settings = settings::Settings::load(&path)?;
+    settings.target_language = if target == "off" {
+        None
+    } else {
+        settings::validate_language(target)?;
+        Some(target.to_string())
+    };
+    settings.save(&path)?;
+    println!("Zielsprache gespeichert");
+    Ok(())
+}
+
+fn settings_translation_model(model: &str) -> Result<(), String> {
+    settings::validate_translation_model(model)?;
+    let path = paths::settings_path().map_err(path_error)?;
+    let mut settings = settings::Settings::load(&path)?;
+    settings.translation_model = model.to_string();
+    settings.save(&path)?;
+    println!("Übersetzungsmodell gespeichert");
+    Ok(())
+}
+
+/// Returns the text to deliver: the transcript itself, or its translation
+/// when a target language is set. Fails instead of falling back silently, so
+/// the caller keeps the audio for retry.
+fn deliverable_text(
+    transcript: String,
+    settings: &settings::Settings,
+    api_key: &str,
+    state_guard: &state::StateGuard,
+) -> Result<String, String> {
+    let Some(target) = settings.target_language.as_deref() else {
+        return Ok(transcript);
+    };
+    log_ops(&format!("translation-started target={target}"));
+    let translation = translate::Translator::new().translate(
+        &transcript,
+        target,
+        &settings.translation_model,
+        api_key,
+    )?;
+    ensure_not_cancelled(state_guard)?;
+    if translation.is_empty() {
+        return Err("Leere Übersetzung.".to_string());
+    }
+    Ok(translation)
+}
+
+fn delivered_status(settings: &settings::Settings, retry: bool) -> String {
+    let subject = match (settings.target_language.as_deref(), retry) {
+        (Some(target), false) => format!("Übersetzung ({target})"),
+        (Some(target), true) => format!("Wiederholte Übersetzung ({target})"),
+        (None, false) => "Text".to_string(),
+        (None, true) => "Wiederholung".to_string(),
+    };
+    format!("{subject} in Zwischenablage kopiert")
 }
 
 fn worker() -> Result<(), String> {
@@ -315,14 +388,15 @@ fn process_new_recording(path: &Path, state_guard: &state::StateGuard) -> Result
         if transcript.is_empty() {
             return Err("Leere Transkription; Aufnahme wurde behalten.".to_string());
         }
+        let text = deliverable_text(transcript, &settings, &api_key, state_guard)?;
         state_guard
             .set(state::State::Delivering)
             .map_err(path_error)?;
-        clipboard::copy_text(&transcript)?;
-        if policy::can_delete_audio(&transcript, true) && fs::remove_file(path).is_err() {
+        clipboard::copy_text(&text)?;
+        if policy::can_delete_audio(&text, true) && fs::remove_file(path).is_err() {
             log_ops("pending-cleanup-failed");
         }
-        notify::status("Text in Zwischenablage kopiert");
+        notify::status(&delivered_status(&settings, false));
         log_ops("transcription-copied");
         Ok(())
     })();
@@ -378,14 +452,16 @@ fn retry() -> Result<(), String> {
     if transcript.is_empty() {
         return Err("Leere Transkription; Aufnahme bleibt erhalten.".to_string());
     }
+    let text = deliverable_text(transcript, &settings, &api_key, &state_guard)?;
     state_guard
         .set(state::State::Delivering)
         .map_err(path_error)?;
-    clipboard::copy_text(&transcript)?;
+    clipboard::copy_text(&text)?;
     recovery::delete(&entry)?;
-    notify::status("Wiederholung in Zwischenablage kopiert");
+    let status = delivered_status(&settings, true);
+    notify::status(&status);
     log_ops("retry-copied");
-    println!("Wiederholung in Zwischenablage kopiert");
+    println!("{status}");
     Ok(())
 }
 

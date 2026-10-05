@@ -7,8 +7,10 @@ Prüfverfahren: [CHECKS.md](../CHECKS.md); frühere Freigaben: [Archiv](archive/
 Diese Datei hält nur den aktuellen Übergabe- und Abnahmestand. Detailpläne und
 datierte Belege sind jeweils an ihrer zuständigen Quelle verlinkt.
 
-Seit dem 2. Oktober wird immer nur eine Plattform aktiv bearbeitet
-([ROADMAP](../ROADMAP.md)). Aktiv ist **macOS Plan 2** (Build 8 von Apple
+Seit dem 5. Oktober ist **Linux** die aktive Plattform, mit Schwerpunkt
+Live-Übersetzung ([Plan](linux-live-translation-plan.md)); der folgende
+Mac-Stand ruht unverändert. Davor galt: Seit dem 2. Oktober wird immer nur
+eine Plattform aktiv bearbeitet ([ROADMAP](../ROADMAP.md)). Aktiv war **macOS Plan 2** (Build 8 von Apple
 akzeptiert, finales Paket geprüft; Installation und Live-Abnahme offen). **Windows**
 (öffentliche Verteilung vorbereiten) und **Linux Phase 1** (Clipboard-MVP-Kern
 in `main`, ohne Live-Durchstich und UI-Abnahme) laufen nicht parallel, sondern
@@ -349,6 +351,13 @@ Schlüsseleinrichtung wieder entfernt. Basti hat den Linux-Diktattest wegen
 des noch ungeklärten Mikrofons vorerst zurückgestellt; Mikrofon-/Providerprüfung
 bleibt ein eigener Freigabeschritt. Details:
 [Plattform-Fortsetzung](platform-continuation-2026-09-28.md).
+
+Seit 05.10. kann das CLI ein Diktat vor der Ausgabe in eine gewählte
+Zielsprache übersetzen (`settings target en`). Am 05.10. auf omarchy live
+erprobt: Diktat mit und ohne Übersetzung, falsches Übersetzungsmodell mit
+erhaltener Aufnahme und `retry`. Damit ist erstmals ein echter Linux-Upload
+belegt. Offen bleiben Netz- und Abbruchfälle, physischer Hotkey und
+Tray/Panel ([Plan mit Nachweis](linux-live-translation-plan.md)).
 
 Der [Linux-Detailplan](linux-build-plan.md) ist die zuständige Quelle für
 Phasen, Modulkarte, Schutzpolitik und Checks. Der [Phase-1-Bericht](linux-phase1-core-2026-09-22.md)

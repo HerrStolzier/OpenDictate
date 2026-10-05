@@ -118,13 +118,17 @@ On an explicit toggle it records the default PipeWire/Pulse input as an
 owner-only WAV. Recordings below one second or without a 50-ms window above
 −45 dBFS are not uploaded. Other recordings are sent over HTTPS to OpenAI's
 `/v1/audio/transcriptions` endpoint with the selected model and optional
-language. The returned transcript is written to the Wayland clipboard
-(`wl-copy`); there is no automatic target-app insertion.
+language. If a translation target language is set, the transcript text is then
+sent over HTTPS to OpenAI's `/v1/chat/completions` endpoint with the selected
+translation model, and only the translation is written to the clipboard. The
+returned text is written to the Wayland clipboard (`wl-copy`); there is no
+automatic target-app insertion.
 
 Secret Service items use attributes `service=opendictate` and `key=api-key` or
 `recording-auth`. The API key is accepted only on stdin. A probe item can be
 written, read and deleted to test the service. There is no file, environment or
-argument fallback. Settings contain only model and language and are stored under
+argument fallback. Settings contain only transcription model, language, optional target language
+and translation model and are stored under
 `$XDG_CONFIG_HOME/opendictate/`.
 
 Pending and recovery audio live under `$XDG_STATE_HOME/opendictate/` (typically
@@ -133,9 +137,11 @@ is authenticated with HMAC-SHA256 using a device-local Secret Service value and
 binds the file name, creation time and exact bytes. Retry uploads only bytes that
 authenticate at access time. Managed authenticated recovery is limited to five
 files and 24 hours; unknown or modified files are not uploaded automatically.
-Audio is removed only after a non-empty transcript reaches the clipboard.
+Audio is removed only after a non-empty transcript, or its non-empty
+translation when a target language is set, reaches the clipboard.
 
 The operations log under `$XDG_STATE_HOME/opendictate/operations.log` records
 bounded events, durations and the captured window class. It must not contain API
-keys, transcript text, window titles or audio contents. The Phase-1 core has
-offline loopback HTTP evidence only; no live Linux provider request is claimed.
+keys, transcript text, window titles or audio contents. Live Linux transcription
+and translation requests were exercised on one attended test system on
+5 October 2026; this is not a published Linux product.
