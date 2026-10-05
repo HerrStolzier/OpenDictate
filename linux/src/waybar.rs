@@ -7,7 +7,8 @@ use crate::state::State;
 const MICROPHONE: &str = "\u{f130}";
 const HOURGLASS: &str = "\u{f252}";
 
-/// Renders one Waybar custom-module JSON line. It carries only state and
+/// Renders one Waybar-style JSON line, which Waybar and the Omarchy shell
+/// bar both read from a command module. It carries only state and
 /// settings, never transcript text.
 pub fn render(state: State, settings: &Settings) -> String {
     let icon = match state {
@@ -31,6 +32,10 @@ pub fn render(state: State, settings: &Settings) -> String {
     let tooltip =
         format!("OpenDictate: {activity}\n{translation}\nKlick schaltet die Übersetzung um");
     let mut classes = vec![state.as_str()];
+    // The Omarchy shell bar highlights a command module only for `active`.
+    if state == State::Recording {
+        classes.push("active");
+    }
     if settings.target_language.is_some() {
         classes.push("translating");
     }
@@ -69,7 +74,10 @@ mod tests {
         settings.set_target(Some("en".to_string()));
         let value = parse(&render(State::Recording, &settings));
         assert_eq!(value["text"], format!("{MICROPHONE} EN"));
-        assert_eq!(value["class"], json!(["recording", "translating"]));
+        assert_eq!(
+            value["class"],
+            json!(["recording", "active", "translating"])
+        );
         assert!(value["tooltip"]
             .as_str()
             .unwrap()

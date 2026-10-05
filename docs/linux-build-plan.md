@@ -206,12 +206,15 @@ begründeter Clipboard-only-Ship mit klarem Wayland-Status.
 
 **Stand 05.10.2026 (offline geprüft, noch nicht live):** Das CLI erfasst beim
 Start die Fensteradresse, prüft nach dem Kopieren per `hyprctl activewindow`
-dieselbe Adresse und per `wl-paste` denselben Text und sendet dann
-`hyprctl dispatch sendshortcut` mit Ctrl+V (bekannte Terminals Ctrl+Shift+V)
-an genau diese Adresse. Jede andere Lage endet bei der Zwischenablage mit
+dieselbe Adresse und per `wl-paste` denselben Text und sendet dann über
+`hyprctl dispatch` Ctrl+V (bekannte Terminals Ctrl+Shift+V) an genau diese
+Adresse: zuerst als Lua-Dispatcher `hl.dsp.send_shortcut` (Hyprland 0.56 mit
+Lua-Konfiguration lehnt die alte Form ab, auf omarchy am 05.10. gesehen), nach
+eindeutiger Ablehnung als `sendshortcut`. Jede andere Lage endet bei der Zwischenablage mit
 Hinweis; `retry` fügt nie ein; `settings insert off` schaltet es ab. Die
-Waybar-Anzeige (`opendictate waybar`, Klick: `settings target toggle`) deckt
-den Status-Teil des UI-Minimums aus Phase 1 ab.
+Leistenanzeige (`opendictate bar`, Klick: `settings target toggle`) läuft als
+Befehlsmodul der Omarchy-4-Leiste oder in Waybar und deckt den Status-Teil des
+UI-Minimums aus Phase 1 ab.
 
 ### Phase 3 — Packaging
 

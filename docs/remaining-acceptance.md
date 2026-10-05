@@ -357,7 +357,7 @@ Zielsprache übersetzen (`settings target en`). Am 05.10. auf omarchy live
 erprobt: Diktat mit und ohne Übersetzung, falsches Übersetzungsmodell mit
 erhaltener Aufnahme und `retry`. Damit ist erstmals ein echter Linux-Upload
 belegt. Der physische Hotkey Super+D ist seit 05.10. eingerichtet und von
-Basti bestätigt. Waybar-Anzeige mit Übersetzungsumschalter und Auto-Einfügen
+Basti bestätigt. Leistenanzeige mit Übersetzungsumschalter und Auto-Einfügen
 ins Startfenster sind offline geprüft, aber noch nicht live abgenommen. Offen
 bleiben außerdem Netz- und Abbruchfälle
 ([Plan mit Nachweis](linux-live-translation-plan.md)).

@@ -8,7 +8,7 @@ Noch kein Produktumfang und keine öffentliche Veröffentlichung. Das Rust-CLI
 für die omarchy/Hyprland-Session bildet den Phase-1-Kern ab: Aufnahme ohne
 Fenster, Audio-Prüfung, OpenAI-Upload mit eigenem Key, Wayland-Zwischenablage,
 Zustandsmaschine und authentifizierte Recovery. Dazu kommen eine
-Waybar-Anzeige mit Übersetzungsumschalter und Auto-Einfügen ins Startfenster
+Leistenanzeige (Omarchy-Leiste oder Waybar) mit Übersetzungsumschalter und Auto-Einfügen ins Startfenster
 (Phase 2, noch ohne Live-Nachweis).
 
 ## Bauen und prüfen
@@ -31,7 +31,7 @@ nicht ins Git. Die macOS-App und ihre Swift-CI werden davon nicht verändert.
 ```bash
 opendictate toggle                  # Aufnahme starten oder stoppen
 opendictate status                  # idle / recording / processing / delivering
-opendictate waybar                  # Status als JSON-Zeile für Waybar
+opendictate bar                     # Status als JSON-Zeile für die Leiste (`waybar` gleichwertig)
 opendictate cancel                  # Aufnahme/Verarbeitung sicher abbrechen
 opendictate retry                   # neueste authentifizierte Aufnahme erneut senden
 opendictate settings show
@@ -73,8 +73,11 @@ echten Secrets nötig; die HTTP-Tests verwenden nur einen lokalen Stub.
 - Auto-Einfügen (Standard an, `settings insert off` schaltet es ab): Beim
   Start wird das aktive Hyprland-Fenster erfasst. Nach dem Kopieren prüft das
   CLI, dass genau dieses Fenster noch vorne ist und die Zwischenablage noch den
-  Text enthält, und sendet dann per `hyprctl dispatch sendshortcut` Ctrl+V,
-  in bekannten Terminals Ctrl+Shift+V, an dieses Fenster. Sonst bleibt es bei
+  Text enthält, und sendet dann per `hyprctl dispatch` Ctrl+V, in bekannten
+  Terminals Ctrl+Shift+V, an dieses Fenster. Zuerst wird die Lua-Form
+  `hl.dsp.send_shortcut` verwendet (Hyprland mit Lua-Konfiguration, z. B.
+  0.56); nur wenn Hyprland sie eindeutig ablehnt, die ältere Form
+  `sendshortcut`. Sonst bleibt es bei
   der Zwischenablage mit Hinweis. Das Einfügen selbst ist unbestätigt; die
   Aufnahme gilt mit dem erfolgreichen Kopieren als geliefert. `retry` fügt nie
   automatisch ein.
@@ -101,14 +104,22 @@ Die Beispielbindung steht in [hyprland.conf.example](hyprland.conf.example).
 Sie wurde nicht in die Nutzerkonfiguration geschrieben. Den Key bewusst wählen
 und das Release-Binary über einen absoluten Pfad aufrufen.
 
-## Waybar
+## Leistenanzeige
 
-[waybar.example.jsonc](waybar.example.jsonc) und
-[waybar.example.css](waybar.example.css) zeigen ein Modul, das jede Sekunde
-`opendictate waybar` abfragt: Mikrofon-Symbol, rot während der Aufnahme, Sanduhr
-während der Verarbeitung und die aktive Zielsprache (z. B. `EN`). Ein Klick ruft
-`settings target toggle` auf. Die Ausgabe enthält nur Zustand und Einstellungen,
-nie Text. Die Symbole brauchen eine Nerd Font, wie sie Omarchy mitbringt.
+`opendictate bar` gibt jede Abfrage eine JSON-Zeile im Waybar-Format aus:
+Mikrofon-Symbol, Sanduhr während der Verarbeitung und die aktive Zielsprache
+(z. B. `EN`). Während der Aufnahme trägt sie die Klasse `active`. Ein Klick soll
+`settings target toggle` aufrufen. Die Ausgabe enthält nur Zustand und
+Einstellungen, nie Text. Die Symbole brauchen eine Nerd Font, wie sie Omarchy
+mitbringt.
+
+- Omarchy 4 (Omarchy-Shell-Leiste): Befehlsmodul nach
+  [omarchy-bar.example.json](omarchy-bar.example.json) in
+  `~/.config/omarchy/shell.json` unter `bar.layout` ergänzen. Die Leiste hebt
+  das Modul während der Aufnahme hervor.
+- Waybar: [waybar.example.jsonc](waybar.example.jsonc) und
+  [waybar.example.css](waybar.example.css); dort wird das Symbol während der
+  Aufnahme rot.
 
 ## Noch offen
 

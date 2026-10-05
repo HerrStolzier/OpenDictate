@@ -126,7 +126,7 @@ returned text is written to the Wayland clipboard (`wl-copy`). Unless
 (`wl-paste`, in memory only) and, if it still holds that text and the Hyprland
 window captured at recording start is still frontmost, sends that window a
 paste shortcut via `hyprctl`. Retry never pastes automatically. The optional
-Waybar module prints only the state and translation setting, never text.
+bar module (Omarchy shell or Waybar) prints only the state and translation setting, never text.
 
 Secret Service items use attributes `service=opendictate` and `key=api-key` or
 `recording-auth`. The API key is accepted only on stdin. A probe item can be

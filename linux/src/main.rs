@@ -33,7 +33,7 @@ opendictate — Linux Clipboard-MVP (kein Produktumfang)
 Befehle:
   toggle                 Aufnahme starten oder stoppen
   status                 idle / recording / processing / delivering
-  waybar                 Status als JSON-Zeile für ein Waybar-Modul
+  bar                    Status als JSON-Zeile für Omarchy-Leiste oder Waybar
   cancel                 Aufnahme oder Verarbeitung sicher abbrechen
   retry                  neueste authentifizierte Aufnahme erneut senden
   copy-status            festen Statustext in die Zwischenablage
@@ -74,7 +74,7 @@ fn run(args: Vec<String>) -> Result<(), String> {
         }
         ["toggle"] => toggle(),
         ["status"] => status(),
-        ["waybar"] => waybar_status(),
+        ["bar"] | ["waybar"] => waybar_status(),
         ["cancel"] => cancel(),
         ["retry"] => retry(),
         ["copy-status"] => copy_status(),

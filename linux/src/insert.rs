@@ -60,20 +60,68 @@ pub fn paste_into(target: &TargetWindow, text: &str) -> Result<(), Skip> {
     if !same_text(&clipboard, text) {
         return Err(Skip::ClipboardChanged);
     }
-    let output = Command::new("hyprctl")
-        .args(["dispatch", "sendshortcut", &shortcut_argument(target)])
-        .stdin(Stdio::null())
-        .stderr(Stdio::null())
-        .output()
-        .map_err(|_| Skip::Unavailable)?;
-    if output.status.success() && String::from_utf8_lossy(&output.stdout).trim() == "ok" {
-        Ok(())
-    } else {
-        Err(Skip::Unavailable)
+    // Hyprland with a Lua config only accepts Lua dispatchers; older or
+    // hyprlang setups only the legacy form. A rejected form sends nothing, so
+    // the other one is tried only after a clear rejection.
+    match dispatch(&lua_dispatcher(target))? {
+        Dispatch::Sent => Ok(()),
+        Dispatch::Rejected => match dispatch_legacy(target)? {
+            Dispatch::Sent => Ok(()),
+            Dispatch::Rejected | Dispatch::Unclear => Err(Skip::Unavailable),
+        },
+        Dispatch::Unclear => Err(Skip::Unavailable),
     }
 }
 
-fn shortcut_argument(target: &TargetWindow) -> String {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Dispatch {
+    Sent,
+    Rejected,
+    Unclear,
+}
+
+fn dispatch(argument: &str) -> Result<Dispatch, Skip> {
+    run_hyprctl(&["dispatch", argument])
+}
+
+fn dispatch_legacy(target: &TargetWindow) -> Result<Dispatch, Skip> {
+    run_hyprctl(&["dispatch", "sendshortcut", &legacy_argument(target)])
+}
+
+fn run_hyprctl(args: &[&str]) -> Result<Dispatch, Skip> {
+    let output = Command::new("hyprctl")
+        .args(args)
+        .stdin(Stdio::null())
+        .output()
+        .map_err(|_| Skip::Unavailable)?;
+    let mut response = String::from_utf8_lossy(&output.stdout).into_owned();
+    response.push_str(&String::from_utf8_lossy(&output.stderr));
+    Ok(classify(output.status.success(), &response))
+}
+
+fn classify(success: bool, response: &str) -> Dispatch {
+    let response = response.trim().to_ascii_lowercase();
+    if success && (response == "ok" || response.is_empty()) {
+        Dispatch::Sent
+    } else if ["error", "invalid", "unknown", "not found", "syntax"]
+        .iter()
+        .any(|marker| response.contains(marker))
+    {
+        Dispatch::Rejected
+    } else {
+        Dispatch::Unclear
+    }
+}
+
+fn lua_dispatcher(target: &TargetWindow) -> String {
+    format!(
+        "hl.dsp.send_shortcut({{ mods = \"{}\", key = \"V\", window = \"address:{}\" }})",
+        paste_modifiers(&target.class),
+        target.address
+    )
+}
+
+fn legacy_argument(target: &TargetWindow) -> String {
     format!(
         "{}, V, address:{}",
         paste_modifiers(&target.class),
@@ -114,17 +162,37 @@ mod tests {
     #[test]
     fn terminals_paste_with_shift() {
         assert_eq!(
-            shortcut_argument(&target("Alacritty")),
+            legacy_argument(&target("Alacritty")),
             "CTRL SHIFT, V, address:0x5a1b2c"
         );
         assert_eq!(
-            shortcut_argument(&target("com.mitchellh.ghostty")),
+            legacy_argument(&target("com.mitchellh.ghostty")),
             "CTRL SHIFT, V, address:0x5a1b2c"
         );
         assert_eq!(
-            shortcut_argument(&target("chromium")),
+            legacy_argument(&target("chromium")),
             "CTRL, V, address:0x5a1b2c"
         );
+    }
+
+    #[test]
+    fn lua_dispatcher_targets_the_captured_address() {
+        assert_eq!(
+            lua_dispatcher(&target("com.mitchellh.ghostty")),
+            r#"hl.dsp.send_shortcut({ mods = "CTRL SHIFT", key = "V", window = "address:0x5a1b2c" })"#
+        );
+    }
+
+    #[test]
+    fn only_clear_rejections_allow_the_other_syntax() {
+        assert_eq!(classify(true, "ok\n"), Dispatch::Sent);
+        assert_eq!(classify(true, ""), Dispatch::Sent);
+        assert_eq!(
+            classify(true, "[string \"sendshortcut\"]:1: syntax error near 'V'"),
+            Dispatch::Rejected
+        );
+        assert_eq!(classify(true, "Invalid dispatcher"), Dispatch::Rejected);
+        assert_eq!(classify(false, "something else"), Dispatch::Unclear);
     }
 
     #[test]
