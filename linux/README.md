@@ -7,7 +7,9 @@ Nachweis: [docs/linux-phase1-core-2026-09-22.md](../docs/linux-phase1-core-2026-
 Noch kein Produktumfang und keine öffentliche Veröffentlichung. Das Rust-CLI
 für die omarchy/Hyprland-Session bildet den Phase-1-Kern ab: Aufnahme ohne
 Fenster, Audio-Prüfung, OpenAI-Upload mit eigenem Key, Wayland-Zwischenablage,
-Zustandsmaschine und authentifizierte Recovery. Auto-Insert bleibt Phase 2.
+Zustandsmaschine und authentifizierte Recovery. Dazu kommen eine
+Waybar-Anzeige mit Übersetzungsumschalter und Auto-Einfügen ins Startfenster
+(Phase 2, noch ohne Live-Nachweis).
 
 ## Bauen und prüfen
 
@@ -29,12 +31,15 @@ nicht ins Git. Die macOS-App und ihre Swift-CI werden davon nicht verändert.
 ```bash
 opendictate toggle                  # Aufnahme starten oder stoppen
 opendictate status                  # idle / recording / processing / delivering
+opendictate waybar                  # Status als JSON-Zeile für Waybar
 opendictate cancel                  # Aufnahme/Verarbeitung sicher abbrechen
 opendictate retry                   # neueste authentifizierte Aufnahme erneut senden
 opendictate settings show
 opendictate settings model gpt-transcribe
 opendictate settings language de    # `auto` für automatische Erkennung
 opendictate settings target en      # Diktat ins Englische übersetzen; `off` aus
+opendictate settings target toggle  # aus bzw. mit letzter Zielsprache (sonst en) an
+opendictate settings insert off     # nur Zwischenablage, kein Auto-Einfügen
 opendictate settings translation-model gpt-5.4-mini
 opendictate secrets status
 ```
@@ -65,6 +70,14 @@ echten Secrets nötig; die HTTP-Tests verwenden nur einen lokalen Stub.
 - Ein nichtleeres Transkript wird ausschließlich in die Wayland-Zwischenablage
   geschrieben. Erst nach erfolgreichem Copy darf die zugehörige Aufnahme
   entfernt werden.
+- Auto-Einfügen (Standard an, `settings insert off` schaltet es ab): Beim
+  Start wird das aktive Hyprland-Fenster erfasst. Nach dem Kopieren prüft das
+  CLI, dass genau dieses Fenster noch vorne ist und die Zwischenablage noch den
+  Text enthält, und sendet dann per `hyprctl dispatch sendshortcut` Ctrl+V,
+  in bekannten Terminals Ctrl+Shift+V, an dieses Fenster. Sonst bleibt es bei
+  der Zwischenablage mit Hinweis. Das Einfügen selbst ist unbestätigt; die
+  Aufnahme gilt mit dem erfolgreichen Kopieren als geliefert. `retry` fügt nie
+  automatisch ein.
 - Fehler, Abbruch, leere Antwort oder Clipboard-Fehler behalten Audio. Eine
   Recovery-Kopie wird mit einem Secret-Service-Schlüssel per HMAC-SHA256 an
   Dateiname, Erstellzeit und exakte Bytes gebunden. Scheitert die Kopie, bleibt
@@ -88,13 +101,21 @@ Die Beispielbindung steht in [hyprland.conf.example](hyprland.conf.example).
 Sie wurde nicht in die Nutzerkonfiguration geschrieben. Den Key bewusst wählen
 und das Release-Binary über einen absoluten Pfad aufrufen.
 
+## Waybar
+
+[waybar.example.jsonc](waybar.example.jsonc) und
+[waybar.example.css](waybar.example.css) zeigen ein Modul, das jede Sekunde
+`opendictate waybar` abfragt: Mikrofon-Symbol, rot während der Aufnahme, Sanduhr
+während der Verarbeitung und die aktive Zielsprache (z. B. `EN`). Ein Klick ruft
+`settings target toggle` auf. Die Ausgabe enthält nur Zustand und Einstellungen,
+nie Text. Die Symbole brauchen eine Nerd Font, wie sie Omarchy mitbringt.
+
 ## Noch offen
 
 - Kein Live-Upload und kein echter Phase-1-Durchstich auf omarchy in diesem
   Stand; dafür braucht es eine neue begrenzte Mikrofon-/Provider-Freigabe.
-- Kein Tray oder Settings-Fenster. CLI-Status, Benachrichtigungen und sichere
-  Settings-Kommandos bilden erst den Kern.
+- Waybar-Modul und Auto-Einfügen sind offline geprüft, aber noch nicht live
+  auf omarchy abgenommen. Kein Settings-Fenster.
 - Ein Abbruch während des blockierenden HTTP-Aufrufs wird nach dessen Rückkehr
   beziehungsweise Timeout ausgewertet; er löscht die einzige Aufnahme nicht.
-- Kein physischer Hyprland-Hotkey-Nachweis für diesen Kandidaten, kein
-  Auto-Insert, kein Packaging und kein zweites Distro-Ziel.
+- Kein Packaging und kein zweites Distro-Ziel.

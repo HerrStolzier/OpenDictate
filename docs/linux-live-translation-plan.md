@@ -86,10 +86,11 @@ Nicht live geprüft: Netzabbruch und Abbruch während der Übersetzung.
 1. Fehlerfälle live ergänzen: Netz weg, `opendictate cancel` während der
    Übersetzung; Aufnahme muss jeweils erhalten bleiben.
 2. Einige Tage im Alltag nutzen und die Wartezeit mit Übersetzung beobachten.
-3. Tray/Status mit sichtbarer Zielsprache und Umschalter (Phase-1-UI-Minimum).
-4. Physischer Hyprland-Hotkey, optional ein zweiter Bind nur für
-   „Diktat übersetzen“.
-5. Erst danach: Weg C prüfen, Auto-Einfügen (Phase 2), Paketierung (Phase 3).
+3. Waybar-Status mit sichtbarer Zielsprache und Klick-Umschalter: gebaut und
+   offline geprüft, Live-Abnahme offen.
+4. Physischer Hyprland-Hotkey: Super+D am 05.10. eingerichtet und bestätigt.
+5. Auto-Einfügen (Phase 2): gebaut und offline geprüft, Live-Abnahme offen.
+6. Erst danach: Weg C prüfen, Paketierung (Phase 3).
 
 ## Offene Entscheidungen für Basti
 

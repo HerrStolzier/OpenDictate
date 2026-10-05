@@ -204,6 +204,15 @@ als vages Best-Effort.
 **Done:** Ein belegter Insert-Pfad, der die Frontmost-Regel einhält, **oder**
 begründeter Clipboard-only-Ship mit klarem Wayland-Status.
 
+**Stand 05.10.2026 (offline geprüft, noch nicht live):** Das CLI erfasst beim
+Start die Fensteradresse, prüft nach dem Kopieren per `hyprctl activewindow`
+dieselbe Adresse und per `wl-paste` denselben Text und sendet dann
+`hyprctl dispatch sendshortcut` mit Ctrl+V (bekannte Terminals Ctrl+Shift+V)
+an genau diese Adresse. Jede andere Lage endet bei der Zwischenablage mit
+Hinweis; `retry` fügt nie ein; `settings insert off` schaltet es ab. Die
+Waybar-Anzeige (`opendictate waybar`, Klick: `settings target toggle`) deckt
+den Status-Teil des UI-Minimums aus Phase 1 ab.
+
 ### Phase 3 — Packaging
 
 - Build-Dokumentation; Arch/omarchy zuerst

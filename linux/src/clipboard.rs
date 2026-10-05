@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::io::{Read, Write};
 use std::process::{Command, Stdio};
 
 pub fn copy_text(text: &str) -> Result<(), String> {
@@ -28,6 +28,32 @@ pub fn copy_text(text: &str) -> Result<(), String> {
         return Err("Zwischenablage nicht verfügbar.".to_string());
     }
     Ok(())
+}
+
+/// Reads the current plain-text clipboard, bounded, so auto-insert can check
+/// that it still holds the delivered text.
+pub fn read_text(limit: usize) -> Result<String, String> {
+    let mut child = Command::new("wl-paste")
+        .args(["--no-newline", "--type", "text/plain"])
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .map_err(|_| "Zwischenablage nicht lesbar (wl-paste fehlt).".to_string())?;
+    let mut data = Vec::new();
+    if let Some(stdout) = child.stdout.take() {
+        let _ = stdout.take(limit as u64 + 1).read_to_end(&mut data);
+    }
+    if data.len() > limit {
+        let _ = child.kill();
+    }
+    let status = child
+        .wait()
+        .map_err(|_| "Zwischenablage nicht lesbar.".to_string())?;
+    if !status.success() || data.len() > limit {
+        return Err("Zwischenablage nicht lesbar.".to_string());
+    }
+    String::from_utf8(data).map_err(|_| "Zwischenablage nicht lesbar.".to_string())
 }
 
 #[cfg(test)]

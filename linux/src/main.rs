@@ -1,4 +1,5 @@
 mod clipboard;
+mod insert;
 mod ipc;
 mod keyring;
 mod notify;
@@ -10,6 +11,7 @@ mod settings;
 mod state;
 mod transcribe;
 mod translate;
+mod waybar;
 mod window;
 
 #[cfg(test)]
@@ -31,6 +33,7 @@ opendictate — Linux Clipboard-MVP (kein Produktumfang)
 Befehle:
   toggle                 Aufnahme starten oder stoppen
   status                 idle / recording / processing / delivering
+  waybar                 Status als JSON-Zeile für ein Waybar-Modul
   cancel                 Aufnahme oder Verarbeitung sicher abbrechen
   retry                  neueste authentifizierte Aufnahme erneut senden
   copy-status            festen Statustext in die Zwischenablage
@@ -42,6 +45,8 @@ Befehle:
   settings model NAME    Upload-Modell setzen
   settings language CODE Sprache setzen; `auto` für Erkennung
   settings target CODE   Übersetzen in Zielsprache, z. B. `en`; `off` aus
+  settings target toggle Übersetzung aus- oder mit letzter Zielsprache einschalten
+  settings insert on|off Text automatisch ins Startfenster einfügen
   settings translation-model NAME  Modell für die Übersetzung setzen
   record --daemon        interner Aufnahmeprozess
 ";
@@ -69,6 +74,7 @@ fn run(args: Vec<String>) -> Result<(), String> {
         }
         ["toggle"] => toggle(),
         ["status"] => status(),
+        ["waybar"] => waybar_status(),
         ["cancel"] => cancel(),
         ["retry"] => retry(),
         ["copy-status"] => copy_status(),
@@ -79,7 +85,10 @@ fn run(args: Vec<String>) -> Result<(), String> {
         ["settings", "show"] => settings_show(),
         ["settings", "model", model] => settings_model(model),
         ["settings", "language", language] => settings_language(language),
+        ["settings", "target", "toggle"] => settings_target_toggle(),
         ["settings", "target", target] => settings_target(target),
+        ["settings", "insert", "on"] => settings_insert(true),
+        ["settings", "insert", "off"] => settings_insert(false),
         ["settings", "translation-model", model] => settings_translation_model(model),
         ["record", "--daemon"] => worker(),
         _ => Err("Unbekanntes Kommando. `opendictate help` zeigt die Befehle.".to_string()),
@@ -149,6 +158,19 @@ fn status() -> Result<(), String> {
     let socket = paths::socket_path().map_err(path_error)?;
     let state_path = paths::state_path().map_err(path_error)?;
     println!("{}", state::read(&state_path, &socket).as_str());
+    Ok(())
+}
+
+fn waybar_status() -> Result<(), String> {
+    let socket = paths::socket_path().map_err(path_error)?;
+    let state_path = paths::state_path().map_err(path_error)?;
+    let state = state::read(&state_path, &socket);
+    // A broken settings file must not blank the bar; show the state alone.
+    let settings = paths::settings_path()
+        .map_err(path_error)
+        .and_then(|path| settings::Settings::load(&path))
+        .unwrap_or_default();
+    println!("{}", waybar::render(state, &settings));
     Ok(())
 }
 
@@ -236,11 +258,12 @@ fn settings_show() -> Result<(), String> {
     let path = paths::settings_path().map_err(path_error)?;
     let settings = settings::Settings::load(&path)?;
     println!(
-        "model={} language={} target={} translation-model={}",
+        "model={} language={} target={} translation-model={} insert={}",
         settings.model,
         settings.language.as_deref().unwrap_or("auto"),
         settings.target_language.as_deref().unwrap_or("off"),
-        settings.translation_model
+        settings.translation_model,
+        if settings.auto_insert { "on" } else { "off" }
     );
     Ok(())
 }
@@ -272,14 +295,40 @@ fn settings_language(language: &str) -> Result<(), String> {
 fn settings_target(target: &str) -> Result<(), String> {
     let path = paths::settings_path().map_err(path_error)?;
     let mut settings = settings::Settings::load(&path)?;
-    settings.target_language = if target == "off" {
+    settings.set_target(if target == "off" {
         None
     } else {
         settings::validate_language(target)?;
         Some(target.to_string())
-    };
+    });
     settings.save(&path)?;
     println!("Zielsprache gespeichert");
+    Ok(())
+}
+
+fn settings_target_toggle() -> Result<(), String> {
+    let path = paths::settings_path().map_err(path_error)?;
+    let mut settings = settings::Settings::load(&path)?;
+    settings.toggle_target();
+    settings.save(&path)?;
+    let status = match settings.target_language.as_deref() {
+        Some(target) => format!("Übersetzung nach {target} an"),
+        None => "Übersetzung aus".to_string(),
+    };
+    notify::status(&status);
+    println!("{status}");
+    Ok(())
+}
+
+fn settings_insert(enabled: bool) -> Result<(), String> {
+    let path = paths::settings_path().map_err(path_error)?;
+    let mut settings = settings::Settings::load(&path)?;
+    settings.auto_insert = enabled;
+    settings.save(&path)?;
+    println!(
+        "Automatisches Einfügen {}",
+        if enabled { "an" } else { "aus" }
+    );
     Ok(())
 }
 
@@ -319,14 +368,48 @@ fn deliverable_text(
     Ok(translation)
 }
 
+/// Pastes into the window captured at recording start when allowed. The text
+/// is already in the clipboard, so every skip is only reported, never fatal.
+fn auto_insert(
+    target: Option<&window::TargetWindow>,
+    text: &str,
+    settings: &settings::Settings,
+    state_guard: &state::StateGuard,
+) -> Option<String> {
+    if !settings.auto_insert {
+        return None;
+    }
+    let result = match target {
+        _ if state_guard.is_cancelled() => Err(insert::Skip::Unavailable),
+        Some(target) => insert::paste_into(target, text),
+        None => Err(insert::Skip::Unavailable),
+    };
+    match result {
+        Ok(()) => {
+            log_ops("insert-sent");
+            Some("eingefügt".to_string())
+        }
+        Err(skip) => {
+            log_ops(&format!("insert-skipped reason={}", skip.log_reason()));
+            Some(format!("{}; liegt in der Zwischenablage", skip.message()))
+        }
+    }
+}
+
 fn delivered_status(settings: &settings::Settings, retry: bool) -> String {
-    let subject = match (settings.target_language.as_deref(), retry) {
+    format!(
+        "{} in Zwischenablage kopiert",
+        delivered_subject(settings, retry)
+    )
+}
+
+fn delivered_subject(settings: &settings::Settings, retry: bool) -> String {
+    match (settings.target_language.as_deref(), retry) {
         (Some(target), false) => format!("Übersetzung ({target})"),
         (Some(target), true) => format!("Wiederholte Übersetzung ({target})"),
         (None, false) => "Text".to_string(),
         (None, true) => "Wiederholung".to_string(),
-    };
-    format!("{subject} in Zwischenablage kopiert")
+    }
 }
 
 fn worker() -> Result<(), String> {
@@ -347,7 +430,8 @@ fn worker() -> Result<(), String> {
         state::State::Recording,
     )
     .map_err(path_error)?;
-    if let Some(target) = window::active_window() {
+    let target = window::active_window();
+    if let Some(target) = &target {
         log_ops(&format!("window-captured class={}", target.class));
     }
     let path = paths::next_pending_path().map_err(path_error)?;
@@ -371,10 +455,14 @@ fn worker() -> Result<(), String> {
         "recording-stopped milliseconds={}",
         recording.duration.as_millis()
     ));
-    process_new_recording(&recording.path, &state_guard)
+    process_new_recording(&recording.path, target.as_ref(), &state_guard)
 }
 
-fn process_new_recording(path: &Path, state_guard: &state::StateGuard) -> Result<(), String> {
+fn process_new_recording(
+    path: &Path,
+    target: Option<&window::TargetWindow>,
+    state_guard: &state::StateGuard,
+) -> Result<(), String> {
     let result = (|| {
         ensure_not_cancelled(state_guard)?;
         let prepared = record::prepare_for_upload(path)?;
@@ -396,7 +484,13 @@ fn process_new_recording(path: &Path, state_guard: &state::StateGuard) -> Result
         if policy::can_delete_audio(&text, true) && fs::remove_file(path).is_err() {
             log_ops("pending-cleanup-failed");
         }
-        notify::status(&delivered_status(&settings, false));
+        let status = match auto_insert(target, &text, &settings, state_guard) {
+            Some(insert_status) => {
+                format!("{}: {insert_status}", delivered_subject(&settings, false))
+            }
+            None => delivered_status(&settings, false),
+        };
+        notify::status(&status);
         log_ops("transcription-copied");
         Ok(())
     })();

@@ -121,14 +121,18 @@ owner-only WAV. Recordings below one second or without a 50-ms window above
 language. If a translation target language is set, the transcript text is then
 sent over HTTPS to OpenAI's `/v1/chat/completions` endpoint with the selected
 translation model, and only the translation is written to the clipboard. The
-returned text is written to the Wayland clipboard (`wl-copy`); there is no
-automatic target-app insertion.
+returned text is written to the Wayland clipboard (`wl-copy`). Unless
+`settings insert off` is set, the CLI then reads the clipboard back
+(`wl-paste`, in memory only) and, if it still holds that text and the Hyprland
+window captured at recording start is still frontmost, sends that window a
+paste shortcut via `hyprctl`. Retry never pastes automatically. The optional
+Waybar module prints only the state and translation setting, never text.
 
 Secret Service items use attributes `service=opendictate` and `key=api-key` or
 `recording-auth`. The API key is accepted only on stdin. A probe item can be
 written, read and deleted to test the service. There is no file, environment or
-argument fallback. Settings contain only transcription model, language, optional target language
-and translation model and are stored under
+argument fallback. Settings contain only transcription model, language, optional and last target
+language, translation model and the auto-insert switch and are stored under
 `$XDG_CONFIG_HOME/opendictate/`.
 
 Pending and recovery audio live under `$XDG_STATE_HOME/opendictate/` (typically
