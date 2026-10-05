@@ -59,16 +59,33 @@ Entscheidung, bevor er gebaut wird.
 - Offline-Tests gegen einen lokalen HTTP-Stub: Anfrageform, Fehlertext ohne
   Providerdetails, leere Antwort, alte Einstellungsdatei.
 
-Nicht belegt: ein echter Aufruf an OpenAI, ob `gpt-5.4-mini` mit dem Schlüssel
-verfügbar ist, Übersetzungsqualität und Wartezeit. Das braucht den Live-Test
-auf omarchy mit Bastis Go.
+## Live-Nachweis · 5. Oktober 2026
+
+Mit Bastis Go auf omarchy (Hyprland), Rust 1.98.1, Branch-Stand `68edc00`,
+Mikrofon JBL Quantum Stream Talk als Standard-Eingang. `check-linux.sh` war
+dort grün (30 Tests). Gemessen vom zweiten `toggle` bis `idle`:
+
+| Fall | Ergebnis | Zeit |
+| --- | --- | --- |
+| Diktat ohne Übersetzung | Text in der Zwischenablage, laut Basti korrekt | 2,3 s |
+| Diktat mit `target en`, `gpt-5.4-mini` | englischer Text in der Zwischenablage, laut Basti gut | 3,6 s |
+| Übersetzungsmodell `gibt-es-nicht` | „Übersetzungsmodell ist nicht verfügbar. Aufnahme für Wiederholung behalten.“ | 1,3 s |
+| `retry` danach mit `gpt-5.4-mini` | „Wiederholte Übersetzung (en) in Zwischenablage kopiert“ | 1,7 s |
+
+Ein Versuch ohne gesprochene Sprache endete wie vorgesehen mit „Keine Sprache
+erkannt; Aufnahme wurde nicht hochgeladen.“ Beim Test fiel auf, dass
+`secrets status` vorhandene Schlüssel als fehlend meldete (libsecret 0.21.7
+schreibt Treffer von `secret-tool search` nach stderr); behoben in `68edc00`
+und live bestätigt. Einstellungen wurden danach zurückgesetzt, Recovery und
+Pending waren leer. Das sind Einzelfälle, keine allgemeine Qualitätsaussage.
+
+Nicht live geprüft: Netzabbruch und Abbruch während der Übersetzung.
 
 ## Nächste Schritte auf Linux
 
-1. **Live-Durchstich auf omarchy** mit Bastis Go: Mikrofon klären, ein Diktat
-   ohne und eines mit `target en`; Wartezeit beider Schritte notieren.
-2. Fehlerfälle live: falscher Modellname, Netz weg, Abbruch während der
+1. Fehlerfälle live ergänzen: Netz weg, `opendictate cancel` während der
    Übersetzung; Aufnahme muss jeweils erhalten bleiben.
+2. Einige Tage im Alltag nutzen und die Wartezeit mit Übersetzung beobachten.
 3. Tray/Status mit sichtbarer Zielsprache und Umschalter (Phase-1-UI-Minimum).
 4. Physischer Hyprland-Hotkey, optional ein zweiter Bind nur für
    „Diktat übersetzen“.
@@ -77,4 +94,5 @@ auf omarchy mit Bastis Go.
 ## Offene Entscheidungen für Basti
 
 - **Live heißt:** Übersetzung kommt direkt nach dem Ende der Aufnahme (Weg A,
-  jetzt gebaut) oder schon während des Sprechens (Weg C, später). Empfehlung: A.
+  gebaut und am 05.10. live erprobt) oder schon während des Sprechens (Weg C).
+  Empfehlung: bei A bleiben, solange die Wartezeit im Alltag nicht stört.

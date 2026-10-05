@@ -142,5 +142,6 @@ translation when a target language is set, reaches the clipboard.
 
 The operations log under `$XDG_STATE_HOME/opendictate/operations.log` records
 bounded events, durations and the captured window class. It must not contain API
-keys, transcript text, window titles or audio contents. The Phase-1 core has
-offline loopback HTTP evidence only; no live Linux provider request is claimed.
+keys, transcript text, window titles or audio contents. Live Linux transcription
+and translation requests were exercised on one attended test system on
+5 October 2026; this is not a published Linux product.

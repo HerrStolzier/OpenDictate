@@ -353,9 +353,11 @@ bleibt ein eigener Freigabeschritt. Details:
 [Plattform-Fortsetzung](platform-continuation-2026-09-28.md).
 
 Seit 05.10. kann das CLI ein Diktat vor der Ausgabe in eine gewählte
-Zielsprache übersetzen (`settings target en`). Belegt sind nur Offline-Tests
-gegen einen lokalen HTTP-Stub; ein echter Übersetzungsaufruf steht mit dem
-Live-Durchstich aus ([Plan](linux-live-translation-plan.md)).
+Zielsprache übersetzen (`settings target en`). Am 05.10. auf omarchy live
+erprobt: Diktat mit und ohne Übersetzung, falsches Übersetzungsmodell mit
+erhaltener Aufnahme und `retry`. Damit ist erstmals ein echter Linux-Upload
+belegt. Offen bleiben Netz- und Abbruchfälle, physischer Hotkey und
+Tray/Panel ([Plan mit Nachweis](linux-live-translation-plan.md)).
 
 Der [Linux-Detailplan](linux-build-plan.md) ist die zuständige Quelle für
 Phasen, Modulkarte, Schutzpolitik und Checks. Der [Phase-1-Bericht](linux-phase1-core-2026-09-22.md)

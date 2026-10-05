@@ -60,8 +60,8 @@ echten Secrets nötig; die HTTP-Tests verwenden nur einen lokalen Stub.
 - Mit gesetzter Zielsprache wird das Transkript danach über
   `/v1/chat/completions` übersetzt und nur die Übersetzung ausgegeben. Scheitert
   die Übersetzung oder ist sie leer, bleibt die Aufnahme wie bei jedem anderen
-  Fehler erhalten; `retry` übersetzt erneut. Live ist das noch nicht geprüft
-  ([Plan](../docs/linux-live-translation-plan.md)).
+  Fehler erhalten; `retry` übersetzt erneut. Am 05.10. auf omarchy live
+  erprobt ([Plan mit Nachweis](../docs/linux-live-translation-plan.md)).
 - Ein nichtleeres Transkript wird ausschließlich in die Wayland-Zwischenablage
   geschrieben. Erst nach erfolgreichem Copy darf die zugehörige Aufnahme
   entfernt werden.
