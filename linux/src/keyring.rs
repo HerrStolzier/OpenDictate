@@ -130,23 +130,24 @@ fn lookup(key: &str) -> Result<String, String> {
 }
 
 fn exists(key: &str) -> Result<bool, String> {
+    // `secret-tool search` prints attributes to stderr in libsecret 0.21, so
+    // presence is decided by the exit status of `lookup` instead of its text.
     let output = Command::new("secret-tool")
-        .args(["search", "service", SERVICE, "key", key])
+        .args(["lookup", "service", SERVICE, "key", key])
         .stdin(Stdio::null())
         .output()
         .map_err(secret_service_missing)?;
-    if output.status.success() {
-        let text = String::from_utf8_lossy(&output.stdout);
-        Ok(text.contains(key))
+    lookup_presence(output.status.success(), &output.stdout, &output.stderr)
+}
+
+fn lookup_presence(success: bool, stdout: &[u8], stderr: &[u8]) -> Result<bool, String> {
+    if success {
+        return Ok(!stdout.is_empty());
+    }
+    if is_missing_service(&String::from_utf8_lossy(stderr)) {
+        Err(secret_service_unavailable())
     } else {
-        let message = String::from_utf8_lossy(&output.stderr);
-        if message.to_ascii_lowercase().contains("cannot find") || output.stdout.is_empty() {
-            Ok(false)
-        } else if is_missing_service(&message) {
-            Err(secret_service_unavailable())
-        } else {
-            Ok(false)
-        }
+        Ok(false)
     }
 }
 
@@ -209,6 +210,14 @@ fn is_missing_service(message: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn lookup_presence_uses_exit_status_not_search_text() {
+        assert_eq!(lookup_presence(true, b"value", b""), Ok(true));
+        assert_eq!(lookup_presence(true, b"", b""), Ok(false));
+        assert_eq!(lookup_presence(false, b"", b""), Ok(false));
+        assert!(lookup_presence(false, b"", b"Cannot autolaunch D-Bus").is_err());
+    }
 
     #[test]
     fn classify_missing_bus_as_unavailable() {

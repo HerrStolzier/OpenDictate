@@ -206,7 +206,10 @@ fn present(exists: bool) -> &'static str {
 
 fn set_api_key() -> Result<(), String> {
     if atty_stdin() {
-        return Err("API-Schlüssel nur über stdin, nicht als Argument.".to_string());
+        return Err(
+            "API-Schlüssel per Pipe übergeben, z. B. `printf %s \"$KEY\" | opendictate secrets set-api-key`."
+                .to_string(),
+        );
     }
     let mut value = String::new();
     io::stdin()
