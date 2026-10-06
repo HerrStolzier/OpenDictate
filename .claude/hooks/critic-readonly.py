@@ -53,6 +53,8 @@ def diff_programs(path: str) -> set:
     if out.returncode not in (0, 1):  # 1 = nichts eingerichtet; alles andere ist unklar
         return {"textconv", "external"}
     keys = [l.split()[0] for l in out.stdout.splitlines() if l.strip()]
+    if os.environ.get("GIT_EXTERNAL_DIFF"):
+        keys.append("diff.external")
     return ({"textconv"} if any(k.endswith(".textconv") for k in keys) else set()) | \
            ({"external"} if any(not k.endswith(".textconv") for k in keys) else set())
 
@@ -138,12 +140,15 @@ def main() -> None:
     except ValueError:
         deny("Befehl nicht eindeutig lesbar (Anführungszeichen)")
     cwd = data.get("cwd") or os.getcwd()
-    segment = []
+    segment, before = [], ";"
     for tok in tokens + [";"]:
         if tok in SEPARATORS:
             if segment:
-                cwd = check_segment(segment, cwd)
-            segment = []
+                new = check_segment(segment, cwd)
+                # Teile einer Pipe laufen in einer Subshell; ein cd dort ändert den Ordner danach nicht.
+                if "|" not in (before, tok):
+                    cwd = new
+            segment, before = [], tok
         elif tok and set(tok) <= set("();<>|&"):
             deny(f"Umleitung, Subshell oder Hintergrund ({tok})")
         else:
