@@ -9,7 +9,7 @@ für die omarchy/Hyprland-Session bildet den Phase-1-Kern ab: Aufnahme ohne
 Fenster, Audio-Prüfung, OpenAI-Upload mit eigenem Key, Wayland-Zwischenablage,
 Zustandsmaschine und authentifizierte Recovery. Dazu kommen eine
 Leistenanzeige (Omarchy-Leiste oder Waybar) mit Übersetzungsumschalter und Auto-Einfügen ins Startfenster
-(Phase 2, noch ohne Live-Nachweis).
+(Phase 2, am 05./06.10. auf omarchy erprobt).
 
 ## Bauen und prüfen
 
@@ -125,8 +125,10 @@ mitbringt.
 
 - Kein Live-Upload und kein echter Phase-1-Durchstich auf omarchy in diesem
   Stand; dafür braucht es eine neue begrenzte Mikrofon-/Provider-Freigabe.
-- Waybar-Modul und Auto-Einfügen sind offline geprüft, aber noch nicht live
-  auf omarchy abgenommen. Kein Settings-Fenster.
+- Leistenanzeige und Auto-Einfügen sind auf omarchy nur in Einzelfällen
+  erprobt (Editor, Terminal, Fensterwechsel, Übersetzung;
+  [Nachweis](../docs/linux-live-translation-plan.md)); die Waybar-Variante ist
+  nicht live geprüft. Kein Settings-Fenster.
 - Ein Abbruch während des blockierenden HTTP-Aufrufs wird nach dessen Rückkehr
   beziehungsweise Timeout ausgewertet; er löscht die einzige Aufnahme nicht.
 - Kein Packaging und kein zweites Distro-Ziel.

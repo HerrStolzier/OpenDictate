@@ -358,7 +358,7 @@ erprobt: Diktat mit und ohne Übersetzung, falsches Übersetzungsmodell mit
 erhaltener Aufnahme und `retry`. Damit ist erstmals ein echter Linux-Upload
 belegt. Der physische Hotkey Super+D ist seit 05.10. eingerichtet und von
 Basti bestätigt. Leistenanzeige mit Übersetzungsumschalter und Auto-Einfügen
-ins Startfenster sind offline geprüft, aber noch nicht live abgenommen. Offen
+ins Startfenster sind am 05./06.10. auf omarchy in Einzelfällen erprobt. Offen
 bleiben außerdem Netz- und Abbruchfälle
 ([Plan mit Nachweis](linux-live-translation-plan.md)).
 

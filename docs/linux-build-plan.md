@@ -204,7 +204,8 @@ als vages Best-Effort.
 **Done:** Ein belegter Insert-Pfad, der die Frontmost-Regel einhält, **oder**
 begründeter Clipboard-only-Ship mit klarem Wayland-Status.
 
-**Stand 05.10.2026 (offline geprüft, noch nicht live):** Das CLI erfasst beim
+**Stand 06.10.2026 (auf omarchy in Einzelfällen live erprobt,
+[Nachweis](linux-live-translation-plan.md)):** Das CLI erfasst beim
 Start die Fensteradresse, prüft nach dem Kopieren per `hyprctl activewindow`
 dieselbe Adresse und per `wl-paste` denselben Text und sendet dann über
 `hyprctl dispatch` Ctrl+V (bekannte Terminals Ctrl+Shift+V) an genau diese

@@ -81,15 +81,36 @@ Pending waren leer. Das sind Einzelfälle, keine allgemeine Qualitätsaussage.
 
 Nicht live geprüft: Netzabbruch und Abbruch während der Übersetzung.
 
+## Live-Nachweis Leiste und Einfügen · 5./6. Oktober 2026
+
+Mit Bastis Go auf omarchy: Omarchy-Shell 4.0.4 (Befehlsmodul vorne in
+`bar.layout.right`), Hyprland 0.56.2 mit Lua-Konfiguration, Branch-Stand
+`fae3dae`, `check-linux.sh` dort grün (40 Tests). Die Lua-Form
+`hl.dsp.send_shortcut` antwortete wörtlich `ok`.
+
+| Fall | Ergebnis |
+| --- | --- |
+| Klick auf das Leistensymbol | „EN“ an und wieder aus, per Bildschirmfoto geprüft |
+| Diktat in einen Editor (`omawrite`) | Text eingefügt, Protokoll `insert-sent` |
+| Diktat in ein Terminal (`foot`) | Text in der Eingabezeile, ohne Enter, `insert-sent` |
+| Fensterwechsel direkt nach dem Stopp | nichts eingefügt, Meldung „Zielfenster ist nicht mehr vorne; liegt in der Zwischenablage“, `insert-skipped reason=target-not-frontmost` |
+| Mit Übersetzung `en` in den Editor | englischer Text eingefügt |
+
+Bildschirmfotos von Basti vom 06.10. bestätigen Editor, Terminal,
+Fensterwechsel und Übersetzung. Wartezeiten wurden nicht gemessen; das
+Protokoll hat keine Zeitstempel. Einzelfälle, keine allgemeine Aussage über
+alle Programme.
+
 ## Nächste Schritte auf Linux
 
 1. Fehlerfälle live ergänzen: Netz weg, `opendictate cancel` während der
    Übersetzung; Aufnahme muss jeweils erhalten bleiben.
 2. Einige Tage im Alltag nutzen und die Wartezeit mit Übersetzung beobachten.
 3. Leistenstatus (Omarchy-Leiste oder Waybar) mit sichtbarer Zielsprache und Klick-Umschalter: gebaut und
-   offline geprüft, Live-Abnahme offen.
+   am 05./06.10. live erprobt (siehe oben).
 4. Physischer Hyprland-Hotkey: Super+D am 05.10. eingerichtet und bestätigt.
-5. Auto-Einfügen (Phase 2): gebaut und offline geprüft, Live-Abnahme offen.
+5. Auto-Einfügen (Phase 2): am 05./06.10. in Editor und Terminal live erprobt,
+   Fensterwechsel-Schutz bestätigt.
 6. Erst danach: Weg C prüfen, Paketierung (Phase 3).
 
 ## Offene Entscheidungen für Basti
