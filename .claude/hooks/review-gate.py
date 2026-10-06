@@ -20,8 +20,8 @@ import subprocess
 from urllib.parse import quote
 import sys
 
-# Nur als eigene Zeile oder als Anfang eines -m-Abschnitts, nicht mitten im Satz ("Enforce Reviewed-by: …").
-TRAILER = re.compile(r"(?:^|['\"]|\s-m\s*|--message=|--trailer[= ])[ \t]*Reviewed-by:[ \t]*[^\s'\"]", re.M)
+# Nur als eigene Zeile der Nachricht, nicht mitten im Satz ("Enforce Reviewed-by: …").
+TRAILER = re.compile(r"^[ \t]*Reviewed-by:[ \t]*\S", re.M)
 TEXT_SUFFIXES = (".md", ".markdown", ".txt", ".rst")
 # git, dann globale Optionen wie -C <dir>, -c <k=v>, --no-pager, dann der Unterbefehl.
 GIT = r"(?:^|[;&|(\s])git(?:\s+(?:-[cC]\s+(?:\"[^\"]*\"|'[^']*'|\S+)|--[\w-]+(?:=\S+)?))*\s+"
@@ -74,6 +74,9 @@ def blank(m):
     return re.sub(r"[^\n]", " ", m.group(0))
 
 
+HEREDOC = re.compile(r"(<<-?\s*['\"]?(\w+)['\"]?[^\n]*)(\n.*?\n\s*\2[ \t]*(?=\n|$))", re.S)
+
+
 def strip_quotes(cmd: str) -> str:
     cmd = re.sub(r'"(?:[^"\\]|\\.)*"', lambda m: '"' + " " * (len(m.group(0)) - 2) + '"', cmd, flags=re.S)
     return re.sub(r"'[^']*'", lambda m: "'" + " " * (len(m.group(0)) - 2) + "'", cmd)
@@ -82,8 +85,8 @@ def strip_quotes(cmd: str) -> str:
 def strip_text(cmd: str) -> str:
     """Heredocs und Text in Anführungszeichen durch Leerzeichen ersetzen (gleiche Länge, damit Positionen zu `raw`
     passen). So löst z. B. eine Nachricht „vor git push“ nichts aus, und Trenner in Texten zählen nicht."""
-    cmd = re.sub(r"<<-?\s*['\"]?(\w+)['\"]?[^\n]*\n.*?\n\s*\1[ \t]*(?=\n|$)",
-                 lambda m: re.sub(r".", " ", m.group(0), flags=re.S), cmd, flags=re.S)
+    # Nur den Körper ausblenden; der Rest der Startzeile (`<<'EOF' && git push`) bleibt Befehl.
+    cmd = HEREDOC.sub(lambda m: m.group(1) + re.sub(r".", " ", m.group(3), flags=re.S), cmd)
     return strip_quotes(cmd)
 
 
@@ -98,10 +101,21 @@ class Segment:
         # Wörter nur bis zu einem Heredoc; dessen Inhalt ist Nachricht, keine Argumente.
         cut = strip_quotes(raw).find("<<", match.end(), self.end)
         cut = cut if cut >= 0 else self.end
+        # Der Körper eines Heredocs aus einem früheren Teilbefehl (`cat <<EOF && git push`) gehört nicht dazu.
+        for h in HEREDOC.finditer(raw):
+            if h.start() < match.start() and match.end() <= h.start(3) < cut:
+                cut = self.end = h.start(3)
+                self.raw = raw[match.end():self.end]
+                if "|" in strip_quotes(raw[h.start():match.end()]):
+                    self.piped = h.group(3)  # `cat <<EOF | git commit -F -`: der Heredoc ist stdin
+        body = HEREDOC.match(raw, cut) if cut < self.end else None
+        self.heredoc = body.group(3) if body else getattr(self, "piped", "")
         try:
             self.words = shlex.split(raw[match.end():cut])
+            self.parsed = True
         except ValueError:
             self.words = bare[match.end():cut].split()
+            self.parsed = False
         self.prefix = raw[self.start:match.end()]
 
 
@@ -201,26 +215,44 @@ def commit_files(top, raw, bare, seg, cwd) -> set:
 
 
 def commit_message(top, seg, cwd) -> str:
-    msg = seg.raw
+    """Die Nachricht so, wie git sie zusammensetzt: -m-Abschnitte, --trailer, -F-Datei oder -F - mit Heredoc."""
     w = seg.words
+    if not seg.parsed:
+        return seg.raw + "\n" + seg.heredoc  # Wörter nicht lesbar: Rohtext, Zeilenanfang zählt weiter
+    parts, files, reuse = [], [], []
     for i, x in enumerate(w):
-        path = None
-        if x in ("-F", "--file") and i + 1 < len(w):
-            path = w[i + 1]
+        nxt = w[i + 1] if i + 1 < len(w) else ""
+        if x in ("--message", "--trailer") or re.fullmatch(r"-[a-zA-Z]*m", x):
+            parts.append(nxt)
+        elif x.startswith(("--message=", "--trailer=")):
+            parts.append(x.split("=", 1)[1])
+        elif re.fullmatch(r"-m.+", x):
+            parts.append(x[2:])
+        elif x in ("-F", "--file") or re.fullmatch(r"-[a-zA-Z]*F", x):
+            files.append(nxt)
         elif x.startswith("--file="):
-            path = x.split("=", 1)[1]
-        elif x.startswith("-F") and len(x) > 2:
-            path = x[2:]
-        if path and path != "-":
-            for base in (cwd, top):
-                p = expand(path, base)
-                if os.path.isfile(p):
-                    with open(p, encoding="utf-8", errors="ignore") as fh:
-                        msg += "\n" + fh.read()
-                    break
-    if "--amend" in w and "--no-edit" in w:
-        msg += "\n" + (git(top, "log", "-1", "--format=%B") or "")
-    return msg
+            files.append(x.split("=", 1)[1])
+        elif re.fullmatch(r"-F.+", x):
+            files.append(x[2:])
+        elif x in ("-C", "-c", "--reuse-message", "--reedit-message"):
+            reuse.append(nxt)
+        elif x.startswith(("--reuse-message=", "--reedit-message=")):
+            reuse.append(x.split("=", 1)[1])
+    for path in files:
+        if path == "-":
+            parts.append(seg.heredoc)  # nur mit -F - liest git den Heredoc
+            continue
+        for base in (cwd, top):
+            p = expand(path, base)
+            if os.path.isfile(p):
+                with open(p, encoding="utf-8", errors="ignore") as fh:
+                    parts.append(fh.read())
+                break
+    for rev in reuse:
+        parts.append(git(top, "log", "-1", "--format=%B", rev) or "")
+    if "--amend" in w and "--no-edit" in w and not parts:
+        parts.append(git(top, "log", "-1", "--format=%B") or "")
+    return "\n\n".join(parts)
 
 
 def check_commit(raw, bare, seg, cwd):
@@ -244,19 +276,53 @@ def default_base(top, remote="origin"):
     return None
 
 
+def is_opt(word, full):
+    """git nimmt eindeutige Abkürzungen langer Optionen an (--al = --all)."""
+    return word == full or (len(word) > 3 and full.startswith(word))
+
+
+def default_remote(top):
+    """Das Ziel von `git push` ohne Repo-Angabe, in der Reihenfolge, in der git es wählt."""
+    branch = (git(top, "branch", "--show-current") or "").strip()
+    keys = ([f"branch.{branch}.pushRemote"] if branch else []) + ["remote.pushDefault"] + \
+           ([f"branch.{branch}.remote"] if branch else [])
+    for key in keys:
+        val = (git(top, "config", "--get", key) or "").strip()
+        if val and val != ".":
+            return val
+    return "origin"
+
+
 def check_push(raw, bare, seg, cwd):
     top = toplevel(seg_dir(raw, bare, seg, cwd))
     if not top:
         return
-    opts = [w for w in seg.words if w.startswith("-")]
-    if any(o in ("-d", "--delete", "--tags") for o in opts):
-        return  # Löschen und Tags laufen über andere Wächter; hier geht es um neue Commits.
+    opts = [w.split("=")[0] for w in seg.words if w.startswith("--")] + \
+           [w for w in seg.words if re.fullmatch(r"-[a-zA-Z]+", w)]
+    if any(re.fullmatch(r"-[a-zA-Z]*d[a-zA-Z]*", o) or is_opt(o, "--delete") for o in opts):
+        return  # Löschen schiebt keine neuen Commits.
     args = positional(seg.words, {"-o", "--push-option", "--repo", "--receive-pack", "--exec"}, short_value="o")
-    remote = args[0] if args else "origin"
-    refspecs = args[1:] or ["HEAD"]
-    if any(o in ("--all", "--branches", "--mirror") for o in opts):
-        # Diese Optionen schieben jeden lokalen Branch, nicht nur HEAD.
-        refspecs = lines(git(top, "for-each-ref", "--format=%(refname:short)", "refs/heads/"))
+    remote = args[0] if args else default_remote(top)
+    refspecs = args[1:] or lines(git(top, "config", "--get-all", f"remote.{remote}.push")) or ["HEAD"]
+    if any(is_opt(o, n) for o in opts for n in ("--all", "--branches")) or ":" in refspecs or \
+            (not args[1:] and refspecs == ["HEAD"] and
+             (git(top, "config", "--get", "push.default") or "").strip() == "matching"):
+        refspecs = ["refs/heads/*"]  # alle lokalen Branches
+    if any(is_opt(o, "--mirror") for o in opts):
+        # --mirror schiebt alle Refs; Remote-Tracking-Refs liegen schon auf einem Remote.
+        refspecs = [r for r in lines(git(top, "for-each-ref", "--format=%(refname)"))
+                    if not r.startswith(("refs/remotes/", "refs/stash", "refs/notes/"))]
+    if any(is_opt(o, "--tags") for o in opts):
+        # Ohne Refspec schiebt --tags nur die Tags, sonst zusätzlich.
+        refspecs = (refspecs if args[1:] else []) + ["refs/tags/*"]
+    expanded = []
+    for spec in refspecs:
+        src = spec.lstrip("+").partition(":")[0]
+        if "*" in src:
+            expanded += lines(git(top, "for-each-ref", "--format=%(refname)", src.split("*")[0]))
+        else:
+            expanded.append(spec)
+    refspecs = expanded
     missing = []
     for spec in refspecs:
         src, _, dst = spec.lstrip("+").partition(":")
@@ -265,24 +331,25 @@ def check_push(raw, bare, seg, cwd):
         if not git(top, "rev-parse", "--verify", "-q", src + "^{commit}"):
             continue
         if src == "HEAD" and not dst:
-            up = git(top, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
+            up = git(top, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{push}") or \
+                git(top, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
             base = up.strip() if up and up.strip() else None
         else:
-            name = (dst or src).removeprefix("refs/heads/")
+            name = re.sub(r"^refs/(heads|tags)/", "", dst or src)
             base = f"{remote}/{name}" if git(top, "rev-parse", "--verify", "-q", f"{remote}/{name}") else None
         base = base or default_base(top, remote)
-        if not base:
-            continue  # Neues Repo ohne Gegenstelle: nichts zu vergleichen.
-        for c in lines(git(top, "rev-list", "--no-merges", f"{base}..{src}")):
+        # Ohne Vergleichsstand zählen alle Commits, die noch auf keinem Remote liegen.
+        rng = [f"{base}..{src}"] if base else [src, "--not", "--remotes"]
+        for c in lines(git(top, "rev-list", "--no-merges", *rng)):
             files = lines(git(top, "diff-tree", "--root", "--no-commit-id", "--name-only", "-r", c))
             if needs_review(files) and not TRAILER.search(git(top, "log", "-1", "--format=%B", c) or ""):
                 missing.append((c[:8], base))
     if missing:
         hashes = ", ".join(sorted({h for h, _ in missing})[:10])
         base = missing[0][1]
-        deny(f"Diese noch nicht gepushten Commits ändern Code ohne Zeile `Reviewed-by:`: {hashes}. {HOW} "
-             f"Da sie noch nicht auf {base} liegen, kannst du sie mit `git reset --soft {base}` zusammenfassen "
-             "und nach dem Review als einen Commit neu anlegen.")
+        tip = (f" Da sie noch nicht auf {base} liegen, kannst du sie mit `git reset --soft {base}` zusammenfassen "
+               "und nach dem Review als einen Commit neu anlegen.") if base else ""
+        deny(f"Diese noch nicht gepushten Commits ändern Code ohne Zeile `Reviewed-by:`: {hashes}. {HOW}{tip}")
 
 
 def gh_json(args, cwd):
