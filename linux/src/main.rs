@@ -368,16 +368,18 @@ fn deliverable_text(
     Ok(translation)
 }
 
-/// Pastes into the window captured at recording start when allowed. The text
-/// is already in the clipboard, so every skip is only reported, never fatal.
+/// Pastes into the window captured at recording start when allowed and
+/// returns the status suffix. A skip keeps the text in the clipboard, except
+/// when the clipboard no longer holds it: that is an undelivered transcript,
+/// so the caller keeps the audio.
 fn auto_insert(
     target: Option<&window::TargetWindow>,
     text: &str,
     settings: &settings::Settings,
     state_guard: &state::StateGuard,
-) -> Option<String> {
+) -> Result<Option<String>, String> {
     if !settings.auto_insert {
-        return None;
+        return Ok(None);
     }
     let result = match target {
         _ if state_guard.is_cancelled() => Err(insert::Skip::Unavailable),
@@ -387,11 +389,17 @@ fn auto_insert(
     match result {
         Ok(()) => {
             log_ops("insert-sent");
-            Some("eingefügt".to_string())
+            Ok(Some("eingefügt".to_string()))
         }
         Err(skip) => {
             log_ops(&format!("insert-skipped reason={}", skip.log_reason()));
-            Some(format!("{}; liegt in der Zwischenablage", skip.message()))
+            if skip.loses_clipboard() {
+                return Err(format!("{}.", skip.message()));
+            }
+            Ok(Some(format!(
+                "{}; liegt in der Zwischenablage",
+                skip.message()
+            )))
         }
     }
 }
@@ -481,10 +489,13 @@ fn process_new_recording(
             .set(state::State::Delivering)
             .map_err(path_error)?;
         clipboard::copy_text(&text)?;
+        let insert_status = auto_insert(target, &text, &settings, state_guard)?;
+        // `cancel` promises to keep the recording, also during delivery.
+        ensure_not_cancelled(state_guard)?;
         if policy::can_delete_audio(&text, true) && fs::remove_file(path).is_err() {
             log_ops("pending-cleanup-failed");
         }
-        let status = match auto_insert(target, &text, &settings, state_guard) {
+        let status = match insert_status {
             Some(insert_status) => {
                 format!("{}: {insert_status}", delivered_subject(&settings, false))
             }

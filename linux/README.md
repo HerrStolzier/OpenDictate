@@ -78,8 +78,11 @@ echten Secrets nötig; die HTTP-Tests verwenden nur einen lokalen Stub.
   `hl.dsp.send_shortcut` verwendet (Hyprland mit Lua-Konfiguration, z. B.
   0.56); nur wenn Hyprland sie eindeutig ablehnt, die ältere Form
   `sendshortcut`. Sonst bleibt es bei
-  der Zwischenablage mit Hinweis. Das Einfügen selbst ist unbestätigt; die
-  Aufnahme gilt mit dem erfolgreichen Kopieren als geliefert. `retry` fügt nie
+  der Zwischenablage mit Hinweis. Enthält die Zwischenablage vor dem Einfügen
+  nicht mehr exakt den Text oder lässt sie sich binnen 2 Sekunden nicht lesen,
+  gilt das Diktat als nicht geliefert und die Aufnahme bleibt für `retry`
+  erhalten; ebenso nach `cancel` während der Auslieferung. Das Einfügen selbst ist unbestätigt;
+  sonst gilt die Aufnahme mit dem erfolgreichen Kopieren als geliefert. `retry` fügt nie
   automatisch ein.
 - Fehler, Abbruch, leere Antwort oder Clipboard-Fehler behalten Audio. Eine
   Recovery-Kopie wird mit einem Secret-Service-Schlüssel per HMAC-SHA256 an
@@ -123,12 +126,13 @@ mitbringt.
 
 ## Noch offen
 
-- Kein Live-Upload und kein echter Phase-1-Durchstich auf omarchy in diesem
-  Stand; dafür braucht es eine neue begrenzte Mikrofon-/Provider-Freigabe.
+- Phase 1 ist nicht abgenommen: Live-Upload, Übersetzung und Hotkey sind am
+  05.10. auf omarchy in Einzelfällen belegt, Netzabbruch und Abbruch während
+  der Übersetzung noch nicht.
 - Leistenanzeige und Auto-Einfügen sind auf omarchy nur in Einzelfällen
-  erprobt (Editor, Terminal, Fensterwechsel, Übersetzung;
-  [Nachweis](../docs/linux-live-translation-plan.md)); die Waybar-Variante ist
-  nicht live geprüft. Kein Settings-Fenster.
+  erprobt (Editor, Terminal, Fensterwechsel, Übersetzung; Stand `fae3dae`,
+  [Nachweis](../docs/linux-live-translation-plan.md)); die spätere
+  Zwischenablage-Härtung und die Waybar-Variante sind nicht live geprüft. Kein Settings-Fenster.
 - Ein Abbruch während des blockierenden HTTP-Aufrufs wird nach dessen Rückkehr
   beziehungsweise Timeout ausgewertet; er löscht die einzige Aufnahme nicht.
 - Kein Packaging und kein zweites Distro-Ziel.

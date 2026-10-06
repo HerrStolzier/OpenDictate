@@ -15,22 +15,34 @@ const TERMINAL_CLASSES: &[&str] = &[
     "org.wezfurlong.wezterm",
     "konsole",
     "org.kde.konsole",
-    "xterm-256color",
+    "xterm",
+    "urxvt",
+    "st-256color",
+    "com.gexperts.tilix",
 ];
 
-/// Why a paste was not sent. The text stays in the clipboard in every case.
+/// Why a paste was not sent. Except for the two clipboard cases, the text is
+/// known to be in the clipboard.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Skip {
     TargetNotFrontmost,
     ClipboardChanged,
+    ClipboardUnreadable,
     Unavailable,
 }
 
 impl Skip {
+    /// The transcript may no longer be in the clipboard, so the dictation
+    /// counts as undelivered and the recording must be kept.
+    pub fn loses_clipboard(self) -> bool {
+        matches!(self, Self::ClipboardChanged | Self::ClipboardUnreadable)
+    }
+
     pub fn log_reason(self) -> &'static str {
         match self {
             Self::TargetNotFrontmost => "target-not-frontmost",
             Self::ClipboardChanged => "clipboard-changed",
+            Self::ClipboardUnreadable => "clipboard-unreadable",
             Self::Unavailable => "unavailable",
         }
     }
@@ -38,7 +50,10 @@ impl Skip {
     pub fn message(self) -> &'static str {
         match self {
             Self::TargetNotFrontmost => "Zielfenster ist nicht mehr vorne",
-            Self::ClipboardChanged => "Zwischenablage hat sich geändert",
+            Self::ClipboardChanged => "Zwischenablage wurde vor dem Einfügen überschrieben",
+            Self::ClipboardUnreadable => {
+                "Zwischenablage konnte vor dem Einfügen nicht geprüft werden"
+            }
             Self::Unavailable => "Einfügen nicht möglich",
         }
     }
@@ -52,13 +67,15 @@ pub fn paste_into(target: &TargetWindow, text: &str) -> Result<(), Skip> {
     if !valid_address(&target.address) {
         return Err(Skip::Unavailable);
     }
+    // Checked first, so every later skip can rely on the text still being
+    // in the clipboard.
+    let clipboard = clipboard::read_text(text.len() + 16).map_err(|_| Skip::ClipboardUnreadable)?;
+    if clipboard != text {
+        return Err(Skip::ClipboardChanged);
+    }
     let frontmost = window::active_window().ok_or(Skip::Unavailable)?;
     if frontmost.address != target.address {
         return Err(Skip::TargetNotFrontmost);
-    }
-    let clipboard = clipboard::read_text(text.len() + 16).map_err(|_| Skip::ClipboardChanged)?;
-    if !same_text(&clipboard, text) {
-        return Err(Skip::ClipboardChanged);
     }
     // Hyprland with a Lua config only accepts Lua dispatchers; older or
     // hyprlang setups only the legacy form. A rejected form sends nothing, so
@@ -144,10 +161,6 @@ fn valid_address(address: &str) -> bool {
     })
 }
 
-fn same_text(clipboard: &str, text: &str) -> bool {
-    clipboard == text || clipboard.trim_end_matches('\n') == text.trim_end_matches('\n')
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -208,11 +221,5 @@ mod tests {
         let mut window = target("foot");
         window.address = "0xzz".to_string();
         assert_eq!(paste_into(&window, "Hallo"), Err(Skip::Unavailable));
-    }
-
-    #[test]
-    fn clipboard_comparison_ignores_only_trailing_newlines() {
-        assert!(same_text("Hallo\n", "Hallo"));
-        assert!(!same_text("Hallo Welt", "Hallo"));
     }
 }

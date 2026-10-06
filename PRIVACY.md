@@ -142,7 +142,9 @@ binds the file name, creation time and exact bytes. Retry uploads only bytes tha
 authenticate at access time. Managed authenticated recovery is limited to five
 files and 24 hours; unknown or modified files are not uploaded automatically.
 Audio is removed only after a non-empty transcript, or its non-empty
-translation when a target language is set, reaches the clipboard.
+translation when a target language is set, reaches the clipboard. With
+auto-insert on, audio is kept for retry if the clipboard no longer holds
+exactly that text before the paste.
 
 The operations log under `$XDG_STATE_HOME/opendictate/operations.log` records
 bounded events, durations and the captured window class. It must not contain API

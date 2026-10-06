@@ -99,7 +99,10 @@ Mit Bastis Go auf omarchy: Omarchy-Shell 4.0.4 (Befehlsmodul vorne in
 Bildschirmfotos von Basti vom 06.10. bestätigen Editor, Terminal,
 Fensterwechsel und Übersetzung. Wartezeiten wurden nicht gemessen; das
 Protokoll hat keine Zeitstempel. Einzelfälle, keine allgemeine Aussage über
-alle Programme.
+alle Programme. Der Nachweis gilt für `fae3dae`. Danach geänderte Prüfungen
+(exakter Zwischenablage-Vergleich vor dem Fenstercheck, Zeitlimit für
+`wl-paste`, Aufnahme bleibt bei geänderter oder unlesbarer Zwischenablage und
+bei Abbruch während der Auslieferung) sind nur offline geprüft.
 
 ## Nächste Schritte auf Linux
 
