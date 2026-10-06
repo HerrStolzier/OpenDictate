@@ -7,8 +7,10 @@ Kette (&&, ||, ;, |) muss auf der Erlaubnisliste stehen. Umleitungen, Befehlsers
 Subshells und Hintergrundprozesse werden abgelehnt.
 """
 import json
+import os
 import re
 import shlex
+import subprocess
 import sys
 
 SEPARATORS = {"&&", "||", "|", ";"}
@@ -18,7 +20,10 @@ GIT_READ = {"diff", "log", "show", "status", "blame", "ls-files", "ls-tree", "re
             "cat-file", "describe", "merge-base", "shortlog", "reflog", "branch", "stash", "worktree",
             "for-each-ref", "diff-tree", "show-ref", "remote"}
 # git akzeptiert eindeutige Abkürzungen langer Optionen (--outp = --output), deshalb Präfixe prüfen.
-GIT_DANGEROUS_LONG = ("--output", "--ext-diff", "--open-files-in-pager", "--exec", "--edit-description")
+GIT_DANGEROUS_LONG = ("--output", "--ext-diff", "--open-files-in-pager", "--exec", "--edit-description",
+                      "--textconv", "--filters")
+# Diese Unterbefehle starten ein eingerichtetes textconv-Programm (gitattributes), wenn es eins gibt.
+TEXTCONV_SUBS = {"diff", "log", "show", "blame", "diff-tree"}
 BRANCH_READ_FLAGS = {"-a", "--all", "-r", "--remotes", "-v", "-vv", "--verbose", "--show-current", "--list",
                      "-l", "--contains", "--no-contains", "--merged", "--no-merged", "--points-at", "--sort",
                      "--format", "--column", "--no-column", "--color", "--no-color", "-i", "--ignore-case"}
@@ -37,10 +42,27 @@ def deny(reason: str) -> None:
     sys.exit(0)
 
 
-def check_git(args: list) -> None:
+def diff_programs(path: str) -> set:
+    """Welche Arten von Diff-Programmen hier eingerichtet sind: "textconv" und/oder "external"."""
+    try:
+        out = subprocess.run(["git", "-C", path, "config", "--get-regexp",
+                              r"^diff\.(external|.*\.(textconv|command))$"],
+                             capture_output=True, text=True, timeout=5)
+    except Exception:
+        return {"textconv", "external"}  # im Zweifel sperren
+    if out.returncode not in (0, 1):  # 1 = nichts eingerichtet; alles andere ist unklar
+        return {"textconv", "external"}
+    keys = [l.split()[0] for l in out.stdout.splitlines() if l.strip()]
+    return ({"textconv"} if any(k.endswith(".textconv") for k in keys) else set()) | \
+           ({"external"} if any(not k.endswith(".textconv") for k in keys) else set())
+
+
+def check_git(args: list, cwd: str) -> None:
     i = 0
     while i < len(args) and args[i].startswith("-"):
         if args[i] == "-C":
+            if i + 1 < len(args):
+                cwd = os.path.join(cwd, os.path.expanduser(args[i + 1]))
             i += 2
         elif args[i] in ("--no-pager", "--no-optional-locks"):
             i += 1
@@ -66,23 +88,33 @@ def check_git(args: list) -> None:
         deny("git stash ändert den Stand")
     if sub == "reflog" and rest and rest[0] in ("expire", "delete"):
         deny("git reflog ändert den Stand")
+    if sub in TEXTCONV_SUBS:
+        progs = diff_programs(cwd)
+        if "textconv" in progs and "--no-textconv" not in rest:
+            deny(f"git {sub} würde hier ein textconv-Programm starten; mit --no-textconv aufrufen")
+        # Ohne --ext-diff starten nur git diff (Porcelain) externe Diff-Programme; --ext-diff ist ohnehin gesperrt.
+        if sub == "diff" and "external" in progs and "--no-ext-diff" not in rest:
+            deny("git diff würde hier ein externes Diff-Programm starten; mit --no-ext-diff aufrufen")
     for a in rest:
         opt = a.split("=")[0]
-        if opt.startswith("--") and len(opt) > 3 and any(d.startswith(opt) or opt.startswith(d) for d in GIT_DANGEROUS_LONG):
+        if opt.startswith("--") and len(opt) > 3 and opt not in ("--text", "--filter") and any(d.startswith(opt) or opt.startswith(d) for d in GIT_DANGEROUS_LONG):
             deny(f"git-Option {a}")
 
 
-def check_segment(words: list) -> None:
+def check_segment(words: list, cwd: str) -> str:
     cmd, args = words[0], words[1:]
     if cmd not in SIMPLE:
         deny(f"Befehl {cmd} ist nicht freigegeben")
+    if cmd == "cd":
+        return os.path.join(cwd, os.path.expanduser(args[0])) if args else os.path.expanduser("~")
     if cmd == "git":
-        check_git(args)
+        check_git(args, cwd)
     elif cmd == "find" and any(a in ("-exec", "-execdir", "-ok", "-okdir", "-delete", "-fprint",
                                      "-fprint0", "-fprintf", "-fls") for a in args):
         deny("find mit schreibender Aktion")
     elif cmd == "rg" and any(a.startswith("--pre") for a in args):
         deny("rg --pre führt Programme aus")
+    return cwd
 
 
 def main() -> None:
@@ -105,11 +137,12 @@ def main() -> None:
         tokens = list(lex)
     except ValueError:
         deny("Befehl nicht eindeutig lesbar (Anführungszeichen)")
+    cwd = data.get("cwd") or os.getcwd()
     segment = []
     for tok in tokens + [";"]:
         if tok in SEPARATORS:
             if segment:
-                check_segment(segment)
+                cwd = check_segment(segment, cwd)
             segment = []
         elif tok and set(tok) <= set("();<>|&"):
             deny(f"Umleitung, Subshell oder Hintergrund ({tok})")
