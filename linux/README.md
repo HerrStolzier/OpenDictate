@@ -7,7 +7,9 @@ Nachweis: [docs/linux-phase1-core-2026-09-22.md](../docs/linux-phase1-core-2026-
 Noch kein Produktumfang und keine öffentliche Veröffentlichung. Das Rust-CLI
 für die omarchy/Hyprland-Session bildet den Phase-1-Kern ab: Aufnahme ohne
 Fenster, Audio-Prüfung, OpenAI-Upload mit eigenem Key, Wayland-Zwischenablage,
-Zustandsmaschine und authentifizierte Recovery. Auto-Insert bleibt Phase 2.
+Zustandsmaschine und authentifizierte Recovery. Dazu kommen eine
+Leistenanzeige (Omarchy-Leiste oder Waybar) mit Übersetzungsumschalter und Auto-Einfügen ins Startfenster
+(Phase 2, am 05./06.10. auf omarchy erprobt).
 
 ## Bauen und prüfen
 
@@ -29,12 +31,15 @@ nicht ins Git. Die macOS-App und ihre Swift-CI werden davon nicht verändert.
 ```bash
 opendictate toggle                  # Aufnahme starten oder stoppen
 opendictate status                  # idle / recording / processing / delivering
+opendictate bar                     # Status als JSON-Zeile für die Leiste (`waybar` gleichwertig)
 opendictate cancel                  # Aufnahme/Verarbeitung sicher abbrechen
 opendictate retry                   # neueste authentifizierte Aufnahme erneut senden
 opendictate settings show
 opendictate settings model gpt-transcribe
 opendictate settings language de    # `auto` für automatische Erkennung
 opendictate settings target en      # Diktat ins Englische übersetzen; `off` aus
+opendictate settings target toggle  # aus bzw. mit letzter Zielsprache (sonst en) an
+opendictate settings insert off     # nur Zwischenablage, kein Auto-Einfügen
 opendictate settings translation-model gpt-5.4-mini
 opendictate secrets status
 ```
@@ -65,6 +70,20 @@ echten Secrets nötig; die HTTP-Tests verwenden nur einen lokalen Stub.
 - Ein nichtleeres Transkript wird ausschließlich in die Wayland-Zwischenablage
   geschrieben. Erst nach erfolgreichem Copy darf die zugehörige Aufnahme
   entfernt werden.
+- Auto-Einfügen (Standard an, `settings insert off` schaltet es ab): Beim
+  Start wird das aktive Hyprland-Fenster erfasst. Nach dem Kopieren prüft das
+  CLI, dass genau dieses Fenster noch vorne ist und die Zwischenablage noch den
+  Text enthält, und sendet dann per `hyprctl dispatch` Ctrl+V, in bekannten
+  Terminals Ctrl+Shift+V, an dieses Fenster. Zuerst wird die Lua-Form
+  `hl.dsp.send_shortcut` verwendet (Hyprland mit Lua-Konfiguration, z. B.
+  0.56); nur wenn Hyprland sie eindeutig ablehnt, die ältere Form
+  `sendshortcut`. Sonst bleibt es bei
+  der Zwischenablage mit Hinweis. Enthält die Zwischenablage vor dem Einfügen
+  nicht mehr exakt den Text oder lässt sie sich binnen 2 Sekunden nicht lesen,
+  gilt das Diktat als nicht geliefert und die Aufnahme bleibt für `retry`
+  erhalten; ebenso nach `cancel` während der Auslieferung. Das Einfügen selbst ist unbestätigt;
+  sonst gilt die Aufnahme mit dem erfolgreichen Kopieren als geliefert. `retry` fügt nie
+  automatisch ein.
 - Fehler, Abbruch, leere Antwort oder Clipboard-Fehler behalten Audio. Eine
   Recovery-Kopie wird mit einem Secret-Service-Schlüssel per HMAC-SHA256 an
   Dateiname, Erstellzeit und exakte Bytes gebunden. Scheitert die Kopie, bleibt
@@ -88,13 +107,32 @@ Die Beispielbindung steht in [hyprland.conf.example](hyprland.conf.example).
 Sie wurde nicht in die Nutzerkonfiguration geschrieben. Den Key bewusst wählen
 und das Release-Binary über einen absoluten Pfad aufrufen.
 
+## Leistenanzeige
+
+`opendictate bar` gibt jede Abfrage eine JSON-Zeile im Waybar-Format aus:
+Mikrofon-Symbol, Sanduhr während der Verarbeitung und die aktive Zielsprache
+(z. B. `EN`). Während der Aufnahme trägt sie die Klasse `active`. Ein Klick soll
+`settings target toggle` aufrufen. Die Ausgabe enthält nur Zustand und
+Einstellungen, nie Text. Die Symbole brauchen eine Nerd Font, wie sie Omarchy
+mitbringt.
+
+- Omarchy 4 (Omarchy-Shell-Leiste): Befehlsmodul nach
+  [omarchy-bar.example.json](omarchy-bar.example.json) in
+  `~/.config/omarchy/shell.json` unter `bar.layout` ergänzen. Die Leiste hebt
+  das Modul während der Aufnahme hervor.
+- Waybar: [waybar.example.jsonc](waybar.example.jsonc) und
+  [waybar.example.css](waybar.example.css); dort wird das Symbol während der
+  Aufnahme rot.
+
 ## Noch offen
 
-- Kein Live-Upload und kein echter Phase-1-Durchstich auf omarchy in diesem
-  Stand; dafür braucht es eine neue begrenzte Mikrofon-/Provider-Freigabe.
-- Kein Tray oder Settings-Fenster. CLI-Status, Benachrichtigungen und sichere
-  Settings-Kommandos bilden erst den Kern.
+- Phase 1 ist nicht abgenommen: Live-Upload, Übersetzung und Hotkey sind am
+  05.10. auf omarchy in Einzelfällen belegt, Netzabbruch und Abbruch während
+  der Übersetzung noch nicht.
+- Leistenanzeige und Auto-Einfügen sind auf omarchy nur in Einzelfällen
+  erprobt (Editor, Terminal, Fensterwechsel, Übersetzung; Stand `fae3dae`,
+  [Nachweis](../docs/linux-live-translation-plan.md)); die spätere
+  Zwischenablage-Härtung und die Waybar-Variante sind nicht live geprüft. Kein Settings-Fenster.
 - Ein Abbruch während des blockierenden HTTP-Aufrufs wird nach dessen Rückkehr
   beziehungsweise Timeout ausgewertet; er löscht die einzige Aufnahme nicht.
-- Kein physischer Hyprland-Hotkey-Nachweis für diesen Kandidaten, kein
-  Auto-Insert, kein Packaging und kein zweites Distro-Ziel.
+- Kein Packaging und kein zweites Distro-Ziel.
