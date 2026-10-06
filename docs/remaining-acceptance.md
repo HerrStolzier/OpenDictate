@@ -356,8 +356,11 @@ Seit 05.10. kann das CLI ein Diktat vor der Ausgabe in eine gewählte
 Zielsprache übersetzen (`settings target en`). Am 05.10. auf omarchy live
 erprobt: Diktat mit und ohne Übersetzung, falsches Übersetzungsmodell mit
 erhaltener Aufnahme und `retry`. Damit ist erstmals ein echter Linux-Upload
-belegt. Offen bleiben Netz- und Abbruchfälle, physischer Hotkey und
-Tray/Panel ([Plan mit Nachweis](linux-live-translation-plan.md)).
+belegt. Der physische Hotkey Super+D ist seit 05.10. eingerichtet und von
+Basti bestätigt. Leistenanzeige mit Übersetzungsumschalter und Auto-Einfügen
+ins Startfenster sind am 05./06.10. auf omarchy in Einzelfällen erprobt. Offen
+bleiben außerdem Netz- und Abbruchfälle
+([Plan mit Nachweis](linux-live-translation-plan.md)).
 
 Der [Linux-Detailplan](linux-build-plan.md) ist die zuständige Quelle für
 Phasen, Modulkarte, Schutzpolitik und Checks. Der [Phase-1-Bericht](linux-phase1-core-2026-09-22.md)

@@ -1,0 +1,17 @@
+/* Example styles for the OpenDictate Waybar module. */
+#custom-opendictate {
+  margin: 0 7px;
+}
+
+#custom-opendictate.recording {
+  color: #e06c75;
+}
+
+#custom-opendictate.processing,
+#custom-opendictate.delivering {
+  color: #e5c07b;
+}
+
+#custom-opendictate.translating {
+  font-weight: bold;
+}

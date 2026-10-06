@@ -46,7 +46,7 @@ unverändert und gilt durch diesen Plan nicht als erledigt.
 | Richtung Tray-Utility, eigener Key, Clipboard-first, kein Swift-UI-Port | belastbar |
 | v1-Pfad: Rust-Daemon/CLI plus Hyprland-Bind | Phase 0 in `main`; Phase-1-Kern offline auf omarchy geprüft |
 | Hotkey, Mic, Keyring, Clipboard auf **dieser** omarchy/Hyprland-Session | Mic, Keyring, Clipboard und fokusneutraler CLI-Toggle belegt; Hyprland-Bind nur als Beispiel |
-| Auto-Insert unter Wayland | bewusst unsicher; eigene Phase; Default ist Clipboard-only |
+| Auto-Insert unter Wayland | eigene Phase; seit 06.10. auf omarchy mit Frontmost- und Zwischenablage-Prüfung erprobt und auf Bastis Wunsch Standard; `settings insert off` für Clipboard-only |
 | Packaging auf Arch/omarchy | erst in Packaging-Phase belegt |
 | Tauri 2 als App-Shell | nachrangige UI-Option **nach** bewiesenem OS-Pfad |
 
@@ -199,10 +199,25 @@ eigene Wayland-/Hyprland-Prüfung; auch dort bleibt Insert unbestätigt und
 bereits übernommener Text lässt sich nicht zurückrollen.
 
 Wenn der Frontmost-Check nicht belegbar ist: Clipboard-only als Default, nicht
-als vages Best-Effort.
+als vages Best-Effort. Auf omarchy ist er seit 06.10. erprobt; Auto-Insert ist
+deshalb Standard (auch für bestehende Einstellungsdateien) und lässt sich mit
+`settings insert off` abschalten.
 
 **Done:** Ein belegter Insert-Pfad, der die Frontmost-Regel einhält, **oder**
 begründeter Clipboard-only-Ship mit klarem Wayland-Status.
+
+**Stand 06.10.2026 (auf omarchy in Einzelfällen live erprobt,
+[Nachweis](linux-live-translation-plan.md)):** Das CLI erfasst beim
+Start die Fensteradresse, prüft nach dem Kopieren per `hyprctl activewindow`
+dieselbe Adresse und per `wl-paste` denselben Text und sendet dann über
+`hyprctl dispatch` Ctrl+V (bekannte Terminals Ctrl+Shift+V) an genau diese
+Adresse: zuerst als Lua-Dispatcher `hl.dsp.send_shortcut` (Hyprland 0.56 mit
+Lua-Konfiguration lehnt die alte Form ab, auf omarchy am 05.10. gesehen), nach
+eindeutiger Ablehnung als `sendshortcut`. Jede andere Lage endet bei der Zwischenablage mit
+Hinweis; `retry` fügt nie ein; `settings insert off` schaltet es ab. Die
+Leistenanzeige (`opendictate bar`, Klick: `settings target toggle`) läuft als
+Befehlsmodul der Omarchy-4-Leiste oder in Waybar und deckt den Status-Teil des
+UI-Minimums aus Phase 1 ab.
 
 ### Phase 3 — Packaging
 
