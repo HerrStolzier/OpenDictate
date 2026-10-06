@@ -20,8 +20,8 @@ import subprocess
 from urllib.parse import quote
 import sys
 
-# Auch mitten in der Befehlszeile (`-m 'Reviewed-by: …'`), deshalb nicht nur am Zeilenanfang.
-TRAILER = re.compile(r"(?:^|[\s'\"])Reviewed-by:[ \t]*[^\s'\"]", re.M)
+# Nur als eigene Zeile oder als Anfang eines -m-Abschnitts, nicht mitten im Satz ("Enforce Reviewed-by: …").
+TRAILER = re.compile(r"(?:^|['\"]|\s-m\s*|--message=|--trailer[= ])[ \t]*Reviewed-by:[ \t]*[^\s'\"]", re.M)
 TEXT_SUFFIXES = (".md", ".markdown", ".txt", ".rst")
 # git, dann globale Optionen wie -C <dir>, -c <k=v>, --no-pager, dann der Unterbefehl.
 GIT = r"(?:^|[;&|(\s])git(?:\s+(?:-[cC]\s+(?:\"[^\"]*\"|'[^']*'|\S+)|--[\w-]+(?:=\S+)?))*\s+"
@@ -249,11 +249,14 @@ def check_push(raw, bare, seg, cwd):
     if not top:
         return
     opts = [w for w in seg.words if w.startswith("-")]
-    if any(o in ("-d", "--delete", "--tags", "--prune", "--mirror") for o in opts):
+    if any(o in ("-d", "--delete", "--tags") for o in opts):
         return  # Löschen und Tags laufen über andere Wächter; hier geht es um neue Commits.
     args = positional(seg.words, {"-o", "--push-option", "--repo", "--receive-pack", "--exec"}, short_value="o")
     remote = args[0] if args else "origin"
     refspecs = args[1:] or ["HEAD"]
+    if any(o in ("--all", "--branches", "--mirror") for o in opts):
+        # Diese Optionen schieben jeden lokalen Branch, nicht nur HEAD.
+        refspecs = lines(git(top, "for-each-ref", "--format=%(refname:short)", "refs/heads/"))
     missing = []
     for spec in refspecs:
         src, _, dst = spec.lstrip("+").partition(":")
