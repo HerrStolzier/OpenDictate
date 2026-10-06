@@ -220,22 +220,28 @@ def commit_message(top, seg, cwd) -> str:
     if not seg.parsed:
         return seg.raw + "\n" + seg.heredoc  # Wörter nicht lesbar: Rohtext, Zeilenanfang zählt weiter
     parts, files, reuse = [], [], []
-    for i, x in enumerate(w):
+    i = 0
+    while i < len(w):
+        x = w[i]
         nxt = w[i + 1] if i + 1 < len(w) else ""
+        i += 1
         if x in ("--message", "--trailer") or re.fullmatch(r"-[a-zA-Z]*m", x):
             parts.append(nxt)
+            i += 1  # der Wert ist Nachricht, keine weitere Option
         elif x.startswith(("--message=", "--trailer=")):
             parts.append(x.split("=", 1)[1])
         elif re.fullmatch(r"-m.+", x):
             parts.append(x[2:])
         elif x in ("-F", "--file") or re.fullmatch(r"-[a-zA-Z]*F", x):
             files.append(nxt)
+            i += 1
         elif x.startswith("--file="):
             files.append(x.split("=", 1)[1])
         elif re.fullmatch(r"-F.+", x):
             files.append(x[2:])
-        elif x in ("-C", "-c", "--reuse-message", "--reedit-message"):
+        elif x in ("--reuse-message", "--reedit-message") or re.fullmatch(r"-[a-zA-Z]*[cC]", x):
             reuse.append(nxt)
+            i += 1
         elif x.startswith(("--reuse-message=", "--reedit-message=")):
             reuse.append(x.split("=", 1)[1])
     for path in files:
@@ -278,7 +284,8 @@ def default_base(top, remote="origin"):
 
 def is_opt(word, full):
     """git nimmt eindeutige Abkürzungen langer Optionen an (--al = --all)."""
-    return word == full or (len(word) > 3 and full.startswith(word))
+    # Schon `--m` reicht git, wenn eindeutig; ist sie mehrdeutig, lehnt git ab, dann schadet ein Treffer nicht.
+    return word == full or (len(word) > 2 and full.startswith(word))
 
 
 def default_remote(top):

@@ -108,6 +108,8 @@ def check_segment(words: list, cwd: str) -> str:
     if cmd not in SIMPLE:
         deny(f"Befehl {cmd} ist nicht freigegeben")
     if cmd == "cd":
+        if len(args) > 1 or (args and args[0].startswith("-")):
+            deny("cd nur mit genau einem Ordner")
         return os.path.join(cwd, os.path.expanduser(args[0])) if args else os.path.expanduser("~")
     if cmd == "git":
         check_git(args, cwd)
