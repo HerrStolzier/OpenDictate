@@ -84,6 +84,16 @@ echten Secrets nötig; die HTTP-Tests verwenden nur einen lokalen Stub.
   erhalten; ebenso nach `cancel` während der Auslieferung. Das Einfügen selbst ist unbestätigt;
   sonst gilt die Aufnahme mit dem erfolgreichen Kopieren als geliefert. `retry` fügt nie
   automatisch ein.
+- Jede Anfrage hat ein Zeitlimit ab Beginn der Anfrage, Verbindungsaufbau
+  eingeschlossen: Transkription 15 Sekunden plus Upload-Zeit
+  bei etwa 2 Mbit/s (bei 90 Sekunden Aufnahme mit 48 kHz rund 50 Sekunden),
+  Übersetzung 15 Sekunden plus eine Sekunde je 100 Zeichen (höchstens 60
+  Sekunden). Der Verbindungsaufbau allein darf höchstens 10 Sekunden dauern. Fällt das Netz während eines
+  kurzen Diktats weg, kommt die Meldung „Netzwerkfehler oder
+  Zeitüberschreitung“ damit nach etwa 20 Sekunden statt nach bis zu zwei
+  Minuten; reißt es mitten in einem langen Upload ab, kann es bis zum Doppelten
+  des Limits dauern. Das Zeitlimit greift nicht bei einer hängenden
+  Namensauflösung (DNS).
 - Fehler, Abbruch, leere Antwort oder Clipboard-Fehler behalten Audio. Eine
   Recovery-Kopie wird mit einem Secret-Service-Schlüssel per HMAC-SHA256 an
   Dateiname, Erstellzeit und exakte Bytes gebunden. Scheitert die Kopie, bleibt
@@ -126,9 +136,10 @@ mitbringt.
 
 ## Noch offen
 
-- Phase 1 ist nicht abgenommen: Live-Upload, Übersetzung und Hotkey sind am
-  05.10. auf omarchy in Einzelfällen belegt, Netzabbruch und Abbruch während
-  der Übersetzung noch nicht.
+- Phase 1 ist nicht abgenommen: Live-Upload, Übersetzung, Hotkey sowie
+  Abbruch und Netzausfall während der Verarbeitung sind am 05. und 07.10. auf
+  omarchy in Einzelfällen belegt. Die kürzeren Zeitlimits danach sind nur
+  offline geprüft.
 - Leistenanzeige und Auto-Einfügen sind auf omarchy nur in Einzelfällen
   erprobt (Editor, Terminal, Fensterwechsel, Übersetzung; Stand `fae3dae`,
   [Nachweis](../docs/linux-live-translation-plan.md)); die spätere

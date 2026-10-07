@@ -104,10 +104,35 @@ alle Programme. Der Nachweis gilt für `fae3dae`. Danach geänderte Prüfungen
 `wl-paste`, Aufnahme bleibt bei geänderter oder unlesbarer Zwischenablage und
 bei Abbruch während der Auslieferung) sind nur offline geprüft.
 
+## Live-Nachweis Fehlerfälle · 7. Oktober 2026
+
+Mit Bastis Go auf omarchy, installierter Stand `f3f0ef9`, Übersetzung `en`,
+Einfügen an.
+
+| Fall | Ergebnis |
+| --- | --- |
+| `opendictate cancel` direkt nach dem Stopp (Transkription lief, Übersetzung noch nicht gestartet) | nichts eingefügt, Meldung „Verarbeitung abgebrochen. Aufnahme für Wiederholung behalten.“, `recording-kept`, danach `idle`; `retry` übersetzte und kopierte in 1,9 s, Recovery-Ordner danach leer |
+| Netz am ganzen PC direkt nach dem Stopp aus, nach 36 s wieder an | nichts eingefügt, Aufnahme behalten mit „Netzwerkfehler bei der Transkription. Aufnahme für Wiederholung behalten.“, aber erst rund zwei Minuten nach dem Stopp |
+
+Die Meldung kam so spät, weil der hängende Upload erst am Lese-Zeitlimit von
+120 Sekunden scheiterte. Seitdem hat jede Anfrage ein Zeitlimit
+(Transkription 15 s plus Upload-Zeit, Übersetzung 15 s plus Textlänge, höchstens
+60 s); das ist nur offline geprüft, mit einem Testserver, der nie antwortet.
+
+Nebenwirkung des Testaufbaus, kein Fehler von OpenDictate: Nach
+`nmcli networking off/on` blieb die Namensauflösung über Tailscale bis zum
+Neustart gestört; ein `retry` in dieser Zeit scheiterte erneut mit
+Netzwerkfehler und behielt die Aufnahme. Nach dem Neustart lieferte `retry` die
+Übersetzung in 3,7 s. Netzausfälle künftig nur für OpenDictate simulieren,
+nicht das ganze Netz abschalten. Ein Abbruch genau während der Übersetzung ist
+nicht getrennt geprüft; derselbe Abbruchmarker gilt dort. Einzelfälle, keine
+allgemeine Aussage.
+
 ## Nächste Schritte auf Linux
 
-1. Fehlerfälle live ergänzen: Netz weg, `opendictate cancel` während der
-   Übersetzung; Aufnahme muss jeweils erhalten bleiben.
+1. Fehlerfälle live: am 07.10. während der Transkription belegt (siehe oben).
+   Offen: die kürzeren Zeitlimits und einen Ausfall genau während der
+   Übersetzung live bestätigen, ohne das ganze Netz abzuschalten.
 2. Einige Tage im Alltag nutzen und die Wartezeit mit Übersetzung beobachten.
 3. Leistenstatus (Omarchy-Leiste oder Waybar) mit sichtbarer Zielsprache und Klick-Umschalter: gebaut und
    am 05./06.10. live erprobt (siehe oben).

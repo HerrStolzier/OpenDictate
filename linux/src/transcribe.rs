@@ -8,10 +8,18 @@ use crate::settings::{validate_model, Settings};
 
 const DEFAULT_ENDPOINT: &str = "https://api.openai.com/v1/audio/transcriptions";
 const MAX_UPLOAD_BYTES: usize = 25 * 1_024 * 1_024;
+/// Waiting time for the provider's answer on top of the upload. A request
+/// that stalls because the network is gone ends after this budget instead
+/// of an open-ended read timeout. A write blocked when the network drops
+/// can still last up to the time that was left at connect.
+const RESPONSE_BUDGET: Duration = Duration::from_secs(15);
+/// Upload allowance for a slow uplink of about 2 Mbit/s.
+const SLOW_UPLINK_BYTES_PER_SECOND: u64 = 250_000;
 
 pub struct Transcriber {
     endpoint: String,
     agent: ureq::Agent,
+    response_budget: Duration,
 }
 
 impl Transcriber {
@@ -21,14 +29,13 @@ impl Transcriber {
 
     fn with_endpoint(endpoint: &str) -> Self {
         let agent = ureq::AgentBuilder::new()
-            .timeout_connect(Duration::from_secs(30))
-            .timeout_read(Duration::from_secs(120))
-            .timeout_write(Duration::from_secs(30))
+            .timeout_connect(Duration::from_secs(10))
             .redirects(0)
             .build();
         Self {
             endpoint: endpoint.to_string(),
             agent,
+            response_budget: RESPONSE_BUDGET,
         }
     }
 
@@ -64,6 +71,7 @@ impl Transcriber {
         let response = self
             .agent
             .post(&self.endpoint)
+            .timeout(request_timeout(self.response_budget, body.len()))
             .set("Authorization", &format!("Bearer {api_key}"))
             .set(
                 "Content-Type",
@@ -72,6 +80,14 @@ impl Transcriber {
             .send_bytes(&body);
         decode_response(response)
     }
+}
+
+/// Overall limit for one request, counted from its start: connection setup,
+/// upload and response share the response budget plus the time the upload
+/// may take on a slow uplink. A normal connection takes well under a second.
+fn request_timeout(response_budget: Duration, upload_bytes: usize) -> Duration {
+    let upload_seconds = (upload_bytes as u64).div_ceil(SLOW_UPLINK_BYTES_PER_SECOND);
+    response_budget + Duration::from_secs(upload_seconds)
 }
 
 fn multipart_body(boundary: &str, audio: &[u8], settings: &Settings) -> Vec<u8> {
@@ -120,7 +136,7 @@ fn decode_response(response: Result<ureq::Response, ureq::Error>) -> Result<Stri
             });
         }
         Err(ureq::Error::Transport(_)) => {
-            return Err("Netzwerkfehler bei der Transkription.".to_string())
+            return Err("Netzwerkfehler oder Zeitüberschreitung bei der Transkription.".to_string())
         }
     };
     let mut data = Vec::new();
@@ -141,7 +157,7 @@ fn decode_response(response: Result<ureq::Response, ureq::Error>) -> Result<Stri
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_http::serve;
+    use crate::test_http::{serve, serve_without_answer};
 
     fn audio_file(case: &str) -> std::path::PathBuf {
         let path = std::env::temp_dir().join(format!(
@@ -179,6 +195,32 @@ mod tests {
             .unwrap_err();
         assert!(error.contains("ungültig"));
         assert!(!error.contains("private"));
+        server.join().unwrap();
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn request_timeout_grows_only_with_the_upload() {
+        assert_eq!(request_timeout(RESPONSE_BUDGET, 0), RESPONSE_BUDGET);
+        // 90 seconds of 48 kHz mono audio, the longest recording.
+        assert_eq!(
+            request_timeout(RESPONSE_BUDGET, 8_640_044),
+            Duration::from_secs(50)
+        );
+    }
+
+    #[test]
+    fn stalled_request_ends_at_the_deadline() {
+        let (endpoint, server) = serve_without_answer();
+        let path = audio_file("stalled");
+        let mut transcriber = Transcriber::with_endpoint(&endpoint);
+        transcriber.response_budget = Duration::from_millis(300);
+        let started = std::time::Instant::now();
+        let error = transcriber
+            .transcribe(&path, "test-key", &Settings::default())
+            .unwrap_err();
+        assert!(error.contains("Netzwerkfehler"));
+        assert!(started.elapsed() < Duration::from_secs(5));
         server.join().unwrap();
         let _ = std::fs::remove_file(path);
     }

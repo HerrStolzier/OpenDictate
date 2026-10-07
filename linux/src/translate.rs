@@ -6,10 +6,17 @@ use serde_json::json;
 
 const DEFAULT_ENDPOINT: &str = "https://api.openai.com/v1/chat/completions";
 const MAX_INPUT_CHARS: usize = 20_000;
+/// Waiting time for a short translation. A request that stalls because the
+/// network is gone ends after this budget plus a share for longer texts,
+/// instead of an open-ended read timeout.
+const RESPONSE_BUDGET: Duration = Duration::from_secs(15);
+const CHARS_PER_EXTRA_SECOND: usize = 100;
+const MAX_REQUEST_TIMEOUT: Duration = Duration::from_secs(60);
 
 pub struct Translator {
     endpoint: String,
     agent: ureq::Agent,
+    response_budget: Duration,
 }
 
 impl Translator {
@@ -19,14 +26,13 @@ impl Translator {
 
     fn with_endpoint(endpoint: &str) -> Self {
         let agent = ureq::AgentBuilder::new()
-            .timeout_connect(Duration::from_secs(30))
-            .timeout_read(Duration::from_secs(60))
-            .timeout_write(Duration::from_secs(30))
+            .timeout_connect(Duration::from_secs(10))
             .redirects(0)
             .build();
         Self {
             endpoint: endpoint.to_string(),
             agent,
+            response_budget: RESPONSE_BUDGET,
         }
     }
 
@@ -42,7 +48,8 @@ impl Translator {
         if api_key.is_empty() {
             return Err("API-Schlüssel fehlt.".to_string());
         }
-        if text.is_empty() || text.chars().count() > MAX_INPUT_CHARS {
+        let chars = text.chars().count();
+        if chars == 0 || chars > MAX_INPUT_CHARS {
             return Err("Text hat eine ungültige Länge für die Übersetzung.".to_string());
         }
         let body = json!({
@@ -57,11 +64,19 @@ impl Translator {
         let response = self
             .agent
             .post(&self.endpoint)
+            .timeout(request_timeout(self.response_budget, chars))
             .set("Authorization", &format!("Bearer {api_key}"))
             .set("Content-Type", "application/json")
             .send_bytes(&body);
         decode_response(response)
     }
+}
+
+/// Overall limit for one request, counted from its start and including
+/// connection setup; longer texts take longer to translate.
+fn request_timeout(response_budget: Duration, chars: usize) -> Duration {
+    let limit = response_budget + Duration::from_secs((chars / CHARS_PER_EXTRA_SECOND) as u64);
+    limit.min(MAX_REQUEST_TIMEOUT)
 }
 
 fn instructions(target_language: &str) -> String {
@@ -117,7 +132,7 @@ fn decode_response(response: Result<ureq::Response, ureq::Error>) -> Result<Stri
             });
         }
         Err(ureq::Error::Transport(_)) => {
-            return Err("Netzwerkfehler bei der Übersetzung.".to_string())
+            return Err("Netzwerkfehler oder Zeitüberschreitung bei der Übersetzung.".to_string())
         }
     };
     let mut data = Vec::new();
@@ -152,7 +167,7 @@ fn decode_response(response: Result<ureq::Response, ureq::Error>) -> Result<Stri
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_http::serve;
+    use crate::test_http::{serve, serve_without_answer};
 
     #[test]
     fn stub_receives_transcript_as_data_and_returns_trimmed_translation() {
@@ -204,5 +219,31 @@ mod tests {
     fn unknown_language_codes_are_named_by_code() {
         assert_eq!(language_name("en-GB"), "English (en-GB)");
         assert_eq!(language_name("sv"), "the language with code \"sv\"");
+    }
+
+    #[test]
+    fn request_timeout_grows_with_the_text() {
+        assert_eq!(
+            request_timeout(RESPONSE_BUDGET, 250),
+            RESPONSE_BUDGET + Duration::from_secs(2)
+        );
+        assert_eq!(
+            request_timeout(RESPONSE_BUDGET, MAX_INPUT_CHARS),
+            MAX_REQUEST_TIMEOUT
+        );
+    }
+
+    #[test]
+    fn stalled_request_ends_at_the_deadline() {
+        let (endpoint, server) = serve_without_answer();
+        let mut translator = Translator::with_endpoint(&endpoint);
+        translator.response_budget = Duration::from_millis(300);
+        let started = std::time::Instant::now();
+        let error = translator
+            .translate("Hallo", "en", "test-model", "test-key")
+            .unwrap_err();
+        assert!(error.contains("Netzwerkfehler"));
+        assert!(started.elapsed() < Duration::from_secs(5));
+        server.join().unwrap();
     }
 }
