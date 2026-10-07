@@ -102,11 +102,28 @@ Die Tasten kollidieren nicht (OpenDictate: Super+D).
 - **Nebeneinander:** Auf einem Omarchy-Rechner können beide Tools aktiv sein.
   Die Tasten stören sich nicht, beide nutzen aber das Mikrofon.
 
+## Lehren aus dem Wettbewerb
+
+Ergänzende Stichprobe vom selben Tag: zwei weitere Suchen zu Gründen für
+Wechsel und Kündigung (Wispr Flow, SuperWhisper, MacWhisper, Aqua Voice) und
+zu gewünschten Funktionen; 9 Threads, 27 Kommentare, alle gegengeprüft.
+Gleiche Grenzen wie oben.
+
+| Lehre | Was Nutzer sagen | Folge für OpenDictate |
+| --- | --- | --- |
+| Abo-Müdigkeit ist der stärkste Wechselgrund | Rund 12–15 $ im Monat für Diktieren gilt als zu teuer; Leute suchen Einmalkauf oder lokal ([Thread](https://www.reddit.com/r/macapps/comments/1qjnqss/wispr_flow_is_solid_but_is_there_any_alternatives/), [Thread](https://www.reddit.com/r/WisprFlow/comments/1u0egnx/longtime_user_honestly_the_quality_has_been_going/)) | Bestätigt das Verkaufsargument „pro Minute statt Pauschale“ ([PROJECT](../PROJECT.md)). Den Preis pro Diktat sichtbar und konkret nennen. |
+| Misstrauen gegen „Hülle um dieselbe Technik“ | Viele Apps verpacken dieselben Modelle und verlangen ein Abo dafür ([Thread](https://www.reddit.com/r/macapps/comments/1s5xot8/os_typewhisper_10_free_opensource_dictation_app/)) | Offen damit umgehen: MIT-Quellcode, eigener Schlüssel, kein Aufschlag. Das ist ein Vorteil, kein Makel. |
+| Ungefragtes Umschreiben verärgert | Wispr Flow verändere Satzbau und setze falsche Wörter ein, auch mit abgeschalteten „Transforms“ ([Thread](https://www.reddit.com/r/WisprFlow/comments/1u0egnx/longtime_user_honestly_the_quality_has_been_going/)) | Standard bleibt eine treue Transkription. Jede Umformung (auch Übersetzung) nur bewusst eingeschaltet und sichtbar, wie heute mit dem Umschalter in der Leiste. |
+| Automatische Spracherkennung irrt | Englisch gesprochen, Text kam in einer anderen Sprache ([Thread](https://www.reddit.com/r/macapps/comments/1qg73sx/wispr_flow_vs_aqua_voice/)); Wechsel zwischen Deutsch und Englisch ist ein eigener Wunsch ([Thread](https://www.reddit.com/r/macapps/comments/1w3ljff/what_is_the_best_ondevice_voice_transcription_app/)) | Feste Sprechsprache und feste Zielsprache sind ein Pluspunkt. Gemischtes Deutsch/Englisch gezielt prüfen, bevor wir Qualität behaupten. |
+| „Deutsch sprechen, Englisch ausgeben“ ist ein echter Anwendungsfall | Profile je App, z. B. Deutsch sprechen und für einen X-Post Englisch ausgeben ([Thread](https://www.reddit.com/r/macapps/comments/1s5xot8/os_typewhisper_10_free_opensource_dictation_app/)); fehlende Echtzeit-Übersetzung ist ein Rückgabegrund bei SuperWhisper ([Thread](https://www.reddit.com/r/superwhisper/comments/1s7k6f3/struggling_with_the_new_superwhisper_pricing/)) | Stützt den Schwerpunkt [Live-Übersetzung](linux-live-translation-plan.md). Mögliche spätere Erweiterung: Zielsprache je Anwendung merken (nicht beauftragt). |
+| Text muss im aktiven Feld ankommen | Lokale Tools transkribieren gut, schreiben aber oft nicht zuverlässig ins Feld; Linux-Nutzer fragen gezielt danach ([Thread](https://www.reddit.com/r/linux/comments/1tc17yf/i_built_an_open_source_terminal_first_voicetotext/), [Thread](https://www.reddit.com/r/linuxquestions/comments/1tv3q3q/offline_desktop_linux_speech_to_text_software/)) | Einfügen mit Fokus- und Zwischenablage-Prüfung zur Hauptbotschaft für Linux machen. Vorher Chromium-, Electron- und Discord-Fenster prüfen. |
+| Lokal und offline zählt, besonders unter Linux | Misstrauen gegen Apps, die die Kernfunktion an Dritte auslagern; Offline-Ausfall bei schlechtem Netz ([Thread](https://www.reddit.com/r/linux/comments/1tc17yf/i_built_an_open_source_terminal_first_voicetotext/), [Thread](https://www.reddit.com/r/macapps/comments/1qg73sx/wispr_flow_vs_aqua_voice/)) | Größte Schwäche von OpenDictate. Der geplante [konfigurierbare Endpunkt](../ROADMAP.md) (lokaler Whisper-Server) ist die passende Antwort; bis dahin im Datenschutztext klar sagen, dass Audio zu OpenAI geht. |
+| Eigenes Wörterbuch | Wiederkehrender Wunsch nach eigenem Vokabular und Ersetzungen ([Thread](https://www.reddit.com/r/macapps/comments/1w3ljff/what_is_the_best_ondevice_voice_transcription_app/), [Thread](https://www.reddit.com/r/LocalLLaMA/comments/1srcoso/anyone_here_actually_using_voice_input_in_their/)) | Kandidat für die ROADMAP (nicht beauftragt). |
+| Tastenkombinationen | Zwei-Tasten-Akkorde gelten als hakelig; eine einzelne Taste oder Halten-zum-Sprechen wird empfohlen ([Thread](https://www.reddit.com/r/omarchy/comments/1qazbi5/voxtype_toggle_is_quite_buggy/)) | Stützt die ROADMAP-Punkte Hold-to-talk und Gaming-Shortcut. |
+| Support entscheidet mit | Unbeantwortete Anfragen führten zum Wechsel ([Thread](https://www.reddit.com/r/macapps/comments/1t0vqm6/macwhisper_support/)) | Im öffentlichen Betatest (Stufe 6) schnelle Antworten auf GitHub-Issues einplanen. |
+
 ## Offene Fragen
 
-- Wie gut ist Voxtype mit einem deutschen Modell (z. B. `large-v3-turbo`,
-  `language = "de"`) auf dem Rig? Ein Vergleich mit OpenDictate wäre ein
-  eigener Test.
 - Verhält sich das OpenDictate-Einfügen in Chromium-, Electron- und
   Discord-Fenstern zuverlässig?
 - Soll OpenDictate sich in die Omarchy-Diktier-Anzeige der Leiste einhängen
