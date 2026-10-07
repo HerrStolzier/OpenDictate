@@ -72,7 +72,8 @@ impl Translator {
     }
 }
 
-/// Overall limit for one request; longer texts take longer to translate.
+/// Overall limit for one request, counted from its start and including
+/// connection setup; longer texts take longer to translate.
 fn request_timeout(response_budget: Duration, chars: usize) -> Duration {
     let limit = response_budget + Duration::from_secs((chars / CHARS_PER_EXTRA_SECOND) as u64);
     limit.min(MAX_REQUEST_TIMEOUT)

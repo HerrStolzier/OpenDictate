@@ -82,8 +82,9 @@ impl Transcriber {
     }
 }
 
-/// Overall limit for one request: the response budget plus the time the
-/// upload may take on a slow uplink.
+/// Overall limit for one request, counted from its start: connection setup,
+/// upload and response share the response budget plus the time the upload
+/// may take on a slow uplink. A normal connection takes well under a second.
 fn request_timeout(response_budget: Duration, upload_bytes: usize) -> Duration {
     let upload_seconds = (upload_bytes as u64).div_ceil(SLOW_UPLINK_BYTES_PER_SECOND);
     response_budget + Duration::from_secs(upload_seconds)

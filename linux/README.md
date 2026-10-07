@@ -84,10 +84,11 @@ echten Secrets nötig; die HTTP-Tests verwenden nur einen lokalen Stub.
   erhalten; ebenso nach `cancel` während der Auslieferung. Das Einfügen selbst ist unbestätigt;
   sonst gilt die Aufnahme mit dem erfolgreichen Kopieren als geliefert. `retry` fügt nie
   automatisch ein.
-- Jede Anfrage hat ein Zeitlimit: Transkription 15 Sekunden plus Upload-Zeit
+- Jede Anfrage hat ein Zeitlimit ab Beginn der Anfrage, Verbindungsaufbau
+  eingeschlossen: Transkription 15 Sekunden plus Upload-Zeit
   bei etwa 2 Mbit/s (bei 90 Sekunden Aufnahme mit 48 kHz rund 50 Sekunden),
   Übersetzung 15 Sekunden plus eine Sekunde je 100 Zeichen (höchstens 60
-  Sekunden), Verbindungsaufbau 10 Sekunden. Fällt das Netz während eines
+  Sekunden). Der Verbindungsaufbau allein darf höchstens 10 Sekunden dauern. Fällt das Netz während eines
   kurzen Diktats weg, kommt die Meldung „Netzwerkfehler oder
   Zeitüberschreitung“ damit nach etwa 20 Sekunden statt nach bis zu zwei
   Minuten; reißt es mitten in einem langen Upload ab, kann es bis zum Doppelten
