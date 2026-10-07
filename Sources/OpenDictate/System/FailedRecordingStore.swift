@@ -2,6 +2,7 @@ import CryptoKit
 import Darwin
 import Foundation
 import OpenDictateCore
+import os
 
 /// Keeps failed recordings. Authenticated recordings are eligible for retry;
 /// retention pruning also removes expired managed files from earlier versions.
@@ -13,6 +14,9 @@ enum FailedRecordingStore {
 
     private static let maximumAudioBytes = 16 * 1_024 * 1_024
     private static let authenticationBytes = 32
+    // Expired entries macOS refused to delete in this app run. Pruning retries
+    // them silently so a lifted block still clears them, but logs each once.
+    private static let reportedPruneFailures = OSAllocatedUnfairLock(initialState: Set<String>())
 
     static var directory: URL {
         FileManager.default.homeDirectoryForCurrentUser
@@ -123,11 +127,11 @@ enum FailedRecordingStore {
     }
 
     @discardableResult
-    static func prune(now: Date, in directoryURL: URL) -> Int {
+    static func prune(now: Date, in directoryURL: URL, log: (String) -> Void = AppLog.write) -> Int {
         do {
             try prepareDirectory(directoryURL)
         } catch {
-            AppLog.write("Could not secure the failed-recording directory: \(error.localizedDescription)")
+            log("Could not secure the failed-recording directory: \(error.localizedDescription)")
             return 0
         }
 
@@ -139,15 +143,22 @@ enum FailedRecordingStore {
         let expired = RecordingRetention.expired(from: entries, now: now)
         var removed = 0
         for entry in expired {
+            let path = entry.url.path
             if removeAudioAndAuthentication(at: entry.url) {
                 removed += 1
+                _ = reportedPruneFailures.withLock { $0.remove(path) }
             } else {
-                AppLog.write("Could not prune expired failed recording \(entry.url.lastPathComponent): errno=\(errno)")
+                let failure = errno
+                if reportedPruneFailures.withLock({ $0.insert(path).inserted }) {
+                    log(
+                        "Could not prune expired failed recording \(entry.url.lastPathComponent): errno=\(failure);"
+                            + " retrying silently")
+                }
             }
         }
         pruneOrphanAuthenticationFiles(in: directoryURL)
         if removed > 0 {
-            AppLog.write("Pruned \(removed) expired failed recording(s)")
+            log("Pruned \(removed) expired failed recording(s)")
         }
         return removed
     }
