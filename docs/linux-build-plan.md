@@ -236,6 +236,8 @@ UI-Minimums aus Phase 1 ab.
 - Linux-v1 ≠ jeder macOS-AX-Sonderpfad
 - gnome-keyring auf omarchy (oft ungesperrter Login-Keyring, LUKS als Platte)
   ist schwächer als macOS-Keychain-ACLs; trotzdem Secret Service, nie Datei
+- Wettbewerb: Omarchy bietet mit Voxtype ein eigenes, lokales Diktier-Tool im
+  Menü an (Recherche vom 07.10.: [Linux-Umfeld](linux-umfeld-voxtype-2026-10-07.md))
 
 ## Nicht-Ziele dieses Linux-MVP
 
