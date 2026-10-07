@@ -19,6 +19,21 @@ sind der zuletzt belegte Übergabestand. **iOS** ist bis zu einer Nachfrage aus
 Stufe 6 zurückgestellt; die bisherigen Nachweise unten bleiben erhalten
 ([Neuordnung](roadmap-neuordnung-2026-10-02.md)).
 
+## macOS: Rechte temporärer Aufnahmen live geprüft · 7. Oktober 2026
+
+Ein lokal aus `main` (`cbddf7b`, PR #46) gebauter und wie die installierte App
+signierter Testbuild lief auf dem Mac Mini für zwei kurze echte Diktate über das
+Aufnahmefenster. Ein Beobachter prüfte die Dateirechte fortlaufend:
+
+- Die Originalaufnahme war etwa 0,1 Sekunden nach dem Anlegen `0600` und blieb
+  so bis zum Löschen. Davor trug sie kurz die Standardrechte.
+- Die gekürzte Upload-Datei war von Anfang an `0600`.
+- Das Transkript wurde eingefügt.
+
+Zwei erste Fehlversuche hatten nur einen nicht eingesteckten Mikrofonstecker
+als Ursache. Der Testbuild ist beendet, die installierte App läuft unverändert.
+Der Lauf belegt nur diesen Ausschnitt, keine allgemeine Sprachqualität.
+
 ## iOS: synthetischer Safari-Textpfad bestanden · 29. September 2026
 
 Fortsetzung am 30. September: Bastis iPhone 15 mit iOS 27.0.1 ist per USB
@@ -422,6 +437,15 @@ Belege und keine Abnahme des Build-8-Pakets.
   Dialog die Aufnahme. Der [Fortsetzungsbericht](release-plans/evidence/2026-09-24-keychain-and-plan1.md)
   dokumentiert diesen bestandenen Ausschnitt. Den alten API-Key-Eintrag nur
   durch die bestehende verlustarme App-Migration entfernen, nicht manuell.
+
+- Die Originalaufnahme ist in den ersten etwa 0,1 Sekunden nach dem Anlegen
+  noch mit Standardrechten lesbar, bevor `TemporaryAudioAccess` sie auf `0600`
+  setzt. Sauber wäre, die Datei schon geschützt anzulegen.
+- Startet eine Aufnahme nicht, nennt die App den Grund nur im Menüleisten-Tooltip
+  und nicht im App-Log.
+- Die automatischen Tests schreiben in das echte App-Log des Benutzers.
+- Die App versucht minütlich vergeblich, eine alte Aufnahme vom 15. September zu
+  löschen, für die ihr die Rechte fehlen.
 
 Bekannte Fehler mit falschem Ziel, beschädigtem vorhandenem Text oder Verlust der
 einzigen Aufnahme/des einzigen Transkripts verhindern eine Ausweitung des betroffenen
