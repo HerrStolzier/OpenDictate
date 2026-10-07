@@ -373,8 +373,10 @@ erprobt: Diktat mit und ohne Übersetzung, falsches Übersetzungsmodell mit
 erhaltener Aufnahme und `retry`. Damit ist erstmals ein echter Linux-Upload
 belegt. Der physische Hotkey Super+D ist seit 05.10. eingerichtet und von
 Basti bestätigt. Leistenanzeige mit Übersetzungsumschalter und Auto-Einfügen
-ins Startfenster sind am 05./06.10. auf omarchy in Einzelfällen erprobt. Offen
-bleiben außerdem Netz- und Abbruchfälle
+ins Startfenster sind am 05./06.10. auf omarchy in Einzelfällen erprobt.
+Abbruch und Netzausfall während der Verarbeitung sind am 07.10. belegt: Die
+Aufnahme blieb jeweils erhalten, `retry` lieferte. Der Netzfehler kam erst nach
+rund zwei Minuten; die seitdem kürzeren Zeitlimits sind nur offline geprüft
 ([Plan mit Nachweis](linux-live-translation-plan.md)).
 
 Der [Linux-Detailplan](linux-build-plan.md) ist die zuständige Quelle für

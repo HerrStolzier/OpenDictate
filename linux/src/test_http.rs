@@ -39,6 +39,19 @@ pub fn serve(status: &str, body: &str) -> (String, thread::JoinHandle<Vec<u8>>) 
     (format!("http://{address}"), handle)
 }
 
+/// Accepts one request and never answers, like a provider behind a network
+/// that dropped mid-request. Returns once the client has given up.
+pub fn serve_without_answer() -> (String, thread::JoinHandle<()>) {
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = listener.local_addr().unwrap();
+    let handle = thread::spawn(move || {
+        let (mut stream, _) = listener.accept().unwrap();
+        let mut chunk = [0u8; 4096];
+        while matches!(stream.read(&mut chunk), Ok(count) if count > 0) {}
+    });
+    (format!("http://{address}"), handle)
+}
+
 fn content_length(request: &[u8]) -> Option<usize> {
     let text = String::from_utf8_lossy(request);
     text.lines().find_map(|line| {
