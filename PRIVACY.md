@@ -114,9 +114,10 @@ API keys, transcript text, or audio contents. Logging is serialized and rotated 
 
 The most recent non-empty transcript is also held in memory until replaced, cleared from the menu or the app exits. No persistent text history is created. Temporary recording files are restricted to the current user (permissions 0600); the original recording is created with these permissions before audio is written. If restricting fails, the app logs it. If a recovery-store write fails, the original temporary audio is deliberately not deleted and its path is shown in the error status. Historical crash leftovers are not swept automatically because they may contain the only surviving recording.
 
-## Linux Clipboard-MVP core (not product scope)
+## Linux CLI
 
-The in-repo Linux CLI is not yet the macOS product or a published Linux product.
+The Linux CLI is being prepared for a beta and can be installed as an Arch
+package built from source; it is not yet published.
 On an explicit toggle it records the default PipeWire/Pulse input as an
 owner-only WAV. Recordings below one second or without a 50-ms window above
 −45 dBFS are not uploaded. Other recordings are sent over HTTPS to OpenAI's

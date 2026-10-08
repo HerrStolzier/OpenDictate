@@ -1,0 +1,65 @@
+# Builds the OpenDictate Linux CLI from the checkout this file lives in.
+# Usage, from a clone of https://github.com/HerrStolzier/OpenDictate:
+#   cd linux/packaging/arch && makepkg -si
+# Not published to the AUR; see linux/README.md.
+
+pkgname=opendictate
+# Keep pkgver equal to the version in linux/Cargo.toml; prepare() enforces it.
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Dictation for Hyprland with your own OpenAI key: record, transcribe, translate, paste'
+arch=('x86_64')
+url='https://github.com/HerrStolzier/OpenDictate'
+license=('MIT')
+depends=('alsa-lib' 'gcc-libs' 'glibc' 'hyprland' 'libsecret' 'wl-clipboard')
+makedepends=('cargo')
+optdepends=(
+  'gnome-keyring: Secret Service provider for the API key (any provider works)'
+  'libnotify: desktop notifications for errors and results'
+  'pipewire-alsa: record through PipeWire via the default ALSA device'
+)
+# Arch's default LTO turns ring's C objects into GCC bytecode that rust-lld cannot link.
+options=('!debug' '!lto')
+
+_repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+_manifest="$_repo/linux/Cargo.toml"
+
+prepare() {
+  local crate_version
+  crate_version="$(sed -n 's/^version = "\(.*\)"$/\1/p' "$_manifest" | head -n 1)"
+  if [[ "$crate_version" != "$pkgver" ]]; then
+    error "pkgver $pkgver does not match linux/Cargo.toml version $crate_version"
+    return 1
+  fi
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --manifest-path "$_manifest" \
+    --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR="$srcdir/target"
+  cargo build --frozen --release --manifest-path "$_manifest"
+}
+
+check() {
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR="$srcdir/target"
+  cargo test --frozen --manifest-path "$_manifest"
+}
+
+package() {
+  install -Dm0755 "$srcdir/target/release/opendictate" "$pkgdir/usr/bin/opendictate"
+  install -Dm0644 "$_repo/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  # Repository-relative links in the installed README point to GitHub instead.
+  install -dm0755 "$pkgdir/usr/share/doc/$pkgname"
+  sed -e 's#](\.\./#](https://github.com/HerrStolzier/OpenDictate/blob/main/#g' \
+    -e 's#](packaging/#](https://github.com/HerrStolzier/OpenDictate/blob/main/linux/packaging/#g' \
+    "$_repo/linux/README.md" > "$pkgdir/usr/share/doc/$pkgname/README.md"
+  chmod 0644 "$pkgdir/usr/share/doc/$pkgname/README.md"
+  install -Dm0644 -t "$pkgdir/usr/share/doc/$pkgname/" \
+    "$_repo/linux/hyprland.conf.example" \
+    "$_repo/linux/omarchy-bar.example.json" \
+    "$_repo/linux/waybar.example.jsonc" \
+    "$_repo/linux/waybar.example.css"
+}
