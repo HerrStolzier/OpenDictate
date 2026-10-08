@@ -32,20 +32,20 @@ eine bekannte Grenze, die in der jeweiligen Anleitung stehen muss.
 - Offline: `scripts/ci/check-linux.sh` (Formatierung, Tests, Clippy,
   Release-Build) grün auf `main`.
 - Täglicher Gebrauch durch Basti seit dem 7. Oktober.
+- Arch-Paket ([PKGBUILD](../linux/packaging/arch/PKGBUILD)) am 8. Oktober auf
+  omarchy gebaut (46 Tests grün), von Basti mit `pacman -U` installiert, Super+D
+  und Leiste darauf umgestellt, ein Diktat mit Übersetzung in einen Editor
+  eingefügt.
 
 **Offen / bekannte Grenzen:** Einfügen in Chromium-, Electron- und
 Discord-Fenstern; gemischtes Deutsch/Englisch; Abbruch genau während der
 Übersetzung; andere Compositoren als Hyprland; andere Distributionen;
-Vokabular; konfigurierbarer Endpunkt. Das Arch-Paket
-([PKGBUILD](../linux/packaging/arch/PKGBUILD)) ist am 8. Oktober auf omarchy
-mit `makepkg -f --nodeps` und unveränderter `makepkg.conf` gebaut (Stand
-`ca1f041`, Rust 1.98.1, 46 Tests grün, Paket 1,3 MB); der erste Bau scheiterte
-dort an Arch-Standard-LTO und ist mit `!lto` behoben. `namcap` lief nicht.
-Installation und ein Diktat mit dem Paket stehen aus.
-Eine alte Testaufnahme vom 5. Oktober liegt noch im Recovery-Ordner auf
+Vokabular; konfigurierbarer Endpunkt. Für das Arch-Paket ungeprüft: `namcap`, Bau mit pacman-Rust und `makepkg -si`,
+frische Ersteinrichtung des Schlüssels.
+Eine alte Testaufnahme vom 7. Oktober liegt noch im Recovery-Ordner auf
 omarchy; Löschen nur mit Bastis Go.
 
-**Letzter Nachweis:** 7. Oktober 2026, installierter Stand `f3f0ef9`
+**Letzter Nachweis:** 8. Oktober 2026, Arch-Paket aus `ca1f041`
 ([Live-Nachweise](linux-live-2026-10-05-bis-07.md)).
 
 ## macOS

@@ -298,5 +298,6 @@ sind echte Verzeichnisse mit Modus `0700`; Audiodateien und Nachweise `0600`.
   Zwischenablage-Härtung und die Waybar-Variante sind nicht live geprüft. Kein Settings-Fenster.
 - Ein Abbruch während des blockierenden HTTP-Aufrufs wird nach dessen Rückkehr
   beziehungsweise Timeout ausgewertet; er löscht die einzige Aufnahme nicht.
-- Das Arch-Paket ist auf omarchy gebaut, aber noch nicht installiert und nicht
-  im AUR; kein zweites Distro-Ziel.
+- Das Arch-Paket ist auf einem Rechner (omarchy) installiert und mit einem
+  Diktat geprüft ([Nachweis](../docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026));
+  nicht im AUR, kein zweites Distro-Ziel.

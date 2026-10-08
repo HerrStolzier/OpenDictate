@@ -51,18 +51,9 @@ Nachweise: [Live-Nachweise 5. bis 7. Oktober](docs/linux-live-2026-10-05-bis-07.
 
 **Nächste Schritte:**
 
-1. Ehrliche Anleitung in [linux/README.md](linux/README.md): Preis pro Minute,
-   „fehlgeschlagene Diktate bleiben für `retry` erhalten“, und die bekannten
-   Grenzen unten. Seit dem 8. Oktober als Entwurf geschrieben.
-2. Paketierung (Phase 3 des Detailplans): ein installierbarer Weg auf
-   Arch/omarchy, dokumentiert und einmal von Basti nachvollzogen. Ohne das kann
-   niemand testen. Seit dem 8. Oktober liegt ein Arch-Paket
-   ([PKGBUILD](linux/packaging/arch/PKGBUILD), Bau aus dem Quellcode mit
-   `makepkg -si`) bereit; offen ist die Installation auf omarchy mit einem
-   echten Diktat.
-3. Linux-Beta: Pre-Release, Issue-Vorlage, Ankündigung (Kandidaten: r/omarchy,
+1. Linux-Beta: Pre-Release, Issue-Vorlage, Ankündigung (Kandidaten: r/omarchy,
    r/hyprland). Go je Veröffentlichung und Ankündigung.
-4. Beta laufen lassen: Issues zeitnah beantworten, Rückmeldungen sammeln,
+2. Beta laufen lassen: Issues zeitnah beantworten, Rückmeldungen sammeln,
    danach entscheiden, was gebaut wird (Kandidaten: konfigurierbarer Endpunkt,
    Vokabular, Echtzeit-Übersetzung, Feinjustierung der Zeitlimits).
 
@@ -213,6 +204,7 @@ Mehrsprachigkeit ohne Umschalten, Datenschutz und schnellem Zugriff.
 
 | Datum | Ergebnis | Nachweis |
 | --- | --- | --- |
+| 8. Oktober 2026 | Linux: Beta-Anleitung in `linux/README.md` und Arch-Paket ([PKGBUILD](linux/packaging/arch/PKGBUILD)); von Basti auf omarchy installiert, Diktat mit Übersetzung über das Paket (PR #57). | [Live-Nachweise](docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026) |
 | 7. Oktober 2026 | Linux: Abbruch und Netzausfall während der Transkription behalten die Aufnahme; Zeitlimits auf Sekunden statt zwei Minuten (PR #51). | [Live-Nachweise](docs/linux-live-2026-10-05-bis-07.md) |
 | 7. Oktober 2026 | macOS: temporäre Aufnahmen tragen `0600`, live geprüft (PR #49); Löschfehler nur einmal pro Start geloggt (PR #50); die alte Aufnahme vom 15. September ist gelöscht. | [Stand macOS](docs/remaining-acceptance.md#macos) |
 | 5. bis 6. Oktober 2026 | Linux: Übersetzung nach dem Sprechen, Leistenanzeige, Auto-Einfügen, Hotkey Super+D (PR #45, #47). Phase 1 damit belegt. | [Live-Nachweise](docs/linux-live-2026-10-05-bis-07.md) |
