@@ -67,13 +67,25 @@ omarchy; Löschen nur mit Bastis Go.
   wird nur einmal pro Start geloggt (PR #50); die alte Aufnahme vom
   15. September ist nach Entfernen ihrer ACL gelöscht.
 - Offline: Swift-Suite und Bundle-Build in CI auf macOS 14.
+- Übersetzung nach dem Sprechen ist im Code (Menü und Einstellungen
+  „Übersetzen“, Modell `gpt-5.4-mini`, gleiche Regeln wie auf Linux) und
+  offline geprüft: Ablauftests für Übersetzen, Fehler und leere Antwort
+  (Aufnahme bleibt, kein Rückfall auf den Originaltext), Wiederholen mit
+  Übersetzung, Anfrageaufbau ohne Netz. Die kleinen Punkte vom 7. Oktober sind
+  ebenfalls umgesetzt: Originalaufnahme wird mit `0600` angelegt (lokal mit
+  `AVAudioRecorder.prepareToRecord` geprüft), Grund einer nicht startenden
+  Aufnahme im App-Log, Tests schreiben in eine temporäre Logdatei (Zeilenzahl
+  des echten Logs vor und nach `swift test` gleich), „ca.“ beim Preis des
+  Mini-Modells.
 
 **Offen / bekannte Grenzen:**
 
 - Stufe 2 Teil B: erster Start des entpackten Pakets mit Quarantäne,
   Migration nach der [Anleitung](release-plans/plan2-migration.md),
   Diktat- und Kopierweg, aktiver Beenden-/Recovery-Fall. Mit Bastis Go am Mac.
-- Übersetzung fehlt auf dem Mac.
+- Übersetzung und die Punkte vom 7. Oktober: noch kein echtes Diktat auf dem
+  Mac; das prüft der nächste Kandidat (Installation und ein Diktat mit
+  Übersetzung).
 - Der ⌘V-Pfad bindet kein Feld: Cursor- oder Fokuswechsel nach dem Stopp
   können den Einfügeort innerhalb der ursprünglichen App verändern; er hat
   keinen Zeilenumbruchfilter. Terminal-Tabs, Markierung, Secure Input, iTerm2
@@ -82,9 +94,6 @@ omarchy; Löschen nur mit Bastis Go.
   unterbrochenes Beenden während der Verarbeitung sind nicht praktisch geprüft.
 - Gehörte VoiceOver-Ausgabe, frische Ersteinrichtung in einem neuen Konto,
   Intel-Macs.
-- Kleine Punkte vom 7. Oktober: Originalaufnahme gleich geschützt anlegen,
-  Grund einer nicht startenden Aufnahme ins App-Log, Tests schreiben ins echte
-  App-Log, „ca.“ beim Preis des Mini-Modells im Menü.
 - Der vorhandene API-Schlüssel liegt noch im alten Keychain-Account
   `OPENAI_API_KEY` mit Build-Hashes in der Zugriffsliste; er wird nur durch die
   App-Migration entfernt, nicht manuell.

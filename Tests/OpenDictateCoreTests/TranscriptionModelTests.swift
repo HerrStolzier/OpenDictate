@@ -21,4 +21,10 @@ struct TranscriptionModelTests {
         #expect(future.pricePerMinuteUSD == nil)
     }
 
+    @Test("Only the token-billed mini model shows an approximate price")
+    func miniModelPriceIsApproximate() {
+        #expect(TranscriptionModel.gpt4oMiniTranscribe.isPriceApproximate)
+        #expect(!TranscriptionModel.gptTranscribe.isPriceApproximate)
+    }
+
 }

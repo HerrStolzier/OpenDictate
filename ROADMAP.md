@@ -79,7 +79,9 @@ wahlweise mit Übersetzung, und melden Probleme über GitHub Issues.
 Stufe 2: Build 8 aus `b786d4c` ist von Apple notarisiert, das finale ZIP samt
 Manifest geprüft (SHA-256 `2e994cd8…e335768`) und in der privaten
 Release-Draft `v0.1.0-beta.8` hinterlegt; Installation und Live-Abnahme (Teil B)
-stehen aus. Übersetzung gibt es auf dem Mac noch nicht. Die Stufenpläne unter
+stehen aus. Übersetzung und die kleinen Punkte vom 7. Oktober sind im Code und
+offline geprüft ([Stand](docs/remaining-acceptance.md#macos)); ein echtes
+Diktat damit fehlt. Die Stufenpläne unter
 [docs/release-plans/](docs/release-plans/01-interne-produktabnahme.md) bleiben
 die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleinert.
 
@@ -89,13 +91,10 @@ die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleiner
    [Anleitung](docs/release-plans/plan2-migration.md), erster Start mit
    Quarantäne, ein Diktat mit Einfügen, aktiver Beenden-/Recovery-Fall. Das ist
    der Installationsweg, den jeder Beta-Nutzer durchläuft.
-2. Übersetzung in die Mac-App übernehmen, mit denselben Regeln wie auf Linux:
-   Zielsprache in den Einstellungen, Textmodell (Standard `gpt-5.4-mini`),
-   Aufnahme bleibt bei Fehlern erhalten, nie stiller Rückfall auf den
-   Originaltext. Dazu die kleinen offenen Punkte vom 7. Oktober: Originalaufnahme
-   gleich mit `0600` anlegen, Grund für eine nicht startende Aufnahme ins
-   App-Log, Tests nicht ins echte App-Log schreiben, Preis des Mini-Modells im
-   Menü als „ca.“ kennzeichnen.
+2. Übersetzung und die kleinen Punkte vom 7. Oktober: umgesetzt und offline
+   geprüft. Offen ist nur der Live-Nachweis im nächsten Kandidaten: ein Diktat
+   mit Übersetzung nach Englisch und die Dateirechte `0600` der
+   Originalaufnahme während der Aufnahme.
 3. Neuen Kandidaten bauen, signieren, notarisieren und einfrieren (Stufe 4 im
    verkleinerten Umfang: Hash, Installation und Update geprüft, Produkttexte in
    README, Website und App stimmen überein). Stufe 3 (Eigennutzung) schrumpft

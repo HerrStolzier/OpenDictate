@@ -22,6 +22,13 @@ final class AudioRecorder: NSObject, AVAudioRecorderDelegate {
 
         var started = false
         defer { if !started { try? FileManager.default.removeItem(at: fileURL) } }
+        // Create the file owner-only before the recorder opens it; the
+        // recorder keeps the existing mode, so the audio is never readable
+        // with default permissions.
+        guard
+            FileManager.default.createFile(
+                atPath: fileURL.path, contents: nil, attributes: [.posixPermissions: 0o600])
+        else { throw OpenDictateError.recordingCouldNotStart }
         let settings: [String: Any] = [
             AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
             AVSampleRateKey: 24_000.0,

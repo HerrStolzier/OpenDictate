@@ -23,6 +23,8 @@ public final class Settings: Sendable {
         public static let shortcutName = "hotKeyName"
         public static let autoPaste = "autoPaste"
         public static let vocabularyPrompt = "vocabularyPrompt"
+        public static let translationTarget = "translationTarget"
+        public static let translationModel = "translationModel"
     }
 
     /// Stored value for "transcribe in whatever language you hear".
@@ -121,6 +123,33 @@ public final class Settings: Sendable {
         set { store.set(newValue ?? "", forKey: Key.vocabularyPrompt) }
     }
 
+    // MARK: - Translation
+
+    /// Target language for translating the transcript; nil delivers it unchanged.
+    public var translationTarget: String? {
+        get {
+            guard let stored = store.object(forKey: Key.translationTarget) as? String,
+                Translation.isValidLanguageCode(stored)
+            else { return nil }
+            return stored
+        }
+        set {
+            if let newValue, Translation.isValidLanguageCode(newValue) {
+                store.set(newValue, forKey: Key.translationTarget)
+            } else {
+                store.removeObject(forKey: Key.translationTarget)
+            }
+        }
+    }
+
+    /// Text model for the translation. Has no menu; a stored valid value wins.
+    public var translationModel: String {
+        if let stored = store.object(forKey: Key.translationModel) as? String, Translation.isValidModel(stored) {
+            return stored
+        }
+        return Translation.defaultModel
+    }
+
     /// Drops every stored choice, so the environment variables take over again.
     public func resetToEnvironment() {
         store.removeObject(forKey: Key.model)
@@ -130,5 +159,7 @@ public final class Settings: Sendable {
         store.removeObject(forKey: Key.shortcutName)
         store.removeObject(forKey: Key.autoPaste)
         store.removeObject(forKey: Key.vocabularyPrompt)
+        store.removeObject(forKey: Key.translationTarget)
+        store.removeObject(forKey: Key.translationModel)
     }
 }
