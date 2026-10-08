@@ -139,6 +139,9 @@ der ersten Beta und blockiert keine ([ROADMAP](ROADMAP.md#plattformübergreifend
   oben ist die Richtung, nicht die Umsetzung.
 - Die Website ist ein lokaler Entwurf mit illustrativer Demo, kein
   Diktiernachweis.
+- Support läuft bis zum Livegang des Support-Backends nur über die
+  Projektkanäle; es gibt noch keine Supportadresse und keine zugesagten
+  Antwortzeiten.
 
 ## Entscheidungen
 
@@ -150,6 +153,7 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
+| 8. Oktober 2026 | Support: eigenes kleines Backend statt fertiger Ticketsoftware. Kontaktformular und Supportadresse werden Tickets, Dashboard nur für Basti, ein Agent sortiert und schreibt nur Entwürfe, Basti entscheidet und versendet; KI-Chatbot später als weiterer Eingang. Produktneutral für spätere Apps, eigenes privates Repository; die Website bleibt statisch, das Formular schickt nur an das Backend. Grundlage: Support-Richtung seit dem 12. September (E-Mail zuerst, später gemeinsamer KI-Support). | [ROADMAP](ROADMAP.md#plattformübergreifend); Notizen nur lokal bei Basti |
 | 8. Oktober 2026 | Alle fünf Plattformen laufen parallel als eigene Tracks; jeder Track endet in einer Beta; Einzelfall-Live-Tests übernehmen Beta-Nutzer. Preismodell: offener Code, CLI gratis, fertige App einmalig bezahlt. Gaming ist ein Anwendungsfall. Die Regel „eine Plattform zur Zeit“ und die Mac-Stufen 3 und 4 im alten Umfang entfallen. Verbrauchsanzeige in der App als plattformübergreifender Wunsch aufgenommen, nicht beauftragt ([ROADMAP](ROADMAP.md#plattformübergreifend)). | [Neuordnung 8. Oktober](docs/roadmap-neuordnung-2026-10-08.md) |
 | 5. Oktober 2026 | Linux wird aktive Plattform mit Schwerpunkt Übersetzung nach dem Sprechen; Echtzeit erst als möglicher zweiter Schritt. Aus `rescue/grok-clone-2026-09` nur drei Härtungen übernommen (PR #46). | [Übersetzungsplan](docs/linux-live-translation-plan.md) |
 | 2. Oktober 2026 | Eine Plattform zur Zeit, Stufe 6 „Launch & Zuhören“, iOS zurückgestellt (alle drei am 8. Oktober abgelöst). Go-Regel für Live-Tests; APPROVALS.md ins Archiv. Zielgruppe und Kostenargument; konfigurierbarer Endpunkt; Provider-Vertrag. Plan 3 als Eigennutzung, Plan 5 als Beta-Release. | [Neuordnung 2. Oktober](docs/roadmap-neuordnung-2026-10-02.md), [Plan-4-Notiz](docs/plan4-aenderungen-2026-10-02.md) |
