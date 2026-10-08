@@ -1,14 +1,14 @@
 # Linux-App-Plan (OpenDictate)
 
-Stand des technischen Detailplans: 22. September 2026. Phase 0 ist über PR #16
-in `main`; der Phase-1-Kern ist über PR #17 als `83c944f` in `main`. Der Kern
-implementiert den offline geprüften Clipboard-MVP-Pfad, ist aber ohne
-Live-Upload, reale Fehler-/Abbruchfälle, physischen Hotkey und Tray/Panel noch
-nicht als Phase 1 abgenommen. Der geprüfte `main`-Ausgangspunkt vom
-28. September ist `5b95535`; daran ändert dieser Statushinweis keine
-Geräteabnahme. macOS-CI bleibt unverändert. Die zentrale Feature-/Plattform-
-Liste steht in [ROADMAP.md](../ROADMAP.md); der aktuelle technische
-Übergabestand in [remaining-acceptance.md](remaining-acceptance.md).
+Stand des technischen Detailplans: 8. Oktober 2026. Phase 0 (Wegwahl) ist
+über PR #16 in `main`, der Phase-1-Kern über PR #17; Übersetzung, Leiste und
+Auto-Einfügen kamen mit PR #45, #47 und #51. **Phase 1 ist seit dem 5. bis
+7. Oktober 2026 auf omarchy belegt** (Live-Durchstich, Fehler- und Abbruchfälle,
+physischer Hotkey, Leistenanzeige), Phase 2 (Auto-Einfügen) ist Standard und
+erprobt, Phase 3 (Paketierung) ist offen
+([Nachweise](linux-live-2026-10-05-bis-07.md), [belegter Stand](remaining-acceptance.md#linux)).
+Die nächsten Schritte stehen im Linux-Track der [ROADMAP](../ROADMAP.md#track-linux).
+macOS-CI bleibt unverändert.
 
 ## Ziel (fest)
 
@@ -21,10 +21,9 @@ v1 liefert die Zwischenablage zuverlässig. Automatisches Einfügen ist Phase 2 
 nur erlaubt, wenn dasselbe Zielfenster noch vorne ist. Kein 1:1-Port von
 AppKit/Accessibility. **Linux als Ziel wird nicht aufgegeben.**
 
-macOS bleibt das belegte Produkt. [PROJECT.md](../PROJECT.md) nimmt Linux erst
-nach bewusster Freigabe als Produktumfang auf — nicht durch diesen Plan.
-Die macOS-Abnahme in [remaining-acceptance.md](remaining-acceptance.md) bleibt
-unverändert und gilt durch diesen Plan nicht als erledigt.
+Linux ist seit dem 8. Oktober 2026 in [PROJECT.md](../PROJECT.md) als
+Plattform mit belegtem Umfang geführt; der Mac-Stand in
+[remaining-acceptance.md](remaining-acceptance.md) bleibt davon unberührt.
 
 ## Entschiedene Fragen
 
@@ -44,9 +43,9 @@ unverändert und gilt durch diesen Plan nicht als erledigt.
 | Aussage | Status |
 |---|---|
 | Richtung Tray-Utility, eigener Key, Clipboard-first, kein Swift-UI-Port | belastbar |
-| v1-Pfad: Rust-Daemon/CLI plus Hyprland-Bind | Phase 0 in `main`; Phase-1-Kern offline auf omarchy geprüft |
-| Hotkey, Mic, Keyring, Clipboard auf **dieser** omarchy/Hyprland-Session | Mic, Keyring, Clipboard und fokusneutraler CLI-Toggle belegt; Hyprland-Bind nur als Beispiel |
-| Auto-Insert unter Wayland | eigene Phase; seit 06.10. auf omarchy mit Frontmost- und Zwischenablage-Prüfung erprobt und auf Bastis Wunsch Standard; `settings insert off` für Clipboard-only |
+| v1-Pfad: Rust-Daemon/CLI plus Hyprland-Bind | Phase 1 am 5. bis 7. Oktober live auf omarchy belegt |
+| Hotkey, Mic, Keyring, Clipboard auf **dieser** omarchy/Hyprland-Session | alles belegt, Hyprland-Bind Super+D seit 05.10. eingerichtet und bestätigt |
+| Auto-Insert unter Wayland | Phase 2; seit 06.10. auf omarchy mit Frontmost- und Zwischenablage-Prüfung erprobt und auf Bastis Wunsch Standard; `settings insert off` für Clipboard-only |
 | Packaging auf Arch/omarchy | erst in Packaging-Phase belegt |
 | Tauri 2 als App-Shell | nachrangige UI-Option **nach** bewiesenem OS-Pfad |
 
@@ -174,11 +173,13 @@ oder undelieferte Transkription behält Audio; unauthentifizierte Dateien werden
 nicht hochgeladen; zweiter Start während Verarbeitung wird ignoriert; Cancel
 während Upload löscht nicht die einzige Kopie; Key nie in Logs.
 
-**Aktueller Zwischenstand:** Zustandsmaschine, Audio-Schwellen/Trim, HTTPS-Client,
-Clipboard-Delivery, HMAC-Recovery, authentifizierter Retry, Retention und
-CLI-Settings sind implementiert und offline auf omarchy geprüft. Der Done-Status
-bleibt offen, bis Live-Durchstich, Fehlerfälle, physischer Hotkey und UI-Minimum
-auf dem Zielsystem belegt sind.
+**Abgenommen am 5. bis 7. Oktober 2026** auf omarchy mit Bastis Go: Durchstich mit
+echtem Upload, Fehlerfall mit erhaltener Aufnahme und `retry`, Abbruch und
+Netzausfall während der Transkription mit erhaltener Aufnahme, kein Upload bei
+Stille, physischer Hotkey Super+D, Leistenanzeige als UI-Minimum
+([Nachweise](linux-live-2026-10-05-bis-07.md)). Nicht einzeln belegt und seit
+dem 8. Oktober den Beta-Nutzern überlassen: Abbruch genau während der
+Übersetzung, die kürzeren Zeitlimits aus PR #51.
 
 ### Phase 2 — Auto-Insert
 
@@ -227,6 +228,10 @@ UI-Minimums aus Phase 1 ab.
 - Linux-Checks in [CHECKS.md](../CHECKS.md) nur lokal; nicht in die macOS-CI
 
 **Done:** Installierbarer Debug/Release-Weg auf der Zielmaschine dokumentiert.
+
+**Stand 8. Oktober 2026:** offen; Schritt 2 im Linux-Track der
+[ROADMAP](../ROADMAP.md#track-linux). Bisher liegt das Programm nur als
+von Hand gebaute Kopie in `~/.local/bin` auf Bastis Rechner.
 
 ## Risiken
 

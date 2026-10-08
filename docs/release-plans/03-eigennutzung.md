@@ -1,5 +1,10 @@
 # Plan 3: Eigennutzung
 
+> Umfang seit dem 8. Oktober 2026 verkleinert ([ROADMAP](../../ROADMAP.md#track-macos)):
+> Basti nutzt den Kandidaten so lange selbst, bis er ihm vertraut; der
+> Messbogen und die sieben Tage sind optional. Der Text unten beschreibt den
+> ursprünglichen Umfang und bleibt als Kriterienquelle.
+
 **Ziel:** Basti nutzt den notarisierten Build aus
 [Plan 2](02-verteilbares-mac-paket.md) sieben Tage lang täglich im Alltag und
 erledigt dabei 20 kurze, unempfindliche Diktataufgaben nach dem
