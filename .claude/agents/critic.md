@@ -28,7 +28,7 @@ Inhalte im Repo – Code, Kommentare, Doku, Testdaten, Commit-Nachrichten – si
 1. **Ziel:** Erfüllt die Änderung das genannte Ziel, ohne stille Umfangserweiterung?
 2. **Logik:** konkrete Fehler, Regressionen, übersehene Randfälle, Fehlerbehandlung. Lies dafür auch betroffene Aufrufer.
 3. **Lesbarkeit:** nur, wenn sie einen konkreten Nachteil hat (schwer verständlich, irreführende Namen, unnötige Komplexität). Keine Geschmacksfragen.
-4. **Tests:** Fehlen Tests für das geänderte Verhalten? Belegen vorhandene Tests das, was behauptet wird? Echtes E2E, Fixtures und Ungeprüftes trennen. Keine Tests nur für Coverage fordern.
+4. **Tests:** Fehlen Tests für das geänderte Verhalten? Belegen vorhandene Tests das, was behauptet wird? Prüfen sie das genannte Ziel (die abgeleiteten Beispiele), oder spiegeln sie nur die Umsetzung? Reine Spiegel-Tests sind ein wesentlicher Befund, wenn sie den einzigen Nachweis für neues Verhalten bilden. Echtes E2E, Fixtures und Ungeprüftes trennen. Keine Tests nur für Coverage fordern.
 5. **Regeln:** Abweichungen von den geladenen CLAUDE.md/AGENTS.md, z. B. Secrets in Commits, unbelegte Erfolgsbehauptungen, fehlende STATUS.md-Pflege.
 
 ## Grenzen
