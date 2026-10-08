@@ -14,8 +14,11 @@ not include telemetry or analytics.
 For each non-empty dictation, OpenDictate sends the prepared audio over HTTPS to
 OpenAI's `/v1/audio/transcriptions` endpoint. The request also contains the
 selected model, the optional language, and the optional vocabulary prompt. The
-returned transcript is handled locally. OpenAI's own data handling terms apply
-to this transfer.
+returned transcript is handled locally. If a translation target language is
+set, the transcript text is then sent over HTTPS to OpenAI's
+`/v1/chat/completions` endpoint together with the target language and the
+translation model, and only the translation is copied and pasted. OpenAI's own
+data handling terms apply to these transfers.
 
 The OpenAI API key is stored as a generic password in the macOS Keychain under
 service `OpenDictate` and account `OPENAI_API_KEY_APP`. OpenDictate does not support
@@ -103,13 +106,13 @@ eligible for upload. They remain available to the explicit delete action.
 
 `~/Library/Logs/OpenDictate.log` contains operational metadata such as times,
 bundle version, build and source identity, bundle and audio paths, selected model,
-input-device and application names,
+translation setting, input-device and application names,
 durations, levels, status, and error descriptions. It does not intentionally log
 API keys, transcript text, or audio contents. Logging is serialized and rotated at approximately 1 MiB, keeping one previous file. No timed log expiry is implemented.
 
 ## Last transcript and temporary originals
 
-The most recent non-empty transcript is also held in memory until replaced, cleared from the menu or the app exits. No persistent text history is created. Temporary recording files are restricted to the current user (permissions 0600) right after creation; the original recording can carry default permissions for a fraction of a second before that. If restricting fails, the app logs it. If a recovery-store write fails, the original temporary audio is deliberately not deleted and its path is shown in the error status. Historical crash leftovers are not swept automatically because they may contain the only surviving recording.
+The most recent non-empty transcript is also held in memory until replaced, cleared from the menu or the app exits. No persistent text history is created. Temporary recording files are restricted to the current user (permissions 0600); the original recording is created with these permissions before audio is written. If restricting fails, the app logs it. If a recovery-store write fails, the original temporary audio is deliberately not deleted and its path is shown in the error status. Historical crash leftovers are not swept automatically because they may contain the only surviving recording.
 
 ## Linux CLI
 

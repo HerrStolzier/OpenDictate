@@ -30,8 +30,11 @@ Transkription läuft über dein OpenAI-Konto und kostet mit `gpt-transcribe`
 2. Beim ersten Diktat fragt macOS nach dem **Mikrofon**: erlauben.
 3. Für automatisches Einfügen braucht die App **Bedienungshilfen**
    (Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen →
-   OpenDictate einschalten). Ohne diese Freigabe landet der Text nur in der
-   Zwischenablage, und du fügst ihn mit ⌘V selbst ein.
+   OpenDictate einschalten; unter macOS 27 heißt der Bereich „Gerätesteuerung
+   und Datenzugriff“). Ohne diese Freigabe landet der Text nur in der
+   Zwischenablage, und du fügst ihn mit ⌘V selbst ein. Hattest du vorher eine
+   selbst gebaute OpenDictate-Version: den alten Eintrag mit „–“ entfernen,
+   die App mit „+“ neu hinzufügen und OpenDictate neu starten.
 
 ## 4. Diktieren
 

@@ -43,6 +43,12 @@ public struct TranscriptionModel: RawRepresentable, Sendable, Equatable, Hashabl
         }
     }
 
+    /// True when the provider bills this model by tokens, so the per-minute
+    /// price is only an estimate.
+    public var isPriceApproximate: Bool {
+        self == .gpt4oMiniTranscribe
+    }
+
     /// Reason this model cannot be used for the record-then-upload flow, or nil.
     public var uploadRejectionReason: String? {
         guard !isUsableForUpload else { return nil }

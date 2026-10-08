@@ -89,6 +89,11 @@ Changes apply to the next dictation, no restart needed.
   price next to each. The `gpt-4o-mini-transcribe` price is approximate because
   OpenAI bills that model by tokens, not by minute.
 - **Language** — Auto, German, or English. Auto lets the API detect it.
+- **Übersetzen** — off by default. With a target language (for example English),
+  the transcript is translated by a text model (`gpt-5.4-mini` by default) and
+  only the translation is copied and pasted. If the translation fails or comes
+  back empty, nothing is pasted, the original text is not used as a fallback and
+  the recording is kept for retry; a retry translates again.
 - **Vokabular und Kontext** — local prompt setting (up to 2,000 characters in the editor), sent with each dictation. A stored value overrides the legacy environment variable.
 - **Automatisch einfügen** — disable for clipboard-only delivery. At delivery,
   the app captured when dictation began is brought forward if it is still
@@ -107,7 +112,7 @@ active recording. The recorder also enforces the 90-second cap natively.
 
 A failed upload no longer throws the recording away. It keeps a recovery copy in
 `~/Library/Application Support/OpenDictate/failed/`, and `Letzte Aufnahme wiederholen` in
-the menu uploads it again. Recordings are authenticated with a device-local
+the menu uploads it again. A failed translation is handled the same way. Recordings are authenticated with a device-local
 Keychain secret before retry. Managed recovery files are limited to five and
 expire after 24 hours. Pruning runs at launch, after every keep and periodically
 while the app is open; expired recordings cannot be retried. Files can remain on
@@ -131,7 +136,8 @@ You pay OpenAI per minute of speech instead of a flat fee. With the default
 speech. These figures come
 from the maintainer's own OpenAI usage from July to October 2026
 ([decision note](docs/plan4-aenderungen-2026-10-02.md)); your cost depends on
-how long you speak.
+how long you speak. Translation adds one text-model request per dictation,
+which OpenAI bills separately by tokens.
 
 Transcription uses `gpt-transcribe`, OpenAI's current accuracy-focused model.
 **Vokabular und Kontext** adds your own vocabulary for names and technical terms.

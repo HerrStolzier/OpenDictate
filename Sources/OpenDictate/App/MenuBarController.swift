@@ -24,10 +24,12 @@ protocol MenuBarControllerDelegate: AnyObject {
     func menuBarDidSelect(shortcut: HotKeyShortcut)
     func menuBarDidSelect(model: TranscriptionModel)
     func menuBarDidSelect(language: String?)
+    func menuBarDidSelect(translationTarget: String?)
 
     var menuBarShortcut: HotKeyShortcut { get }
     var menuBarModel: TranscriptionModel { get }
     var menuBarLanguage: String? { get }
+    var menuBarTranslationTarget: String? { get }
 }
 
 /// Owns the status bar item and its menu. Knows nothing about recording or
@@ -69,6 +71,9 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private var shortcutMenuItem: NSMenuItem?
     private var modelMenuItem: NSMenuItem?
     private var languageMenuItem: NSMenuItem?
+    private var translationMenuItem: NSMenuItem?
+    /// Stored value of the "Aus" entry in the translation submenu.
+    private static let translationOff = "off"
 
     init(delegate: MenuBarControllerDelegate) {
         self.delegate = delegate
@@ -111,6 +116,12 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         languageItem.identifier = NSUserInterfaceItemIdentifier("language")
         menu.addItem(languageItem)
         self.languageMenuItem = languageItem
+
+        let translationItem = NSMenuItem(title: "Übersetzen", action: nil, keyEquivalent: "")
+        translationItem.submenu = makeTranslationSubmenu()
+        translationItem.identifier = NSUserInterfaceItemIdentifier("translation")
+        menu.addItem(translationItem)
+        self.translationMenuItem = translationItem
         let vocabulary = makeActionItem("Vokabular und Kontext …", action: #selector(configureVocabulary))
         vocabulary.identifier = NSUserInterfaceItemIdentifier("vocabulary")
         menu.addItem(vocabulary)
@@ -284,7 +295,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     private func refreshActions() {
         let state = delegate?.menuBarState ?? .idle
-        for id in ["shortcut", "language", "model", "apiKey", "vocabulary", "autoPaste"] {
+        for id in ["shortcut", "language", "translation", "model", "apiKey", "vocabulary", "autoPaste"] {
             settingsMenu?.items.first { $0.identifier?.rawValue == id }?.isEnabled = state == .idle
         }
         recordingMenuItem?.title = state == .recording ? "Aufnahme stoppen" : "Aufnahme starten"
@@ -366,7 +377,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         submenu.delegate = self
         submenu.autoenablesItems = false
         for model in Self.offeredModels {
-            let price = model.pricePerMinuteUSD.map { String(format: " ($%.4f/min)", $0) } ?? ""
+            let approximate = model.isPriceApproximate ? "ca. " : ""
+            let price = model.pricePerMinuteUSD.map { String(format: " (\(approximate)$%.4f/min)", $0) } ?? ""
             let item = makeActionItem("\(model.rawValue)\(price)", action: #selector(selectModel(_:)))
             item.representedObject = model.rawValue
             submenu.addItem(item)
@@ -381,6 +393,22 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         for option in Self.offeredLanguages {
             let item = makeActionItem(option.title, action: #selector(selectLanguage(_:)))
             item.representedObject = option.code ?? Settings.automaticLanguage
+            submenu.addItem(item)
+        }
+        return submenu
+    }
+
+    private func makeTranslationSubmenu() -> NSMenu {
+        let submenu = NSMenu()
+        submenu.delegate = self
+        submenu.autoenablesItems = false
+        let off = makeActionItem("Aus", action: #selector(selectTranslation(_:)))
+        off.representedObject = Self.translationOff
+        submenu.addItem(off)
+        submenu.addItem(.separator())
+        for language in Translation.languages {
+            let item = makeActionItem(language.title, action: #selector(selectTranslation(_:)))
+            item.representedObject = language.code
             submenu.addItem(item)
         }
         return submenu
@@ -424,6 +452,13 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         languageMenuItem?.title = "Sprache: \(languageTitle)"
         for item in languageMenuItem?.submenu?.items ?? [] {
             item.state = (item.representedObject as? String) == language ? .on : .off
+        }
+
+        let target = delegate.menuBarTranslationTarget
+        let targetTitle = target.map { Translation.language(code: $0)?.title ?? $0 } ?? "Aus"
+        translationMenuItem?.title = "Übersetzen: \(targetTitle)"
+        for item in translationMenuItem?.submenu?.items ?? [] {
+            item.state = (item.representedObject as? String) == (target ?? Self.translationOff) ? .on : .off
         }
     }
 
@@ -528,6 +563,13 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     @objc private func selectLanguage(_ sender: NSMenuItem) {
         guard let raw = sender.representedObject as? String else { return }
         delegate?.menuBarDidSelect(language: raw == Settings.automaticLanguage ? nil : raw)
+        refreshSelections()
+        if settingsWindow.window?.isVisible == true { showSettings() }
+    }
+
+    @objc private func selectTranslation(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String else { return }
+        delegate?.menuBarDidSelect(translationTarget: raw == Self.translationOff ? nil : raw)
         refreshSelections()
         if settingsWindow.window?.isVisible == true { showSettings() }
     }
