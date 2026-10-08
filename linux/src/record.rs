@@ -51,23 +51,36 @@ impl Drop for PreparedAudio {
 }
 
 pub fn prepare_for_upload(path: &Path) -> Result<PreparedAudio, String> {
-    let mut reader = hound::WavReader::open(path)
-        .map_err(|_| "Aufnahme konnte nicht analysiert werden.".to_string())?;
+    let mut reader = hound::WavReader::open(path).map_err(|_| {
+        crate::tr!(
+            "Aufnahme konnte nicht analysiert werden.",
+            "Recording could not be analysed."
+        )
+    })?;
     let spec = reader.spec();
     if spec.sample_format != SampleFormat::Int || spec.bits_per_sample != 16 || spec.channels == 0 {
-        return Err("Aufnahmeformat wird nicht unterstützt.".to_string());
+        return Err(crate::tr!(
+            "Aufnahmeformat wird nicht unterstützt.",
+            "Recording format is not supported."
+        ));
     }
     let samples = reader
         .samples::<i16>()
         .collect::<Result<Vec<_>, _>>()
-        .map_err(|_| "Aufnahme konnte nicht analysiert werden.".to_string())?;
+        .map_err(|_| {
+            crate::tr!(
+                "Aufnahme konnte nicht analysiert werden.",
+                "Recording could not be analysed."
+            )
+        })?;
     let channels = usize::from(spec.channels);
     let total_frames = samples.len() / channels;
     let duration = Duration::from_secs_f64(total_frames as f64 / f64::from(spec.sample_rate));
     if duration < MINIMUM_RECORDING {
-        return Err(
-            "Aufnahme ist kürzer als 1,0 Sekunden und wurde nicht hochgeladen.".to_string(),
-        );
+        return Err(crate::tr!(
+            "Aufnahme ist kürzer als 1,0 Sekunden und wurde nicht hochgeladen.",
+            "Recording is shorter than 1.0 seconds and was not uploaded."
+        ));
     }
     let window_frames = ((f64::from(spec.sample_rate) * 0.05).round() as usize).max(1);
     let mut first_speech = None;
@@ -92,9 +105,12 @@ pub fn prepare_for_upload(path: &Path) -> Result<PreparedAudio, String> {
             last_speech = Some(end);
         }
     }
-    let (first_speech, last_speech) = first_speech
-        .zip(last_speech)
-        .ok_or_else(|| "Keine Sprache erkannt; Aufnahme wurde nicht hochgeladen.".to_string())?;
+    let (first_speech, last_speech) = first_speech.zip(last_speech).ok_or_else(|| {
+        crate::tr!(
+            "Keine Sprache erkannt; Aufnahme wurde nicht hochgeladen.",
+            "No speech detected; the recording was not uploaded."
+        )
+    })?;
     let padding_frames = (SILENCE_PADDING.as_secs_f64() * f64::from(spec.sample_rate)) as usize;
     let start_frame = first_speech.saturating_sub(padding_frames);
     let end_frame = (last_speech + padding_frames).min(total_frames);
@@ -102,9 +118,10 @@ pub fn prepare_for_upload(path: &Path) -> Result<PreparedAudio, String> {
     let upload_duration =
         Duration::from_secs_f64(upload_frames as f64 / f64::from(spec.sample_rate));
     if upload_duration < MINIMUM_RECORDING {
-        return Err(
-            "Sprachabschnitt ist kürzer als 1,0 Sekunden und wurde nicht hochgeladen.".to_string(),
-        );
+        return Err(crate::tr!(
+            "Sprachabschnitt ist kürzer als 1,0 Sekunden und wurde nicht hochgeladen.",
+            "Speech is shorter than 1.0 seconds and was not uploaded."
+        ));
     }
     let saving = duration.saturating_sub(upload_duration);
     if saving < MINIMUM_TRIM_SAVING {
@@ -115,16 +132,26 @@ pub fn prepare_for_upload(path: &Path) -> Result<PreparedAudio, String> {
     }
     let output = path.with_extension("upload.wav");
     let write_result = (|| {
-        let mut writer = WavWriter::create(&output, spec)
-            .map_err(|_| "Vorbereitete Aufnahme konnte nicht gespeichert werden.".to_string())?;
+        let mut writer = WavWriter::create(&output, spec).map_err(|_| {
+            crate::tr!(
+                "Vorbereitete Aufnahme konnte nicht gespeichert werden.",
+                "Prepared recording could not be saved."
+            )
+        })?;
         for sample in &samples[start_frame * channels..end_frame * channels] {
             writer.write_sample(*sample).map_err(|_| {
-                "Vorbereitete Aufnahme konnte nicht gespeichert werden.".to_string()
+                crate::tr!(
+                    "Vorbereitete Aufnahme konnte nicht gespeichert werden.",
+                    "Prepared recording could not be saved."
+                )
             })?;
         }
-        writer
-            .finalize()
-            .map_err(|_| "Vorbereitete Aufnahme konnte nicht gespeichert werden.".to_string())
+        writer.finalize().map_err(|_| {
+            crate::tr!(
+                "Vorbereitete Aufnahme konnte nicht gespeichert werden.",
+                "Prepared recording could not be saved."
+            )
+        })
     })();
     if let Err(error) = write_result {
         let _ = std::fs::remove_file(&output);
@@ -140,10 +167,10 @@ pub fn start(path: &Path) -> Result<RecordingHandle, String> {
     let host = cpal::default_host();
     let device = host
         .default_input_device()
-        .ok_or_else(|| "Kein Mikrofon gefunden.".to_string())?;
+        .ok_or_else(|| crate::tr!("Kein Mikrofon gefunden.", "No microphone found."))?;
     let config = device
         .default_input_config()
-        .map_err(|_| "Mikrofon nicht verfügbar.".to_string())?;
+        .map_err(|_| crate::tr!("Mikrofon nicht verfügbar.", "Microphone unavailable."))?;
     let sample_rate = config.sample_rate().0;
     let channels = config.channels();
     let spec = WavSpec {
@@ -180,12 +207,25 @@ pub fn start(path: &Path) -> Result<RecordingHandle, String> {
             move |error| set_error(&err_capture, error),
             None,
         ),
-        _ => return Err("Mikrofon-Sampleformat wird nicht unterstützt.".to_string()),
+        _ => {
+            return Err(crate::tr!(
+                "Mikrofon-Sampleformat wird nicht unterstützt.",
+                "Microphone sample format is not supported."
+            ))
+        }
     }
-    .map_err(|_| "Aufnahme konnte nicht starten.".to_string())?;
-    stream
-        .play()
-        .map_err(|_| "Aufnahme konnte nicht starten.".to_string())?;
+    .map_err(|_| {
+        crate::tr!(
+            "Aufnahme konnte nicht starten.",
+            "Recording could not start."
+        )
+    })?;
+    stream.play().map_err(|_| {
+        crate::tr!(
+            "Aufnahme konnte nicht starten.",
+            "Recording could not start."
+        )
+    })?;
     Ok(RecordingHandle {
         stream,
         capture,
@@ -197,21 +237,28 @@ pub fn start(path: &Path) -> Result<RecordingHandle, String> {
 impl RecordingHandle {
     pub fn stop(self) -> Result<Recording, String> {
         drop(self.stream);
-        let mut capture = self
-            .capture
-            .lock()
-            .map_err(|_| "Aufnahme konnte nicht beendet werden.".to_string())?;
+        let mut capture = self.capture.lock().map_err(|_| {
+            crate::tr!(
+                "Aufnahme konnte nicht beendet werden.",
+                "Recording could not be stopped."
+            )
+        })?;
         if let Some(error) = capture.error.take() {
             return Err(error);
         }
         let frames = capture.frames;
-        let writer = capture
-            .writer
-            .take()
-            .ok_or_else(|| "Aufnahme konnte nicht beendet werden.".to_string())?;
-        writer
-            .finalize()
-            .map_err(|_| "Aufnahme konnte nicht gespeichert werden.".to_string())?;
+        let writer = capture.writer.take().ok_or_else(|| {
+            crate::tr!(
+                "Aufnahme konnte nicht beendet werden.",
+                "Recording could not be stopped."
+            )
+        })?;
+        writer.finalize().map_err(|_| {
+            crate::tr!(
+                "Aufnahme konnte nicht gespeichert werden.",
+                "Recording could not be saved."
+            )
+        })?;
         let duration = if self.sample_rate == 0 {
             Duration::ZERO
         } else {
@@ -301,17 +348,26 @@ fn clamp_i16(sample: f32) -> i16 {
 
 fn set_error(capture: &Arc<Mutex<Capture>>, error: cpal::StreamError) {
     if let Ok(mut guard) = capture.lock() {
-        guard.error = Some("Aufnahme unterbrochen.".to_string());
+        guard.error = Some(crate::tr!(
+            "Aufnahme unterbrochen.",
+            "Recording interrupted."
+        ));
         let _ = error;
     }
 }
 
 fn io_error() -> String {
-    "Aufnahme konnte nicht gespeichert werden.".to_string()
+    crate::tr!(
+        "Aufnahme konnte nicht gespeichert werden.",
+        "Recording could not be saved."
+    )
 }
 
 fn write_error() -> String {
-    "Aufnahme konnte nicht gespeichert werden.".to_string()
+    crate::tr!(
+        "Aufnahme konnte nicht gespeichert werden.",
+        "Recording could not be saved."
+    )
 }
 
 #[cfg(test)]

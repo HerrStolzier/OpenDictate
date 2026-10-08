@@ -1,5 +1,6 @@
 use serde_json::json;
 
+use crate::i18n::t;
 use crate::settings::Settings;
 use crate::state::State;
 
@@ -20,17 +21,20 @@ pub fn render(state: State, settings: &Settings) -> String {
         None => icon.to_string(),
     };
     let activity = match state {
-        State::Idle => "bereit",
-        State::Recording => "Aufnahme läuft",
-        State::Processing => "verarbeitet",
-        State::Delivering => "liefert Text",
+        State::Idle => t("bereit", "ready"),
+        State::Recording => t("Aufnahme läuft", "recording"),
+        State::Processing => t("verarbeitet", "processing"),
+        State::Delivering => t("liefert Text", "delivering text"),
     };
     let translation = match settings.target_language.as_deref() {
-        Some(target) => format!("Übersetzung nach {target}"),
-        None => "keine Übersetzung".to_string(),
+        Some(target) => crate::tr!("Übersetzung nach {target}", "Translation to {target}"),
+        None => crate::tr!("keine Übersetzung", "no translation"),
     };
-    let tooltip =
-        format!("OpenDictate: {activity}\n{translation}\nKlick schaltet die Übersetzung um");
+    let hint = t(
+        "Klick schaltet die Übersetzung um",
+        "Click toggles the translation",
+    );
+    let tooltip = format!("OpenDictate: {activity}\n{translation}\n{hint}");
     let mut classes = vec![state.as_str()];
     // The Omarchy shell bar highlights a command module only for `active`.
     if state == State::Recording {

@@ -39,7 +39,9 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             model: DEFAULT_MODEL.to_string(),
-            language: Some("de".to_string()),
+            // German systems keep German as the spoken language; elsewhere
+            // the language is detected.
+            language: crate::i18n::is_german().then(|| "de".to_string()),
             target_language: None,
             translation_model: default_translation_model(),
             last_target_language: None,
@@ -53,9 +55,14 @@ impl Settings {
         if !path.exists() {
             return Ok(Self::default());
         }
-        let data = fs::read(path).map_err(|_| "Einstellungen nicht lesbar.".to_string())?;
-        let settings: Self = serde_json::from_slice(&data)
-            .map_err(|_| "Einstellungen sind beschädigt.".to_string())?;
+        let data = fs::read(path)
+            .map_err(|_| crate::tr!("Einstellungen nicht lesbar.", "Settings unreadable."))?;
+        let settings: Self = serde_json::from_slice(&data).map_err(|_| {
+            crate::tr!(
+                "Einstellungen sind beschädigt.",
+                "Settings file is corrupted."
+            )
+        })?;
         settings.validate()?;
         Ok(settings)
     }
@@ -102,10 +109,18 @@ impl Settings {
 
     pub fn save(&self, path: &Path) -> Result<(), String> {
         self.validate()?;
-        let parent = path
-            .parent()
-            .ok_or_else(|| "Einstellungen nicht speicherbar.".to_string())?;
-        fs::create_dir_all(parent).map_err(|_| "Einstellungen nicht speicherbar.".to_string())?;
+        let parent = path.parent().ok_or_else(|| {
+            crate::tr!(
+                "Einstellungen nicht speicherbar.",
+                "Settings could not be saved."
+            )
+        })?;
+        fs::create_dir_all(parent).map_err(|_| {
+            crate::tr!(
+                "Einstellungen nicht speicherbar.",
+                "Settings could not be saved."
+            )
+        })?;
         let temporary = parent.join(format!(".settings-{}.tmp", std::process::id()));
         let result = (|| {
             let mut file = OpenOptions::new()
@@ -113,15 +128,33 @@ impl Settings {
                 .create_new(true)
                 .mode(0o600)
                 .open(&temporary)
-                .map_err(|_| "Einstellungen nicht speicherbar.".to_string())?;
-            let data = serde_json::to_vec_pretty(self)
-                .map_err(|_| "Einstellungen nicht speicherbar.".to_string())?;
+                .map_err(|_| {
+                    crate::tr!(
+                        "Einstellungen nicht speicherbar.",
+                        "Settings could not be saved."
+                    )
+                })?;
+            let data = serde_json::to_vec_pretty(self).map_err(|_| {
+                crate::tr!(
+                    "Einstellungen nicht speicherbar.",
+                    "Settings could not be saved."
+                )
+            })?;
             file.write_all(&data)
                 .and_then(|_| file.write_all(b"\n"))
                 .and_then(|_| file.sync_all())
-                .map_err(|_| "Einstellungen nicht speicherbar.".to_string())?;
-            fs::rename(&temporary, path)
-                .map_err(|_| "Einstellungen nicht speicherbar.".to_string())?;
+                .map_err(|_| {
+                    crate::tr!(
+                        "Einstellungen nicht speicherbar.",
+                        "Settings could not be saved."
+                    )
+                })?;
+            fs::rename(&temporary, path).map_err(|_| {
+                crate::tr!(
+                    "Einstellungen nicht speicherbar.",
+                    "Settings could not be saved."
+                )
+            })?;
             Ok(())
         })();
         if result.is_err() {
@@ -134,10 +167,14 @@ impl Settings {
 pub fn validate_model(model: &str) -> Result<(), String> {
     match model {
         "gpt-transcribe" | "gpt-4o-mini-transcribe" | "gpt-4o-transcribe" | "whisper-1" => Ok(()),
-        "gpt-live-transcribe" => {
-            Err("Das Echtzeitmodell kann nicht hochgeladen werden.".to_string())
-        }
-        _ => Err("Unbekanntes Transkriptionsmodell.".to_string()),
+        "gpt-live-transcribe" => Err(crate::tr!(
+            "Das Echtzeitmodell kann nicht hochgeladen werden.",
+            "The realtime model cannot take uploads."
+        )),
+        _ => Err(crate::tr!(
+            "Unbekanntes Transkriptionsmodell.",
+            "Unknown transcription model."
+        )),
     }
 }
 
@@ -150,7 +187,10 @@ pub fn validate_translation_model(model: &str) -> Result<(), String> {
     if valid {
         Ok(())
     } else {
-        Err("Ungültiges Übersetzungsmodell.".to_string())
+        Err(crate::tr!(
+            "Ungültiges Übersetzungsmodell.",
+            "Invalid translation model."
+        ))
     }
 }
 
@@ -163,7 +203,10 @@ pub fn validate_language(language: &str) -> Result<(), String> {
     if valid {
         Ok(())
     } else {
-        Err("Ungültiger Sprachcode.".to_string())
+        Err(crate::tr!(
+            "Ungültiger Sprachcode.",
+            "Invalid language code."
+        ))
     }
 }
 
