@@ -55,7 +55,13 @@ cd OpenDictate/linux/packaging/arch
 makepkg -si
 ```
 
-Wer Rust über `rustup` verwaltet, braucht statt `rust` eine Stable-Toolchain.
+Wer Rust über `rustup` verwaltet, installiert statt `rust` das Paket `rustup`
+mit einer Stable-Toolchain. Ein nur im Home-Verzeichnis installiertes `rustup`
+kennt `pacman` nicht; `makepkg` meldet dann `cargo` als fehlend. In dem Fall
+zuerst `sudo pacman -S --needed alsa-lib hyprland libsecret wl-clipboard` und
+dann `makepkg -i --nodeps` statt `makepkg -si`. `makepkg` prüft dann keine
+Abhängigkeiten mehr; `pacman` verweigert die Installation aber, wenn eines
+dieser Pakete fehlt.
 Das Paket baut mit der Stable-Toolchain; geprüft mit Rust 1.97, die
 Entwicklungsprüfungen laufen mit 1.98.1. Danach liegt das Programm unter
 `/usr/bin/opendictate`; `opendictate version` zeigt die Version.
@@ -88,6 +94,13 @@ opendictate secrets status
 **2. Tastenkürzel festlegen.** OpenDictate bringt kein eigenes Kürzel mit; du
 bindest `opendictate toggle` in Hyprland an eine Taste, zum Beispiel Super+D.
 Prüfe vorher, dass die Taste frei ist.
+
+Omarchy 4 mit Lua-Konfiguration (Hyprland 0.56): in
+`~/.config/hypr/bindings.lua` eine Zeile ergänzen:
+
+```lua
+o.bind("SUPER + D", "OpenDictate", "opendictate toggle")
+```
 
 Klassische Konfiguration (`~/.config/hypr/hyprland.conf` oder eine dort
 eingebundene Datei), siehe [hyprland.conf.example](hyprland.conf.example):
