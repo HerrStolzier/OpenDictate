@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Kopie aus HerrStolzier/claude-config (hooks/critic-readonly.py); dort pflegen, dann scripts/install-repo-gate.py erneut ausführen.
-"""PreToolUse-Hook (Bash) für die lesenden Agenten `critic` und `explorer`: lässt ausschließlich lesende Befehle durch.
+"""PreToolUse-Hook (Bash) für die lesenden Agenten `critic`, `explorer` und `Explore`: lässt ausschließlich lesende Befehle durch.
 
 Der Befehl wird wie von der Shell zerlegt (Anführungszeichen beachtet). Jeder Teilbefehl einer
 Kette (&&, ||, ;, |) muss auf der Erlaubnisliste stehen. Umleitungen, Befehlsersetzung,
