@@ -88,6 +88,11 @@ omarchy; Löschen nur mit Bastis Go.
   Aufnahme im App-Log, Tests schreiben in eine temporäre Logdatei (Zeilenzahl
   des echten Logs vor und nach `swift test` gleich), „ca.“ beim Preis des
   Mini-Modells.
+- Build 9 aus `46103b0` (8. Oktober 2026, mit Bastis Go): notarisiert, per
+  Finder als Update über Build 8 installiert (Bedienungshilfen blieben
+  erhalten), Diktat mit Übersetzung nach Englisch in TextEdit eingefügt,
+  Originalaufnahme beim Anlegen bereits `0600`
+  ([Nachweis](release-plans/evidence/2026-10-08-build9.md)).
 
 **Offen / bekannte Grenzen:**
 
@@ -95,9 +100,8 @@ omarchy; Löschen nur mit Bastis Go.
   antwortete OpenAI in zwei Versuchen am 8. Oktober nach gut 3 s, bevor die
   Abfrage bestätigt war. Bekannte Grenze der Beta (Entscheidung Basti).
 - „Text ansehen“ und „Text kopieren“ wurden in Teil B nicht eigens geprüft.
-- Übersetzung und die Punkte vom 7. Oktober: noch kein echtes Diktat auf dem
-  Mac; das prüft der nächste Kandidat (Installation und ein Diktat mit
-  Übersetzung).
+- Übersetzung live nur im Erfolgsfall geprüft; Wiederholen, Fehlerfälle und
+  Abbruch während der Übersetzung sind nur offline belegt.
 - Der ⌘V-Pfad bindet kein Feld: Cursor- oder Fokuswechsel nach dem Stopp
   können den Einfügeort innerhalb der ursprünglichen App verändern; er hat
   keinen Zeilenumbruchfilter. Terminal-Tabs, Markierung, Secure Input, iTerm2
@@ -110,7 +114,8 @@ omarchy; Löschen nur mit Bastis Go.
   `OPENAI_API_KEY` mit Build-Hashes in der Zugriffsliste; er wird nur durch die
   App-Migration entfernt, nicht manuell.
 
-**Letzter Nachweis:** 8. Oktober 2026 (Teil B, Build 8).
+**Letzter Nachweis:** 8. Oktober 2026 (Build 9,
+[Nachweis](release-plans/evidence/2026-10-08-build9.md)).
 
 ## Windows
 
