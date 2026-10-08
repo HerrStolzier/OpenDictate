@@ -229,9 +229,12 @@ UI-Minimums aus Phase 1 ab.
 
 **Done:** Installierbarer Debug/Release-Weg auf der Zielmaschine dokumentiert.
 
-**Stand 8. Oktober 2026:** offen; Schritt 2 im Linux-Track der
-[ROADMAP](../ROADMAP.md#track-linux). Bisher liegt das Programm nur als
-von Hand gebaute Kopie in `~/.local/bin` auf Bastis Rechner.
+**Stand 8. Oktober 2026:** Arch-Paket aus dem Quellcode
+([PKGBUILD](../linux/packaging/arch/PKGBUILD), `makepkg -si`) und Anleitung in
+[linux/README.md](../linux/README.md) liegen bereit; offline geprüft. Offen ist
+die Installation auf omarchy mit einem echten Diktat (Schritt 2 im Linux-Track
+der [ROADMAP](../ROADMAP.md#track-linux)). Bis dahin läuft auf Bastis Rechner
+die von Hand gebaute Kopie in `~/.local/bin`.
 
 ## Risiken
 

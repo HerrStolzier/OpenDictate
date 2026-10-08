@@ -187,6 +187,18 @@ bash scripts/ci/check-linux.sh
 The script runs formatting, locked tests, locked Clippy and a locked release
 build. On Ubuntu, CI installs `libasound2-dev` and `pkg-config` first.
 
+For changes to the Arch package (`linux/packaging/arch/PKGBUILD`), run on an
+Arch host as a normal user, from that directory:
+
+```bash
+makepkg -sf && namcap PKGBUILD opendictate-*.pkg.tar.zst
+```
+
+`makepkg` runs the crate tests in `check()` and refuses to build when `pkgver`
+differs from the version in `linux/Cargo.toml`. Installing the package
+(`makepkg -si` or `pacman -U`) changes the system and belongs to the attended
+installation check.
+
 Do not add this crate to `.github/workflows/checks.yml`. Live microphone,
 Secret Service writes, OpenAI requests and Wayland clipboard checks require
 separate attended verification and are not default tests. The transcription

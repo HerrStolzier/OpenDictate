@@ -36,7 +36,10 @@ eine bekannte Grenze, die in der jeweiligen Anleitung stehen muss.
 **Offen / bekannte Grenzen:** Einfügen in Chromium-, Electron- und
 Discord-Fenstern; gemischtes Deutsch/Englisch; Abbruch genau während der
 Übersetzung; andere Compositoren als Hyprland; andere Distributionen;
-Paketierung und installierbarer Weg; Vokabular; konfigurierbarer Endpunkt.
+Vokabular; konfigurierbarer Endpunkt. Das Arch-Paket
+([PKGBUILD](../linux/packaging/arch/PKGBUILD)) ist seit dem 8. Oktober nur
+offline geprüft (Paketfunktionen mit Rust 1.97 nachgestellt, Tests grün); die
+Installation auf omarchy steht aus.
 Eine alte Testaufnahme vom 5. Oktober liegt noch im Recovery-Ordner auf
 omarchy; Löschen nur mit Bastis Go.
 

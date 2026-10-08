@@ -53,10 +53,13 @@ Nachweise: [Live-Nachweise 5. bis 7. Oktober](docs/linux-live-2026-10-05-bis-07.
 
 1. Ehrliche Anleitung in [linux/README.md](linux/README.md): Preis pro Minute,
    „fehlgeschlagene Diktate bleiben für `retry` erhalten“, und die bekannten
-   Grenzen unten. Reine Doku.
+   Grenzen unten. Seit dem 8. Oktober als Entwurf geschrieben.
 2. Paketierung (Phase 3 des Detailplans): ein installierbarer Weg auf
    Arch/omarchy, dokumentiert und einmal von Basti nachvollzogen. Ohne das kann
-   niemand testen.
+   niemand testen. Seit dem 8. Oktober liegt ein Arch-Paket
+   ([PKGBUILD](linux/packaging/arch/PKGBUILD), Bau aus dem Quellcode mit
+   `makepkg -si`) bereit; offen ist die Installation auf omarchy mit einem
+   echten Diktat.
 3. Linux-Beta: Pre-Release, Issue-Vorlage, Ankündigung (Kandidaten: r/omarchy,
    r/hyprland). Go je Veröffentlichung und Ankündigung.
 4. Beta laufen lassen: Issues zeitnah beantworten, Rückmeldungen sammeln,

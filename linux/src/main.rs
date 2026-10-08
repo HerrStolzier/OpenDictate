@@ -28,7 +28,7 @@ use ipc::Event;
 
 const CLIPBOARD_SPIKE: &str = "OpenDictate: Zwischenablage ok.";
 const USAGE: &str = "\
-opendictate — Linux Clipboard-MVP (kein Produktumfang)
+opendictate — Diktieren für Hyprland (Beta)
 
 Befehle:
   toggle                 Aufnahme starten oder stoppen
@@ -48,6 +48,7 @@ Befehle:
   settings target toggle Übersetzung aus- oder mit letzter Zielsprache einschalten
   settings insert on|off Text automatisch ins Startfenster einfügen
   settings translation-model NAME  Modell für die Übersetzung setzen
+  version                Version anzeigen
   record --daemon        interner Aufnahmeprozess
 ";
 
@@ -70,6 +71,10 @@ fn run(args: Vec<String>) -> Result<(), String> {
     {
         [] | ["help"] | ["-h"] | ["--help"] => {
             print!("{USAGE}");
+            Ok(())
+        }
+        ["version"] | ["--version"] => {
+            println!("opendictate {}", env!("CARGO_PKG_VERSION"));
             Ok(())
         }
         ["toggle"] => toggle(),
@@ -649,5 +654,11 @@ mod tests {
     fn unknown_command_is_an_error() {
         let error = run(vec!["nope".to_string()]).unwrap_err();
         assert!(error.contains("Unbekanntes Kommando"));
+    }
+
+    #[test]
+    fn version_is_a_command() {
+        assert!(run(vec!["version".to_string()]).is_ok());
+        assert!(run(vec!["--version".to_string()]).is_ok());
     }
 }
