@@ -75,3 +75,28 @@ Netzwerkfehler und behielt die Aufnahme. Nach dem Neustart lieferte `retry` die
 nicht das ganze Netz abschalten. Ein Abbruch genau während der Übersetzung ist
 nicht getrennt geprüft; derselbe Abbruchmarker gilt dort. Einzelfälle, keine
 allgemeine Aussage.
+
+## Live-Nachweis Arch-Paket · 8. Oktober 2026
+
+Auf omarchy mit Bastis Go, Stand `ca1f041` (PR #57). Das Paket wurde mit
+`makepkg -f --nodeps` und unveränderter `/etc/makepkg.conf` gebaut (Rust
+1.98.1 per rustup, 46 Tests grün, Paket 1,3 MB). Der erste Bau scheiterte an
+Arch-Standard-LTO (rust-lld konnte die GCC-LTO-Objekte von `ring` nicht
+linken) und ist seit `ca1f041` mit `!lto` behoben.
+
+Basti hat das Paket selbst mit `sudo pacman -U` installiert (`opendictate
+0.1.0-1`, `pacman -Qkk` ohne Abweichungen). Tastenkürzel Super+D
+(`bindings.lua`) und Leistenmodul zeigen auf `/usr/bin/opendictate`; die
+vorherige Kopie in `~/.local/bin` ist umbenannt, die alten Einstellungen sind
+gesichert. Schlüssel und Einstellungen wurden ohne Neueinrichtung übernommen.
+
+| Fall | Ergebnis |
+| --- | --- |
+| Leiste nach der Umstellung | Mikrofon und „EN“, per Bildschirmfoto geprüft |
+| Diktat mit Super+D in `omawrite`, Übersetzung `en` | Basti bestätigt den englischen Text im Editor; Protokoll `translation-started target=en`, `insert-sent`, `transcription-copied` |
+| Diktat davor in die Claude-Desktop-App (`com.anthropic.Claude`) | Protokoll ebenso bis `insert-sent`; ob der Text im Feld ankam, ist nicht einzeln bestätigt |
+| Danach | keine Fehlerzeilen, Pending leer, keine neue Recovery-Datei |
+
+Nicht geprüft: `namcap` (auf omarchy nicht installiert), Bau mit `makepkg -si`
+und pacman-Rust statt rustup, frische Ersteinrichtung des Schlüssels.
+Einzelfälle, keine allgemeine Aussage.

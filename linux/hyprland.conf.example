@@ -1,5 +1,5 @@
-# Example Hyprland bind for the OpenDictate Linux spike.
-# Copy a chosen line into your Hyprland config; do not take this file as-is.
-# Point exec at a PATH binary or an absolute path to linux/target/release/opendictate.
+# Example Hyprland bind for OpenDictate (classic hyprland.conf syntax).
+# Copy the line into your Hyprland config and pick a free key first.
+# The Arch package installs the program as /usr/bin/opendictate.
 
-bind = SUPER SHIFT, D, exec, opendictate toggle
+bind = SUPER, D, exec, opendictate toggle
