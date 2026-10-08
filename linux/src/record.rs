@@ -186,8 +186,29 @@ pub fn start(path: &Path) -> Result<RecordingHandle, String> {
         channels,
         error: None,
     }));
-    let stream_capture = Arc::clone(&capture);
-    let err_capture = Arc::clone(&capture);
+    let stream = match open_stream(&device, config, &capture) {
+        Ok(stream) => stream,
+        Err(error) => {
+            discard_if_silent(&capture, path);
+            return Err(error);
+        }
+    };
+    Ok(RecordingHandle {
+        stream,
+        capture,
+        path: path.to_path_buf(),
+        sample_rate,
+    })
+}
+
+/// Opens and starts the input stream that feeds `capture`.
+fn open_stream(
+    device: &cpal::Device,
+    config: cpal::SupportedStreamConfig,
+    capture: &Arc<Mutex<Capture>>,
+) -> Result<cpal::Stream, String> {
+    let stream_capture = Arc::clone(capture);
+    let err_capture = Arc::clone(capture);
     let stream = match config.sample_format() {
         cpal::SampleFormat::F32 => device.build_input_stream(
             &config.into(),
@@ -214,24 +235,33 @@ pub fn start(path: &Path) -> Result<RecordingHandle, String> {
             ))
         }
     }
-    .map_err(|_| {
-        crate::tr!(
-            "Aufnahme konnte nicht starten.",
-            "Recording could not start."
-        )
-    })?;
-    stream.play().map_err(|_| {
-        crate::tr!(
-            "Aufnahme konnte nicht starten.",
-            "Recording could not start."
-        )
-    })?;
-    Ok(RecordingHandle {
-        stream,
-        capture,
-        path: path.to_path_buf(),
-        sample_rate,
-    })
+    .map_err(|error| start_failed("build", &error))?;
+    stream
+        .play()
+        .map_err(|error| start_failed("play", &error))?;
+    Ok(stream)
+}
+
+/// Notes the audio backend's reason in the worker log (its stderr), which
+/// never holds audio or text, and returns the user-facing message.
+fn start_failed(step: &str, error: &dyn std::fmt::Display) -> String {
+    eprintln!("recording-start-failed step={step} error={error}");
+    crate::tr!(
+        "Aufnahme konnte nicht starten.",
+        "Recording could not start."
+    )
+}
+
+/// A recording that failed to start holds no audio, only the WAV header;
+/// it is removed so it does not linger in pending. Captured audio is kept.
+fn discard_if_silent(capture: &Arc<Mutex<Capture>>, path: &Path) {
+    let Ok(mut guard) = capture.lock() else {
+        return;
+    };
+    if guard.frames == 0 && guard.error.is_none() {
+        drop(guard.writer.take());
+        let _ = std::fs::remove_file(path);
+    }
 }
 
 impl RecordingHandle {
@@ -390,6 +420,36 @@ pub fn write_silence_fixture(path: &Path, sample_rate: u32, frames: u32) -> std:
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_failed_start_removes_only_an_empty_file() {
+        let spec = WavSpec {
+            channels: 1,
+            sample_rate: 16_000,
+            bits_per_sample: 16,
+            sample_format: SampleFormat::Int,
+        };
+        for (frames, kept) in [(0, false), (1, true)] {
+            let path = std::env::temp_dir().join(format!(
+                "opendictate-failed-start-{}-{frames}.wav",
+                std::process::id()
+            ));
+            let mut writer = WavWriter::create(&path, spec).unwrap();
+            for _ in 0..frames {
+                writer.write_sample(0i16).unwrap();
+            }
+            let capture = Arc::new(Mutex::new(Capture {
+                writer: Some(writer),
+                frames,
+                channels: 1,
+                error: None,
+            }));
+            discard_if_silent(&capture, &path);
+            assert_eq!(path.exists(), kept);
+            drop(capture);
+            let _ = std::fs::remove_file(&path);
+        }
+    }
 
     #[test]
     fn silence_fixture_is_a_valid_wav() {

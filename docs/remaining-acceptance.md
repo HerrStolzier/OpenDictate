@@ -36,16 +36,23 @@ eine bekannte Grenze, die in der jeweiligen Anleitung stehen muss.
   omarchy gebaut (46 Tests grün), von Basti mit `pacman -U` installiert, Super+D
   und Leiste darauf umgestellt, ein Diktat mit Übersetzung in einen Editor
   eingefügt.
+- Zweisprachiges Paket aus PR #59 (`0a04ed5`) am 8. Oktober auf omarchy gebaut
+  (49 Tests grün) und installiert; omarchy steht auf `en_US`, Hilfe auf
+  Englisch; ein Diktat mit Übersetzung in die Claude-App eingefügt.
 
-**Offen / bekannte Grenzen:** Einfügen in Chromium-, Electron- und
+**Offen / bekannte Grenzen:** Ein Start direkt nach der Neuinstallation
+scheiterte einmal mit „Recording could not start“ (Ursache unbekannt, der
+nächste Versuch klappte); seit PR #59 steht der Grund im Protokoll
+(`recording-start-failed`), und die leere Datei wird entfernt. Einfügen in Chromium-, Electron- und
 Discord-Fenstern; gemischtes Deutsch/Englisch; Abbruch genau während der
 Übersetzung; andere Compositoren als Hyprland; andere Distributionen;
 Vokabular; konfigurierbarer Endpunkt. Für das Arch-Paket ungeprüft: `namcap`, Bau mit pacman-Rust und `makepkg -si`,
 frische Ersteinrichtung des Schlüssels.
 Eine alte Testaufnahme vom 7. Oktober liegt noch im Recovery-Ordner auf
-omarchy; Löschen nur mit Bastis Go.
+omarchy, dazu eine leere 44-Byte-Datei vom gescheiterten Start in `pending/`;
+Löschen nur mit Bastis Go.
 
-**Letzter Nachweis:** 8. Oktober 2026, Arch-Paket aus `ca1f041`
+**Letzter Nachweis:** 8. Oktober 2026, Arch-Paket aus `0a04ed5` (PR #59)
 ([Live-Nachweise](linux-live-2026-10-05-bis-07.md)).
 
 ## macOS
