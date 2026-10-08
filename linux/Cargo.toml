@@ -11,11 +11,11 @@ name = "opendictate"
 path = "src/main.rs"
 
 [dependencies]
-cpal = "0.15"
+cpal = "0.18"
 hex = "0.4"
-hmac = "0.12"
+hmac = "0.13"
 hound = "3.5"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-sha2 = "0.10"
+sha2 = "0.11"
 ureq = { version = "2.12", default-features = false, features = ["tls"] }
