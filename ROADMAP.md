@@ -51,8 +51,10 @@ Nachweise: [Live-Nachweise 5. bis 7. Oktober](docs/linux-live-2026-10-05-bis-07.
 
 **Nächste Schritte:**
 
-1. Linux-Beta: Pre-Release, Issue-Vorlage, Ankündigung (Kandidaten: r/omarchy,
-   r/hyprland). Go je Veröffentlichung und Ankündigung.
+1. Linux-Beta auf Englisch (Entscheidung 8. Oktober): Das Programm spricht die
+   Systemsprache, Anleitung auf Englisch und Deutsch, eigene Issue-Vorlage.
+   Dann Pre-Release und Ankündigung in r/omarchy und r/hyprland. Go je
+   Veröffentlichung und Ankündigung.
 2. Beta laufen lassen: Issues zeitnah beantworten, Rückmeldungen sammeln,
    danach entscheiden, was gebaut wird (Kandidaten: konfigurierbarer Endpunkt,
    Vokabular, Echtzeit-Übersetzung, Feinjustierung der Zeitlimits).

@@ -47,9 +47,10 @@ impl Transcriber {
     ) -> Result<String, String> {
         validate_model(&settings.model)?;
         if api_key.is_empty() {
-            return Err("API-Schlüssel fehlt.".to_string());
+            return Err(crate::tr!("API-Schlüssel fehlt.", "API key is missing."));
         }
-        let audio = std::fs::read(audio_path).map_err(|_| "Aufnahme nicht lesbar.".to_string())?;
+        let audio = std::fs::read(audio_path)
+            .map_err(|_| crate::tr!("Aufnahme nicht lesbar.", "Recording unreadable."))?;
         self.transcribe_bytes(&audio, api_key, settings)
     }
 
@@ -61,10 +62,13 @@ impl Transcriber {
     ) -> Result<String, String> {
         validate_model(&settings.model)?;
         if api_key.is_empty() {
-            return Err("API-Schlüssel fehlt.".to_string());
+            return Err(crate::tr!("API-Schlüssel fehlt.", "API key is missing."));
         }
         if audio.is_empty() || audio.len() > MAX_UPLOAD_BYTES {
-            return Err("Aufnahme hat eine ungültige Größe.".to_string());
+            return Err(crate::tr!(
+                "Aufnahme hat eine ungültige Größe.",
+                "Recording has an invalid size."
+            ));
         }
         let boundary = format!("OpenDictateBoundary{}", std::process::id());
         let body = multipart_body(&boundary, audio, settings);
@@ -129,14 +133,23 @@ fn decode_response(response: Result<ureq::Response, ureq::Error>) -> Result<Stri
                 .take(16 * 1_024)
                 .read_to_end(&mut ignored);
             return Err(match status {
-                401 => "API-Schlüssel ist ungültig.".to_string(),
-                413 => "Aufnahme ist für den Upload zu groß.".to_string(),
-                429 => "OpenAI-Limit erreicht. Bitte später erneut versuchen.".to_string(),
-                _ => "Transkription fehlgeschlagen.".to_string(),
+                401 => crate::tr!("API-Schlüssel ist ungültig.", "API key is invalid."),
+                413 => crate::tr!(
+                    "Aufnahme ist für den Upload zu groß.",
+                    "Recording is too large to upload."
+                ),
+                429 => crate::tr!(
+                    "OpenAI-Limit erreicht. Bitte später erneut versuchen.",
+                    "OpenAI limit reached. Please try again later."
+                ),
+                _ => crate::tr!("Transkription fehlgeschlagen.", "Transcription failed."),
             });
         }
         Err(ureq::Error::Transport(_)) => {
-            return Err("Netzwerkfehler oder Zeitüberschreitung bei der Transkription.".to_string())
+            return Err(crate::tr!(
+                "Netzwerkfehler oder Zeitüberschreitung bei der Transkription.",
+                "Network error or timeout during transcription."
+            ))
         }
     };
     let mut data = Vec::new();
@@ -144,13 +157,22 @@ fn decode_response(response: Result<ureq::Response, ureq::Error>) -> Result<Stri
         .into_reader()
         .take(1_024 * 1_024)
         .read_to_end(&mut data)
-        .map_err(|_| "Ungültige Antwort von OpenAI.".to_string())?;
+        .map_err(|_| {
+            crate::tr!(
+                "Ungültige Antwort von OpenAI.",
+                "Invalid response from OpenAI."
+            )
+        })?;
     #[derive(Deserialize)]
     struct Response {
         text: String,
     }
-    let parsed: Response =
-        serde_json::from_slice(&data).map_err(|_| "Ungültige Antwort von OpenAI.".to_string())?;
+    let parsed: Response = serde_json::from_slice(&data).map_err(|_| {
+        crate::tr!(
+            "Ungültige Antwort von OpenAI.",
+            "Invalid response from OpenAI."
+        )
+    })?;
     Ok(parsed.text.trim().to_string())
 }
 

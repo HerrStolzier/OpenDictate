@@ -8,7 +8,10 @@ const READ_TIMEOUT: Duration = Duration::from_secs(2);
 
 pub fn copy_text(text: &str) -> Result<(), String> {
     if std::env::var_os("WAYLAND_DISPLAY").is_none() {
-        return Err("Zwischenablage nicht verfügbar (kein Wayland).".to_string());
+        return Err(crate::tr!(
+            "Zwischenablage nicht verfügbar (kein Wayland).",
+            "Clipboard unavailable (no Wayland)."
+        ));
     }
     let mut child = Command::new("wl-copy")
         .args(["--type", "text/plain"])
@@ -16,21 +19,28 @@ pub fn copy_text(text: &str) -> Result<(), String> {
         .stdout(Stdio::null())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|_| "Zwischenablage nicht verfügbar (wl-copy fehlt).".to_string())?;
+        .map_err(|_| {
+            crate::tr!(
+                "Zwischenablage nicht verfügbar (wl-copy fehlt).",
+                "Clipboard unavailable (wl-copy is missing)."
+            )
+        })?;
     {
-        let mut stdin = child
-            .stdin
-            .take()
-            .ok_or_else(|| "Zwischenablage nicht verfügbar.".to_string())?;
+        let mut stdin = child.stdin.take().ok_or_else(|| {
+            crate::tr!("Zwischenablage nicht verfügbar.", "Clipboard unavailable.")
+        })?;
         stdin
             .write_all(text.as_bytes())
-            .map_err(|_| "Zwischenablage nicht verfügbar.".to_string())?;
+            .map_err(|_| crate::tr!("Zwischenablage nicht verfügbar.", "Clipboard unavailable."))?;
     }
     let status = child
         .wait()
-        .map_err(|_| "Zwischenablage nicht verfügbar.".to_string())?;
+        .map_err(|_| crate::tr!("Zwischenablage nicht verfügbar.", "Clipboard unavailable."))?;
     if !status.success() {
-        return Err("Zwischenablage nicht verfügbar.".to_string());
+        return Err(crate::tr!(
+            "Zwischenablage nicht verfügbar.",
+            "Clipboard unavailable."
+        ));
     }
     Ok(())
 }
@@ -44,13 +54,18 @@ pub fn read_text(limit: usize) -> Result<String, String> {
 }
 
 fn read_output(mut command: Command, limit: usize, timeout: Duration) -> Result<String, String> {
-    let unreadable = || "Zwischenablage nicht lesbar.".to_string();
+    let unreadable = || crate::tr!("Zwischenablage nicht lesbar.", "Clipboard unreadable.");
     let mut child = command
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
         .spawn()
-        .map_err(|_| "Zwischenablage nicht lesbar (wl-paste fehlt).".to_string())?;
+        .map_err(|_| {
+            crate::tr!(
+                "Zwischenablage nicht lesbar (wl-paste fehlt).",
+                "Clipboard unreadable (wl-paste is missing)."
+            )
+        })?;
     let stdout = child.stdout.take().ok_or_else(unreadable)?;
     // The reader ends when wl-paste exits or is killed and closes the pipe.
     let reader = std::thread::spawn(move || {

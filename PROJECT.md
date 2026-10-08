@@ -86,7 +86,7 @@ Schritte in der [ROADMAP](ROADMAP.md).
 - **Linux:** Rust-CLI für Hyprland (Arch/omarchy) mit Aufnahme, Keyring,
   Transkription, Übersetzung, Zwischenablage, Auto-Einfügen in das beim Start
   erfasste Fenster, Leistenanzeige und Hotkey. Seit dem 7. Oktober 2026 im
-  Alltag genutzt. Einrichtung: [linux/README.md](linux/README.md).
+  Alltag genutzt. Einrichtung: [linux/README.de.md](linux/README.de.md).
 - **Windows:** Versionierter Prototyp unter [windows/](windows/README.md),
   nur offline geprüft; kein echtes Diktat, keine Paketierung.
 - **iOS:** Synthetischer Textpfad eines Tastatur-Prototyps belegt; echte
@@ -153,6 +153,7 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
+| 8. Oktober 2026 | Die Linux-Beta erscheint auf Englisch: Das Programm spricht die Systemsprache (Deutsch oder Englisch), die Anleitung gibt es auf Englisch und Deutsch, angekündigt wird in englischsprachigen Communities (r/omarchy, r/hyprland). Veröffentlichung und Ankündigung nur nach Bastis Go. | [Linux-Anleitung](linux/README.md); Gespräch im privaten Projektchat |
 | 8. Oktober 2026 | Reihenfolge der Betas: Linux und macOS werden jetzt zur Beta gebracht, iOS danach. Linux beginnt mit Anleitung und installierbarem Arch-Paket. | [ROADMAP](ROADMAP.md#track-linux); Gespräch im privaten Projektchat |
 | 8. Oktober 2026 | Der Livegang des Supports wartet auf die neue Marke: Domain und Supportadresse kommen von dort. Bis dahin wird nichts eingerichtet oder veröffentlicht; die erste Version bleibt ein Entwurf. | [PR #56](https://github.com/HerrStolzier/OpenDictate/pull/56), [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |
 | 8. Oktober 2026 | Support: eigenes kleines Backend statt fertiger Ticketsoftware. Kontaktformular und Supportadresse werden Tickets, Dashboard nur für Basti, ein Agent sortiert und schreibt nur Entwürfe, Basti entscheidet und versendet; KI-Chatbot später als weiterer Eingang. Produktneutral für spätere Apps, eigenes privates Repository; die Website bleibt statisch, das Formular schickt nur an das Backend. Grundlage: Support-Richtung seit dem 12. September (E-Mail zuerst, später gemeinsamer KI-Support). | [ROADMAP](ROADMAP.md#plattformübergreifend); Notizen nur lokal bei Basti |

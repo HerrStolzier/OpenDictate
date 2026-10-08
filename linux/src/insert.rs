@@ -1,6 +1,7 @@
 use std::process::{Command, Stdio};
 
 use crate::clipboard;
+use crate::i18n::t;
 use crate::window::{self, TargetWindow};
 
 /// Window classes that paste with Ctrl+Shift+V instead of Ctrl+V.
@@ -49,12 +50,19 @@ impl Skip {
 
     pub fn message(self) -> &'static str {
         match self {
-            Self::TargetNotFrontmost => "Zielfenster ist nicht mehr vorne",
-            Self::ClipboardChanged => "Zwischenablage wurde vor dem Einfügen überschrieben",
-            Self::ClipboardUnreadable => {
-                "Zwischenablage konnte vor dem Einfügen nicht geprüft werden"
-            }
-            Self::Unavailable => "Einfügen nicht möglich",
+            Self::TargetNotFrontmost => t(
+                "Zielfenster ist nicht mehr vorne",
+                "Target window is no longer in front",
+            ),
+            Self::ClipboardChanged => t(
+                "Zwischenablage wurde vor dem Einfügen überschrieben",
+                "Clipboard was overwritten before inserting",
+            ),
+            Self::ClipboardUnreadable => t(
+                "Zwischenablage konnte vor dem Einfügen nicht geprüft werden",
+                "Clipboard could not be checked before inserting",
+            ),
+            Self::Unavailable => t("Einfügen nicht möglich", "Inserting is not possible"),
         }
     }
 }

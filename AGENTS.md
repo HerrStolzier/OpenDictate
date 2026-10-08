@@ -71,7 +71,8 @@ fixture or one successful dictation into a general speech-quality claim.
 - `docs/archive/README.md`: index of all dated reports; `docs/archive/APPROVALS.md`
   is the archived approval record up to 2 October 2026 and not maintained.
 - `README.md`: current product behavior and setup (macOS); `linux/README.md`
-  for Linux.
+  (English) and `linux/README.de.md` (German) for Linux; change both together.
+  Linux CLI messages exist in German and English (`tr!` in `linux/src/i18n.rs`).
 - `PRIVACY.md`: complete current data flow and retention behavior.
 - `CHECKS.md`: reproducible verification commands and explicit live-test gates.
 - `docs/compatibility-matrix.md`: current product-wide text-field and focus
