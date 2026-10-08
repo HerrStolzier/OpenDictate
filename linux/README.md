@@ -62,8 +62,7 @@ zuerst `sudo pacman -S --needed alsa-lib hyprland libsecret wl-clipboard` und
 dann `makepkg -i --nodeps` statt `makepkg -si`. `makepkg` prüft dann keine
 Abhängigkeiten mehr; `pacman` verweigert die Installation aber, wenn eines
 dieser Pakete fehlt.
-Das Paket baut mit der Stable-Toolchain; geprüft mit Rust 1.97, die
-Entwicklungsprüfungen laufen mit 1.98.1. Danach liegt das Programm unter
+Das Paket baut mit der Stable-Toolchain; gebaut auf Omarchy mit Rust 1.98.1. Danach liegt das Programm unter
 `/usr/bin/opendictate`; `opendictate version` zeigt die Version.
 
 **Aktualisieren:** im Ordner `OpenDictate` `git pull`, dann in
@@ -211,7 +210,7 @@ mitbringt. Die Beispieldateien liegen nach der Installation auch unter
 
 ### Selbst bauen und prüfen
 
-Geprüft mit `rustc 1.98.1` (CI-Skript); der Paketbau ist mit 1.97 nachgestellt. Eine niedrigere
+Geprüft mit `rustc 1.98.1` (CI-Skript und Paketbau auf Omarchy). Eine niedrigere
 Mindestversion ist nicht verifiziert:
 
 ```bash
@@ -299,5 +298,5 @@ sind echte Verzeichnisse mit Modus `0700`; Audiodateien und Nachweise `0600`.
   Zwischenablage-Härtung und die Waybar-Variante sind nicht live geprüft. Kein Settings-Fenster.
 - Ein Abbruch während des blockierenden HTTP-Aufrufs wird nach dessen Rückkehr
   beziehungsweise Timeout ausgewertet; er löscht die einzige Aufnahme nicht.
-- Das Arch-Paket ist noch nicht auf omarchy installiert und nicht im AUR; kein
-  zweites Distro-Ziel.
+- Das Arch-Paket ist auf omarchy gebaut, aber noch nicht installiert und nicht
+  im AUR; kein zweites Distro-Ziel.

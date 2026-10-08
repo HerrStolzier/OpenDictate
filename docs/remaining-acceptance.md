@@ -37,9 +37,11 @@ eine bekannte Grenze, die in der jeweiligen Anleitung stehen muss.
 Discord-Fenstern; gemischtes Deutsch/Englisch; Abbruch genau während der
 Übersetzung; andere Compositoren als Hyprland; andere Distributionen;
 Vokabular; konfigurierbarer Endpunkt. Das Arch-Paket
-([PKGBUILD](../linux/packaging/arch/PKGBUILD)) ist seit dem 8. Oktober nur
-offline geprüft (Paketfunktionen mit Rust 1.97 nachgestellt, Tests grün); die
-Installation auf omarchy steht aus.
+([PKGBUILD](../linux/packaging/arch/PKGBUILD)) ist am 8. Oktober auf omarchy
+mit `makepkg -f --nodeps` und unveränderter `makepkg.conf` gebaut (Stand
+`ca1f041`, Rust 1.98.1, 46 Tests grün, Paket 1,3 MB); der erste Bau scheiterte
+dort an Arch-Standard-LTO und ist mit `!lto` behoben. `namcap` lief nicht.
+Installation und ein Diktat mit dem Paket stehen aus.
 Eine alte Testaufnahme vom 5. Oktober liegt noch im Recovery-Ordner auf
 omarchy; Löschen nur mit Bastis Go.
 
