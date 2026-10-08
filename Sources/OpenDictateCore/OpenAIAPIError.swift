@@ -36,6 +36,8 @@ public enum OpenAIAPIErrorMessage {
                 "Der OpenAI-API-Schlüssel ist ungültig. Prüfe ihn unter Einstellungen → Erweitert → API-Schlüssel einrichten."
         case "billing_not_active":
             return "Die API-Abrechnung ist nicht aktiv. Prüfe die Abrechnung deines OpenAI-Projekts."
+        case "model_not_found":
+            return "Das eingestellte Modell ist bei OpenAI nicht verfügbar."
         case "rate_limit_exceeded":
             return "Zu viele Anfragen an OpenAI. Warte einen Moment und versuche es erneut."
         default:

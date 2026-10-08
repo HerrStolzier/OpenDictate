@@ -14,6 +14,8 @@ public enum OpenDictateError: LocalizedError {
     case noSpeechDetected(peakDb: Float)
     case recordingCouldNotStart
     case recordingTooShort(actual: TimeInterval, minimum: TimeInterval)
+    case emptyTranslation
+    case translationNotConfigured
 
     public var isSkippedRecording: Bool {
         switch self {
@@ -68,6 +70,10 @@ public enum OpenDictateError: LocalizedError {
         case .recordingTooShort(let actual, let minimum):
             return
                 "Die Aufnahme war zu kurz (\(actual.formattedSeconds)). Sprich mindestens \(minimum.formattedSeconds) und beende dann die Aufnahme."
+        case .emptyTranslation:
+            return "OpenAI hat keine Übersetzung geliefert. Der Originaltext wird nicht ersatzweise eingefügt."
+        case .translationNotConfigured:
+            return "Zielsprache oder Übersetzungsmodell ist ungültig. Wähle die Übersetzung in den Einstellungen neu."
         }
     }
 }

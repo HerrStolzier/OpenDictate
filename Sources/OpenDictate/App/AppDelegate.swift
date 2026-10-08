@@ -16,6 +16,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let hotKey = HotKeyManager()
     private let recorder = AudioRecorder()
     private let transcriber = OpenAITranscriber()
+    private let translator = OpenAITranslator()
     private let pasteboard = PasteboardInserter()
     private var previousApplication: NSRunningApplication?
     private var latestExternalApplication: NSRunningApplication?
@@ -52,6 +53,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 paste: { [unowned self] text in
                     guard Config.settings.autoPaste else { return .notAttempted }
                     return await pasteboard.paste(text, into: previousApplication)
+                },
+                translationTarget: { [unowned self] in requestOptions?.translationTarget },
+                translate: { [unowned self] in
+                    try await translator.translate($0, into: $1, options: requestOptions)
                 }
             ))
     }
@@ -100,6 +105,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AppLog.write("App launched from \(Bundle.main.bundlePath)")
         AppLog.write("Build identity: \(AppVersionInfo().summary)")
         AppLog.write("Transcription model: \(Config.model.rawValue) (from \(Config.settings.modelSource))")
+        AppLog.write(
+            "Translation: \(Config.settings.translationTarget ?? "off") (model \(Config.settings.translationModel))")
         verifyHotKeyConstants()
         ApplicationMenu.install()
         latestExternalApplication = currentFrontmostApplication()
@@ -292,6 +299,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let permitted = await AudioRecorder.requestPermission()
         guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
         guard permitted else {
+            AppLog.write("Recording did not start: microphone access denied")
             updateStatus("Mikrofonzugriff fehlt – in den Systemeinstellungen erlauben")
             dictationPanel.updateFailure(
                 "Mikrofonzugriff fehlt. Öffne die Systemeinstellungen und erlaube den Zugriff.")
@@ -312,6 +320,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if flow.state == .idle {
                 requestOptions = nil
             }
+            AppLog.write("Recording did not start: \(error.localizedDescription)")
             guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
             updateStatus(OpenDictateError.userMessage(for: error))
             dictationPanel.updateFailure(
@@ -707,7 +716,15 @@ extension AppDelegate: MenuBarControllerDelegate {
         AppLog.write("Transcription language changed to \(language ?? "auto")")
     }
 
+    func menuBarDidSelect(translationTarget: String?) {
+        guard lifecycle.canBeginOperation, flow.state == .idle else { return }
+        guard translationTarget != Config.settings.translationTarget else { return }
+        Config.settings.translationTarget = translationTarget
+        AppLog.write("Translation target changed to \(translationTarget ?? "off")")
+    }
+
     var menuBarShortcut: HotKeyShortcut { Config.shortcut }
     var menuBarModel: TranscriptionModel { Config.model }
     var menuBarLanguage: String? { Config.language }
+    var menuBarTranslationTarget: String? { Config.settings.translationTarget }
 }
