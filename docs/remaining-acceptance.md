@@ -57,7 +57,13 @@ omarchy; Löschen nur mit Bastis Go.
   4,14 MiB, SHA-256 `2e994cd8…e335768`) und in der privaten Release-Draft
   `v0.1.0-beta.8` hinterlegt
   ([Nachweis](release-plans/evidence/2026-10-02-plan2-build8-final.md)).
-  Nichts davon wurde installiert oder gestartet.
+- Stufe 2 Teil B (8. Oktober 2026, mit Bastis Go): Build 8 in
+  `/Applications` installiert, erster Start mit Quarantäne, neuer
+  Schlüsselbundhelfer bytegleich mit dem Paket, zwei erwartete
+  Schlüsselbund-Abfragen, ein Diktat mit automatischem Einfügen in TextEdit
+  ([Nachweis](release-plans/evidence/2026-10-08-plan2-teil-b.md)). Nach dem
+  Signaturwechsel musste der Bedienungshilfen-Eintrag entfernt und neu
+  hinzugefügt werden.
 - Der signierte Schlüsselbundhelfer liest den API-Schlüssel nach einem
   Build-Wechsel ohne Dialog
   ([Nachweis](release-plans/evidence/2026-09-24-keychain-and-plan1.md)).
@@ -80,9 +86,10 @@ omarchy; Löschen nur mit Bastis Go.
 
 **Offen / bekannte Grenzen:**
 
-- Stufe 2 Teil B: erster Start des entpackten Pakets mit Quarantäne,
-  Migration nach der [Anleitung](release-plans/plan2-migration.md),
-  Diktat- und Kopierweg, aktiver Beenden-/Recovery-Fall. Mit Bastis Go am Mac.
+- Beenden der App während der Transkription: nur ohne Netz geprüft. Live
+  antwortete OpenAI in zwei Versuchen am 8. Oktober nach gut 3 s, bevor die
+  Abfrage bestätigt war. Bekannte Grenze der Beta (Entscheidung Basti).
+- „Text ansehen“ und „Text kopieren“ wurden in Teil B nicht eigens geprüft.
 - Übersetzung und die Punkte vom 7. Oktober: noch kein echtes Diktat auf dem
   Mac; das prüft der nächste Kandidat (Installation und ein Diktat mit
   Übersetzung).
@@ -98,8 +105,7 @@ omarchy; Löschen nur mit Bastis Go.
   `OPENAI_API_KEY` mit Build-Hashes in der Zugriffsliste; er wird nur durch die
   App-Migration entfernt, nicht manuell.
 
-**Letzter Nachweis:** 7. Oktober 2026 (Dateirechte, PR #49); Paketstand
-2. Oktober 2026 (Build 8).
+**Letzter Nachweis:** 8. Oktober 2026 (Teil B, Build 8).
 
 ## Windows
 
