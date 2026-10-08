@@ -1,5 +1,9 @@
 # Plan 5: Öffentlicher Beta-Release
 
+> Seit dem 8. Oktober 2026 bilden Stufe 5 und Stufe 6 zusammen die Mac-Beta
+> ([ROADMAP](../../ROADMAP.md#track-macos)); die Linux-Beta kommt unabhängig davon.
+> Die Kriterien unten gelten weiter.
+
 **Ziel:** Die freigegebene erste Mac-Version steht als kostenloser direkter
 Download und als **Pre-Release** auf GitHub Releases bereit. Eine öffentliche
 Produktseite mit Kennzeichnung „Beta“ führt zum gleichen Paket. Fremde

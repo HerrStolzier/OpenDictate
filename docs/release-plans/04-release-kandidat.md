@@ -1,5 +1,11 @@
 # Plan 4: Release-Kandidat und Freigabeentscheidung
 
+> Umfang seit dem 8. Oktober 2026 verkleinert ([ROADMAP](../../ROADMAP.md#track-macos)):
+> Pflicht bleiben eingefrorener Kandidat mit Hash, geprüfte Installation und
+> Update sowie übereinstimmende Produkttexte. Die vollständige UX- und
+> VoiceOver-Prüfung ist eine bekannte Grenze der Beta. Der Text unten
+> beschreibt den ursprünglichen Umfang und bleibt als Kriterienquelle.
+
 **Ziel:** Ein einziger, unveränderter Kandidat ist technisch und inhaltlich
 für die öffentliche Mac-Ausgabe freigegeben. Sein ZIP, SHA-256-Wert,
 Quellrevision, Version und Buildnummer sind festgehalten. Der Kandidat wird

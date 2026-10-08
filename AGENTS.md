@@ -2,9 +2,13 @@
 
 ## Project context and authorized work
 
-- Read `PROJECT.md` for product scope, `ROADMAP.md` for the sole cross-platform
-  feature/platform backlog, and `docs/remaining-acceptance.md` for the single
-  current acceptance handoff. Verify checkout state before relying on it.
+- Read `PROJECT.md` for product scope, pricing model and the decision log,
+  `ROADMAP.md` for the sole feature/platform backlog (one track per platform),
+  and `docs/remaining-acceptance.md` for the evidenced state per platform.
+  Verify checkout state before relying on it.
+- Every product or planning decision taken with Basti is recorded in the same
+  session in the decision log of `PROJECT.md` (date, decision, link) and in the
+  project memory. Decisions that stay in chat are lost later.
 - Earlier project approvals are archived in `docs/archive/APPROVALS.md` as
   historical context; the archive is no longer maintained and grants nothing.
 - Routine commits, pushes to this repository and merges of verified changes
@@ -44,30 +48,40 @@ checks for release or packaging changes. Documentation-only changes need link,
 consistency and diff checks, not an unrelated source test suite.
 
 Tests remain offline and deterministic by default. Live tests (microphone,
-provider requests, app launch/install, Keychain) run when Basti is at the Mac
-and gives an explicit "Go" in the session. There are no counted test blocks,
+provider requests, app launch/install, Keychain) run when Basti is at the
+device and gives an explicit "Go" in the session. Since 8 October 2026 only
+the path every user takes (installation and one dictation) is verified by us;
+single-case checks are left to beta users and listed as known limits. There are no counted test blocks,
 quotas or advance approval documents. TCC resets, signing-identity changes and
 publication still need Basti's explicit decision. Never turn a synthetic
 fixture or one successful dictation into a general speech-quality claim.
 
 ## Documentation ownership
 
-- `PROJECT.md`: product goal, scope, non-goals and grounded decisions.
-- `ROADMAP.md`: sole current feature/platform to-do list; status, next result,
-  dependency and completion evidence. It does not grant implementation or
-  publication approval.
-- `docs/archive/APPROVALS.md`: archived approval record up to 2 October 2026; not maintained.
-- `README.md`: current product behavior and setup.
+- `PROJECT.md`: product goal, use cases, pricing model, platforms with
+  evidenced scope, limits, and the decision log.
+- `ROADMAP.md`: sole current feature/platform to-do list, one track per
+  platform plus cross-platform items and a done log. It does not grant
+  implementation or publication approval.
+- `docs/roadmap-neuordnung-2026-10-08.md`: reasoning behind the current order;
+  earlier reorganisation notes are history.
+- `docs/remaining-acceptance.md`: evidenced state, open limits and last
+  evidence per platform. The former chronological handoff is archived in
+  `docs/archive/uebergabe-chronik-bis-2026-10-07.md`.
+- `docs/archive/README.md`: index of all dated reports; `docs/archive/APPROVALS.md`
+  is the archived approval record up to 2 October 2026 and not maintained.
+- `README.md`: current product behavior and setup (macOS); `linux/README.md`
+  for Linux.
 - `PRIVACY.md`: complete current data flow and retention behavior.
 - `CHECKS.md`: reproducible verification commands and explicit live-test gates.
 - `docs/compatibility-matrix.md`: current product-wide text-field and focus
   acceptance plan; programs are representative examples, not blanket support claims.
-- `docs/remaining-acceptance.md`: single current technical handoff and behavior
-  not yet evidenced; it is not a second feature/platform backlog.
-- `docs/linux-build-plan.md` and `docs/windows-plan.md`: platform-specific
+- `docs/linux-build-plan.md`, `docs/linux-live-translation-plan.md`,
+  `docs/windows-plan.md`, `docs/ios-direction.md`: platform-specific
   implementation and acceptance detail linked from the roadmap.
-- `docs/release-plans/`: detailed acceptance steps for the five Mac-release
-  stages; dated evidence applies only to its recorded candidate.
+- `docs/release-plans/`: detailed acceptance criteria for the Mac stages; their
+  scope was reduced on 8 October 2026 as stated in the roadmap. Dated evidence
+  applies only to its recorded candidate.
 - Dated acceptance files: historical evidence for that exact candidate only.
 
 Update these documents in the same change whenever their claimed behavior changes.
