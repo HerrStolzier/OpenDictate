@@ -49,8 +49,8 @@ Discord-Fenstern; gemischtes Deutsch/Englisch; Abbruch genau während der
 Vokabular; konfigurierbarer Endpunkt. Für das Arch-Paket ungeprüft: `namcap`, Bau mit pacman-Rust und `makepkg -si`,
 frische Ersteinrichtung des Schlüssels.
 Eine alte Testaufnahme vom 7. Oktober liegt noch im Recovery-Ordner auf
-omarchy, dazu eine leere 44-Byte-Datei vom gescheiterten Start in `pending/`;
-Löschen nur mit Bastis Go.
+omarchy; Löschen nur mit Bastis Go. Die leere Datei vom gescheiterten Start
+wurde am 8. Oktober mit Bastis Go gelöscht.
 
 **Letzter Nachweis:** 8. Oktober 2026, Arch-Paket aus `0a04ed5` (PR #59)
 ([Live-Nachweise](linux-live-2026-10-05-bis-07.md)).
