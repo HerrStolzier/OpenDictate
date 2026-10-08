@@ -25,9 +25,13 @@ OpenAI fest; maßgeblich ist deren Preisliste.
 
 Scheitert die Abschrift, die Übersetzung oder das Einfügen (Netz weg,
 Zeitüberschreitung, Abbruch), bleibt die Aufnahme auf deinem Rechner erhalten.
-`opendictate retry` schickt sie erneut. Gelöscht wird eine Aufnahme erst, wenn
-ihr Text in der Zwischenablage angekommen ist. Aufbewahrt werden höchstens fünf
-Aufnahmen für 24 Stunden.
+Gelöscht wird eine Aufnahme erst, wenn ihr Text in der Zwischenablage
+angekommen ist. Normalerweise legt OpenDictate dafür eine gesicherte Kopie an:
+`opendictate retry` schickt sie erneut, aufbewahrt werden höchstens fünf
+solcher Kopien für 24 Stunden. Gelingt diese Kopie nicht (zum Beispiel weil der
+Schlüsselbund gesperrt ist), bleibt die Originaldatei unter
+`~/.local/state/opendictate/pending/` liegen; `retry` greift dann nicht, und die
+Datei wird auch nicht automatisch gelöscht.
 
 ## Was du brauchst
 
