@@ -40,9 +40,9 @@ geändert wurde, ohne die Dateien neu zu erzeugen.
 
 ## Stand je Oberfläche
 
-Noch keine Oberfläche nutzt diesen Ordner. Ob und in welcher Reihenfolge die
-Oberflächen umgestellt werden, entscheidet Basti; die Entscheidung steht dann
-im Entscheidungs-Log in [PROJECT.md](../PROJECT.md#entscheidungen). Die laufenden Betas erscheinen in
+Noch keine Oberfläche nutzt diesen Ordner. Als erste wird die Website
+umgestellt (Entscheidung vom 9. Oktober 2026 im
+[Entscheidungs-Log](../PROJECT.md#entscheidungen)). Die laufenden Betas erscheinen in
 der heutigen Optik; die Markenarbeit blockiert keine Beta
 ([PROJECT](../PROJECT.md#marken--und-gestaltungsrichtung)).
 
