@@ -74,6 +74,11 @@ fixture or one successful dictation into a general speech-quality claim.
   (English) and `linux/README.de.md` (German) for Linux; change both together.
   Linux CLI messages exist in German and English (`tr!` in `linux/src/i18n.rs`).
 - `PRIVACY.md`: complete current data flow and retention behavior.
+- `design/`: copy of the OpenDictate design system from Claude Design (brand
+  book, tokens, fonts, logos). Claude Design stays the original; update the
+  copy there first, then regenerate `design/generated/` with
+  `scripts/design-tokens.py`. A surface that adopts the design system takes its
+  colours and sizes from `design/generated/`, not from hard-coded values.
 - `CHECKS.md`: reproducible verification commands and explicit live-test gates.
 - `docs/compatibility-matrix.md`: current product-wide text-field and focus
   acceptance plan; programs are representative examples, not blanket support claims.

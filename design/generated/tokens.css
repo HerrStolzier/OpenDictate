@@ -1,0 +1,140 @@
+/* Generated from design/tokens.json by scripts/design-tokens.py. Do not edit. */
+
+/* Theme switch: set data-theme on <html>; Nacht is the default. */
+:root, [data-theme="nacht"] {
+  --bg: #0E1014;
+  --surface: #181C23;
+  --surface-sunken: #12151A;
+  --line: #2A303A;
+  --ink: #E9EEE2;
+  --ink-muted: #8F988A;
+  --signal: #B6FF4D;
+  --signal-light: #DDFFA8;
+  --signal-shade: #86CC2E;
+  --signal-deep: #7AB82A;
+  --signal-ink: #5E9420;
+  --on-signal: #0E1014;
+  --rec: #FF5D5D;
+  --warn: #FFD84D;
+  --sneaker: #F2F5EE;
+  --sneaker-light: #FFFFFF;
+  --sole: #9AA394;
+  --floor: #07080A;
+  --glitch: #5CE1E6;
+  --focus-ring: #B6FF4D;
+  --glow: 0 0 24px rgba(182,255,77,.30);
+  --elevation-icon: 0 28px 56px rgba(0,0,0,.55);
+}
+
+[data-theme="bernstein"] {
+  --bg: #17110A;
+  --surface: #22190F;
+  --surface-sunken: #120D07;
+  --line: #3A2C1B;
+  --ink: #FFE9C7;
+  --ink-muted: #B49A74;
+  --signal: #FFB23F;
+  --signal-light: #FFD796;
+  --signal-shade: #D98E22;
+  --signal-deep: #B8741A;
+  --signal-ink: #8F5810;
+  --on-signal: #17110A;
+  --rec: #FF6A4D;
+  --warn: #FFEFB0;
+  --sneaker: #FFF3DE;
+  --sneaker-light: #FFFFFF;
+  --sole: #B49A74;
+  --floor: #0A0704;
+  --glitch: #5CE1E6;
+  --focus-ring: #FFB23F;
+  --glow: 0 0 24px rgba(255,178,63,.30);
+  --elevation-icon: 0 28px 56px rgba(0,0,0,.55);
+}
+
+[data-theme="papier"] {
+  --bg: #EDEEE9;
+  --surface: #FFFFFF;
+  --surface-sunken: #E2E4DD;
+  --line: #C9CCC3;
+  --ink: #14161A;
+  --ink-muted: #585D63;
+  --signal: #1A4FE0;
+  --signal-light: #7F9DFF;
+  --signal-shade: #1440B8;
+  --signal-deep: #12389F;
+  --signal-ink: #0C2A7A;
+  --on-signal: #FFFFFF;
+  --rec: #B52A1A;
+  --warn: #8A5A00;
+  --sneaker: #2A2F38;
+  --sneaker-light: #4A515E;
+  --sole: #585D63;
+  --floor: #C9CCC3;
+  --glitch: #008C95;
+  --focus-ring: #1A4FE0;
+  --glow: 0 0 16px rgba(26,79,224,.20);
+  --elevation-icon: 0 28px 56px rgba(0,0,0,.55);
+}
+
+:root {
+  --font-pixel: "Geist Pixel", "Geist Mono", ui-monospace, monospace;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-sans: Geist, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --radius-chip: 8px;
+  --radius-card: 18px;
+  --radius-icon: 22.5%;
+  --pixel-step: 3px;
+  --pixel-icon: 36px;
+  --meter-cell: 8px;
+  --meter-gap: 3px;
+  --type-display-family: var(--font-pixel);
+  --type-display-size: 64px;
+  --type-display-line: 64px;
+  --type-display-weight: 400;
+  --type-display-tracking: -0.01em;
+  --type-title-family: var(--font-pixel);
+  --type-title-size: 40px;
+  --type-title-line: 44px;
+  --type-title-weight: 400;
+  --type-heading-family: var(--font-pixel);
+  --type-heading-size: 24px;
+  --type-heading-line: 30px;
+  --type-heading-weight: 400;
+  --type-lead-family: var(--font-sans);
+  --type-lead-size: 18px;
+  --type-lead-line: 28px;
+  --type-lead-weight: 400;
+  --type-body-family: var(--font-sans);
+  --type-body-size: 15px;
+  --type-body-line: 24px;
+  --type-body-weight: 400;
+  --type-strong-family: var(--font-sans);
+  --type-strong-size: 15px;
+  --type-strong-line: 24px;
+  --type-strong-weight: 600;
+  --type-small-family: var(--font-sans);
+  --type-small-size: 13px;
+  --type-small-line: 20px;
+  --type-small-weight: 400;
+  --type-ui-family: var(--font-mono);
+  --type-ui-size: 14px;
+  --type-ui-line: 20px;
+  --type-ui-weight: 600;
+  --type-label-family: var(--font-mono);
+  --type-label-size: 12px;
+  --type-label-line: 16px;
+  --type-label-weight: 400;
+  --type-label-tracking: 0.02em;
+  --type-code-family: var(--font-mono);
+  --type-code-size: 13px;
+  --type-code-line: 20px;
+  --type-code-weight: 400;
+}
