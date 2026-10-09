@@ -95,8 +95,25 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   Aufnahme im App-Log, Tests schreiben in eine temporäre Logdatei (Zeilenzahl
   des echten Logs vor und nach `swift test` gleich), „ca.“ beim Preis des
   Mini-Modells.
+- Einzeltasten und Kürzel-Abfrage (nach Build 9, noch in keinem Kandidaten):
+  Fn/Globus halten und rechte Wahltaste über NSEvent-Monitore, Abfrage beim
+  ersten Start nach dem API-Schlüssel mit Tastendruck-Test. Offline geprüft:
+  Erkennung von Antippen, Halten, fremder Taste und Mindestdauer in
+  `ModifierKeyGestureTests`, Speicherung und Vorrang alter Kürzel in
+  `SettingsTests`; die Fenster der Abfrage wurden mit einem lokalen,
+  nicht eingecheckten Testlauf gerendert und angesehen.
 
 **Offen / bekannte Grenzen:**
+
+- Einzeltasten live: Fn halten und rechte Wahltaste in fremden Apps, ⌥L für @
+  während die rechte Wahltaste gewählt ist, Abfrage beim ersten Start mit und
+  ohne Bedienungshilfen-Freigabe, Wirkung einer neu erteilten Freigabe ohne
+  Neustart. Die Fn-Taste wird nur beobachtet: Ohne „🌐 drücken für: Nichts“
+  öffnet macOS zusätzlich Emoji oder Diktat.
+- Preset F5: Auf MacBooks seit 2021 trägt F5 Apples Diktat-Symbol. Ob die Taste
+  ohne „F1, F2 usw. als Standard-Funktionstasten verwenden“ oder gedrückte Fn
+  als F5 bei OpenDictate ankommt, ist nicht belegt; ungeprüft und nicht
+  umgebaut.
 
 - Beenden der App während der Transkription: nur ohne Netz geprüft. Live
   antwortete OpenAI in zwei Versuchen am 8. Oktober nach gut 3 s, bevor die

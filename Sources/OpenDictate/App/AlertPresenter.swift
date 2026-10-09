@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import OpenDictateCore
 
 /// Every modal the app shows, in one place. Each call blocks on `runModal()`
 /// exactly like the inline versions it replaces.
@@ -70,5 +71,21 @@ enum AlertPresenter {
         }
 
         return inputView.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// A single key needs Accessibility before it works in other apps. The
+    /// current trigger stays active until the permission is there.
+    static func explainMissingKeyPermission(for trigger: RecordingTrigger, keeping current: RecordingTrigger) {
+        let alert = NSAlert()
+        alert.messageText = "Freigabe für Bedienungshilfen fehlt"
+        alert.informativeText =
+            "Damit OpenDictate „\(trigger.displayName)“ in jeder App erkennt, braucht es die Freigabe für "
+            + "Bedienungshilfen in den Systemeinstellungen, dieselbe wie fürs automatische Einfügen. Schalte "
+            + "OpenDictate dort ein und wähle die Taste danach erneut. Bis dahin bleibt „\(current.displayName)“ aktiv."
+        alert.addButton(withTitle: "Bedienungshilfen öffnen")
+        alert.addButton(withTitle: "Abbrechen")
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        ModifierKeyMonitor.requestPermission()
+        SystemSettings.openAccessibility()
     }
 }

@@ -28,10 +28,15 @@ open .build/OpenDictate.app
 2. Choose your microphone and language in **Einstellungen**. Allow microphone
    access when recording. Automatic insertion additionally needs macOS
    Accessibility access; clipboard-only use does not need that permission.
-3. Select the destination text field. Press **Option+Shift+Space** to record,
-   speak, then press it again to stop. Each dictation is limited to 90 seconds,
-   a deliberate product limit for short texts.
-4. Check the destination. The complete transcript also remains available in the
+3. After the key is set up, the app asks once how you want to start recording
+   (also once after an update, if no shortcut was ever chosen):
+   hold **Fn/Globe** (recommended), the **right Option key**, or
+   **Control+Option+D**, or a custom shortcut. A test step shows whether the
+   key reaches OpenDictate. Closing the question keeps **Option+Shift+Space**.
+4. Select the destination text field. Press your shortcut to record, speak,
+   then press it again to stop; with a held key, release it to stop. Each
+   dictation is limited to 90 seconds, a deliberate product limit for short texts.
+5. Check the destination. The complete transcript also remains available in the
    panel and on the clipboard. If input was interrupted, part may already be in
    the destination: inspect it before pasting the full transcript manually.
 
@@ -83,8 +88,22 @@ The panel’s Settings window groups the four everyday options first. Advanced
 options are collapsed initially; saved recordings and Help open secondary pages.
 Changes apply to the next dictation, no restart needed.
 
-- **Hotkey** — custom modified shortcuts plus `Option+Shift+Space` (default), `Control+Option+D`, or `F5`. Useful
-  when another app already claims the default.
+- **Hotkey** — a single key or a combination. Single keys count only while no
+  other key, modifier or mouse button is used, so combinations such as
+  Option+L for "@" keep typing:
+  - `Fn/Globus halten`: hold to record, release to stop. Set **System Settings ›
+    Keyboard › Press 🌐 key to** to **Do Nothing**; otherwise Fn also opens
+    Emoji or Apple's Dictation, because OpenDictate only observes the key.
+  - `Rechte Wahltaste` (right Option): tap to start or stop, hold to record
+    until release.
+  - Combinations: `Option+Shift+Space` (default), `Control+Option+D`, `F5`, or a
+    custom modified shortcut. Useful when another app already claims one.
+
+  Single keys need Accessibility access, because macOS delivers key events to
+  other apps' observers only then. Without it the menu explains the permission
+  and keeps the current shortcut. If another key or a mouse click joins a hold
+  after recording started, the dictation is cancelled and its audio is kept for
+  a manual retry.
 - **Model** — `gpt-transcribe` or `gpt-4o-mini-transcribe`, with the per-minute
   price next to each. The `gpt-4o-mini-transcribe` price is approximate because
   OpenAI bills that model by tokens, not by minute.
@@ -164,8 +183,9 @@ menu is not silently ignored for anyone who exports them:
 macOS will ask for:
 
 - Microphone access for recording.
-- Accessibility access when automatic insertion is enabled. It is not requested
-  at launch for clipboard-only use.
+- Accessibility access when automatic insertion is enabled or a single key
+  (Fn/Globe, right Option) starts recording. It is not requested at launch for
+  clipboard-only use with a key combination.
 
 Automatic insertion remembers the application in front when dictation starts.
 After transcription, OpenDictate puts the text on the general clipboard, brings

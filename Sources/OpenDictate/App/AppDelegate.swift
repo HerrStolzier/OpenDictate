@@ -14,6 +14,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var dictationPanel = DictationPanel()
     private var pendingRetryFilename: String?
     private let hotKey = HotKeyManager()
+    private var modifierMonitor: ModifierKeyMonitor?
+    /// Listens only while the first-launch question checks a single key.
+    private var testMonitor: ModifierKeyMonitor?
+    private var keyPermissionWatch: Task<Void, Never>?
+    private var holdControl = HoldControl.none
     private let recorder = AudioRecorder()
     private let transcriber = OpenAITranscriber()
     private let translator = OpenAITranslator()
@@ -142,7 +147,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         refreshSavedRecordings()
         warnAboutUnusableModelIfNeeded()
-        registerHotKey(announce: true)
+        activateTrigger(Config.trigger, announce: true)
         checkAPIKeySetupAtLaunch()
         if ProcessInfo.processInfo.arguments.contains("--show-window") {
             dictationPanel.showForInteraction()
@@ -168,7 +173,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func configureDictationPanel() {
-        dictationPanel.setShortcut(Config.shortcut.displayName)
+        dictationPanel.setShortcut(Config.trigger.displayName)
         dictationPanel.onRecord = { [weak self] in
             guard let self, lifecycle.canBeginOperation else { return }
             let target = flow.state.canStop ? previousApplication : latestExternalApplication
@@ -210,9 +215,118 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Hotkey
 
+    /// What a hold of the single-key trigger is responsible for.
+    private enum HoldControl {
+        case none
+        /// The hold began this dictation; the operation is set while it prepares.
+        case starting(AppLifecycle.Operation)
+        /// A dictation was already running; releasing the key stops it.
+        case stopsRecording
+    }
+
+    /// Makes `trigger` the active way to start and stop dictation. The working
+    /// registration stays in place when the new one cannot be installed.
     @discardableResult
-    private func registerHotKey(announce: Bool, shortcut: HotKeyShortcut? = nil) -> Bool {
-        let shortcut = shortcut ?? Config.shortcut
+    private func activateTrigger(_ trigger: RecordingTrigger, announce: Bool) -> Bool {
+        switch trigger {
+        case .combination(let shortcut):
+            guard registerHotKey(announce: announce, shortcut: shortcut) else { return false }
+            stopModifierMonitor()
+        case .modifierKey(let key):
+            let monitor = ModifierKeyMonitor(key: key) { [weak self] in self?.handleModifierGesture($0) }
+            guard monitor.start() else {
+                updateStatus("Tastenkombination nicht verfügbar")
+                AppLog.write("Single-key monitor could not be installed: \(key.rawValue)")
+                AlertPresenter.showWarning(
+                    title: "Tastenkürzel nicht verfügbar",
+                    message: "OpenDictate kann „\(key.displayName)“ gerade nicht überwachen. "
+                        + "Die bisherige Einstellung bleibt aktiv.")
+                return false
+            }
+            stopModifierMonitor()
+            modifierMonitor = monitor
+            hotKey.unregisterCurrent()
+            AppLog.write("Single-key trigger active: \(key.rawValue)")
+            if ModifierKeyMonitor.hasPermission {
+                if announce { updateStatus("Bereit") }
+            } else {
+                updateStatus("Freigabe für Bedienungshilfen fehlt – Taste wird nicht erkannt")
+                watchForKeyPermission()
+            }
+        }
+        return true
+    }
+
+    private func stopModifierMonitor() {
+        modifierMonitor?.stop()
+        modifierMonitor = nil
+        keyPermissionWatch?.cancel()
+        keyPermissionWatch = nil
+        holdControl = .none
+    }
+
+    /// Key events reach a global monitor only once the app is trusted. Re-arm
+    /// as soon as the permission appears, since monitors installed before the
+    /// grant may stay silent.
+    private func watchForKeyPermission() {
+        keyPermissionWatch?.cancel()
+        keyPermissionWatch = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                do { try await Task.sleep(for: .seconds(2)) } catch { return }
+                guard let self, let monitor = modifierMonitor else { return }
+                guard ModifierKeyMonitor.hasPermission else { continue }
+                keyPermissionWatch = nil
+                monitor.start()
+                AppLog.write("Accessibility granted; single-key trigger re-armed")
+                if flow.state == .idle { updateStatus("Bereit") }
+                return
+            }
+        }
+    }
+
+    private func handleModifierGesture(_ gesture: ModifierKeyGesture.Gesture) {
+        guard lifecycle.acceptsActions else { return }
+        switch gesture {
+        case .tap:
+            toggleRecording()
+        case .holdBegan:
+            if flow.state.canStop {
+                holdControl = .stopsRecording
+            } else if let operation = startRecording(target: currentFrontmostApplication()) {
+                lastHotKeyAt = Date()
+                holdControl = .starting(operation)
+            } else {
+                holdControl = .none
+            }
+        case .holdEnded, .holdInterrupted:
+            let control = holdControl
+            holdControl = .none
+            switch control {
+            case .none:
+                return
+            case .starting(let operation):
+                if lifecycle.isCurrent(operation) {
+                    // Released before the recorder started: drop the preparation.
+                    lifecycle.cancelPreparation()
+                    return
+                }
+                guard flow.state == .recording else { return }
+                if gesture == .holdInterrupted {
+                    // Another key joined the hold, so it was not meant as dictation.
+                    // Cancelling keeps the audio for a manual retry.
+                    AppLog.write("Hold interrupted by another input; recording cancelled")
+                    menuBarDidCancel(discard: false)
+                } else {
+                    stopRecording()
+                }
+            case .stopsRecording:
+                if gesture == .holdEnded, flow.state == .recording { stopRecording() }
+            }
+        }
+    }
+
+    @discardableResult
+    private func registerHotKey(announce: Bool, shortcut: HotKeyShortcut) -> Bool {
         do {
             try hotKey.register(shortcut) { [weak self] in
                 // Carbon dispatches the application event target on the main
@@ -264,15 +378,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         lastHotKeyAt = now
         if flow.state.canStop {
             if returnPanelFocus { returnFocusFromPanel(to: capturedTarget) }
-            if flow.stop() { cancelAutoStop() }
+            stopRecording()
             return
         }
-        guard flow.state.canStart, let operation = lifecycle.beginOperation() else { return }
-        guard lifecycle.isCurrent(operation) else { return }
-        if returnPanelFocus { returnFocusFromPanel(to: capturedTarget) }
+        startRecording(target: capturedTarget, returnPanelFocus: returnPanelFocus)
+    }
+
+    /// Begins preparing a dictation for `target`. Returns the operation while it
+    /// prepares, or nil when nothing could start.
+    @discardableResult
+    private func startRecording(
+        target: NSRunningApplication?, returnPanelFocus: Bool = false
+    ) -> AppLifecycle.Operation? {
+        guard flow.state.canStart, let operation = lifecycle.beginOperation() else { return nil }
+        guard lifecycle.isCurrent(operation) else { return nil }
+        if returnPanelFocus { returnFocusFromPanel(to: target) }
         Task { @MainActor in
-            await prepareRecording(target: capturedTarget, operation: operation)
+            await prepareRecording(target: target, operation: operation)
         }
+        return operation
+    }
+
+    private func stopRecording() {
+        if flow.stop() { cancelAutoStop() }
     }
 
     private func returnFocusFromPanel(to target: NSRunningApplication?) {
@@ -408,6 +536,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 menuBar?.updateStatus("API-Schlüssel einrichten")
                 dictationPanel.updateAPIKeySetup(needsSetup: true)
             } else {
+                if !Config.settings.hasStoredTrigger, flow.state == .idle, let operation = lifecycle.beginOperation() {
+                    defer { lifecycle.finish(operation) }
+                    askForTrigger(operation: operation)
+                }
                 requestAccessibilityPermissionIfNeeded()
             }
         }
@@ -470,6 +602,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         snapshotNeedsRefresh = false
         pendingRetryFilename = nil
         recorder.onUnexpectedStop = nil
+        stopModifierMonitor()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -494,7 +627,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func requestAccessibilityPermissionIfNeeded() {
-        guard lifecycle.acceptsActions, flow.state == .idle, Config.settings.autoPaste, !AXIsProcessTrusted() else {
+        guard lifecycle.acceptsActions, flow.state == .idle,
+            Config.settings.autoPaste || Config.trigger.needsAccessibility, !AXIsProcessTrusted()
+        else {
             return
         }
         AXIsProcessTrustedWithOptions(["AXTrustedCheckOptionPrompt": true] as CFDictionary)
@@ -571,6 +706,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                         + "Dialog, um die Bereinigung zu wiederholen.")
                 guard lifecycle.isCurrent(operation) else { return }
             }
+            if settingUp, !Config.settings.hasStoredTrigger { askForTrigger(operation: operation) }
             requestAccessibilityPermissionIfNeeded()
         } catch {
             guard lifecycle.isCurrent(operation) else { return }
@@ -610,7 +746,7 @@ extension AppDelegate: MenuBarControllerDelegate {
         guard flow.state == .idle, let operation = lifecycle.beginOperation() else { return }
         defer { lifecycle.finish(operation) }
         if let shortcut = ShortcutCaptureView.prompt(), lifecycle.isCurrent(operation) {
-            applyShortcut(shortcut, operation: operation)
+            applyTrigger(.combination(shortcut), operation: operation)
             menuBar?.refresh()
         }
     }
@@ -688,17 +824,85 @@ extension AppDelegate: MenuBarControllerDelegate {
         setAPIKey()
     }
 
-    func menuBarDidSelect(shortcut: HotKeyShortcut) {
+    func menuBarDidSelect(trigger: RecordingTrigger) {
         guard flow.state == .idle, let operation = lifecycle.beginOperation() else { return }
         defer { lifecycle.finish(operation) }
-        applyShortcut(shortcut, operation: operation)
+        if trigger.needsAccessibility, !ModifierKeyMonitor.hasPermission {
+            // Switching now would leave no working key until the permission arrives.
+            AlertPresenter.explainMissingKeyPermission(for: trigger, keeping: Config.trigger)
+            return
+        }
+        applyTrigger(trigger, operation: operation)
     }
 
-    private func applyShortcut(_ shortcut: HotKeyShortcut, operation: AppLifecycle.Operation) {
-        guard shortcut != Config.shortcut else { return }
-        if registerHotKey(announce: false, shortcut: shortcut), lifecycle.isCurrent(operation) {
-            Config.settings.shortcut = shortcut
-            dictationPanel.setShortcut(shortcut.displayName)
+    private func applyTrigger(_ trigger: RecordingTrigger, operation: AppLifecycle.Operation) {
+        guard trigger != Config.trigger else { return }
+        if activateTrigger(trigger, announce: false), lifecycle.isCurrent(operation) {
+            Config.settings.trigger = trigger
+            dictationPanel.setShortcut(trigger.displayName)
+            AppLog.write("Recording trigger changed to \(trigger.displayName)")
+        }
+    }
+
+    /// First-launch question. Closing it keeps and stores the current trigger,
+    /// so it is asked only once.
+    private func askForTrigger(operation: AppLifecycle.Operation) {
+        let previous = Config.trigger
+        let tester = ShortcutSetupPrompt.Tester(
+            arm: { [unowned self] trigger, arrived in armForTest(trigger, arrived: arrived) },
+            disarm: { [unowned self] in
+                testMonitor?.stop()
+                testMonitor = nil
+                // The check may have borrowed the hotkey manager; give it back.
+                switch Config.trigger {
+                case .combination(let shortcut): registerHotKey(announce: false, shortcut: shortcut)
+                case .modifierKey: hotKey.unregisterCurrent()
+                }
+            })
+        let chosen = ShortcutSetupPrompt.run(tester: tester)
+        guard lifecycle.isCurrent(operation) else { return }
+        guard let chosen, chosen != previous else {
+            Config.settings.trigger = previous
+            AppLog.write("First-launch shortcut question closed; keeping \(previous.displayName)")
+            return
+        }
+        applyTrigger(chosen, operation: operation)
+        if Config.trigger != chosen {
+            // Activation failed and already explained itself; keep the previous one.
+            Config.settings.trigger = previous
+        }
+        menuBar?.refresh()
+    }
+
+    /// Listens for `trigger` without starting a dictation. A combination is
+    /// registered on the real hotkey manager so a conflict shows up exactly as
+    /// it would in daily use.
+    private func armForTest(
+        _ trigger: RecordingTrigger, arrived: @escaping () -> Void
+    ) -> ShortcutSetupPrompt.ArmResult {
+        testMonitor?.stop()
+        testMonitor = nil
+        switch trigger {
+        case .combination(let shortcut):
+            do {
+                try hotKey.register(shortcut) { MainActor.assumeIsolated { arrived() } }
+                return .listening
+            } catch {
+                AppLog.write("Shortcut check could not register: \(error.localizedDescription)")
+                return .failed("Diese Kombination ist belegt oder nicht verfügbar.")
+            }
+        case .modifierKey(let key):
+            let monitor = ModifierKeyMonitor(key: key) { _ in }
+            // This window's own events arrive even without the permission; only
+            // count a press once other apps would deliver it too.
+            monitor.onPress = { if ModifierKeyMonitor.hasPermission { arrived() } }
+            guard monitor.start() else { return .failed("OpenDictate kann diese Taste gerade nicht überwachen.") }
+            testMonitor = monitor
+            guard ModifierKeyMonitor.hasPermission else {
+                ModifierKeyMonitor.requestPermission()
+                return .needsPermission
+            }
+            return .listening
         }
     }
 
@@ -723,7 +927,7 @@ extension AppDelegate: MenuBarControllerDelegate {
         AppLog.write("Translation target changed to \(translationTarget ?? "off")")
     }
 
-    var menuBarShortcut: HotKeyShortcut { Config.shortcut }
+    var menuBarTrigger: RecordingTrigger { Config.trigger }
     var menuBarModel: TranscriptionModel { Config.model }
     var menuBarLanguage: String? { Config.language }
     var menuBarTranslationTarget: String? { Config.settings.translationTarget }
