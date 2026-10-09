@@ -130,8 +130,9 @@ der ersten Beta und blockiert keine ([ROADMAP](ROADMAP.md#plattformübergreifend
 - Keine Nachbearbeitung: OpenDictate glättet, formatiert oder kürzt nicht.
   Nutzer, die das erwarten, finden es bei anderen Apps; die Website soll das
   erklären.
-- Streaming, Echtzeit-Übersetzung, Hold-to-talk und Einzeltaste sind gewünscht,
-  nicht implementiert und kein Teil des Funktionsumfangs; Stand in der
+- Streaming und Echtzeit-Übersetzung sind gewünscht, Hold-to-talk und
+  Einzeltaste seit dem 9. Oktober beschlossen; alle vier sind nicht
+  implementiert und kein Teil des Funktionsumfangs; Stand in der
   [ROADMAP](ROADMAP.md#plattformübergreifend).
 - Die Betas sind keine öffentlichen Releases mit Supportzusage. Jede
   Veröffentlichung braucht Bastis ausdrückliches Go.
@@ -153,7 +154,7 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
-| 9. Oktober 2026 | Kürzel-Abfrage nach der Installation als Funktion der fertigen, bezahlten App aufgenommen: zwei bis drei recherchierte Vorschläge je Plattform, eigenes Kürzel möglich. Welche Vorschläge gelten, ist offen; Umsetzung nach den laufenden Betas. | [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |
+| 9. Oktober 2026 | Kürzel-Abfrage nach der Installation wird Funktion der fertigen, bezahlten App: zwei bis drei recherchierte Vorschläge je Plattform, die Empfehlung vorausgewählt, eigenes Kürzel möglich. Alle empfohlenen Vorschläge übernommen (macOS Fn halten, Linux Super+D, Windows Strg+Win halten, iOS Aktionstaste, Android Mikrofon-Taste der Tastatur; Liste in der ROADMAP). Die dafür nötige Technik für Einzeltasten und Halten-zum-Sprechen wird gebaut, zuerst auf macOS. Die laufenden Betas bleiben unverändert. | [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |
 | 8. Oktober 2026 | Die Linux-Beta erscheint auf Englisch: Das Programm spricht die Systemsprache (Deutsch oder Englisch), die Anleitung gibt es auf Englisch und Deutsch, angekündigt wird in englischsprachigen Communities (r/omarchy, r/hyprland). Veröffentlichung und Ankündigung nur nach Bastis Go. | [Linux-Anleitung](linux/README.md); Gespräch im privaten Projektchat |
 | 8. Oktober 2026 | Reihenfolge der Betas: Linux und macOS werden jetzt zur Beta gebracht, iOS danach. Linux beginnt mit Anleitung und installierbarem Arch-Paket. | [ROADMAP](ROADMAP.md#track-linux); Gespräch im privaten Projektchat |
 | 8. Oktober 2026 | Der Livegang des Supports wartet auf die neue Marke: Domain und Supportadresse kommen von dort. Bis dahin wird nichts eingerichtet oder veröffentlicht; die erste Version bleibt ein Entwurf. | [PR #56](https://github.com/HerrStolzier/OpenDictate/pull/56), [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |
