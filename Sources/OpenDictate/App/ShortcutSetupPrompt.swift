@@ -85,7 +85,7 @@ enum ShortcutSetupPrompt {
         alert.alertStyle = .informational
         alert.addButton(withTitle: "Weiter")
         alert.addButton(withTitle: "Später").keyEquivalent = "\u{1b}"
-        let titles = RecordingTrigger.setupChoices.map(title(for:)) + [customTitle]
+        let titles = RecordingTrigger.setupChoices.map { title(for: $0) } + [customTitle]
         let hints = RecordingTrigger.setupChoices.map { hint(for: $0) } + [hint(for: nil)]
         let view = ChoiceView(titles: titles, hints: hints, selected: selected)
         alert.accessoryView = view

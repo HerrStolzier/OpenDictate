@@ -21,7 +21,7 @@ public final class Settings: Sendable {
         public static let shortcutCode = "hotKeyCode"
         public static let shortcutModifiers = "hotKeyModifiers"
         public static let shortcutName = "hotKeyName"
-        public static let modifierKey = "recordingModifierKey"
+        public static let recordingModifier = "recordingModifierKey"
         public static let autoPaste = "autoPaste"
         public static let vocabularyPrompt = "vocabularyPrompt"
         public static let translationTarget = "translationTarget"
@@ -112,7 +112,7 @@ public final class Settings: Sendable {
     /// find the last combination.
     public var trigger: RecordingTrigger {
         get {
-            if let raw = store.object(forKey: Key.modifierKey) as? String, let key = ModifierKey(rawValue: raw) {
+            if let raw = store.object(forKey: Key.recordingModifier) as? String, let key = ModifierKey(rawValue: raw) {
                 return .modifierKey(key)
             }
             return .combination(shortcut)
@@ -121,9 +121,9 @@ public final class Settings: Sendable {
             switch newValue {
             case .combination(let combination):
                 shortcut = combination
-                store.removeObject(forKey: Key.modifierKey)
+                store.removeObject(forKey: Key.recordingModifier)
             case .modifierKey(let key):
-                store.set(key.rawValue, forKey: Key.modifierKey)
+                store.set(key.rawValue, forKey: Key.recordingModifier)
             }
         }
     }
@@ -131,7 +131,7 @@ public final class Settings: Sendable {
     /// Whether the user ever chose a trigger, including keeping the default.
     /// The first-launch shortcut question appears only while this is false.
     public var hasStoredTrigger: Bool {
-        store.object(forKey: Key.modifierKey) != nil || store.object(forKey: Key.shortcutCode) != nil
+        store.object(forKey: Key.recordingModifier) != nil || store.object(forKey: Key.shortcutCode) != nil
     }
 
     public var autoPaste: Bool {
@@ -185,7 +185,7 @@ public final class Settings: Sendable {
         store.removeObject(forKey: Key.shortcutCode)
         store.removeObject(forKey: Key.shortcutModifiers)
         store.removeObject(forKey: Key.shortcutName)
-        store.removeObject(forKey: Key.modifierKey)
+        store.removeObject(forKey: Key.recordingModifier)
         store.removeObject(forKey: Key.autoPaste)
         store.removeObject(forKey: Key.vocabularyPrompt)
         store.removeObject(forKey: Key.translationTarget)
