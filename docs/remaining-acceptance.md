@@ -102,14 +102,25 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   `ModifierKeyGestureTests`, Speicherung und Vorrang alter Kürzel in
   `SettingsTests`; die Fenster der Abfrage wurden mit einem lokalen,
   nicht eingecheckten Testlauf gerendert und angesehen.
+- Live am 9. Oktober 2026 mit einem lokalen Testbuild aus `22ce2a9`
+  (Developer-ID-signiert, nicht notarisiert, gleiche Signaturanforderung wie
+  Build 9), separate Apple-Tastatur: Ohne gespeichertes Kürzel erschien die
+  Abfrage beim Start. Diktat per rechter Wahltaste und, nach Wechsel im Menü,
+  per Fn halten wurde jeweils in eine andere App eingefügt (laut App-Log 1,9 s
+  und 1,3 s nach dem Stopp). Die Bedienungshilfen-Freigabe von Build 9 galt
+  ohne neue Abfrage. Laut Basti startet ⌥L mit der rechten Wahltaste keine
+  Aufnahme; das Log kann das nicht belegen, weil eine nicht ausgelöste Taste
+  nichts protokolliert.
 
 **Offen / bekannte Grenzen:**
 
-- Einzeltasten live: Fn halten und rechte Wahltaste in fremden Apps, ⌥L für @
-  während die rechte Wahltaste gewählt ist, Abfrage beim ersten Start mit und
-  ohne Bedienungshilfen-Freigabe, Wirkung einer neu erteilten Freigabe ohne
-  Neustart. Die Fn-Taste wird nur beobachtet: Ohne „🌐 drücken für: Nichts“
-  öffnet macOS zusätzlich Emoji oder Diktat.
+- Einzeltasten live noch offen: Abfrage ohne Bedienungshilfen-Freigabe und
+  Wirkung einer neu erteilten Freigabe ohne Neustart, rechte Wahltaste länger
+  als 0,3 s halten und dann eine Taste drücken (Aufnahme wird abgebrochen und
+  aufbewahrt), MacBook-Tastatur. Die Fn-Taste wird nur beobachtet: Ohne
+  „🌐 drücken für: Nichts“ öffnet macOS zusätzlich Emoji oder Diktat. Auf der
+  separaten Apple-Tastatur mit Ziffernblock liegt Fn weit rechts; Basti nutzt
+  dort die rechte Wahltaste.
 - Preset F5: Auf MacBooks seit 2021 trägt F5 Apples Diktat-Symbol. Ob die Taste
   ohne „F1, F2 usw. als Standard-Funktionstasten verwenden“ oder gedrückte Fn
   als F5 bei OpenDictate ankommt, ist nicht belegt; ungeprüft und nicht
