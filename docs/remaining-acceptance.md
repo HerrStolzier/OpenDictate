@@ -108,13 +108,15 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   Abfrage beim Start. Diktat per rechter Wahltaste und, nach Wechsel im Menü,
   per Fn halten wurde jeweils in eine andere App eingefügt (laut App-Log 1,9 s
   und 1,3 s nach dem Stopp). Die Bedienungshilfen-Freigabe von Build 9 galt
-  ohne neue Abfrage. Laut Basti startet ⌥L mit der rechten Wahltaste keine
-  Aufnahme; das Log kann das nicht belegen, weil eine nicht ausgelöste Taste
-  nichts protokolliert.
+  ohne neue Abfrage. ⌥L mit der rechten Wahltaste als Kürzel ist live nicht
+  separat geprüft: Der ⌥L-Test lief laut App-Log mit Fn als Kürzel. Abgedeckt
+  ist der Fall offline in `ModifierKeyGestureTests` (fremde Taste während des
+  Haltens).
 
 **Offen / bekannte Grenzen:**
 
-- Einzeltasten live noch offen: Abfrage ohne Bedienungshilfen-Freigabe und
+- Einzeltasten live noch offen: ⌥L mit der rechten Wahltaste als Kürzel,
+  Abfrage ohne Bedienungshilfen-Freigabe und
   Wirkung einer neu erteilten Freigabe ohne Neustart, rechte Wahltaste länger
   als 0,3 s halten und dann eine Taste drücken (Aufnahme wird abgebrochen und
   aufbewahrt), MacBook-Tastatur. Die Fn-Taste wird nur beobachtet: Ohne
