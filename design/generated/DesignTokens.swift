@@ -179,6 +179,8 @@ public struct DesignTextStyle: Equatable, Sendable {
     public let size: Double
     public let lineHeight: Double
     public let weight: Int
+    /// Letter spacing as a fraction of `size` (CSS em); 0 when the style sets none.
+    public let tracking: Double
 }
 
 public enum DesignFont {
@@ -186,14 +188,24 @@ public enum DesignFont {
     public static let mono = "Geist Mono"
     public static let sans = "Geist"
 
-    public static let display = DesignTextStyle(family: pixel, size: 64.0, lineHeight: 64.0, weight: 400)
-    public static let title = DesignTextStyle(family: pixel, size: 40.0, lineHeight: 44.0, weight: 400)
-    public static let heading = DesignTextStyle(family: pixel, size: 24.0, lineHeight: 30.0, weight: 400)
-    public static let lead = DesignTextStyle(family: sans, size: 18.0, lineHeight: 28.0, weight: 400)
-    public static let body = DesignTextStyle(family: sans, size: 15.0, lineHeight: 24.0, weight: 400)
-    public static let strong = DesignTextStyle(family: sans, size: 15.0, lineHeight: 24.0, weight: 600)
-    public static let small = DesignTextStyle(family: sans, size: 13.0, lineHeight: 20.0, weight: 400)
-    public static let ui = DesignTextStyle(family: mono, size: 14.0, lineHeight: 20.0, weight: 600)
-    public static let label = DesignTextStyle(family: mono, size: 12.0, lineHeight: 16.0, weight: 400)
-    public static let code = DesignTextStyle(family: mono, size: 13.0, lineHeight: 20.0, weight: 400)
+    public static let display = DesignTextStyle(
+        family: pixel, size: 64.0, lineHeight: 64.0, weight: 400, tracking: -0.01)
+    public static let title = DesignTextStyle(
+        family: pixel, size: 40.0, lineHeight: 44.0, weight: 400, tracking: 0.0)
+    public static let heading = DesignTextStyle(
+        family: pixel, size: 24.0, lineHeight: 30.0, weight: 400, tracking: 0.0)
+    public static let lead = DesignTextStyle(
+        family: sans, size: 18.0, lineHeight: 28.0, weight: 400, tracking: 0.0)
+    public static let body = DesignTextStyle(
+        family: sans, size: 15.0, lineHeight: 24.0, weight: 400, tracking: 0.0)
+    public static let strong = DesignTextStyle(
+        family: sans, size: 15.0, lineHeight: 24.0, weight: 600, tracking: 0.0)
+    public static let small = DesignTextStyle(
+        family: sans, size: 13.0, lineHeight: 20.0, weight: 400, tracking: 0.0)
+    public static let ui = DesignTextStyle(
+        family: mono, size: 14.0, lineHeight: 20.0, weight: 600, tracking: 0.0)
+    public static let label = DesignTextStyle(
+        family: mono, size: 12.0, lineHeight: 16.0, weight: 400, tracking: 0.02)
+    public static let code = DesignTextStyle(
+        family: mono, size: 13.0, lineHeight: 20.0, weight: 400, tracking: 0.0)
 }

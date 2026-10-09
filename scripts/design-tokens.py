@@ -146,6 +146,13 @@ def swift_number(value: str) -> str:
     return repr(float(number))
 
 
+def swift_em(value: str) -> str:
+    match = re.fullmatch(r"(-?\d+(?:\.\d+)?)em", str(value))
+    if not match:
+        raise ValueError(f"unsupported letter spacing: {value}")
+    return repr(float(match.group(1)))
+
+
 def swift(tokens: dict) -> str:
     ids = themes(tokens)
     colours = resolve_colors(tokens)
@@ -169,6 +176,8 @@ def swift(tokens: dict) -> str:
         "  public let size: Double",
         "  public let lineHeight: Double",
         "  public let weight: Int",
+        "  /// Letter spacing as a fraction of `size` (CSS em); 0 when the style sets none.",
+        "  public let tracking: Double",
         "}",
         "",
         "public enum DesignFont {",
@@ -178,10 +187,11 @@ def swift(tokens: dict) -> str:
         out.append(f'  public static let {camel(name)} = "{primary}"')
     out.append("")
     for style in text_styles(tokens):
+        out.append(f"  public static let {camel(style['name'])} = DesignTextStyle(")
         out.append(
-            f"  public static let {camel(style['name'])} = DesignTextStyle("
-            f"family: {camel(style['family'])}, size: {swift_number(style['fontSize'])}, "
-            f"lineHeight: {swift_number(style['lineHeight'])}, weight: {int(style['fontWeight'])})"
+            f"    family: {camel(style['family'])}, size: {swift_number(style['fontSize'])}, "
+            f"lineHeight: {swift_number(style['lineHeight'])}, weight: {int(style['fontWeight'])}, "
+            f"tracking: {swift_em(style.get('letterSpacing', '0em'))})"
         )
     out.append("}")
     # Emit with the repository's swift-format indentation (4 spaces).

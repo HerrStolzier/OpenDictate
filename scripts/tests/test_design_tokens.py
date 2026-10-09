@@ -55,6 +55,9 @@ class DesignTokensTests(unittest.TestCase):
         self.assertEqual(MODULE.swift_number("22.5%"), "0.225")
         with self.assertRaises(ValueError):
             MODULE.swift_number("0.02em")
+        self.assertEqual(MODULE.swift_em("-0.01em"), "-0.01")
+        with self.assertRaises(ValueError):
+            MODULE.swift_em("1px")
 
 
 if __name__ == "__main__":
