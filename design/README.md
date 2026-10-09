@@ -40,8 +40,8 @@ geändert wurde, ohne die Dateien neu zu erzeugen.
 
 ## Stand je Oberfläche
 
-Noch keine Oberfläche nutzt diesen Ordner. Als erste wird die Website
-umgestellt (Entscheidung vom 9. Oktober 2026 im
+Noch keine Oberfläche nutzt diesen Ordner. Umgestellt wird in der Reihenfolge
+der Tabelle unten, die Website zuerst (Entscheidung vom 9. Oktober 2026 im
 [Entscheidungs-Log](../PROJECT.md#entscheidungen)). Die laufenden Betas erscheinen in
 der heutigen Optik; die Markenarbeit blockiert keine Beta
 ([PROJECT](../PROJECT.md#marken--und-gestaltungsrichtung)).
@@ -49,7 +49,8 @@ der heutigen Optik; die Markenarbeit blockiert keine Beta
 | Oberfläche | Wie sie das Designsystem übernimmt |
 | --- | --- |
 | Website (`website/`) | `tokens.css`, Schriften und SVGs in den Seitenordner kopieren; Entwurf der Startseite liegt in Claude Design |
-| macOS-App | `DesignTokens.swift` nach `OpenDictateCore`, Schriften im App-Bundle registrieren, `.icns` aus `app-icon-1024.png`, Blink in Panel und Menüleiste (`blink-16.svg`); bauen und prüfen nur auf dem Mac |
 | Linux | `gtk-colors.css` im Waybar-Beispiel, Blink als Symbol der Leistenanzeige |
-| Windows | Der WPF-Prototyp braucht ein XAML-ResourceDictionary; dafür bekommt der Generator eine weitere Ausgabe |
+| Support-Formular und Dashboard | `tokens.css` und Schriften übernehmen, sobald der Support live geht (privates Repo `support-desk`) |
+| macOS-App | `DesignTokens.swift` nach `OpenDictateCore`, Schriften im App-Bundle registrieren, `.icns` aus `app-icon-1024.png`, Blink in Panel und Menüleiste (`blink-16.svg`); bauen und prüfen nur auf dem Mac |
 | iOS | dieselbe Swift-Datei wie macOS |
+| Windows | Der WPF-Prototyp braucht ein XAML-ResourceDictionary; dafür bekommt der Generator eine weitere Ausgabe |
