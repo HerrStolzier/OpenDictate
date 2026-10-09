@@ -25,3 +25,8 @@ is licensed under the MIT License:
 > LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 > OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 > SOFTWARE.
+
+The Geist, Geist Mono and Geist Pixel fonts in `design/fonts/` are
+Copyright 2024 The Geist Project Authors
+(https://github.com/vercel/geist-font) and licensed under the SIL Open Font
+License 1.1; the full license is in [`design/fonts/OFL.txt`](design/fonts/OFL.txt).
