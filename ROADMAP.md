@@ -98,6 +98,11 @@ die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleiner
    [Installationsanleitung](docs/release-plans/installationsanleitung.md),
    Ankündigung (Kandidaten: Show HN, r/macapps, Mastodon/X).
 4. Beta laufen lassen und antworten.
+5. Neue Diktatanzeige im neuen Design (am 9. Oktober vorgezogen, gebaut nach
+   dem Start der Beta, vor der Linux-Leiste): Statt des Fensters zeigt eine
+   kleine Anzeige an der Notch mit Blink den Stand und schließt sich bei Erfolg
+   von selbst; „Beenden“ steht im Menü der Menüleiste
+   ([design/README.md](design/README.md#stand-je-oberfläche)).
 
 **Bekannte Grenzen, den Beta-Nutzern überlassen:** Feldtypen und Programme
 jenseits der [Kompatibilitätsmatrix](docs/compatibility-matrix.md); gehörte

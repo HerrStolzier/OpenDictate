@@ -41,16 +41,16 @@ geändert wurde, ohne die Dateien neu zu erzeugen.
 ## Stand je Oberfläche
 
 Noch keine Oberfläche nutzt diesen Ordner. Umgestellt wird in der Reihenfolge
-der Tabelle unten, die Website zuerst (Entscheidung vom 9. Oktober 2026 im
-[Entscheidungs-Log](../PROJECT.md#entscheidungen)). Die laufenden Betas erscheinen in
+der Tabelle unten: die Website zuerst, danach die Mac-App (Entscheidungen vom
+9. Oktober 2026 im [Entscheidungs-Log](../PROJECT.md#entscheidungen)). Die laufenden Betas erscheinen in
 der heutigen Optik; die Markenarbeit blockiert keine Beta
 ([PROJECT](../PROJECT.md#marken--und-gestaltungsrichtung)).
 
 | Oberfläche | Wie sie das Designsystem übernimmt |
 | --- | --- |
 | Website (`website/`) | `tokens.css`, Schriften und SVGs in den Seitenordner kopieren; Entwurf der Startseite liegt in Claude Design |
+| macOS-App | `DesignTokens.swift` nach `OpenDictateCore`, Schriften im App-Bundle registrieren, `.icns` aus `app-icon-1024.png`, neue Diktatanzeige an der Notch mit Blink statt des heutigen Fensters, Blink in der Menüleiste (`blink-16.svg`); gebaut nach dem Start der Mac-Beta; bauen und prüfen nur auf dem Mac |
 | Linux | `gtk-colors.css` im Waybar-Beispiel, Blink als Symbol der Leistenanzeige |
 | Support-Formular und Dashboard | `tokens.css` und Schriften übernehmen, sobald der Support live geht (privates Repo `support-desk`) |
-| macOS-App | `DesignTokens.swift` nach `OpenDictateCore`, Schriften im App-Bundle registrieren, `.icns` aus `app-icon-1024.png`, Blink in Panel und Menüleiste (`blink-16.svg`); bauen und prüfen nur auf dem Mac |
 | iOS | dieselbe Swift-Datei wie macOS |
 | Windows | Der WPF-Prototyp braucht ein XAML-ResourceDictionary; dafür bekommt der Generator eine weitere Ausgabe |
