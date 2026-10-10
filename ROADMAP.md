@@ -77,27 +77,21 @@ Manifest geprüft (SHA-256 `2e994cd8…e335768`) und in der privaten
 Release-Draft `v0.1.0-beta.8` hinterlegt. Teil B am 8. Oktober: installiert,
 erster Start mit Quarantäne und ein Diktat mit automatischem Einfügen bestanden
 ([Nachweis](docs/release-plans/evidence/2026-10-08-plan2-teil-b.md)). Übersetzung und die kleinen Punkte vom 7. Oktober sind im Code und
-offline geprüft ([Stand](docs/remaining-acceptance.md#macos)); ein echtes
-Diktat damit fehlt. Die Stufenpläne unter
+live in Build 9 geprüft: notarisiert, als Update per Finder installiert,
+Diktat mit Übersetzung nach Englisch, Originalaufnahme von Anfang an `0600`
+([Nachweis](docs/release-plans/evidence/2026-10-08-build9.md)). Die Stufenpläne unter
 [docs/release-plans/](docs/release-plans/01-interne-produktabnahme.md) bleiben
 die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleinert.
 
 **Nächste Schritte:**
 
-1. Übersetzung und die kleinen Punkte vom 7. Oktober: umgesetzt und offline
-   geprüft. Offen ist nur der Live-Nachweis im nächsten Kandidaten: ein Diktat
-   mit Übersetzung nach Englisch und die Dateirechte `0600` der
-   Originalaufnahme während der Aufnahme.
-2. Neuen Kandidaten bauen, signieren, notarisieren und einfrieren (Stufe 4 im
-   verkleinerten Umfang: Hash, Installation und Update geprüft, Produkttexte in
-   README, Website und App stimmen überein). Stufe 3 (Eigennutzung) schrumpft
-   auf: Basti nutzt den Kandidaten so lange selbst, bis er ihm vertraut; der
-   Messbogen ist optional. Die vollständige UX- und VoiceOver-Prüfung wird zur
-   bekannten Grenze der Beta.
-3. Mac-Beta (bisher Stufen 5 und 6): Pre-Release, Website mit „Beta“,
+1. Eigennutzung von Build 9 (Stufe 3, verkleinert): Basti nutzt ihn, bis er
+   ihm vertraut; der Messbogen ist optional. Die vollständige UX- und
+   VoiceOver-Prüfung bleibt bekannte Grenze der Beta.
+2. Mac-Beta (bisher Stufen 5 und 6): Pre-Release, Website mit „Beta“,
    [Installationsanleitung](docs/release-plans/installationsanleitung.md),
    Ankündigung (Kandidaten: Show HN, r/macapps, Mastodon/X).
-4. Beta laufen lassen und antworten.
+3. Beta laufen lassen und antworten.
 
 **Bekannte Grenzen, den Beta-Nutzern überlassen:** Feldtypen und Programme
 jenseits der [Kompatibilitätsmatrix](docs/compatibility-matrix.md); gehörte
@@ -205,6 +199,7 @@ Mehrsprachigkeit ohne Umschalten, Datenschutz und schnellem Zugriff.
 
 | Datum | Ergebnis | Nachweis |
 | --- | --- | --- |
+| 8. Oktober 2026 | macOS Build 9 aus `46103b0`: notarisiert, als Update per Finder installiert, Diktat mit Übersetzung nach Englisch, Originalaufnahme von Anfang an `0600` (PR #58). | [Nachweis](docs/release-plans/evidence/2026-10-08-build9.md) |
 | 8. Oktober 2026 | macOS Stufe 2 Teil B: Build 8 installiert, erster Start mit Quarantäne, Diktat mit Einfügen. Beenden während der Transkription als bekannte Grenze eingetragen. | [Nachweis](docs/release-plans/evidence/2026-10-08-plan2-teil-b.md) |
 | 8. Oktober 2026 | Linux: Beta-Anleitung in `linux/README.md` und Arch-Paket ([PKGBUILD](linux/packaging/arch/PKGBUILD)); von Basti auf omarchy installiert, Diktat mit Übersetzung über das Paket (PR #57). | [Live-Nachweise](docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026) |
 | 7. Oktober 2026 | Linux: Abbruch und Netzausfall während der Transkription behalten die Aufnahme; Zeitlimits auf Sekunden statt zwei Minuten (PR #51). | [Live-Nachweise](docs/linux-live-2026-10-05-bis-07.md) |

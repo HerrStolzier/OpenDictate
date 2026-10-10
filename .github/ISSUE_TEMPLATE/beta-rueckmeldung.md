@@ -9,13 +9,15 @@ Dieses Issue ist öffentlich. Keine Namen, keine privaten Texte, niemals
 API-Schlüssel oder Audiodateien. Nur unverfängliche Testsätze.
 -->
 
-**Build:** <!-- z. B. 0.1.0 Build 8 (steht unter „Über OpenDictate …“) -->
+**Build:** <!-- z. B. 0.1.0 Build 9 (steht unter „Über OpenDictate …“) -->
 
 **macOS-Version:** <!-- Apple-Menü → Über diesen Mac, z. B. 15.4 -->
 
 **Mac-Modell:** <!-- z. B. MacBook Air M2 -->
 
 **Ziel-App und Feld:** <!-- z. B. Safari, Antwortfeld in einem Webmail -->
+
+**Übersetzung:** <!-- aus oder Zielsprache, z. B. Englisch -->
 
 **Was gesagt:**
 <!-- Der Satz, wie du ihn gesprochen hast -->

@@ -2,7 +2,7 @@
 
 Native dictation for Apple Silicon Macs with macOS 14 and newer: press a
 shortcut, speak, then work with text in your chosen application. This is the
-scope of the planned first public Mac release. OpenDictate uses your own OpenAI API key.
+scope of the first public Mac beta. OpenDictate uses your own OpenAI API key.
 Audio is sent to OpenAI over HTTPS; transcription incurs separate API charges.
 
 The Windows development snapshot and its separate acceptance limits are in
@@ -12,8 +12,9 @@ the instructions below describe the macOS app.
 
 ## First dictation
 
-You need a Mac, internet access and an OpenAI API key. A public signed and
-notarized download is not available yet. GitHub CI also retains explicitly
+You need a Mac, internet access and an OpenAI API key. The signed and notarized beta is
+a [pre-release on GitHub](https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.9);
+the [install guide](docs/release-plans/installationsanleitung.md) walks through it. GitHub CI also retains explicitly
 labelled [development archives](docs/development.md#ci-development-archives)
 for later testing. To build from source, use Swift 6 on macOS:
 
