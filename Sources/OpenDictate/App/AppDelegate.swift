@@ -228,10 +228,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// registration stays in place when the new one cannot be installed.
     @discardableResult
     private func activateTrigger(_ trigger: RecordingTrigger, announce: Bool) -> Bool {
+        // A pending watch means the status still warns about the replaced
+        // single key's missing permission.
+        let replacesKeyWarning = keyPermissionWatch != nil
         switch trigger {
         case .combination(let shortcut):
             guard registerHotKey(announce: announce, shortcut: shortcut) else { return false }
             stopModifierMonitor()
+            if replacesKeyWarning, !announce, flow.state == .idle { updateStatus("Bereit") }
         case .modifierKey(let key):
             let monitor = ModifierKeyMonitor(key: key) { [weak self] in self?.handleModifierGesture($0) }
             guard monitor.start() else {
@@ -248,7 +252,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             hotKey.unregisterCurrent()
             AppLog.write("Single-key trigger active: \(key.rawValue)")
             if ModifierKeyMonitor.hasPermission {
-                if announce { updateStatus("Bereit") }
+                if announce || (replacesKeyWarning && flow.state == .idle) { updateStatus("Bereit") }
             } else {
                 updateStatus("Freigabe für Bedienungshilfen fehlt – Taste wird nicht erkannt")
                 watchForKeyPermission()
