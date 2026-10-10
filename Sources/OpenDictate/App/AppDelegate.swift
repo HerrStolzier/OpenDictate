@@ -863,7 +863,14 @@ extension AppDelegate: MenuBarControllerDelegate {
                 case .modifierKey: hotKey.unregisterCurrent()
                 }
             })
-        let chosen = ShortcutSetupPrompt.run(tester: tester)
+        let keyboards = KeyboardInventory.connectedKeyboards()
+        let recommended = ModifierKey.recommended(for: keyboards)
+        let devices = keyboards.map {
+            "\(String($0.vendorID, radix: 16)):\(String($0.productID, radix: 16))\($0.isBuiltIn ? " built-in" : "")"
+        }
+        AppLog.write(
+            "Shortcut recommendation: \(recommended.rawValue) for keyboards [\(devices.joined(separator: ", "))]")
+        let chosen = ShortcutSetupPrompt.run(tester: tester, recommended: recommended)
         guard lifecycle.isCurrent(operation) else { return }
         guard let chosen, chosen != previous else {
             Config.settings.trigger = previous

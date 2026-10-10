@@ -26,11 +26,12 @@ enum ShortcutSetupPrompt {
     private static let customTitle = "Eigenes Kürzel …"
 
     /// Returns the confirmed trigger, or nil when the user closed the question.
-    static func run(tester: Tester) -> RecordingTrigger? {
-        let choices = RecordingTrigger.setupChoices
+    /// `recommended` comes first and is preselected.
+    static func run(tester: Tester, recommended: ModifierKey) -> RecordingTrigger? {
+        let choices = RecordingTrigger.setupChoices(recommending: recommended)
         var selection = 0
         while true {
-            guard let index = choose(selected: selection) else { return nil }
+            guard let index = choose(choices, recommended: recommended, selected: selection) else { return nil }
             let trigger: RecordingTrigger
             if index == choices.count {
                 guard let custom = ShortcutCaptureView.prompt() else {
@@ -49,13 +50,15 @@ enum ShortcutSetupPrompt {
         }
     }
 
-    private static func title(for trigger: RecordingTrigger) -> String {
-        switch trigger {
-        case .modifierKey(.fn): "Fn halten (Empfehlung)"
-        case .modifierKey(.rightOption): "Rechte Wahltaste"
-        case .combination(let shortcut) where shortcut == .controlOptionD: "⌃⌥D"
-        case .combination(let shortcut): shortcut.displayName
-        }
+    private static func title(for trigger: RecordingTrigger, recommended: ModifierKey) -> String {
+        let title =
+            switch trigger {
+            case .modifierKey(.fn): "Fn halten"
+            case .modifierKey(.rightOption): "Rechte Wahltaste"
+            case .combination(let shortcut) where shortcut == .controlOptionD: "⌃⌥D"
+            case .combination(let shortcut): shortcut.displayName
+            }
+        return trigger == .modifierKey(recommended) ? "\(title) (Empfehlung)" : title
     }
 
     static let fnSystemHint =
@@ -78,15 +81,22 @@ enum ShortcutSetupPrompt {
 
     // MARK: - Choice
 
-    private static func choose(selected: Int) -> Int? {
+    private static func choose(
+        _ choices: [RecordingTrigger], recommended: ModifierKey, selected: Int
+    ) -> Int? {
         let alert = NSAlert()
         alert.messageText = "Wie willst du die Aufnahme starten?"
-        alert.informativeText = "Du kannst das später im Menü unter „Tastenkombination“ ändern."
+        alert.informativeText =
+            (recommended == .rightOption
+                ? "Erkannt ist eine Tastatur mit Ziffernblock oder eines anderen Herstellers. Dort liegt "
+                    + "Fn oft weit weg oder kommt bei macOS nicht an, deshalb ist die rechte Wahltaste "
+                    + "vorausgewählt. "
+                : "") + "Du kannst das später im Menü unter „Tastenkombination“ ändern."
         alert.alertStyle = .informational
         alert.addButton(withTitle: "Weiter")
         alert.addButton(withTitle: "Später").keyEquivalent = "\u{1b}"
-        let titles = RecordingTrigger.setupChoices.map { title(for: $0) } + [customTitle]
-        let hints = RecordingTrigger.setupChoices.map { hint(for: $0) } + [hint(for: nil)]
+        let titles = choices.map { title(for: $0, recommended: recommended) } + [customTitle]
+        let hints = choices.map { hint(for: $0) } + [hint(for: nil)]
         let view = ChoiceView(titles: titles, hints: hints, selected: selected)
         alert.accessoryView = view
         alert.window.initialFirstResponder = view.radios[selected]

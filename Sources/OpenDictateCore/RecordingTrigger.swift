@@ -62,6 +62,46 @@ public enum ModifierKey: String, CaseIterable, Sendable {
     }
 }
 
+/// A connected keyboard as the HID registry describes it. The product name is
+/// left out on purpose: users can rename keyboards, and names may be personal.
+public struct KeyboardDevice: Equatable, Sendable {
+    public let vendorID: Int
+    public let productID: Int
+    public let isBuiltIn: Bool
+
+    public init(vendorID: Int, productID: Int, isBuiltIn: Bool) {
+        self.vendorID = vendorID
+        self.productID = productID
+        self.isBuiltIn = isBuiltIn
+    }
+}
+
+extension ModifierKey {
+    // Apple's USB and Bluetooth vendor IDs.
+    static let appleVendorIDs: Set<Int> = [0x05AC, 0x004C]
+    // Apple keyboards with numeric keypad, as listed in Linux
+    // drivers/hid/hid-ids.h: wired aluminium (ALU, ALU_REVB; ANSI/ISO/JIS)
+    // and Magic Keyboard (2015, 2021, 2024).
+    static let appleNumpadProductIDs: Set<Int> = [
+        0x0220, 0x0221, 0x0222, 0x024F, 0x0250, 0x0251, 0x026C, 0x029F, 0x0322
+    ]
+
+    /// The single key to recommend for these keyboards. Fn sits next to the
+    /// left Control only on Apple's compact layouts. With a numeric keypad it
+    /// moves to the far-right cluster, and other brands usually handle Fn in
+    /// their own firmware, so macOS may never see it. The right Option key
+    /// exists on every Mac layout. With no keyboard detected, Fn stays the
+    /// recommendation.
+    public static func recommended(for keyboards: [KeyboardDevice]) -> ModifierKey {
+        let fnIsHandy = keyboards.allSatisfy { keyboard in
+            keyboard.isBuiltIn
+                || (appleVendorIDs.contains(keyboard.vendorID)
+                    && !appleNumpadProductIDs.contains(keyboard.productID))
+        }
+        return fnIsHandy ? .fn : .rightOption
+    }
+}
+
 /// What starts and stops a dictation: a Carbon key combination or a single
 /// modifier key.
 public enum RecordingTrigger: Equatable, Sendable {
@@ -74,10 +114,13 @@ public enum RecordingTrigger: Equatable, Sendable {
     public static let menuChoices: [RecordingTrigger] =
         ModifierKey.allCases.map { .modifierKey($0) } + HotKeyShortcut.presets.map { .combination($0) }
 
-    /// The first-launch choices in their recommended order; the first is preselected.
-    public static let setupChoices: [RecordingTrigger] = [
-        .modifierKey(.fn), .modifierKey(.rightOption), .combination(.controlOptionD)
-    ]
+    /// The first-launch choices; the recommended single key comes first and is
+    /// preselected, the other single key second, a combination without extra
+    /// permission third.
+    public static func setupChoices(recommending key: ModifierKey) -> [RecordingTrigger] {
+        let other: ModifierKey = key == .fn ? .rightOption : .fn
+        return [.modifierKey(key), .modifierKey(other), .combination(.controlOptionD)]
+    }
 
     public var displayName: String {
         switch self {

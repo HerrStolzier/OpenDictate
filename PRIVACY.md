@@ -93,6 +93,11 @@ which shortcut is active, when a hold was interrupted and when the permission
 arrived. Key combinations use the system hotkey registration
 and are not observed this way.
 
+To preselect a key in the first-launch shortcut question, OpenDictate reads the
+vendor and product IDs of connected keyboards from the macOS I/O Registry. It
+does not open the devices, read their names or send these IDs anywhere; the log
+records only the IDs and the resulting recommendation.
+
 ## Failed recordings
 
 When transcription fails, OpenDictate keeps a recovery copy under

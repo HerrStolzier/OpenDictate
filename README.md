@@ -30,8 +30,10 @@ open .build/OpenDictate.app
    Accessibility access; clipboard-only use does not need that permission.
 3. After the key is set up, the app asks once how you want to start recording
    (also once after an update, if no shortcut was ever chosen):
-   hold **Fn/Globe** (recommended), the **right Option key**, or
-   **Control+Option+D**, or a custom shortcut. A test step shows whether the
+   hold **Fn/Globe**, the **right Option key**, or **Control+Option+D**, or a
+   custom shortcut. On a MacBook or a compact Apple keyboard, Fn/Globe is
+   preselected; with an Apple keyboard with numeric keypad or another brand,
+   where Fn sits far away or may not reach macOS, the right Option key is. A test step shows whether the
    key reaches OpenDictate. Closing the question keeps **Option+Shift+Space**.
 4. Select the destination text field. Press your shortcut to record, speak,
    then press it again to stop; with a held key, release it to stop. Each

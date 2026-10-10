@@ -113,8 +113,20 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   ist der Fall offline in `ModifierKeyGestureTests` (fremde Taste während des
   Haltens).
 
+- Empfehlung je Tastatur (nach PR #63): Die Abfrage wählt Fn bei eingebauter
+  oder kompakter Apple-Tastatur vor, sonst die rechte Wahltaste. Grundlage sind
+  Hersteller- und Produkt-ID aus der I/O Registry (Ziffernblock-Modelle laut
+  Linux `hid-ids.h`), nicht der umbenennbare Name. Offline in
+  `ModifierKeyRecommendationTests`; lokal am 10. Oktober auf Bastis Mac
+  gelesen: ein Magic Keyboard mit Ziffernblock (`004C:026C`) ergibt die rechte
+  Wahltaste, das Fenster wurde gerendert und angesehen.
+
 **Offen / bekannte Grenzen:**
 
+- Empfehlung je Tastatur: MacBook-Tastatur und Fremdtastatur am echten Gerät
+  ungeprüft. Jedes HID-Gerät mit Tastatur-Schnittstelle zählt, auch
+  Funkempfänger von Mäusen, YubiKeys oder virtuelle Tastaturen; dann wird die
+  rechte Wahltaste vorgeschlagen, obwohl Fn passen würde.
 - Einzeltasten live noch offen: ⌥L mit der rechten Wahltaste als Kürzel,
   Abfrage ohne Bedienungshilfen-Freigabe und
   Wirkung einer neu erteilten Freigabe ohne Neustart, rechte Wahltaste länger
