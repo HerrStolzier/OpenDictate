@@ -124,7 +124,9 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
 **Offen / bekannte Grenzen:**
 
 - Empfehlung je Tastatur: MacBook-Tastatur und Fremdtastatur am echten Gerät
-  ungeprüft. Jedes HID-Gerät mit Tastatur-Schnittstelle zählt, auch
+  ungeprüft. Jedes HID-Gerät mit Tastatur-Schnittstelle oder einer
+  Tastatur-Collection neben seiner Hauptfunktion zählt, auch Gaming-Mäuse mit
+  Makrotasten,
   Funkempfänger von Mäusen, YubiKeys oder virtuelle Tastaturen; dann wird die
   rechte Wahltaste vorgeschlagen, obwohl Fn passen würde.
 - Einzeltasten live noch offen: ⌥L mit der rechten Wahltaste als Kürzel,
