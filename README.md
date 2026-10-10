@@ -237,8 +237,8 @@ See [CHECKS.md](CHECKS.md), [docs/performance-decisions.md](docs/performance-dec
 [docs/audio-quality-fixtures.md](docs/audio-quality-fixtures.md),
 [docs/remaining-acceptance.md](docs/remaining-acceptance.md) and the
 [project roadmap](ROADMAP.md). Live microphone, target-app, VoiceOver and paid
-API checks remain separate. Streaming and hold-to-talk are not enabled; the
-roadmap lists them as future requests, not current app behavior.
+API checks remain separate. Streaming is not enabled; the roadmap lists it as
+a future request, not current app behavior.
 
 ## Development and project context
 
