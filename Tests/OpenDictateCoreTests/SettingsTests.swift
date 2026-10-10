@@ -76,6 +76,32 @@ struct SettingsTests {
         #expect(s.shortcut == .default)
     }
 
+    @Test("Without a stored choice the first-launch question is due and the default applies")
+    func noStoredTrigger() {
+        let s = settings()
+        #expect(!s.hasStoredTrigger)
+        #expect(s.trigger == .default)
+    }
+
+    @Test("A combination stored by an earlier version stays active and counts as chosen")
+    func existingCombinationIsKept() {
+        let s = settings(stored: ["hotKeyCode": 2, "hotKeyModifiers": 6144])
+        #expect(s.hasStoredTrigger)
+        #expect(s.trigger == .combination(.controlOptionD))
+    }
+
+    @Test("A single key wins over the combination kept next to it, and switching back clears it")
+    func modifierKeyRoundTrip() {
+        let s = settings()
+        s.trigger = .combination(.f5)
+        s.trigger = .modifierKey(.fn)
+        #expect(s.trigger == .modifierKey(.fn))
+        #expect(s.shortcut == .f5)
+        s.trigger = .combination(.controlOptionD)
+        #expect(s.trigger == .combination(.controlOptionD))
+        #expect(settings(stored: ["recordingModifierKey": "capsLock"]).trigger == .default)
+    }
+
     // MARK: - Translation
 
     @Test("Translation is off until a target is chosen, and off again when cleared")
@@ -108,13 +134,15 @@ struct SettingsTests {
         s.model = .gpt4oMiniTranscribe
         s.language = "en"
         s.shortcut = .f5
+        s.trigger = .modifierKey(.rightOption)
         s.autoPaste = false
         s.prompt = "stored prompt"
         s.translationTarget = "fr"
         s.resetToEnvironment()
         #expect(s.model == .whisper1)
         #expect(s.language == "de")
-        #expect(s.shortcut == .default)
+        #expect(s.trigger == .default)
+        #expect(!s.hasStoredTrigger)
         #expect(s.autoPaste)
         #expect(s.prompt == "environment prompt")
         #expect(s.translationTarget == nil)

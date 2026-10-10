@@ -13,7 +13,7 @@ enum Config {
     static var model: TranscriptionModel { settings.model }
     static var language: String? { settings.language }
     static var prompt: String? { settings.prompt }
-    static var shortcut: HotKeyShortcut { settings.shortcut }
+    static var trigger: RecordingTrigger { settings.trigger }
 
     static let minimumRecordingDuration: TimeInterval = 1.0
     static let maximumRecordingDuration: TimeInterval = 90.0

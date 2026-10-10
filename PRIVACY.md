@@ -82,6 +82,17 @@ identity checks cannot atomically lock another application's focus or prove that
 it actually applied an accepted insertion command. The UI therefore asks the
 user to check the target, and preserves the manual text recovery path.
 
+## Single-key shortcut
+
+When Fn/Globe or the right Option key is the shortcut, OpenDictate observes
+keyboard modifier changes, key presses and mouse clicks in all applications
+through macOS event monitors. It only checks whether the chosen key was pressed
+on its own; it does not read, store, log or send which keys were typed, and the
+events still reach the frontmost application unchanged. The log records only
+which shortcut is active, when a hold was interrupted and when the permission
+arrived. Key combinations use the system hotkey registration
+and are not observed this way.
+
 ## Failed recordings
 
 When transcription fails, OpenDictate keeps a recovery copy under

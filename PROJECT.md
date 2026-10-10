@@ -130,9 +130,10 @@ der ersten Beta und blockiert keine ([ROADMAP](ROADMAP.md#plattformübergreifend
 - Keine Nachbearbeitung: OpenDictate glättet, formatiert oder kürzt nicht.
   Nutzer, die das erwarten, finden es bei anderen Apps; die Website soll das
   erklären.
-- Streaming und Echtzeit-Übersetzung sind gewünscht, Hold-to-talk und
-  Einzeltaste seit dem 9. Oktober beschlossen; alle vier sind nicht
-  implementiert und kein Teil des Funktionsumfangs; Stand in der
+- Streaming und Echtzeit-Übersetzung sind gewünscht und nicht implementiert.
+  Hold-to-talk und Einzeltaste sind seit dem 9. Oktober beschlossen und auf
+  macOS gebaut, aber in keinem veröffentlichten Build; bis dahin sind alle
+  vier kein Teil des Funktionsumfangs. Stand in der
   [ROADMAP](ROADMAP.md#plattformübergreifend).
 - Die Betas sind keine öffentlichen Releases mit Supportzusage. Jede
   Veröffentlichung braucht Bastis ausdrückliches Go.

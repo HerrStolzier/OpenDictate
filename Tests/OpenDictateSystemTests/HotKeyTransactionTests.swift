@@ -21,4 +21,19 @@ struct HotKeyTransactionTests {
         #expect(manager.registeredShortcut == .controlOptionD)
         #expect(removed == 1)
     }
+
+    @Test func handingOverToSingleKeyReleasesTheCombination() throws {
+        var removed = 0
+        let manager = HotKeyManager(
+            register: { _, _ in EventHotKeyRef(bitPattern: 1)! }, unregister: { _ in removed += 1 })
+        try manager.register(.default, action: {})
+        manager.unregisterCurrent()
+        #expect(manager.registeredShortcut == nil)
+        #expect(removed == 1)
+        manager.unregisterCurrent()
+        #expect(removed == 1)
+        // Switching back registers the combination again instead of assuming it is still active.
+        try manager.register(.default, action: {})
+        #expect(manager.registeredShortcut == .default)
+    }
 }

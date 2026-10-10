@@ -95,8 +95,38 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   Aufnahme im App-Log, Tests schreiben in eine temporäre Logdatei (Zeilenzahl
   des echten Logs vor und nach `swift test` gleich), „ca.“ beim Preis des
   Mini-Modells.
+- Einzeltasten und Kürzel-Abfrage (nach Build 9, noch in keinem Kandidaten):
+  Fn/Globus halten und rechte Wahltaste über NSEvent-Monitore, Abfrage beim
+  ersten Start nach dem API-Schlüssel mit Tastendruck-Test. Offline geprüft:
+  Erkennung von Antippen, Halten, fremder Taste und Mindestdauer in
+  `ModifierKeyGestureTests`, Speicherung und Vorrang alter Kürzel in
+  `SettingsTests`; die Fenster der Abfrage wurden mit einem lokalen,
+  nicht eingecheckten Testlauf gerendert und angesehen.
+- Live am 9. Oktober 2026 mit einem lokalen Testbuild aus `22ce2a9`
+  (Developer-ID-signiert, nicht notarisiert, gleiche Signaturanforderung wie
+  Build 9), separate Apple-Tastatur: Ohne gespeichertes Kürzel erschien die
+  Abfrage beim Start. Diktat per rechter Wahltaste und, nach Wechsel im Menü,
+  per Fn halten wurde jeweils in eine andere App eingefügt (laut App-Log 1,9 s
+  und 1,3 s nach dem Stopp). Die Bedienungshilfen-Freigabe von Build 9 galt
+  ohne neue Abfrage. ⌥L mit der rechten Wahltaste als Kürzel ist live nicht
+  separat geprüft: Der ⌥L-Test lief laut App-Log mit Fn als Kürzel. Abgedeckt
+  ist der Fall offline in `ModifierKeyGestureTests` (fremde Taste während des
+  Haltens).
 
 **Offen / bekannte Grenzen:**
+
+- Einzeltasten live noch offen: ⌥L mit der rechten Wahltaste als Kürzel,
+  Abfrage ohne Bedienungshilfen-Freigabe und
+  Wirkung einer neu erteilten Freigabe ohne Neustart, rechte Wahltaste länger
+  als 0,3 s halten und dann eine Taste drücken (Aufnahme wird abgebrochen und
+  aufbewahrt), MacBook-Tastatur. Die Fn-Taste wird nur beobachtet: Ohne
+  „🌐 drücken für: Nichts“ öffnet macOS zusätzlich Emoji oder Diktat. Auf der
+  separaten Apple-Tastatur mit Ziffernblock liegt Fn weit rechts; Basti nutzt
+  dort die rechte Wahltaste.
+- Preset F5: Auf MacBooks seit 2021 trägt F5 Apples Diktat-Symbol. Ob die Taste
+  ohne „F1, F2 usw. als Standard-Funktionstasten verwenden“ oder gedrückte Fn
+  als F5 bei OpenDictate ankommt, ist nicht belegt; ungeprüft und nicht
+  umgebaut.
 
 - Beenden der App während der Transkription: nur ohne Netz geprüft. Live
   antwortete OpenAI in zwei Versuchen am 8. Oktober nach gut 3 s, bevor die

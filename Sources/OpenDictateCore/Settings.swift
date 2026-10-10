@@ -21,6 +21,7 @@ public final class Settings: Sendable {
         public static let shortcutCode = "hotKeyCode"
         public static let shortcutModifiers = "hotKeyModifiers"
         public static let shortcutName = "hotKeyName"
+        public static let recordingModifier = "recordingModifierKey"
         public static let autoPaste = "autoPaste"
         public static let vocabularyPrompt = "vocabularyPrompt"
         public static let translationTarget = "translationTarget"
@@ -106,6 +107,33 @@ public final class Settings: Sendable {
         }
     }
 
+    /// The active trigger. A stored single key wins; the Carbon combination
+    /// stays stored next to it so older builds sharing these defaults still
+    /// find the last combination.
+    public var trigger: RecordingTrigger {
+        get {
+            if let raw = store.object(forKey: Key.recordingModifier) as? String, let key = ModifierKey(rawValue: raw) {
+                return .modifierKey(key)
+            }
+            return .combination(shortcut)
+        }
+        set {
+            switch newValue {
+            case .combination(let combination):
+                shortcut = combination
+                store.removeObject(forKey: Key.recordingModifier)
+            case .modifierKey(let key):
+                store.set(key.rawValue, forKey: Key.recordingModifier)
+            }
+        }
+    }
+
+    /// Whether the user ever chose a trigger, including keeping the default.
+    /// The first-launch shortcut question appears only while this is false.
+    public var hasStoredTrigger: Bool {
+        store.object(forKey: Key.recordingModifier) != nil || store.object(forKey: Key.shortcutCode) != nil
+    }
+
     public var autoPaste: Bool {
         get { store.object(forKey: Key.autoPaste) as? Bool ?? true }
         set { store.set(newValue, forKey: Key.autoPaste) }
@@ -157,6 +185,7 @@ public final class Settings: Sendable {
         store.removeObject(forKey: Key.shortcutCode)
         store.removeObject(forKey: Key.shortcutModifiers)
         store.removeObject(forKey: Key.shortcutName)
+        store.removeObject(forKey: Key.recordingModifier)
         store.removeObject(forKey: Key.autoPaste)
         store.removeObject(forKey: Key.vocabularyPrompt)
         store.removeObject(forKey: Key.translationTarget)
