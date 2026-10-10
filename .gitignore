@@ -14,3 +14,4 @@ linux/target/
 *.key
 *.local
 CLAUDE.local.md
+__pycache__/

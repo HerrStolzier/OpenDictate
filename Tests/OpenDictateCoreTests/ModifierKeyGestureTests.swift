@@ -91,3 +91,52 @@ struct ModifierKeyGestureTests {
         #expect(ModifierKey.fn.otherModifiersHeld(rawModifierFlags: (1 << 23) | (1 << 20)))
     }
 }
+
+@Suite("Single key recommended for the connected keyboards")
+struct ModifierKeyRecommendationTests {
+    private let builtIn = KeyboardDevice(vendorID: 0x05AC, productID: 0x0343, isBuiltIn: true)
+    private let compactMagic = KeyboardDevice(vendorID: 0x004C, productID: 0x029C, isBuiltIn: false)
+    private let numpadMagic = KeyboardDevice(vendorID: 0x004C, productID: 0x026C, isBuiltIn: false)
+    private let otherBrand = KeyboardDevice(vendorID: 0x046D, productID: 0xB35B, isBuiltIn: false)
+
+    @Test("A MacBook keyboard or a compact Magic Keyboard gets Fn")
+    func compactLayoutsGetFn() {
+        #expect(ModifierKey.recommended(for: [builtIn]) == .fn)
+        #expect(ModifierKey.recommended(for: [builtIn, compactMagic]) == .fn)
+    }
+
+    @Test("A Magic Keyboard with numeric keypad gets the right Option key, even next to a MacBook")
+    func numpadGetsRightOption() {
+        #expect(ModifierKey.recommended(for: [numpadMagic]) == .rightOption)
+        #expect(ModifierKey.recommended(for: [builtIn, numpadMagic]) == .rightOption)
+        #expect(
+            ModifierKey.recommended(for: [KeyboardDevice(vendorID: 0x05AC, productID: 0x0322, isBuiltIn: false)])
+                == .rightOption)
+        // Older wired aluminium keyboard with keypad.
+        #expect(
+            ModifierKey.recommended(for: [KeyboardDevice(vendorID: 0x05AC, productID: 0x0250, isBuiltIn: false)])
+                == .rightOption)
+    }
+
+    @Test("Another brand gets the right Option key, because macOS may not see its Fn")
+    func otherBrandGetsRightOption() {
+        #expect(ModifierKey.recommended(for: [otherBrand]) == .rightOption)
+        // Without readable IDs the device is treated like another brand.
+        #expect(
+            ModifierKey.recommended(for: [KeyboardDevice(vendorID: 0, productID: 0, isBuiltIn: false)]) == .rightOption)
+    }
+
+    @Test("Without a detected keyboard Fn stays the recommendation")
+    func nothingDetected() {
+        #expect(ModifierKey.recommended(for: []) == .fn)
+    }
+
+    @Test("The recommended key comes first, the other single key second, Control+Option+D third")
+    func setupOrder() {
+        #expect(
+            RecordingTrigger.setupChoices(recommending: .rightOption) == [
+                .modifierKey(.rightOption), .modifierKey(.fn), .combination(.controlOptionD)
+            ])
+        #expect(RecordingTrigger.setupChoices(recommending: .fn).first == .modifierKey(.fn))
+    }
+}
