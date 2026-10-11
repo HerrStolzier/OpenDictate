@@ -6,6 +6,7 @@ import OpenDictateCore
 protocol MenuBarControllerDelegate: AnyObject {
     func menuBarDidConfigureShortcut()
     func menuBarDidConfigureVocabulary()
+    func menuBarDidConfigureCustomServer()
     func menuBarDidCancel(discard: Bool)
     func menuBarDidCopyLastText()
     func menuBarDidClearLastText()
@@ -125,6 +126,9 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         let vocabulary = makeActionItem("Vokabular und Kontext …", action: #selector(configureVocabulary))
         vocabulary.identifier = NSUserInterfaceItemIdentifier("vocabulary")
         menu.addItem(vocabulary)
+        let customServer = makeActionItem("Eigener Server …", action: #selector(configureCustomServer))
+        customServer.identifier = NSUserInterfaceItemIdentifier("customServer")
+        menu.addItem(customServer)
 
         menu.addItem(
             NSMenuItem(
@@ -295,7 +299,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     private func refreshActions() {
         let state = delegate?.menuBarState ?? .idle
-        for id in ["shortcut", "language", "translation", "model", "apiKey", "vocabulary", "autoPaste"] {
+        for id in ["shortcut", "language", "translation", "model", "apiKey", "vocabulary", "customServer", "autoPaste"]
+        {
             settingsMenu?.items.first { $0.identifier?.rawValue == id }?.isEnabled = state == .idle
         }
         recordingMenuItem?.title = state == .recording ? "Aufnahme stoppen" : "Aufnahme starten"
@@ -504,6 +509,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     @objc private func configureShortcut() { delegate?.menuBarDidConfigureShortcut() }
     @objc private func configureVocabulary() { delegate?.menuBarDidConfigureVocabulary() }
+    @objc private func configureCustomServer() { delegate?.menuBarDidConfigureCustomServer() }
     @objc private func cancelOperation() { delegate?.menuBarDidCancel(discard: false) }
     @objc private func discardOperation() { delegate?.menuBarDidCancel(discard: true) }
     @objc private func copyLastText() { delegate?.menuBarDidCopyLastText() }

@@ -2,7 +2,9 @@ import Foundation
 import OpenDictateCore
 
 struct TranscriptionOptions: Sendable {
-    let apiKey: String
+    /// nil for a server on this Mac: it gets no key, and none is required.
+    let apiKey: String?
+    let endpoint: ServiceEndpoint
     let model: TranscriptionModel
     let language: String?
     let prompt: String?
@@ -12,10 +14,12 @@ struct TranscriptionOptions: Sendable {
     let translationModel: String
 
     init(
-        apiKey: String, model: TranscriptionModel, language: String?, prompt: String?,
-        translationTarget: String? = nil, translationModel: String = Translation.defaultModel
+        apiKey: String?, model: TranscriptionModel, language: String?, prompt: String?,
+        translationTarget: String? = nil, translationModel: String = Translation.defaultModel,
+        endpoint: ServiceEndpoint = .openAI
     ) {
         self.apiKey = apiKey
+        self.endpoint = endpoint
         self.model = model
         self.language = language
         self.prompt = prompt
@@ -24,13 +28,28 @@ struct TranscriptionOptions: Sendable {
     }
 
     static func current() throws -> Self {
-        guard let key = Config.apiKey else { throw OpenDictateError.missingAPIKey }
+        // An invalid configured address stops the dictation; falling back to
+        // OpenAI would send audio where the user chose not to.
+        guard let endpoint = Config.settings.endpoint else { throw OpenDictateError.invalidServerAddress }
+        let key: String?
+        if endpoint.isLoopback {
+            key = nil
+        } else {
+            guard let stored = Config.apiKey else { throw OpenDictateError.missingAPIKey }
+            key = stored
+        }
         let model = Config.model
         guard model.isUsableForUpload else { throw OpenDictateError.unusableTranscriptionModel }
         return Self(
             apiKey: key, model: model, language: Config.language, prompt: Config.prompt,
             translationTarget: Config.settings.translationTarget,
-            translationModel: Config.settings.translationModel)
+            translationModel: Config.settings.translationModel, endpoint: endpoint)
+    }
+
+    /// Sets the bearer header only when a key belongs to this request.
+    func authorize(_ request: inout URLRequest) {
+        guard let apiKey, !endpoint.isLoopback else { return }
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
     }
 }
 
@@ -72,10 +91,10 @@ struct OpenAITranscriber: Sendable {
             throw OpenDictateError.audioNotEligibleForUpload
         }
         let boundary = "OpenDictateBoundary-\(UUID().uuidString)"
-        var request = URLRequest(url: URL(string: "https://api.openai.com/v1/audio/transcriptions")!)
+        var request = URLRequest(url: options.endpoint.transcriptionURL)
         request.httpMethod = "POST"
         request.timeoutInterval = 30
-        request.setValue("Bearer \(options.apiKey)", forHTTPHeaderField: "Authorization")
+        options.authorize(&request)
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         var body = Data()
         func field(_ name: String, _ value: String) {

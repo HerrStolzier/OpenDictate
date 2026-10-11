@@ -18,6 +18,34 @@ struct TranscriptionRequestTests {
         #expect(body.contains("filename=\"recording.m4a\""))
     }
 
+    @Test func defaultAddressStaysOpenAIWithKey() throws {
+        let request = try OpenAITranscriber.request(
+            audioData: Data([1]), options: .init(apiKey: "test-only", model: .gptTranscribe, language: nil, prompt: nil)
+        )
+        #expect(request.url?.absoluteString == "https://api.openai.com/v1/audio/transcriptions")
+        #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer test-only")
+    }
+
+    @Test func customHTTPSServerGetsTheStoredKey() throws {
+        let options = TranscriptionOptions(
+            apiKey: "test-only", model: .init(rawValue: "whisper-large-v3"), language: "de", prompt: nil,
+            endpoint: try #require(ServiceEndpoint("https://api.groq.com/openai/v1")))
+        let request = try OpenAITranscriber.request(audioData: Data([1]), options: options)
+        #expect(request.url?.absoluteString == "https://api.groq.com/openai/v1/audio/transcriptions")
+        #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer test-only")
+        #expect(String(decoding: request.httpBody!, as: UTF8.self).contains("whisper-large-v3"))
+    }
+
+    @Test func localServerNeverReceivesTheKey() throws {
+        let options = TranscriptionOptions(
+            apiKey: "must-not-leave", model: .init(rawValue: "Systran/faster-whisper-small"), language: "de",
+            prompt: nil, endpoint: try #require(ServiceEndpoint("http://localhost:8000/v1")))
+        let request = try OpenAITranscriber.request(audioData: Data([1]), options: options)
+        #expect(request.url?.absoluteString == "http://localhost:8000/v1/audio/transcriptions")
+        #expect(request.value(forHTTPHeaderField: "Authorization") == nil)
+        #expect(!String(decoding: request.httpBody!, as: UTF8.self).contains("must-not-leave"))
+    }
+
     @Test func localUploadChecksDoNotUseInvalidResponse() {
         let options = TranscriptionOptions(
             apiKey: "test-only", model: .gptTranscribe, language: nil, prompt: nil)

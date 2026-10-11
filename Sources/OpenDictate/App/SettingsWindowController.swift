@@ -92,7 +92,7 @@ final class SettingsWindowController: NSWindowController {
             disclosure.setAccessibilityValue(expanded ? "Geöffnet" : "Geschlossen")
             if expanded {
                 addRow("Modell", id: "model", to: stack)
-                for id in ["apiKey", "vocabulary"] {
+                for id in ["apiKey", "vocabulary", "customServer"] {
                     if id == "apiKey", needsSetup { continue }
                     if let item = item(id) { addControl(item, to: stack) }
                 }

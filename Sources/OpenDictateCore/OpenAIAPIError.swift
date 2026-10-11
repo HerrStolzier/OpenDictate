@@ -15,16 +15,18 @@ public enum OpenAIAPIErrorMessage {
         let fallback: String
         switch statusCode {
         case 401, 403:
-            fallback = "OpenAI hat den Zugriff abgelehnt. Prüfe den API-Schlüssel unter Einstellungen → Erweitert."
+            fallback =
+                "Der Dienst hat den Zugriff abgelehnt. Prüfe den API-Schlüssel oder die Einstellungen deines Servers."
         case 413:
-            fallback = "Die Aufnahme ist für OpenAI zu groß. Nimm ein kürzeres Diktat auf."
+            fallback = "Die Aufnahme ist für den Dienst zu groß. Nimm ein kürzeres Diktat auf."
         case 429:
             fallback =
-                "OpenAI nimmt gerade keine weitere Anfrage an. Prüfe dein Guthaben oder versuche es später erneut."
+                "Der Dienst nimmt gerade keine weitere Anfrage an. Prüfe dein Guthaben oder versuche es später erneut."
         case 500...599:
-            fallback = "OpenAI ist gerade nicht verfügbar. Versuche es später erneut."
+            fallback = "Der Dienst ist gerade nicht verfügbar. Versuche es später erneut."
         default:
-            fallback = "OpenAI konnte diese Aufnahme nicht verarbeiten. Versuche ein neues Diktat oder öffne die Hilfe."
+            fallback =
+                "Der Dienst konnte diese Aufnahme nicht verarbeiten. Versuche ein neues Diktat oder öffne die Hilfe."
         }
         guard let body = try? JSONDecoder().decode(Body.self, from: data) else { return fallback }
         switch body.error.code ?? body.error.type {
@@ -37,7 +39,7 @@ public enum OpenAIAPIErrorMessage {
         case "billing_not_active":
             return "Die API-Abrechnung ist nicht aktiv. Prüfe die Abrechnung deines OpenAI-Projekts."
         case "model_not_found":
-            return "Das eingestellte Modell ist bei OpenAI nicht verfügbar."
+            return "Das eingestellte Modell ist beim Dienst nicht verfügbar."
         case "rate_limit_exceeded":
             return "Zu viele Anfragen an OpenAI. Warte einen Moment und versuche es erneut."
         default:

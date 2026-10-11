@@ -20,6 +20,15 @@ set, the transcript text is then sent over HTTPS to OpenAI's
 translation model, and only the translation is copied and pasted. OpenAI's own
 data handling terms apply to these transfers.
 
+With **Eigener Server** (or `OPENAI_BASE_URL`), the same requests go to the
+configured address instead of OpenAI, and that server's own terms apply. A
+server on this Mac (loopback address) receives no API key, and OpenDictate sends
+audio and text only to this Mac; what that local server does with them is up to
+its own configuration. Any other server must use HTTPS and receives the saved
+API key. An address that is not allowed stops the dictation; it never falls
+back to OpenAI. The log records only the server's host name, never the path or
+key.
+
 The OpenAI API key is stored as a generic password in the macOS Keychain under
 service `OpenDictate` and account `OPENAI_API_KEY_APP`. OpenDictate does not support
 supplying the key through a command-line argument or environment variable.
