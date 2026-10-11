@@ -30,27 +30,49 @@ pub struct Entry {
 }
 
 pub fn preserve(original: &Path, recovery_dir: &Path, key: &[u8]) -> Result<Entry, String> {
-    let metadata = fs::symlink_metadata(original)
-        .map_err(|_| "Aufnahme konnte nicht für die Wiederholung gesichert werden.".to_string())?;
+    let metadata = fs::symlink_metadata(original).map_err(|_| {
+        crate::tr!(
+            "Aufnahme konnte nicht für die Wiederholung gesichert werden.",
+            "Recording could not be secured for retry."
+        )
+    })?;
     if !metadata.file_type().is_file() || metadata.len() == 0 || metadata.len() > MAX_AUDIO_BYTES {
-        return Err("Aufnahme ist nicht für die Wiederholung geeignet.".to_string());
+        return Err(crate::tr!(
+            "Aufnahme ist nicht für die Wiederholung geeignet.",
+            "Recording is not suitable for retry."
+        ));
     }
-    let directory_metadata = fs::symlink_metadata(recovery_dir)
-        .map_err(|_| "Recovery-Verzeichnis nicht verfügbar.".to_string())?;
+    let directory_metadata = fs::symlink_metadata(recovery_dir).map_err(|_| {
+        crate::tr!(
+            "Recovery-Verzeichnis nicht verfügbar.",
+            "Recovery folder unavailable."
+        )
+    })?;
     if !directory_metadata.file_type().is_dir() || directory_metadata.file_type().is_symlink() {
-        return Err("Recovery-Verzeichnis ist unsicher.".to_string());
+        return Err(crate::tr!(
+            "Recovery-Verzeichnis ist unsicher.",
+            "Recovery folder is not secure."
+        ));
     }
-    fs::set_permissions(recovery_dir, fs::Permissions::from_mode(0o700))
-        .map_err(|_| "Recovery-Verzeichnis nicht verfügbar.".to_string())?;
+    fs::set_permissions(recovery_dir, fs::Permissions::from_mode(0o700)).map_err(|_| {
+        crate::tr!(
+            "Recovery-Verzeichnis nicht verfügbar.",
+            "Recovery folder unavailable."
+        )
+    })?;
     let file_name = original
         .file_name()
         .and_then(|value| value.to_str())
         .filter(|value| value.ends_with(".wav"))
-        .ok_or_else(|| "Aufnahmedatei ist ungültig.".to_string())?;
+        .ok_or_else(|| crate::tr!("Aufnahmedatei ist ungültig.", "Recording file is invalid."))?;
     let audio_path = recovery_dir.join(file_name);
     let sidecar_path = sidecar_path(&audio_path);
-    let data = fs::read(original)
-        .map_err(|_| "Aufnahme konnte nicht für die Wiederholung gelesen werden.".to_string())?;
+    let data = fs::read(original).map_err(|_| {
+        crate::tr!(
+            "Aufnahme konnte nicht für die Wiederholung gelesen werden.",
+            "Recording could not be read for retry."
+        )
+    })?;
     let created = unix_timestamp_secs();
     let sidecar = Sidecar {
         version: 1,
@@ -65,7 +87,10 @@ pub fn preserve(original: &Path, recovery_dir: &Path, key: &[u8]) -> Result<Entr
         return result.map(|_| unreachable!());
     }
     fs::remove_file(original).map_err(|_| {
-        "Originalaufnahme konnte nach der Recovery-Kopie nicht bereinigt werden.".to_string()
+        crate::tr!(
+            "Originalaufnahme konnte nach der Recovery-Kopie nicht bereinigt werden.",
+            "Original recording could not be cleaned up after the recovery copy."
+        )
     })?;
     let entry = Entry {
         audio_path,
@@ -94,8 +119,12 @@ pub fn newest_authenticated(
 }
 
 pub fn delete(entry: &Entry) -> Result<(), String> {
-    fs::remove_file(&entry.audio_path)
-        .map_err(|_| "Recovery-Aufnahme konnte nicht gelöscht werden.".to_string())?;
+    fs::remove_file(&entry.audio_path).map_err(|_| {
+        crate::tr!(
+            "Recovery-Aufnahme konnte nicht gelöscht werden.",
+            "Recovery recording could not be deleted."
+        )
+    })?;
     let _ = fs::remove_file(&entry.sidecar_path);
     Ok(())
 }
@@ -123,8 +152,12 @@ fn authenticated_entries(recovery_dir: &Path, key: &[u8]) -> Result<Vec<(Entry, 
     if !recovery_dir.exists() {
         return Ok(Vec::new());
     }
-    let directory =
-        fs::read_dir(recovery_dir).map_err(|_| "Recovery-Verzeichnis nicht lesbar.".to_string())?;
+    let directory = fs::read_dir(recovery_dir).map_err(|_| {
+        crate::tr!(
+            "Recovery-Verzeichnis nicht lesbar.",
+            "Recovery folder unreadable."
+        )
+    })?;
     let mut entries = Vec::new();
     for item in directory.flatten() {
         let path = item.path();
@@ -139,30 +172,56 @@ fn authenticated_entries(recovery_dir: &Path, key: &[u8]) -> Result<Vec<(Entry, 
 }
 
 fn authenticate(audio_path: &Path, key: &[u8]) -> Result<(Entry, Vec<u8>), String> {
-    let metadata =
-        fs::symlink_metadata(audio_path).map_err(|_| "Recovery-Aufnahme fehlt.".to_string())?;
+    let metadata = fs::symlink_metadata(audio_path)
+        .map_err(|_| crate::tr!("Recovery-Aufnahme fehlt.", "Recovery recording is missing."))?;
     if !metadata.file_type().is_file() || metadata.len() == 0 || metadata.len() > MAX_AUDIO_BYTES {
-        return Err("Recovery-Aufnahme ist ungültig.".to_string());
+        return Err(crate::tr!(
+            "Recovery-Aufnahme ist ungültig.",
+            "Recovery recording is invalid."
+        ));
     }
     let sidecar_path = sidecar_path(audio_path);
-    let sidecar_metadata =
-        fs::symlink_metadata(&sidecar_path).map_err(|_| "Recovery-Nachweis fehlt.".to_string())?;
+    let sidecar_metadata = fs::symlink_metadata(&sidecar_path)
+        .map_err(|_| crate::tr!("Recovery-Nachweis fehlt.", "Recovery proof is missing."))?;
     if !sidecar_metadata.file_type().is_file() {
-        return Err("Recovery-Nachweis ist ungültig.".to_string());
+        return Err(crate::tr!(
+            "Recovery-Nachweis ist ungültig.",
+            "Recovery proof is invalid."
+        ));
     }
-    let sidecar: Sidecar = serde_json::from_slice(
-        &fs::read(&sidecar_path).map_err(|_| "Recovery-Nachweis ist nicht lesbar.".to_string())?,
-    )
-    .map_err(|_| "Recovery-Nachweis ist ungültig.".to_string())?;
+    let sidecar: Sidecar = serde_json::from_slice(&fs::read(&sidecar_path).map_err(|_| {
+        crate::tr!(
+            "Recovery-Nachweis ist nicht lesbar.",
+            "Recovery proof is unreadable."
+        )
+    })?)
+    .map_err(|_| {
+        crate::tr!(
+            "Recovery-Nachweis ist ungültig.",
+            "Recovery proof is invalid."
+        )
+    })?;
     if sidecar.version != 1 || sidecar.size != metadata.len() {
-        return Err("Recovery-Nachweis stimmt nicht mit der Aufnahme überein.".to_string());
+        return Err(crate::tr!(
+            "Recovery-Nachweis stimmt nicht mit der Aufnahme überein.",
+            "Recovery proof does not match the recording."
+        ));
     }
-    let data =
-        fs::read(audio_path).map_err(|_| "Recovery-Aufnahme ist nicht lesbar.".to_string())?;
+    let data = fs::read(audio_path).map_err(|_| {
+        crate::tr!(
+            "Recovery-Aufnahme ist nicht lesbar.",
+            "Recovery recording is unreadable."
+        )
+    })?;
     let file_name = audio_path
         .file_name()
         .and_then(|value| value.to_str())
-        .ok_or_else(|| "Recovery-Aufnahme ist ungültig.".to_string())?;
+        .ok_or_else(|| {
+            crate::tr!(
+                "Recovery-Aufnahme ist ungültig.",
+                "Recovery recording is invalid."
+            )
+        })?;
     verify_authentication(file_name, sidecar.created, &data, key, &sidecar.mac)?;
     Ok((
         Entry {
@@ -184,15 +243,29 @@ fn write_pair(
     audio
         .write_all(data)
         .and_then(|_| audio.sync_all())
-        .map_err(|_| "Recovery-Aufnahme konnte nicht geschrieben werden.".to_string())?;
+        .map_err(|_| {
+            crate::tr!(
+                "Recovery-Aufnahme konnte nicht geschrieben werden.",
+                "Recovery recording could not be written."
+            )
+        })?;
     let mut proof = secure_create(sidecar_path)?;
-    let proof_data = serde_json::to_vec(sidecar)
-        .map_err(|_| "Recovery-Nachweis konnte nicht erstellt werden.".to_string())?;
+    let proof_data = serde_json::to_vec(sidecar).map_err(|_| {
+        crate::tr!(
+            "Recovery-Nachweis konnte nicht erstellt werden.",
+            "Recovery proof could not be created."
+        )
+    })?;
     proof
         .write_all(&proof_data)
         .and_then(|_| proof.write_all(b"\n"))
         .and_then(|_| proof.sync_all())
-        .map_err(|_| "Recovery-Nachweis konnte nicht geschrieben werden.".to_string())
+        .map_err(|_| {
+            crate::tr!(
+                "Recovery-Nachweis konnte nicht geschrieben werden.",
+                "Recovery proof could not be written."
+            )
+        })
 }
 
 fn secure_create(path: &Path) -> Result<fs::File, String> {
@@ -201,7 +274,12 @@ fn secure_create(path: &Path) -> Result<fs::File, String> {
         .create_new(true)
         .mode(0o600)
         .open(path)
-        .map_err(|_| "Recovery-Datei konnte nicht erstellt werden.".to_string())
+        .map_err(|_| {
+            crate::tr!(
+                "Recovery-Datei konnte nicht erstellt werden.",
+                "Recovery file could not be created."
+            )
+        })
 }
 
 fn sidecar_path(audio_path: &Path) -> PathBuf {
@@ -214,8 +292,8 @@ fn authentication(
     data: &[u8],
     key: &[u8],
 ) -> Result<String, String> {
-    let mut mac =
-        HmacSha256::new_from_slice(key).map_err(|_| "Recording-Auth ist ungültig.".to_string())?;
+    let mut mac = HmacSha256::new_from_slice(key)
+        .map_err(|_| crate::tr!("Recording-Auth ist ungültig.", "Recording auth is invalid."))?;
     update_mac(&mut mac, file_name, created, data);
     Ok(hex::encode(mac.finalize().into_bytes()))
 }
@@ -227,13 +305,21 @@ fn verify_authentication(
     key: &[u8],
     expected: &str,
 ) -> Result<(), String> {
-    let expected =
-        hex::decode(expected).map_err(|_| "Recovery-Nachweis ist ungültig.".to_string())?;
-    let mut mac =
-        HmacSha256::new_from_slice(key).map_err(|_| "Recording-Auth ist ungültig.".to_string())?;
+    let expected = hex::decode(expected).map_err(|_| {
+        crate::tr!(
+            "Recovery-Nachweis ist ungültig.",
+            "Recovery proof is invalid."
+        )
+    })?;
+    let mut mac = HmacSha256::new_from_slice(key)
+        .map_err(|_| crate::tr!("Recording-Auth ist ungültig.", "Recording auth is invalid."))?;
     update_mac(&mut mac, file_name, created, data);
-    mac.verify_slice(&expected)
-        .map_err(|_| "Recovery-Aufnahme ist nicht authentifiziert.".to_string())
+    mac.verify_slice(&expected).map_err(|_| {
+        crate::tr!(
+            "Recovery-Aufnahme ist nicht authentifiziert.",
+            "Recovery recording is not authenticated."
+        )
+    })
 }
 
 fn update_mac(mac: &mut HmacSha256, file_name: &str, created: u64, data: &[u8]) {

@@ -9,8 +9,9 @@ nötige konkrete Freigabe.
 
 ## Vorbedingungen und Abbruch
 
-- Stand 28. September: Mitgliedschaft und gültige Developer-ID-Identität sind
-  bestätigt; ein erfolgreich notariertes und geprüftes Endpaket steht noch aus.
+- Stand 2. Oktober: Das notarisierte, angeheftete und entpackt geprüfte
+  Endpaket liegt vor; Pfad, SHA-256 und Prüfausgaben stehen im
+  [Build-8-Endpaket-Nachweis](evidence/2026-10-02-plan2-build8-final.md).
 - Der aktuelle tägliche App-Pfad ist `~/Applications/OpenDictate.app`. Nur
   diesen Pfad verwenden, wenn er am Mac aktuell bestätigt wurde. Fehlt die App
   dort oder wird ein weiterer Installationspfad genutzt, vor dem Eingriff den

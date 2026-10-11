@@ -1,0 +1,98 @@
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-sans); }
+
+/* ---------- Blink pixel colours (one class per pixel code) ---------- */
+.od-px-B { fill: var(--signal); }
+.od-px-L { fill: var(--signal-light); }
+.od-px-S { fill: var(--signal-shade); }
+.od-px-E, .od-px-k { fill: var(--signal-ink); }
+.od-px-K { fill: var(--signal-deep); }
+.od-px-W { fill: var(--sneaker); }
+.od-px-w { fill: var(--sneaker-light); }
+.od-px-V, .od-px-G { fill: var(--sole); }
+.od-px-r, .od-px-R, .od-px-C { fill: var(--rec); }
+.od-px-Q { fill: var(--glitch); }
+.od-px-D { fill: var(--floor); }
+.od-px-d { fill: var(--line); }
+.od-px-a, .od-px-b, .od-px-c { fill: var(--signal); }
+.od-px-m { fill: var(--ink-muted); opacity: .6; }
+.od-px-1, .od-px-2, .od-px-3 { fill: var(--ink-muted); }
+.od-px-X { fill: var(--ink); opacity: .8; }
+.od-px-Y { fill: var(--warn); }
+.od-px-y { fill: var(--sneaker-light); }
+.od-blink { display: block; }
+.od-glow { filter: drop-shadow(var(--glow)); }
+
+/* ---------- Motion: always in steps, like an old game ---------- */
+.od-a-body { animation: od-k-blink 1.1s steps(1, end) infinite; }
+.od-a-blink { animation: od-k-blink .8s steps(1, end) infinite; }
+.od-a-arc { animation: od-k-arc 1.2s steps(3, end) infinite; }
+.od-a-type { animation: od-k-type 1.8s steps(1, end) infinite backwards; }
+.od-a-run-a { animation: od-k-run-a .36s steps(1, end) infinite; }
+.od-a-run-b { opacity: 0; animation: od-k-run-b .36s steps(1, end) infinite; }
+.od-a-hop { animation: od-k-hop 1.4s steps(1, end) infinite; }
+.od-a-hop-shadow { animation: od-k-hop-shadow 1.4s steps(1, end) infinite; transform-box: fill-box; transform-origin: 50% 50%; }
+.od-a-twinkle { animation: od-k-twinkle 1.4s steps(1, end) infinite; }
+.od-a-glitch { animation: od-k-glitch 2.2s steps(1, end) infinite; }
+.od-a-flicker { animation: od-k-flicker .5s steps(1, end) infinite; }
+@keyframes od-k-blink { 50% { opacity: 0; } }
+@keyframes od-k-arc { 0% { opacity: .2; } 50% { opacity: 1; } 100% { opacity: .2; } }
+@keyframes od-k-type { 0% { opacity: 0; } 25% { opacity: 1; } 100% { opacity: 1; } }
+@keyframes od-k-run-a { 0% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes od-k-run-b { 0% { opacity: 0; } 50% { opacity: 1; } }
+@keyframes od-k-hop { 0% { transform: none; } 15% { transform: translateY(-2px); } 25% { transform: translateY(-4px); } 40% { transform: translateY(-5px); } 50% { transform: translateY(-3px); } 60% { transform: none; } }
+@keyframes od-k-hop-shadow { 0% { transform: none; } 25% { transform: scaleX(.85); } 40% { transform: scaleX(.75); } 60% { transform: none; } }
+@keyframes od-k-twinkle { 0% { opacity: 0; } 40% { opacity: 1; } 75% { opacity: 0; } }
+@keyframes od-k-glitch { 0% { transform: none; } 8% { transform: translateX(-1px); } 14% { transform: translateX(1px); } 20% { transform: none; } 60% { transform: translateX(1px); } 64% { transform: none; } }
+@keyframes od-k-flicker { 50% { opacity: .25; } }
+.od-still *, .od-still { animation: none !important; }
+.od-still .od-a-run-b { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .od-a-body, .od-a-blink, .od-a-arc, .od-a-type, .od-a-run-a, .od-a-hop, .od-a-hop-shadow, .od-a-twinkle, .od-a-glitch, .od-a-flicker { animation: none; }
+  .od-a-run-b { animation: none; opacity: 0; }
+}
+
+/* ---------- Wordmark ---------- */
+.od-wordmark { display: inline-block; font-family: var(--font-pixel); font-weight: 400; color: var(--ink); line-height: 1.3; white-space: nowrap; }
+.od-wordmark-blink { width: .532em; height: 1.102em; vertical-align: -.342em; margin-left: .076em; }
+
+/* ---------- Button: stepped pixel corners on a background layer, so the focus ring is never clipped ---------- */
+.od-btn { position: relative; isolation: isolate; display: inline-flex; align-items: center; height: 44px; padding: 0 18px; border: 0; background: transparent; font-family: var(--font-mono); font-weight: 600; font-size: 14px; line-height: 20px; cursor: pointer; }
+.od-btn::before { content: ""; position: absolute; inset: 0; z-index: -1; clip-path: polygon(0 6px, 3px 6px, 3px 3px, 6px 3px, 6px 0, calc(100% - 6px) 0, calc(100% - 6px) 3px, calc(100% - 3px) 3px, calc(100% - 3px) 6px, 100% 6px, 100% calc(100% - 6px), calc(100% - 3px) calc(100% - 6px), calc(100% - 3px) calc(100% - 3px), calc(100% - 6px) calc(100% - 3px), calc(100% - 6px) 100%, 6px 100%, 6px calc(100% - 3px), 3px calc(100% - 3px), 3px calc(100% - 6px), 0 calc(100% - 6px)); }
+.od-btn-primary { color: var(--on-signal); }
+.od-btn-primary::before { background: var(--signal); }
+.od-btn-secondary { color: var(--ink); }
+.od-btn-secondary::before { background: var(--line); }
+.od-btn:hover::before { filter: brightness(1.08); }
+.od-btn:active { transform: translateY(1px); }
+.od-btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.od-btn:disabled { cursor: not-allowed; opacity: .5; }
+
+/* ---------- Keycap ---------- */
+.od-key { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; height: 60px; min-width: 60px; padding: 0 12px 5px; background: var(--surface-sunken); box-shadow: inset 0 -5px 0 var(--floor), inset 0 0 0 1px var(--line); color: var(--ink); font: inherit; clip-path: polygon(0 6px, 3px 6px, 3px 3px, 6px 3px, 6px 0, calc(100% - 6px) 0, calc(100% - 6px) 3px, calc(100% - 3px) 3px, calc(100% - 3px) 6px, 100% 6px, 100% calc(100% - 6px), calc(100% - 3px) calc(100% - 6px), calc(100% - 3px) calc(100% - 3px), calc(100% - 6px) calc(100% - 3px), calc(100% - 6px) 100%, 6px 100%, 6px calc(100% - 3px), 3px calc(100% - 3px), 3px calc(100% - 6px), 0 calc(100% - 6px)); }
+.od-key-space { min-width: 112px; }
+.od-key-glyph { fill: currentColor; display: block; }
+
+/* ---------- Meter ---------- */
+.od-meter { display: block; }
+.od-meter-off { fill: var(--line); opacity: .6; }
+.od-meter-on { fill: var(--signal); }
+.od-meter-warn { fill: var(--warn); }
+.od-meter-peak { fill: var(--rec); }
+
+/* ---------- Progress ---------- */
+.od-progress { display: flex; gap: 4px; }
+.od-progress-cell { width: 11px; height: 11px; }
+.od-progress-on { background: var(--signal); }
+.od-progress-off { background: var(--line); }
+
+/* ---------- PixelIcon ---------- */
+.od-icon { display: inline-block; vertical-align: middle; }
+.od-icon-signal { fill: var(--signal); }
+.od-icon-rec { fill: var(--rec); }
+.od-icon-ink { fill: var(--ink); }
+.od-icon-muted { fill: var(--ink-muted); }
+
+/* ---------- Preview helpers ---------- */
+.od-row { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; padding: var(--space-6); }
+.od-col { display: flex; flex-direction: column; gap: var(--space-2); align-items: center; }
+.od-cap { font-family: var(--font-mono); font-size: 12px; line-height: 16px; color: var(--ink-muted); }

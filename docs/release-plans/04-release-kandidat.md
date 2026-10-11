@@ -1,5 +1,11 @@
 # Plan 4: Release-Kandidat und Freigabeentscheidung
 
+> Umfang seit dem 8. Oktober 2026 verkleinert ([ROADMAP](../../ROADMAP.md#track-macos)):
+> Pflicht bleiben eingefrorener Kandidat mit Hash, geprüfte Installation und
+> Update sowie übereinstimmende Produkttexte. Die vollständige UX- und
+> VoiceOver-Prüfung ist eine bekannte Grenze der Beta. Der Text unten
+> beschreibt den ursprünglichen Umfang und bleibt als Kriterienquelle.
+
 **Ziel:** Ein einziger, unveränderter Kandidat ist technisch und inhaltlich
 für die öffentliche Mac-Ausgabe freigegeben. Sein ZIP, SHA-256-Wert,
 Quellrevision, Version und Buildnummer sind festgehalten. Der Kandidat wird
@@ -7,7 +13,7 @@ hier noch nicht veröffentlicht.
 
 **Voraussetzung:** [Interne Abnahme](01-interne-produktabnahme.md),
 [verteilbares Paket](02-verteilbares-mac-paket.md) und
-[Betatest](03-begrenzter-betatest.md) sind abgeschlossen.
+[Eigennutzung](03-eigennutzung.md) sind abgeschlossen.
 
 ## Arbeit
 
@@ -55,8 +61,8 @@ hier noch nicht veröffentlicht.
 - Der Abschlussvergleich bestätigt die Schlankheitskriterien aus Plan 1 und 2:
   zwei Tastendrücke im Normalweg, keine ungefragten Fenster, schneller Status,
   ein einzelnes App-Bundle ohne zusätzlichen Dienst und höchstens 8 MiB. Die
-  im Betatest getrennt gemessene automatische Eingabe und der Zeitwert bis
-  zum nutzbaren Text erfüllen die Kriterien aus Plan 3.
+  in der Eigennutzung getrennt gemessene automatische Eingabe und der Zeitwert
+  bis zum nutzbaren Text erfüllen die Kriterien aus Plan 3.
 - Jede Änderung nach diesem Protokoll erzeugt einen **neuen** Kandidaten und
   wiederholt die betroffenen Prüfungen. Ein bloßer grüner CI-Lauf genügt nicht.
 

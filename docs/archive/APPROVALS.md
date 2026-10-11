@@ -1,4 +1,8 @@
-# Projektbezogene Freigaben
+# Projektbezogene Freigaben (Archiv)
+
+Archiviert am 2. Oktober 2026 und nicht mehr gepflegt: Live-Tests laufen seitdem
+nach der Go-Regel in [AGENTS.md](../../AGENTS.md#required-verification). Die
+Einträge unten sind historischer Kontext und erteilen keine Freigabe.
 
 Diese Ablage dokumentiert Zustimmung, erteilt selbst aber keine. Vor einer Aktion
 Originalumfang, Ziel, Bedingungen und neuere Einschränkungen prüfen. Widerruf
@@ -19,7 +23,7 @@ auf seinem iPhone 15. Tastatur und Vollzugriff aktiviert Basti selbst.
 Anschließend werden nur diese Test-App samt selbst erzeugten Testaufnahmen und
 Gruppenmetadaten entfernt und die eigenen Safari-Testtabs geschlossen.
 Die benannten Apple-Entwicklungsressourcen bleiben erhalten. Keine
-Anbieterübertragung oder Veröffentlichung. [Prüfumfang](ios/PRUEFPLAN.md).
+Anbieterübertragung oder Veröffentlichung. [Prüfumfang](../../ios/PRUEFPLAN.md).
 
 **Aktueller Kopplungsstand:** Nach erneutem USB-Anschluss bestehen Installation
 und sichtbarer Start des signierten Kandidaten. Die Sperre ohne Vollzugriff,
@@ -29,7 +33,7 @@ begrenzt belegt. Alle drei freigegebenen WAV-Dateien wurden direkt geprüft:
 Mac-Audioprüfkopien sind entfernt. Basti bestätigt geschlossene Testseiten sowie
 funktionierende Apple-Tastatur und Apple-Diktieren. Der USB-Durchlauf ist
 abgeschlossen. Keine weitere Aufnahme aus dieser Freigabe; Host-Abbruch bleibt offen.
-[Nachweis](docs/ios-recording-coupling-2026-09-30.md).
+[Nachweis](../ios-recording-coupling-2026-09-30.md).
 
 - **Quelle:** Basti benannte sein per USB angeschlossenes iPhone und gab
   anschließend ausdrücklich die Freigabe zur Fortsetzung.
@@ -53,7 +57,7 @@ abgeschlossen. Keine weitere Aufnahme aus dieser Freigabe; Host-Abbruch bleibt o
   Die eigene App ist deinstalliert; Basti bestätigte das Schließen der
   eigenen Safari-Tabs. Kein Mikrofon, Provider oder
   Veröffentlichungsweg wurde gestartet.
-  [Gerätenachweis](docs/ios-device-2026-09-30.md).
+  [Gerätenachweis](../ios-device-2026-09-30.md).
 
 ## iOS: abgegrenzter Simulator-Test — 2026-09-29
 
@@ -71,9 +75,9 @@ abgeschlossen. Keine weitere Aufnahme aus dieser Freigabe; Host-Abbruch bleibt o
   Vollzugriff bestanden. Die Bildschirmtastatur bleibt auch nach Neustart
   und Entfernung des Prototyps verborgen. Eigene Test-App, sichtbarer
   Tastatureintrag, Safari-Tab und lokaler Server sind abschließend bereinigt.
-  [Historischer Nachweis](docs/ios-simulator-2026-09-29.md). Der anschließend
+  [Historischer Nachweis](../ios-simulator-2026-09-29.md). Der anschließend
   separat genehmigte Gerätevergleich ermöglichte den bestandenen
-  [synthetischen Texttest](docs/ios-keyboard-e2e-2026-09-29.md).
+  [synthetischen Texttest](../ios-keyboard-e2e-2026-09-29.md).
 
 ## iOS: Neustart zur Diagnose — 2026-09-29
 
@@ -102,7 +106,7 @@ abgeschlossen. Keine weitere Aufnahme aus dieser Freigabe; Host-Abbruch bleibt o
   synthetische Tastaturtest funktionieren im frischen Gerät. Test-App,
   Tastatureintrag, eigener Safari-Tab, Server und Log-Helfer sind bereinigt.
   Das erfolgreiche Diagnosegerät bleibt ausgeschaltet gespeichert; alle
-  bestehenden Geräte sind erhalten. [Nachweis](docs/ios-keyboard-e2e-2026-09-29.md).
+  bestehenden Geräte sind erhalten. [Nachweis](../ios-keyboard-e2e-2026-09-29.md).
 
 ## iOS-Vorbereitung: Xcode und Simulator — 2026-09-28
 
@@ -115,7 +119,7 @@ abgeschlossen. Keine weitere Aufnahme aus dieser Freigabe; Host-Abbruch bleibt o
   Ersteinrichtung selbst; Versionsabfrage und First-Launch-Prüfung bestehen.
   iOS 27.0 (24A434) ist registriert und startet als iPhone-18-Pro-Simulator
   bis zum geprüften Home-Bildschirm. Der vorherige Registrierungsfehler des
-  Download-Befehls und die getrennte Startprüfung stehen in der [iOS-Richtung](docs/ios-direction.md).
+  Download-Befehls und die getrennte Startprüfung stehen in der [iOS-Richtung](../ios-direction.md).
 - **Grenze:** Keine iPhone-/iPad-Installation, echte Mikrofonaufnahme,
   Anbieteranfrage, neue Signieridentität oder Veröffentlichung freigegeben.
 
@@ -242,7 +246,7 @@ Mikrofon-/API-Abnahmen sind Nachweise und keine erneute Ausführungserlaubnis.
 ## Plan 1: Live-Tests — 2026-09-23
 
 - **Auftrag:** Basti beauftragte die Umsetzung von
-  [Plan 1](docs/release-plans/01-interne-produktabnahme.md) mit „Dann leg los mit dem ersten Plan“.
+  [Plan 1](../release-plans/01-interne-produktabnahme.md) mit „Dann leg los mit dem ersten Plan“.
 - **Konkrete Antwort:** Auf die Frage nach höchstens acht kurzen Aufnahmen und
   acht OpenAI-Uploads mit der installierten App über das bereits eingerichtete
   Konto antwortete er „Ja, diesen Live-Testblock freigeben“. Die App begrenzt
@@ -258,7 +262,7 @@ Mikrofon-/API-Abnahmen sind Nachweise und keine erneute Ausführungserlaubnis.
   belegt ein Eingangssignal, keine allgemeine Qualität menschlicher Sprache.
 - **Verbrauch des ersten Blocks:** Acht Aufnahmen und sieben OpenAI-Uploads. Die
   Ereignisse und Ergebnisse stehen im
-  [Live-Ledger](docs/release-plans/evidence/2026-09-23-live-ledger.json).
+  [Live-Ledger](../release-plans/evidence/2026-09-23-live-ledger.json).
   Es gab keine automatische Wiederholung.
 - **Fortsetzung:** Basti sagte anschließend ausdrücklich: „Es gibt kein
   begrenztes Kontingent. Du kannst arbeiten, bis die Aufgabe beendet ist. Bitte
@@ -311,7 +315,7 @@ Mikrofon-/API-Abnahmen sind Nachweise und keine erneute Ausführungserlaubnis.
 - **Verbraucht:** Acht Aufnahmen und acht Uploads, konservativ höchstens
   170 Sekunden. Das Versuchslimit ist ausgeschöpft; die Lautstärke wurde auf
   die gemessenen 68,75 Prozent zurückgestellt. Ergebnisse, Bereinigung und
-  verbleibende Nachweisgrenzen: [ergänzende Zielabnahme](docs/target-acceptance-2026-09-17.md).
+  verbleibende Nachweisgrenzen: [ergänzende Zielabnahme](../target-acceptance-2026-09-17.md).
 
 ## Begrenzter Terminal- und Fokusblock — 2026-09-22
 
@@ -328,7 +332,7 @@ Mikrofon-/API-Abnahmen sind Nachweise und keine erneute Ausführungserlaubnis.
   erfolgreich, der dritte endete nach 31 Sekunden ohne Transkript. Die
   Audio-Gesamtdauer wurde nicht instrumentiert. Dieser Block ist wegen der
   ausgeschöpften Aufnahmezahl beendet. Einzelheiten und Bereinigung:
-  [Terminal- und Fokusabnahme](docs/terminal-focus-acceptance-2026-09-22.md).
+  [Terminal- und Fokusabnahme](../terminal-focus-acceptance-2026-09-22.md).
 
 ## Autonomer Fokuswechselblock — 2026-09-22
 
@@ -343,7 +347,7 @@ Mikrofon-/API-Abnahmen sind Nachweise und keine erneute Ausführungserlaubnis.
   Sekunden** und überschritt damit die freigegebene Audioobergrenze. Der Agent
   stoppte die weitere Live-Ausführung; es gab keine zweite Aufnahme und keinen
   zweiten Upload. Die Freigabe ist beendet. Ablauf, fehlender Fokusnachweis und
-  Bereinigung: [autonomer Fokuswechselversuch](docs/autonomous-focus-acceptance-2026-09-22.md).
+  Bereinigung: [autonomer Fokuswechselversuch](../autonomous-focus-acceptance-2026-09-22.md).
 
 ## Wiederholter Fokuswechsel — 2026-09-23
 
@@ -354,7 +358,7 @@ Mikrofon-/API-Abnahmen sind Nachweise und keine erneute Ausführungserlaubnis.
   Wiederholungstest, nicht auf unbegrenzte künftige Mikrofon-/API-Läufe.
 - **Ausführung:** Zwei kurze Aufnahmen über das vorhandene Mikrofon; die erste
   wurde wegen zu leisem Signal ohne Upload übersprungen. Die zweite führte zu
-  einem OpenAI-Request und einem [bestandenen negativen Appwechsel](docs/live-focus-acceptance-2026-09-23.md).
+  einem OpenAI-Request und einem [bestandenen negativen Appwechsel](../live-focus-acceptance-2026-09-23.md).
   Die eigens gestarteten Testfenster und die fehlgeschlagene eigene Aufnahme
   wurden bereinigt. Weitere Live-Läufe erfolgten in diesem Auftrag nicht.
 

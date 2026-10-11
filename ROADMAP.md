@@ -1,91 +1,224 @@
 # OpenDictate Roadmap
 
-Stand: 28. September 2026. Geprüfter Dokumentations- und Code-Ausgangspunkt:
-`main` `1f895537e9b36d962eb1425113423da377e95b1b`.
+Stand: 8. Oktober 2026. Geprüfter Ausgangspunkt: `main`
+`cdd4b7f` (7. Oktober). Begründung dieser Ordnung:
+[Neuordnung vom 8. Oktober](docs/roadmap-neuordnung-2026-10-08.md).
 
 Diese Datei ist die **einzige laufende Feature- und Plattform-To-do-Liste**.
-Sie hält belegten Status, den nächsten nötigen Arbeitsschritt, Abhängigkeiten
-und den Abschlussnachweis fest. Sie setzt weder eine neue Priorität oder einen
-Termin noch eine technische, Kosten-, Test- oder Veröffentlichungsfreigabe.
+Sie hält je Plattform den belegten Stand, die nächsten Schritte in Reihenfolge
+und die Grenzen fest, die bewusst den Beta-Nutzern überlassen werden. Sie
+setzt keinen Termin und erteilt keine technische, Kosten-, Test- oder
+Veröffentlichungsfreigabe.
 
-Zuständigkeiten: [PROJECT.md](PROJECT.md) beschreibt Produktziel und Umfang;
-[docs/remaining-acceptance.md](docs/remaining-acceptance.md) hält den aktuellen
-Übergabe- und Abnahmestand fest; die verlinkten Stufenpläne enthalten ihre
-konkreten Arbeitsschritte und Prüfkriterien. Der statische
-[Projekt-Audit](docs/project-audit-2026-09-28.md) und die
-[Code-Reduktionsbewertung](docs/code-reduction-2026-09-28.md) begründen mögliche
-Bereinigungen, sind selbst keine zweite Aufgabenliste.
+Zuständigkeiten: [PROJECT.md](PROJECT.md) beschreibt Produkt, Anwendungsfälle,
+Preismodell und Entscheidungen; [docs/remaining-acceptance.md](docs/remaining-acceptance.md)
+hält den belegten Stand je Plattform mit Nachweisen fest; [CHECKS.md](CHECKS.md)
+die Prüfwege. Die Detailpläne der Plattformen enthalten ihre konkreten
+Arbeitsschritte und Prüfkriterien.
 
-## Mac-Release in fünf Stufen
+## Grundsätze seit dem 8. Oktober 2026
 
-| Stufe | Status | Nächstes nötiges Ergebnis | Abhängigkeit | Abschlussnachweis |
-| --- | --- | --- | --- | --- |
-| [1. Interne Funktionsabnahme](docs/release-plans/01-interne-produktabnahme.md) | Am 24.09. für den dokumentierten Grundablauf auf dem vorhandenen Mac abgeschlossen. Die Grenzen der konkreten Felder und Kandidaten bleiben sichtbar. | Kein weiterer Plan-1-Lauf vorgesehen; offene Sicherheits- und Bediennachweise gehen in die späteren Stufen. | — | Datiertes Protokoll und exakt bezeichnete Kandidaten im [Plan-1-Bericht](docs/release-plans/evidence/2026-09-24-plan1-fortsetzung.md). |
-| [2. Verteilbares Paket](docs/release-plans/02-verteilbares-mac-paket.md) | Build 8 ist signiert und einmal eingereicht. Der letzte im Übergabestand protokollierte Apple-Status war `In Progress` um 19:29:59 UTC am 28.09.; nicht erneut einreichen. | Dieselbe Einreichung abwarten. Nur bei `Accepted`: Apple-Log sichern, Ticket anheften, finales ZIP samt Manifest erstellen und entpackt prüfen. Danach kontrollierte Migration und vollständigen Diktat-/Kopierweg abnehmen. | Stufe 1 und das Ergebnis der bestehenden Einreichung. Installation/Migration und Live-Abnahme bleiben eigene kontrollierte Prüfschritte. | Der Manifest-Hash beschreibt genau das finale ZIP. Das daraus entpackte Bundle besteht Signatur-, Ticket-, Gatekeeper-, Info.plist- und App-/Helper-Prüfungen; Binärhash und Modus stimmen mit dem geprüften Kandidaten überein. Installation/Migration und beide Übergabewege sind separat bestanden. Details im [Paketplan](docs/release-plans/02-verteilbares-mac-paket.md). |
-| [3. Begrenzter Betatest](docs/release-plans/03-begrenzter-betatest.md) | Noch nicht begonnen. | Erst nach Paketabnahme drei Tester, konkrete Empfänger, Paketlink, höchstens 20 Provider-Anfragen und Audioübertragung festlegen und separat freigeben. | Stufe 2; Einwilligung und konkrete Freigabe für Versand, Mikrofon und Provider-Kosten. | Drei Installationen und 20 gezählte Aufgaben; die Schwellen und Einzelmessungen stehen im [Betatestplan](docs/release-plans/03-begrenzter-betatest.md). |
-| [4. Release-Kandidat](docs/release-plans/04-release-kandidat.md) | Noch nicht begonnen. | Nach dem Betatest Befunde schließen und einen eingefrorenen Kandidaten samt Hash, Installation/Update, vollständiger UX- und VoiceOver-Prüfung sowie übereinstimmenden Produkttexten abnehmen. | Stufen 1–3; für jede Live-Prüfung gilt die passende Freigabe. Ein technisches Go ist noch keine Veröffentlichungserlaubnis. | Kein offener Blocker; installierter Kandidat und Updateweg geprüft; identischer Archivhash und schriftlicher Go/No-Go-Befund nach [Plan 4](docs/release-plans/04-release-kandidat.md). |
-| [5. Öffentlicher Mac-Release](docs/release-plans/05-oeffentlicher-release.md) | Nicht freigegeben und nicht veröffentlicht. | Vor Veröffentlichung die konkrete Ausgabe, Produktseite und den Kanal ausdrücklich genehmigen. Dabei die frühere ChatGPT-Sites-Planungsnotiz vom 12.09. mit dem vorhandenen statischen Website-Entwurf abgleichen. | Stufe 4 und separate ausdrückliche Freigabe zur Veröffentlichung. | Der tatsächliche öffentliche Download stimmt im Hash mit dem freigegebenen ZIP überein; Website, README, Datenschutztext und Installationsweg sind außen geprüft. Kriterien in [Plan 5](docs/release-plans/05-oeffentlicher-release.md). |
+- **Fünf Tracks parallel.** Linux, macOS, Windows, iOS und Android werden als
+  eigene Tracks vorangetrieben, weil alle für eine Beta gebraucht werden. Die
+  Regel „eine Plattform zur Zeit“ vom 2. Oktober gilt nicht mehr.
+- **Jeder Track endet in einer Beta** mit fremden Nutzern: GitHub Pre-Release
+  mit Kennzeichnung „Beta“, GitHub Issues mit der Vorlage „Beta-Rückmeldung“ als
+  einziger Feedback-Kanal, ein bis drei Ankündigungsorte je Plattform.
+- **Einzelfall-Live-Tests übernehmen Beta-Nutzer.** Wir prüfen selbst nur den
+  Weg, den jeder Nutzer durchläuft: Installation und ein echtes Diktat. Alles
+  Weitere (einzelne Programme, Randfälle, Sprachmischungen) steht als bekannte
+  Grenze in der jeweiligen Anleitung und wird nach Rückmeldung behoben. Die
+  Go-Regel für Live-Tests in [AGENTS](AGENTS.md#required-verification) bleibt.
+- **Jede Veröffentlichung und jede Ankündigung braucht Bastis ausdrückliches
+  Go.** Nichts in dieser Datei ist eine solche Freigabe.
+- **Erledigtes wandert ins [Log](#erledigt) am Ende**, mit Datum und Link,
+  statt in den Tracks stehen zu bleiben.
 
-Der erste öffentliche Mac-Umfang bleibt Apple Silicon mit macOS 14 oder neuer;
-Intel ist darin nicht enthalten. Stufe 5 ist kein Beschluss zu Preisen,
-Unternehmen, Mac App Store oder anderen Plattformen. Die Detailpläne bleiben
-die Quelle ihrer vollständigen Prüfkriterien.
+## Track Linux
 
-## Plattformen außerhalb des Mac-Releaseplans
+**Ziel der Beta:** Omarchy-/Hyprland-Nutzer installieren das CLI, diktieren
+mit Super+D in ihr aktives Fenster, wahlweise mit Übersetzung, und melden
+Probleme über GitHub Issues.
 
-Aktualisierung vom 28.09.: Beide Geräte sind direkt per SSH geprüft. Linux
-bestand 23 Offline-Tests, Formatter, Clippy und Release-Build; Windows 23
-Kern-/Ablaufprüfungen, nach separater Freigabe 18 Schutzprüfungen und
-App-/Browser-Host-Build. 37 Windows-Quelldateien
-stimmen mit der separaten Mac-Kopie überein; vier ergänzende Originaldateien
-wurden anschließend ebenfalls direkt gegen den Windows-PC geprüft. Der
-Quellsnapshot ist unter [windows/](windows/README.md) versioniert und seine
-README bereinigt; unabhängiger Review ohne wesentliche Befunde im
-begrenzten Integritäts-/Dokumentationsumfang. Die [Geräteprüfung](docs/platform-audit-2026-09-28.md)
-und die [Fortsetzung](docs/platform-continuation-2026-09-28.md) ergänzen
-die datierten sichtbaren Nachweise unten, ersetzen sie aber nicht.
+**Stand:** Phase 1 (Clipboard-MVP) ist seit dem 5. bis 7. Oktober auf omarchy
+belegt: Aufnahme, Keyring, Upload, Übersetzung, Zwischenablage, Fehler- und
+Abbruchfälle mit erhaltener Aufnahme und `retry`, physischer Hotkey Super+D,
+Leistenanzeige mit Zielsprachen-Umschalter. Phase 2 (Auto-Einfügen in das beim
+Start erfasste Fenster, mit Fokus- und Zwischenablage-Prüfung) ist Standard und
+in Editor und Terminal erprobt. Basti nutzt es seit dem 7. Oktober im Alltag.
+Nachweise: [Live-Nachweise 5. bis 7. Oktober](docs/linux-live-2026-10-05-bis-07.md),
+[Linux-Detailplan](docs/linux-build-plan.md).
 
-| Plattform | Belegter Stand | Nächstes nötiges Ergebnis | Abhängigkeit | Abschlussnachweis |
-| --- | --- | --- | --- | --- |
-| Windows | Ziel B (öffentliche Verteilung vorbereiten) ist gewählt. Der bislang separate Prototyp bestand aktuell 41/41 Offline-Prüfungen und beide Builds. Der geprüfte Quellsnapshot ist unter `windows/` versioniert; echte Diktate sind nicht abgenommen. | Reproduzierbare Paketierung und die konkrete Produktabnahme gemäß [Releaseplan](windows/RELEASE-PLAN.md) vorbereiten. | Vor Live-Abnahme Pflichtprogramme und Mikrofon-/Providerumfang festlegen. Installation, Signierzugang und Veröffentlichung brauchen jeweils passende Freigaben. | Versionierter, reproduzierbar gebauter Kandidat; belegte Diktat-, Installations-, Update- und Deinstallationswege sowie signierte Auslieferung vor eigener Veröffentlichungsfreigabe. [Windows-Plan](docs/windows-plan.md). |
-| Linux | Phase 0 ist als Wegwahl belegt; der Phase-1-Clipboard-MVP-Kern ist in `main` vorhanden und offline geprüft. Phase 1 ist **nicht** abgenommen: Live-Upload, reale Fehlerfälle, physischer Hotkey sowie Tray/Panel fehlen als Nachweise. | Beide lokalen Schlüssel sind nach genehmigter Einrichtung vorhanden. Der Linux-Diktattest ist auf Bastis Wunsch vorerst zurückgestellt. Erst nach Wiederaufnahme Mikrofon klären und begrenzte Live-Freigabe festlegen; dann den realen Aufnahme-, Keyring-, Provider-, Clipboard- und Fehlerpfad prüfen. Anschließend Tray/Panel und physischen Hyprland-Hotkey abnehmen; Paketierung folgt danach. | Zielsystem Omarchy/Hyprland; neue Mikrofon-/Providerfreigabe. Keine Änderung der Nutzer-Hyprland-Konfiguration ohne eigenen Auftrag. | Phase 1 erst nach dem vollständigen Durchstich samt Fehler-/Abbruchfällen, physischem Hotkey und UI-Minimum. Automatisches Einfügen ist eine spätere Phase und braucht eine belegte Zielfensterregel oder einen begründeten Clipboard-only-Ship. [Linux-Detailplan](docs/linux-build-plan.md), [Phase-1-Bericht](docs/linux-phase1-core-2026-09-22.md). |
-| iOS — besonders wichtig | Basti hat iOS am 28.09. ausdrücklich als besonders wichtig hervorgehoben. Gewünschter Ablauf: direkt in anderen Apps diktieren. Der Offline-Tastatur-Prototyp besteht Build, Installation sowie den sichtbaren synthetischen Safari-Test auf einem genehmigten frischen Simulator: Einfügen, normale Eingabe, Feld-/App-/Tastaturwechsel und Systemtastatur im Passwortfeld. Testressourcen sind bereinigt, das erfolgreiche Gerät bleibt ausgeschaltet gespeichert. [E2E-Nachweis](docs/ios-keyboard-e2e-2026-09-29.md). Am 30.09. auf iPhone 15 mit iOS 27.0.1 signiert gebaut, installiert und sichtbar gestartet. Aktivierung und synthetische Einfügung in beide Safari-Felder sind belegt; Systemtastatur im Passwortfeld von Basti direkt bestätigt. Frischer Durchlauf nach USB-Unterbrechung bestätigt Eingabe, Löschen und erwarteten Endzustand nach dem vom Nutzer ausgeführten App-Wechsel. Test-App deinstalliert; Device-Hub-Steuerung blockiert. [Gerätenachweis](docs/ios-device-2026-09-30.md). | Der neue [Kopplungs-Kandidat](ios/README.md) besteht unsigned Simulator-/Gerätebuilds und sechs Bridge-Fixtures: Host-Aufnahme bis 15 Sekunden → manueller Safari-Wechsel → Tastatur-Stopp → bewusstes synthetisches Einfügen. Die konkrete Freigabe ist erteilt; Apple-Gruppe und beide Profile sind eingerichtet, signierter Gerätebuild und Signaturen bestehen. Der begrenzte positive Kopplungsweg und die korrigierte Berührungsfolge sind am iPhone belegt: bewusste einmalige Einfügung in beide Felder und WAV-Dauern von 15,0, 14,006625 und 15,0 Sekunden. Test-App/-seiten und private Mac-Audioprüfkopien sind bereinigt; Basti bestätigt Apples Tastatur und Diktieren danach. Zusätzlicher Host-Abbruch, Unterbrechungs-/Fehlerfälle und vollständiger Dateischutznachweis bleiben vor Produktabnahme offen. [Gerätebelege](docs/ios-recording-coupling-2026-09-30.md). Danach die kleinste Produktumsetzung ableiten. | Zielgerät ist das iPhone 15 mit iOS 27.0.1. Die freigegebene Einrichtung, Installation und Bereinigung sind ausgeführt; alle drei lokalen Mikrofonprüfungen sind verbraucht ([Freigaben](APPROVALS.md)). USB-Durchlauf abgeschlossen. Vor weiteren Live-Prüfungen neue konkrete Freigabe und erneuten USB-Anschluss festlegen. Vollzugriff nur für die schreibende Kopplung; kein Anbieter/Upload. Verteilungsweg offen. Eigene Tastaturen dürfen nicht selbst das Mikrofon nutzen. | Vor Produktumsetzung ein bestätigtes Ziel und prüfbare Akzeptanzkriterien; anschließend sichtbarer Diktierablauf auf einem konkret benannten Zielgerät. Der synthetische Textpfad ersetzt diese Abnahme nicht. |
-| Android | In den geprüften Quellen als vierte und letzte Plattform in der Reihenfolge vom 12.09. erwähnt; kein Android-Plan oder Implementierungsnachweis in diesem Repository gefunden. | Ziel, Produktnutzen und gewünschte Abnahme festlegen, wenn die Plattform aufgegriffen wird. | In der zuletzt ausdrücklich dokumentierten Reihenfolge nach Windows, Linux und iOS; technische Gates sind offen. | Noch nicht definiert; vor Umsetzung im Rahmen eines konkreten Plattformplans festlegen. |
+**Nächste Schritte:**
 
-Der Windows-Plan vom **12.09.2026** nannte ausdrücklich die Reihenfolge
-**Windows → Linux → iOS → Android**. Das ist die historische Reihenfolge;
-am 28.09. hat Basti iOS zusätzlich als **besonders wichtig** hervorgehoben.
-Eine neue vollständige Reihenfolge hat er damit nicht festgelegt. Die ebenfalls
-beauftragte Windows-/Linux-Fortsetzung während der Apple-Wartezeit bleibt
-bestehen; der Linux-Diktattest wurde danach vorerst zurückgestellt.
-Der iOS-Zielablauf ist jetzt konkretisiert; Implementierungsdetails und
-Live-Prüfungen sind noch offen. Eine Android-Umsetzung ist nicht beauftragt.
+1. Linux-Beta auf Englisch (Entscheidung 8. Oktober): Das Programm spricht die
+   Systemsprache, Anleitung auf Englisch und Deutsch, eigene Issue-Vorlage.
+   Dann Pre-Release und Ankündigung in r/omarchy und r/hyprland. Go je
+   Veröffentlichung und Ankündigung.
+2. Beta laufen lassen: Issues zeitnah beantworten, Rückmeldungen sammeln,
+   danach entscheiden, was gebaut wird (Kandidaten: konfigurierbarer Endpunkt,
+   Vokabular, Echtzeit-Übersetzung, Feinjustierung der Zeitlimits).
 
-## Belegte künftige Erweiterungen und offene Produktfragen
+**Bekannte Grenzen, den Beta-Nutzern überlassen:** Einfügen in Chromium-,
+Electron- und Discord-Fenstern; gemischtes Deutsch/Englisch mit Übersetzung;
+Abbruch und Netzausfall genau während der Übersetzung; die seit PR #51
+kürzeren Zeitlimits (nur offline geprüft); nur Hyprland, kein anderer
+Compositor; nur Arch/omarchy.
 
-| Punkt | Status | Nächstes nötiges Ergebnis | Abhängigkeit / Abschlussprüfung |
-| --- | --- | --- | --- |
-| Eigenständige, spielerische Markenidentität | Am 29.09. ausdrücklich als langfristiges Ziel ergänzt: Marketing und Produktgestaltung sollen zusammen Wiedererkennung und Freude an der Nutzung schaffen. Die ruhige aktuelle Optik ist kein finales Ziel. Referenzen und Abgrenzung stehen in [PROJECT](PROJECT.md#marken--und-gestaltungsrichtung). | Bei Aufnahme der Gestaltungsarbeit eine zusammenhängende Richtung für Typografie, Farben, Grafik, Bewegung und ein mögliches Maskottchen anhand konkreter App-Zustände und eines Marketingbeispiels zeigen. | Konkrete Stilwahl und Zeitpunkt mit Basti festlegen; keine laufende Neugestaltung beauftragt. Abschluss nach seiner visuellen Richtungsentscheidung und Prüfung von Wiedererkennbarkeit, Bedienbarkeit, Lesbarkeit und reduzierter Bewegung am ausgearbeiteten Entwurf. |
-| Streaming beim Diktieren | Basti hat es am 26.09. ausdrücklich als gewünschte spätere Erweiterung benannt. Technische Gestaltung und Produkt-/Preisentscheidung sind offen; optionale Funktion oder Upsell ist nur eine Möglichkeit. | UX und technische Grenzen einschließlich Teil-/Endereignis, Abbruch, Fehler und Nutzenmessung festlegen, bevor Umsetzung geplant wird. Unbestätigte Teilergebnisse nicht fortlaufend in das Zielfeld schreiben. | Keine freigegebene Implementierung oder Preisentscheidung. Eigene Akzeptanzkriterien vor Umsetzung definieren; dann sichtbaren Ablauf, Abbruch und sichere Endausgabe prüfen. |
-| Hold-to-talk | Als nicht implementierte Erweiterung in den Produkt-/Kompatibilitätsnotizen geführt. | Press-/Release-Verhalten, verpasste Freigabe und Wiederherstellung konkret definieren. | Kein Implementierungsauftrag. Vor Abnahme Tastendruck, Loslassen, Wiederherstellung und bestehende Aufnahmekappung prüfen; genaue Zielplattform muss feststehen. |
-| Gaming-Shortcut | Basti wünscht einen leicht erreichbaren Shortcut mit höchstens zwei Tasten. Die Belegung ist offen; Ergonomie und Konflikte mit Spielbelegungen müssen berücksichtigt werden. Der berichtete WoW-Chat-Nutzen ist keine allgemeine Kompatibilitätszusage. | Belegung anhand des Zielspiels auswählen und Kollisionen prüfen. | Kein Implementierungsauftrag und keine Supportzusage. Abschluss erst nach Prüfung der gewählten Belegung in den ausdrücklich gewählten Spielen; unterstützte Spiele auf geprüfte Fälle begrenzen. |
-| Alte, verwaiste Audiooriginale nach Absturz | Die sichere Zuordnung und Wiederherstellung historischer temporärer Dateien ist offen. Bestehende Regel: die einzige überlebende Aufnahme nicht blind löschen. | Eigentum, Erkennung, Zugriff, Ablauf und Wiederherstellung festlegen, bevor Bereinigung automatisiert wird. | Bestehende Audio-/Recovery-Invarianten aus [AGENTS.md](AGENTS.md) und [PRIVACY.md](PRIVACY.md) erhalten; mit konkreten Verlust-/Manipulationsfällen abnehmen, nicht nur mit einem erfolgreichen Pfad. |
+## Track macOS
 
-## Technischer Audit
+**Ziel der Beta:** Mac-Nutzer (Apple Silicon, macOS 14+) laden das notarisierte
+Paket, richten ihren Schlüssel ein, diktieren mit Option+Shift+Leertaste,
+wahlweise mit Übersetzung, und melden Probleme über GitHub Issues.
 
-Der separate [Projekt-Audit vom 28.09.2026](docs/project-audit-2026-09-28.md)
-ordnet belegte kleine Korrekturen, begrenzte Codevereinfachungen, vorsichtige
-Duplikatbehandlung und erhaltenswerte Sicherheits-/Recovery-Pfade ein. Die
-[Code-Reduktionsbewertung](docs/code-reduction-2026-09-28.md) konkretisiert den
-jetzt ausdrücklich beauftragten Versuch: Die gemessene Ausgangsbasis beträgt
-8.009 Sourcezeilen; das Reduktionsziel liegt bei 10–25 %. Die Coverage-Baseline
-beträgt 33,526570 %, die zulässige Untergrenze bei höchstens 2 % relativem
-Verlust 32,856039 %. Der sichere Wartungsdurchlauf in Commit `a9165fd` entfernte
-den unbenutzten Farbhelfer und korrigierte zwei irreführende Kommentare: netto
-fünf Sourcezeilen weniger (0,06 % der Ausgangsbasis). Das 10%-Ziel von mindestens
-801 Zeilen wurde nicht erreicht; eine sichere größere Kürzung innerhalb des
-freigegebenen Mac-Umfangs war nicht belegt und wurde nicht erzwungen. Die
-vorgeschriebenen Offline-Quellchecks bestanden. Die Nachhermessung ergibt
-33,55899 % Swift-Coverage (vorher 33,52657 %): kein Verlust. Der Anstieg stammt
-nur von fünf entfernten ungetesteten Zeilen. Bestehende Tests und Rust-Code
-sind bytegleich; Verhaltens- und Sicherheitsregeln wurden nicht geändert.
+**Stand:** Stufe 1 (interne Funktionsabnahme) am 24. September abgeschlossen.
+Stufe 2: Build 8 aus `b786d4c` ist von Apple notarisiert, das finale ZIP samt
+Manifest geprüft (SHA-256 `2e994cd8…e335768`) und in der privaten
+Release-Draft `v0.1.0-beta.8` hinterlegt. Teil B am 8. Oktober: installiert,
+erster Start mit Quarantäne und ein Diktat mit automatischem Einfügen bestanden
+([Nachweis](docs/release-plans/evidence/2026-10-08-plan2-teil-b.md)). Übersetzung und die kleinen Punkte vom 7. Oktober sind im Code und
+offline geprüft ([Stand](docs/remaining-acceptance.md#macos)); ein echtes
+Diktat damit fehlt. Die Stufenpläne unter
+[docs/release-plans/](docs/release-plans/01-interne-produktabnahme.md) bleiben
+die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleinert.
+
+**Nächste Schritte:**
+
+1. Übersetzung und die kleinen Punkte vom 7. Oktober: umgesetzt und offline
+   geprüft. Offen ist nur der Live-Nachweis im nächsten Kandidaten: ein Diktat
+   mit Übersetzung nach Englisch und die Dateirechte `0600` der
+   Originalaufnahme während der Aufnahme.
+2. Neuen Kandidaten bauen, signieren, notarisieren und einfrieren (Stufe 4 im
+   verkleinerten Umfang: Hash, Installation und Update geprüft, Produkttexte in
+   README, Website und App stimmen überein). Stufe 3 (Eigennutzung) schrumpft
+   auf: Basti nutzt den Kandidaten so lange selbst, bis er ihm vertraut; der
+   Messbogen ist optional. Die vollständige UX- und VoiceOver-Prüfung wird zur
+   bekannten Grenze der Beta.
+3. Mac-Beta (bisher Stufen 5 und 6): Pre-Release, Website mit „Beta“,
+   [Installationsanleitung](docs/release-plans/installationsanleitung.md),
+   Ankündigung (Kandidaten: Show HN, r/macapps, Mastodon/X).
+4. Beta laufen lassen und antworten.
+
+**Bekannte Grenzen, den Beta-Nutzern überlassen:** Feldtypen und Programme
+jenseits der [Kompatibilitätsmatrix](docs/compatibility-matrix.md); gehörte
+VoiceOver-Ausgabe; frische Ersteinrichtung in einem neuen macOS-Konto;
+Beenden der App, während OpenAI noch transkribiert (nur ohne Netz geprüft;
+live antwortete OpenAI in zwei Versuchen vor der Bestätigung); Intel-Macs sind
+nicht Teil der ersten Beta.
+
+## Track Windows
+
+**Ziel der Beta:** Windows-Nutzer installieren eine signierte App, diktieren
+mit einem Zwei-Tasten-Kürzel in Editor, Browser und Spielchat (siehe
+Anwendungsfall Gaming in [PROJECT](PROJECT.md#anwendungsfälle)) und melden
+Probleme über GitHub Issues.
+
+**Stand:** Der Prototyp unter [windows/](windows/README.md) besteht 41 von 41
+Offline-Prüfungen und beide Builds (28. September). Modell ist fest
+`gpt-transcribe`, ohne Sprache, Prompt und Übersetzung. Kein echtes Diktat,
+keine Paketierung, keine Signatur. Details: [Windows-Plan](docs/windows-plan.md),
+[Releaseplan](windows/RELEASE-PLAN.md).
+
+**Nächste Schritte:**
+
+1. Modell und Sprache aus den Einstellungen statt fest; Übersetzung wie auf
+   Linux; Provider-Tests gegen die gemeinsamen Fixtures (siehe
+   Plattformübergreifend).
+2. Ein echtes Diktat auf dem Windows-PC mit Bastis Go: Installation, Mikrofon,
+   Upload, Einfügen in den Editor und in den Spielchat im Vollbild. Einmal,
+   als Installationsprüfung.
+3. Paketierung und Signatur nach dem Releaseplan. Abhängigkeit: ein
+   Signierzugang für Windows ist noch nicht vorhanden; ohne Signatur warnt
+   Windows jeden Nutzer beim Start.
+4. Windows-Beta: Pre-Release, Issue-Vorlage, Ankündigung.
+
+**Bekannte Grenzen, den Beta-Nutzern überlassen:** Programme jenseits von
+Editor, Chrome-Testprofil und dem einen geprüften Spiel; Update- und
+Deinstallationsweg; Verhalten mit anderen Spracheingaben wie Voice Access.
+
+## Track iOS
+
+**Ziel der Beta:** iPhone-Nutzer starten die Aufnahme in der Ziel-App über
+Aktionstaste, Rückseite oder Kontrollzentrum, ohne dass OpenDictate aufgeht,
+bekommen den (wahlweise übersetzten) Text in die Zwischenablage und fügen ihn
+selbst ein. Verteilung über TestFlight.
+
+**Stand:** Der Tastatur-Prototyp besteht den synthetischen Safari-Textpfad auf
+Simulator und iPhone 15 (29./30. September, [Nachweis](docs/ios-device-2026-09-30.md)).
+Der Kopplungs-Kandidat (Host-Aufnahme bis 15 Sekunden, manueller App-Wechsel,
+Tastatur-Stopp, bewusstes Einfügen von Testtext) ist am 30. September begleitet
+auf dem iPhone belegt ([Gerätebelege](docs/ios-recording-coupling-2026-09-30.md),
+[Kandidat](ios/README.md)); Host-Abbruch, Unterbrechungs-/Fehlerfälle und der
+Dateischutz am Gerät sind nicht belegt, echte Transkription ebenfalls nicht.
+Draft-PR #40 bleibt erhalten. Die Einschätzung vom 2. Oktober gilt weiter: Tastatur-Erweiterungen
+dürfen nicht aufnehmen, eine Vollzugriff-Tastatur mit Netzwerk und Schlüssel
+ist ein Review- und Vertrauensrisiko; die Nutzerrecherche vom 8. Oktober
+bestätigt beides und zeigt den Zwischenablage-Weg als gangbar
+([Richtung](docs/ios-direction.md), [Neuordnung](docs/roadmap-neuordnung-2026-10-08.md)).
+
+**Nächste Schritte:**
+
+1. ~~Produktkonzept auf einer Seite festlegen.~~ Erledigt am 11. Oktober
+   ([Konzept](docs/ios-konzept.md)): Aufnahme im Hintergrund über einen
+   Kurzbefehl mit Live-Aktivität, Ergebnis in die Zwischenablage, keine
+   Vollzugriff-Tastatur, Übersetzung als Merkmal.
+2. Erster Prüfpunkt auf dem iPhone 15 mit Bastis Go: Startet die Aufnahme per
+   „Auf Rückseite tippen“ im Hintergrund, ohne dass die App aufgeht? Danach
+   echte Transkription und die Abnahme aus dem Konzept.
+3. TestFlight-Beta. Abhängigkeit: Apple-Developer-Mitgliedschaft (vorhanden,
+   Verlängerung September 2027) und Xcode auf dem Mac.
+
+**Bekannte Grenzen, den Beta-Nutzern überlassen:** Einfügen in einzelne Apps,
+Hintergrundverhalten, Datenschutz-Dialoge in iOS-Versionen, die nicht
+getestet wurden.
+
+## Track Android
+
+**Ziel der Beta:** Android-Nutzer installieren eine Tastatur mit Mikrofon-Taste,
+diktieren in jede App, wahlweise mit Übersetzung, und melden Probleme über
+GitHub Issues. Verteilung als interner Test in Google Play oder als APK.
+
+**Stand:** Kein Code, kein Plan. Android erlaubt eigene Tastaturen mit
+Mikrofon, anders als iOS; die Nutzerrecherche vom 8. Oktober zeigt Bedarf an
+Mehrsprachigkeit ohne Umschalten, Datenschutz und schnellem Zugriff.
+
+**Nächste Schritte:**
+
+1. Produktkonzept auf einer Seite: Tastatur mit Mikrofon-Taste oder schwebende
+   Blase, Übersetzung, Schlüssel im Android-Keystore, dieselben
+   Audio-/Recovery-Regeln wie überall.
+2. Prototyp: Aufnahme, Upload, Einfügen über die Tastatur in eine beliebige App.
+3. Android-Beta. Abhängigkeit: Google-Play-Entwicklerkonto (nicht vorhanden)
+   oder APK-Verteilung mit Anleitung.
+
+## Plattformübergreifend
+
+| Punkt | Stand | Nächster Schritt |
+| --- | --- | --- |
+| Preismodell | Am 8. Oktober entschieden ([PROJECT](PROJECT.md#preismodell)): offener Code, CLI-Builds gratis, fertige App mit UI einmalig bezahlt; bis zur Firmengründung bleibt alles kostenlos. | Vor der ersten bezahlten Version: Firmengründung, Bezahlweg, Preis festlegen. Keine Beta hängt daran. |
+| Gaming | Ursprungs-Anwendungsfall ([PROJECT](PROJECT.md#anwendungsfälle)). Belegt: Textchat in World of Warcraft mit der Mac-App. Offen: Einfügen im exklusiven Vollbild, Zwei-Tasten-Kürzel auf jeder Plattform, Einzeltaste oder Halten-zum-Sprechen. | Im Windows-Track Schritt 2 prüfen. Vor einer Gaming-Botschaft per Blizzard-Ticket klären, dass externe Diktier-Software geduldet ist. Hold-to-talk und Einzeltaste sind auf macOS mit der Kürzel-Abfrage gebaut (nächster Kandidat nach Build 9); Windows folgt mit seinem Track. |
+| Kürzel-Abfrage beim ersten Start | Am 9. Oktober entschieden ([PROJECT](PROJECT.md#entscheidungen)) für die fertige (bezahlte) App: Nach der Installation fragt die App, wie die Aufnahme starten soll, und schlägt je Plattform zwei bis drei recherchierte Kürzel vor; die Empfehlung ist vorausgewählt, ein eigenes Kürzel bleibt möglich, ein Tastendruck prüft, dass es ankommt. Bestätigte Vorschläge (Recherche 9. Oktober, die erste Option ist jeweils vorausgewählt; außer macOS nicht gebaut): macOS Fn halten, rechte Wahltaste, ⌃⌥D (seit 10. Oktober ist die rechte Wahltaste vorausgewählt, wenn eine Apple-Tastatur mit Ziffernblock oder eine fremde Tastatur angeschlossen ist); Linux Super+D, F9 (Omarchys Diktiertaste), rechte Alt nur bei US-Layout; Windows Strg+Win halten, rechte Strg für Spiele, Maus-Seitentaste; iOS Aktionstaste, Auf Rückseite tippen, Steuerelement; Android Mikrofon-Taste der Tastatur, Schnelleinstellungs-Kachel, schwebende Blase. Die Mac-App hat schon eine Kürzelauswahl im Menü (drei Vorschläge, eigenes Kürzel); ihr Standard Option+Shift+Leertaste hat drei Tasten. Einzeltasten und Halten-zum-Sprechen brauchen auf macOS und Windows eine andere Technik als heute. macOS: Fn halten, rechte Wahltaste (beide mit Halten-zum-Sprechen) und die Abfrage sind gebaut, offline geprüft und am 9. Oktober live am Mac geprüft; einzelne Fälle sind noch offen ([Abnahme](docs/remaining-acceptance.md#macos)). Build 9 enthält sie nicht. | macOS kommt mit dem nächsten Kandidaten nach Build 9. Danach Linux als Schritt im Installer, Windows (gleiche Technik für Strg+Win und rechte Strg), iOS und Android mit ihrem Track. |
+| Konfigurierbarer Endpunkt | Am 2. Oktober für macOS spezifiziert ([Plan-4-Notiz](docs/plan4-aenderungen-2026-10-02.md)); seit dem 8. Oktober für alle Plattformen gewünscht, als Antwort auf den Wunsch nach lokaler Verarbeitung. | Mac mit dem nächsten Kandidaten; Linux und Windows nach ihrer ersten Beta. Nur die Adresse, `http://` nur für Loopback; eine Fremd-URL wird nicht abgenommen. |
+| Provider-Vertrag | Am 2. Oktober entschieden: gemeinsame Fixtures unter `fixtures/provider/` für Swift, Rust und C#. Nicht begonnen. | Mac-Teil mit dem nächsten Kandidaten; Linux `validate_model` wie Mac; Windows mit Schritt 1 seines Tracks. |
+| Markenidentität 1.1 | Langfristiges Ziel vom 29. September ([PROJECT](PROJECT.md#marken--und-gestaltungsrichtung)). Das Designsystem aus Claude Design (Pixel-Terminal, Blink, grünes Signal, drei Themes) liegt seit dem 9. Oktober als gemeinsame Quelle unter [`design/`](design/README.md); noch keine Oberfläche nutzt es. | Beginnt nach der ersten Beta (Linux oder Mac) und blockiert keine Beta. Richtung mit Basti anhand echter App-Zustände und eines Marketingbeispiels festlegen. |
+| Vokabular | Mac hat „Vokabular und Kontext“; Linux und Windows nicht. Laut Recherche häufiger Wunsch. | Nach der ersten Beta-Rückmeldung je Plattform nachziehen. |
+| Echtzeit-Übersetzung und Streaming | Weg C (`gpt-realtime-translate`) ist recherchiert, nicht gebaut ([Plan](docs/linux-live-translation-plan.md)). Streaming beim Diktieren ist seit dem 26. September gewünscht. Beides widerspricht der Regel, unbestätigte Teilergebnisse nicht ins Zielfeld zu schreiben, und braucht eigene Akzeptanzkriterien. | Erst nach Beta-Rückmeldung, dass die Wartezeit von Weg A stört. |
+| Zielsprache je Anwendung | Idee aus der Recherche, nicht beauftragt. | Keiner. |
+| Verbrauchsanzeige in der App | Wunsch von Basti vom 8. Oktober: Nutzer sollen ihren Verbrauch (zum Beispiel pro Tag) direkt in der App sehen, ohne sich im Dashboard des Anbieters anzumelden, ähnlich den Verbrauchsmodulen anderer Plattformen. Nicht beauftragt. Zwei Wege sind denkbar: lokal mitzählen (Audiosekunden je Diktat mal Listenpreis des gewählten Modells, Übersetzungs-Tokens aus der `usage`-Antwort) oder die Verbrauchs- und Kostenschnittstelle des Anbieters abfragen, die nach aktuellem Stand einen Admin-Schlüssel statt des normalen API-Schlüssels verlangt. | Nach der ersten Beta je Plattform entscheiden; lokales Mitzählen ist der wahrscheinlichere Weg, weil es mit dem vorhandenen Schlüssel auskommt. Preise als änderbare Tabelle, Zähler lokal und ohne Transkripte; Datenfluss in `PRIVACY.md` nachziehen. |
+| Support-Backend | Am 8. Oktober entschieden ([PROJECT](PROJECT.md#entscheidungen)): eigenes kleines Backend statt fertiger Ticketsoftware. Die erste Version ist als Entwurf in einem eigenen privaten Repository gebaut und offline getestet; der Livegang wartet auf die neue Marke. Kontaktformular und Supportadresse werden Tickets, ein Dashboard nur für Basti, ein Agent sortiert und schreibt nur Entwürfe, Basti entscheidet und versendet. Die Website bleibt statisch; das Formular schickt nur an das Backend. | Vor dem Livegang fehlen Domain und Supportadresse, Impressum und Datenschutzerklärung auf der Website, Auftragsverarbeitung mit dem KI-Anbieter und ein Abschnitt zum Supportweg in `PRIVACY.md`. KI-Chatbot später als weiterer Eingang. |
+| Alte verwaiste Audiooriginale nach Absturz | Sichere Zuordnung und Wiederherstellung historischer temporärer Dateien sind offen. Regel: die einzige überlebende Aufnahme nie blind löschen. | Eigentum, Erkennung, Ablauf und Wiederherstellung festlegen, bevor Bereinigung automatisiert wird; mit Verlust- und Manipulationsfällen abnehmen. |
+
+## Erledigt
+
+| Datum | Ergebnis | Nachweis |
+| --- | --- | --- |
+| 8. Oktober 2026 | macOS Stufe 2 Teil B: Build 8 installiert, erster Start mit Quarantäne, Diktat mit Einfügen. Beenden während der Transkription als bekannte Grenze eingetragen. | [Nachweis](docs/release-plans/evidence/2026-10-08-plan2-teil-b.md) |
+| 8. Oktober 2026 | Linux: Beta-Anleitung in `linux/README.md` und Arch-Paket ([PKGBUILD](linux/packaging/arch/PKGBUILD)); von Basti auf omarchy installiert, Diktat mit Übersetzung über das Paket (PR #57). | [Live-Nachweise](docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026) |
+| 7. Oktober 2026 | Linux: Abbruch und Netzausfall während der Transkription behalten die Aufnahme; Zeitlimits auf Sekunden statt zwei Minuten (PR #51). | [Live-Nachweise](docs/linux-live-2026-10-05-bis-07.md) |
+| 7. Oktober 2026 | macOS: temporäre Aufnahmen tragen `0600`, live geprüft (PR #49); Löschfehler nur einmal pro Start geloggt (PR #50); die alte Aufnahme vom 15. September ist gelöscht. | [Stand macOS](docs/remaining-acceptance.md#macos) |
+| 5. bis 6. Oktober 2026 | Linux: Übersetzung nach dem Sprechen, Leistenanzeige, Auto-Einfügen, Hotkey Super+D (PR #45, #47). Phase 1 damit belegt. | [Live-Nachweise](docs/linux-live-2026-10-05-bis-07.md) |
+| 5. Oktober 2026 | Aus dem Branch `rescue/grok-clone-2026-09` drei Härtungen übernommen (PR #46); Rest bleibt liegen. | [PROJECT](PROJECT.md#entscheidungen) |
+| 2. Oktober 2026 | Zielgruppe und Kostenargument in PROJECT, README und Website festgeschrieben. Offen bleibt nur das „ca.“ im Modellmenü (Mac-Track). | [Plan-4-Notiz](docs/plan4-aenderungen-2026-10-02.md) |
+| 2. Oktober 2026 | macOS Build 8 notarisiert, finales Paket geprüft. | [Nachweis](docs/release-plans/evidence/2026-10-02-plan2-build8-final.md) |
+| 28. September 2026 | Code-Reduktionsversuch: fünf Zeilen weniger, Coverage ohne Verlust; das 10%-Ziel wurde nicht erreicht und nicht erzwungen. | [Bewertung](docs/code-reduction-2026-09-28.md), [Projekt-Audit](docs/project-audit-2026-09-28.md) |
+| 24. September 2026 | macOS Stufe 1 (interne Funktionsabnahme) abgeschlossen. | [Plan-1-Bericht](docs/release-plans/evidence/2026-09-24-plan1-fortsetzung.md) |

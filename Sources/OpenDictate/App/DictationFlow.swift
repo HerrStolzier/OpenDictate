@@ -16,6 +16,9 @@ final class DictationFlow {
         var clean: @MainActor (URL) -> Void
         var copy: @MainActor (String) -> Bool
         var paste: @MainActor (String) async -> InsertionSubmission
+        /// Target language captured for this dictation; nil skips translation.
+        var translationTarget: @MainActor () -> String? = { nil }
+        var translate: @MainActor (String, String) async throws -> String = { text, _ in text }
     }
 
     private let operations: Operations
@@ -69,7 +72,9 @@ final class DictationFlow {
             do {
                 onStatus?("Wiederholen …")
                 try Task.checkCancellation()
-                let text = try await operations.transcribeRetry(payload)
+                let transcript = try await operations.transcribeRetry(payload)
+                try Task.checkCancellation()
+                let text = try await translateIfRequested(transcript)
                 try Task.checkCancellation()
                 let result = await deliver(text, allowPaste: false)
                 if result.canRemoveRecoveryAudio { operations.removeRetry(payload) }
@@ -142,7 +147,9 @@ final class DictationFlow {
             preparedURL = prepared.url
             try Task.checkCancellation()
             onStatus?("Transkribieren …")
-            let text = try await operations.transcribeFile(prepared.url)
+            let transcript = try await operations.transcribeFile(prepared.url)
+            try Task.checkCancellation()
+            let text = try await translateIfRequested(transcript)
             try Task.checkCancellation()
             let result = await deliver(text)
             mayCleanOriginal = result.canRemoveRecoveryAudio
@@ -164,6 +171,20 @@ final class DictationFlow {
                 }
             }
         }
+    }
+
+    /// Returns the transcript, or its translation when a target is set. A
+    /// failed or empty translation throws instead of falling back to the
+    /// original text, so the caller keeps the audio for retry.
+    private func translateIfRequested(_ transcript: String) async throws -> String {
+        let transcript = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !transcript.isEmpty, let target = operations.translationTarget() else { return transcript }
+        onStatus?("Übersetzen …")
+        let translation = try await operations.translate(transcript, target)
+        guard !translation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw OpenDictateError.emptyTranslation
+        }
+        return translation
     }
 
     private func preserve(_ url: URL) -> Bool {

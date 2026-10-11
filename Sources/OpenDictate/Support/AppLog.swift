@@ -3,8 +3,14 @@ import Foundation
 
 /// Bounded, ordered logging. Callers enqueue metadata without waiting for I/O.
 enum AppLog {
-    static let url = FileManager.default.homeDirectoryForCurrentUser
-        .appendingPathComponent("Library/Logs/OpenDictate.log")
+    /// Test runs log to a temporary file so they never write into the
+    /// user's log.
+    static let url =
+        isRunningTests
+        ? FileManager.default.temporaryDirectory.appendingPathComponent("OpenDictate-tests.log")
+        : FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs/OpenDictate.log")
+    /// The test runner links XCTest; the app never does.
+    private static var isRunningTests: Bool { NSClassFromString("XCTestCase") != nil }
     private static let writer = LogWriter(url: url)
 
     @MainActor

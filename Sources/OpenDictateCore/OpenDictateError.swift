@@ -2,16 +2,20 @@ import Foundation
 
 public enum OpenDictateError: LocalizedError {
     case audioPreprocessingFailed(String)
+    case audioNotEligibleForUpload
     case apiError(String)
     case hotKeyRegistrationFailed(OSStatus)
     case invalidResponse
     case keychainStatus(OSStatus)
     case missingAPIKey
+    case unusableTranscriptionModel
     case noActiveRecording
     case noAudioFile
     case noSpeechDetected(peakDb: Float)
     case recordingCouldNotStart
     case recordingTooShort(actual: TimeInterval, minimum: TimeInterval)
+    case emptyTranslation
+    case translationNotConfigured
 
     public var isSkippedRecording: Bool {
         switch self {
@@ -36,6 +40,9 @@ public enum OpenDictateError: LocalizedError {
         case .audioPreprocessingFailed:
             return
                 "Die Aufnahme konnte nicht vorbereitet werden. Öffne die aufbewahrten Aufnahmen oder versuche ein neues Diktat."
+        case .audioNotEligibleForUpload:
+            return
+                "Die Aufnahme kann nicht gesendet werden. Sie ist leer oder zu groß für diesen Übertragungsweg."
         case .apiError(let message):
             return message
         case .hotKeyRegistrationFailed:
@@ -47,6 +54,9 @@ public enum OpenDictateError: LocalizedError {
         case .missingAPIKey:
             return "Der API-Schlüssel fehlt. Nutze „API-Schlüssel einrichten“ "
                 + "im Aufnahmefenster oder in den Einstellungen."
+        case .unusableTranscriptionModel:
+            return
+                "Das eingestellte Modell ist nicht für diesen Aufnahmeweg geeignet. Wähle in den Einstellungen ein anderes Modell."
         case .noActiveRecording:
             return "Es läuft keine Aufnahme. Starte zuerst ein neues Diktat."
         case .noAudioFile:
@@ -60,6 +70,10 @@ public enum OpenDictateError: LocalizedError {
         case .recordingTooShort(let actual, let minimum):
             return
                 "Die Aufnahme war zu kurz (\(actual.formattedSeconds)). Sprich mindestens \(minimum.formattedSeconds) und beende dann die Aufnahme."
+        case .emptyTranslation:
+            return "OpenAI hat keine Übersetzung geliefert. Der Originaltext wird nicht ersatzweise eingefügt."
+        case .translationNotConfigured:
+            return "Zielsprache oder Übersetzungsmodell ist ungültig. Wähle die Übersetzung in den Einstellungen neu."
         }
     }
 }

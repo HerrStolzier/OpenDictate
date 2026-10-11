@@ -2,16 +2,101 @@
 
 ## Ziel und Nutzen
 
-Gesprochenen Text per Tastenkombination aufnehmen, transkribieren und in der
-zuvor aktiven Mac-Anwendung verfügbar machen. Zielgruppe, aus diesem Ablauf
-abgeleitet: Menschen, die kurze Texte am Mac lieber diktieren als tippen.
-Eine darüber hinaus validierte Marktsegmentierung liegt hier nicht vor.
+Gesprochenen Text per Tastenkombination aufnehmen, transkribieren, wahlweise
+in eine gewählte Zielsprache übersetzen und in der zuvor aktiven Anwendung
+verfügbar machen: immer über die Zwischenablage, wo belegt auch durch
+automatisches Einfügen. Zielgruppe (Entscheidung vom 2. Oktober 2026):
+technisch versierte Nutzer, die einen eigenen API-Schlüssel einrichten können.
 
-OpenDictate soll als allgemeines macOS-Produkt in repräsentativen Eingabefeldtypen
-und Nutzungssituationen zuverlässig arbeiten. Die Produktabnahme richtet sich
-daher nach Feldkategorien und Fokuswechseln, nicht nach der persönlichen App-Liste
-einer einzelnen Person. Der aktuelle Plan steht in der
-[Kompatibilitätsmatrix](docs/compatibility-matrix.md).
+Verkaufsargumente:
+
+- Abrechnung pro gesprochener Minute statt Pauschale (belegt: 0,0045 $/min,
+  rund 0,1 Cent bei einem typischen Diktat von rund 15 Sekunden, rund 18,5
+  Stunden Sprache für den Preis einer 5-$-Monatspauschale). Die Zahlen stammen
+  aus dem eigenen OpenAI-Verbrauch Juli bis Oktober 2026 und sind kein
+  Qualitätsnachweis.
+- Übersetzung beim Diktieren: Deutsch sprechen, Zielsprache wählen, der
+  übersetzte Text kommt auf demselben Weg wie ein normales Diktat.
+- Kein Diktat geht verloren: Eine fehlgeschlagene, abgebrochene oder nicht
+  zugestellte Aufnahme bleibt erhalten und lässt sich wiederholen. Nach der
+  Nutzerrecherche vom 7. und 8. Oktober 2026 sind verlorene Diktate und
+  Abstürze der häufigste Grund, eine Diktier-App zu verlassen.
+- Treue Abschrift: OpenDictate formt Sätze nicht ungefragt um. Jede
+  Veränderung des Textes (heute: die Übersetzung) ist bewusst eingeschaltet und
+  sichtbar.
+- Angestrebt bessere Transkriptionsqualität als das eingebaute Diktieren
+  (noch ohne Vergleichsmessung).
+
+Der eigene API-Schlüssel ist kein Alleinstellungsmerkmal: Auf dem Mac bieten
+ihn die meisten Diktier-Apps an. Der Unterschied liegt in Übersetzung,
+zuverlässigem Einfügen und erhaltenen Diktaten.
+
+## Anwendungsfälle
+
+- **Arbeit:** Mails, Chats, Editor, Terminal. Die Produktabnahme richtet sich
+  nach Feldkategorien und Fokuswechseln, nicht nach der App-Liste einer Person;
+  der aktuelle Plan steht in der [Kompatibilitätsmatrix](docs/compatibility-matrix.md).
+- **Übersetzung:** Deutsch sprechen, Zielsprache wählen (zum Beispiel
+  Englisch). Seit dem 5. Oktober 2026 auf Linux umgesetzt und im Alltag genutzt;
+  die anderen Plattformen ziehen nach ([ROADMAP](ROADMAP.md)).
+- **Gaming:** Basti hat beim Spielen von World of Warcraft gemerkt, wie viel
+  schneller und praktischer es ist, in den Spielchat zu diktieren statt zu
+  tippen. Die Hände bleiben an Maus und Tastatur, es gibt keinen
+  Fensterwechsel. Daraus folgen Anforderungen: ein Kürzel mit höchstens zwei
+  Tasten, Einfügen in ein Vollbildspiel, später Einzeltaste oder
+  Halten-zum-Sprechen. Belegt ist bisher nur der Textchat in World of Warcraft
+  mit der Mac-App; es ist keine allgemeine Spielekompatibilitätszusage. Ob der
+  Spielbetreiber externe Diktier-Software duldet, ist vor einer öffentlichen
+  Gaming-Botschaft zu klären.
+
+## Preismodell
+
+Entscheidung von Basti am 8. Oktober 2026. Sie bestätigt und präzisiert die
+Notiz vom 12. September 2026, die bisher außerhalb des Repositorys lag.
+
+- Der Quellcode bleibt vollständig offen (MIT). Wer will, baut jede Variante
+  selbst und kostenlos.
+- Die CLI-Builds (heute: Linux) bleiben gratis.
+- Die fertig installierbare, signierte und gepflegte App mit Oberfläche kostet
+  einmalig etwas; Hypothese 2 bis 10 Euro. Bezahlt wird Komfort, Signatur,
+  Updates und Support, nicht eine künstlich gesperrte Funktion. Größere spätere
+  Upgrades dürfen etwas kosten.
+- Die API-Kosten zahlt jeder Nutzer selbst beim Anbieter.
+- Verkauft wird erst nach einer Firmengründung. Bis dahin bleibt alles
+  kostenlos, auch die Betas.
+
+Nicht entschieden: Preis, Bezahlweg, Firma, App Store. Ein Abo ist nicht
+vorgesehen.
+
+## Plattformen und belegter Umfang
+
+Alle Plattformen folgen denselben Regeln: Schlüssel nur im Schlüsselspeicher
+des Systems, Audio geht zur Transkription an OpenAI, nie an Dritte darüber
+hinaus; fehlgeschlagene Aufnahmen bleiben begrenzt und authentifiziert
+erhalten ([PRIVACY](PRIVACY.md)); Logs enthalten nie Schlüssel, Text oder Audio.
+Der belegte Stand je Plattform mit Nachweisen steht in
+[docs/remaining-acceptance.md](docs/remaining-acceptance.md); die nächsten
+Schritte in der [ROADMAP](ROADMAP.md).
+
+- **macOS:** Native Menüleisten-App für macOS 14+, SwiftPM und Swift 6, zuerst
+  für Apple Silicon. Aufnahme, Transkription, Zwischenablage und automatisches
+  Einfügen per ⌘V in die beim Start aktive App, eigenes Vokabular. Build 8 ist
+  notarisiert und als Paket geprüft; Installation und Übersetzung stehen aus.
+  Einrichtung: [README](README.md).
+- **Linux:** Rust-CLI für Hyprland (Arch/omarchy) mit Aufnahme, Keyring,
+  Transkription, Übersetzung, Zwischenablage, Auto-Einfügen in das beim Start
+  erfasste Fenster, Leistenanzeige und Hotkey. Seit dem 7. Oktober 2026 im
+  Alltag genutzt. Einrichtung: [linux/README.de.md](linux/README.de.md).
+- **Windows:** Versionierter Prototyp unter [windows/](windows/README.md),
+  nur offline geprüft; kein echtes Diktat, keine Paketierung.
+- **iOS:** Synthetischer Textpfad eines Tastatur-Prototyps belegt; echte
+  Aufnahme offen. Produktkonzept seit dem 11. Oktober 2026: Aufnahme im
+  Hintergrund, Ergebnis in die Zwischenablage, keine eigene Tastatur
+  ([Konzept](docs/ios-konzept.md)).
+- **Android:** Kein Code.
+- MIT-lizenzierter Quellcode. Nach erfolgreichen CI-Prüfungen sind zeitlich
+  begrenzte, ad-hoc signierte [Entwicklungsarchive](docs/development.md#ci-development-archives)
+  verfügbar; sie ersetzen keine Produktabnahme.
 
 ## Marken- und Gestaltungsrichtung
 
@@ -34,56 +119,69 @@ Maskottchen oder konkrete Markenbestandteile für OpenDictate fest.
 Die spätere Gestaltung soll an tatsächlichen Produktzuständen und einem
 Marketingbeispiel sichtbar beurteilt werden: Wiedererkennbarkeit, Freude an
 der Nutzung, klare Zustände, Lesbarkeit und Bedienbarkeit einschließlich
-reduzierter Bewegung. Stilwahl, konkrete Ausgestaltung und Zeitpunkt bleiben
-offen. Diese Ergänzung beauftragt die Planung, noch keine Neugestaltung;
-der nächste Arbeitsschritt steht ausschließlich in [ROADMAP](ROADMAP.md).
-
-## Belegter Produktumfang
-
-- Native Menüleisten-App für macOS 14+, SwiftPM und Swift 6.
-- Der erste öffentliche Mac-Release wird für Apple Silicon mit macOS 14+
-  abgenommen. Intel-Macs sind nicht Teil dieser ersten Produktabnahme.
-- Aufnahme → OpenAI-Transkription mit eigenem API-Schlüssel → Zwischenablage
-  und optional automatisches Einfügen. Einrichtung und Details: [README](README.md).
-- Bewusste Wiederholung erhaltener Aufnahmen bei Fehlern; Schutz des Originals,
-  begrenzte Aufbewahrung und authentifizierte Wiederholung: [PRIVACY](PRIVACY.md).
-- MIT-lizenzierter Quellcode. Das belegt weder eine öffentliche notarisierte
-  Binärversion noch eine Entscheidung über spätere Bezahlangebote.
-- Nach erfolgreichen CI-Prüfungen sind zeitlich begrenzte, ad-hoc signierte
-  [Entwicklungsarchive](docs/development.md#ci-development-archives) verfügbar.
-  Sie enthalten ihre genaue Quellcodeidentität und ersetzen keine Produktabnahme.
+reduzierter Bewegung. Stilwahl und konkrete Ausgestaltung bleiben offen. Die
+Betas erscheinen mit der heutigen ruhigen Optik; die Markenarbeit beginnt nach
+der ersten Beta und blockiert keine ([ROADMAP](ROADMAP.md#plattformübergreifend)).
 
 ## Grenzen und offene Entscheidungen
 
 - Kein Versprechen fehlerfreier Sprache, garantierter Latenz oder bestätigter
   Annahme in jedem Zieltextfeld. Repräsentative Programme sind Testbeispiele,
-  keine pauschale Supportzusage. Zwischenablage bleibt der verlustfreie manuelle Rückweg.
-- Streaming ist ausdrücklich als spätere Erweiterung gewünscht; technische
-  Gestaltung und Preisentscheidung sind offen. Hold-to-talk bleibt eine
-  zurückgestellte Erweiterung. Beides ist nicht implementiert und kein Teil des
-  aktuellen Funktionsumfangs; Wünsche und Planungsstand stehen in [ROADMAP](ROADMAP.md).
-- Ein Linux-Clipboard-MVP-Kern und ein separater Windows-Prototyp belegen noch
-  keinen plattformweiten Produktumfang. Die aktuellen Stände, offenen Abnahmen
-  und nicht festgelegten Plattformziele stehen in [ROADMAP](ROADMAP.md).
-- Für Windows hat Basti am 28. September die direkte Vorbereitung öffentlicher
-  Verteilung als nächstes Ziel gewählt. Ein versionierter Ausgangsstand,
-  reproduzierbare Paketierung und belegte Installation/Abnahme sind dafür
-  Voraussetzungen. Dies ist kein Nachweis eines fertigen Windows-Produkts
-  und keine Freigabe seiner Veröffentlichung.
-- iOS ist nach Bastis ausdrücklicher Aussage vom 28. September besonders
-  wichtig. Gewünschter Ablauf: direkt in anderen Apps diktieren. Die erlaubte
-  Aufnahme-/Tastaturkopplung und ihre Abnahme werden zuerst geklärt;
-  [iOS-Richtung](docs/ios-direction.md). Die historische Plattformreihenfolge
-  bestimmt keine heutige niedrige Priorität.
-- Künftige Preise, Vertrieb und Firmengründung bleiben offen; dieser
-  Dokumentationsstand entscheidet sie nicht.
-- Die Website ist ein lokaler Entwurf mit illustrativer Demo, kein Diktiernachweis.
+  keine pauschale Supportzusage. Die Zwischenablage bleibt der verlustfreie
+  manuelle Rückweg.
+- Keine Nachbearbeitung: OpenDictate glättet, formatiert oder kürzt nicht.
+  Nutzer, die das erwarten, finden es bei anderen Apps; die Website soll das
+  erklären.
+- Streaming und Echtzeit-Übersetzung sind gewünscht und nicht implementiert.
+  Hold-to-talk und Einzeltaste sind seit dem 9. Oktober beschlossen und auf
+  macOS gebaut, aber in keinem veröffentlichten Build; bis dahin sind alle
+  vier kein Teil des Funktionsumfangs. Stand in der
+  [ROADMAP](ROADMAP.md#plattformübergreifend).
+- Die Betas sind keine öffentlichen Releases mit Supportzusage. Jede
+  Veröffentlichung braucht Bastis ausdrückliches Go.
+- Künftige Preise, Vertrieb und Firmengründung bleiben offen; das Preismodell
+  oben ist die Richtung, nicht die Umsetzung.
+- Die Website ist ein lokaler Entwurf mit illustrativer Demo, kein
+  Diktiernachweis.
+- Support läuft bis zum Livegang des Support-Backends nur über die
+  Projektkanäle; es gibt noch keine Supportadresse und keine zugesagten
+  Antwortzeiten.
+
+## Entscheidungen
+
+Regel seit dem 8. Oktober 2026: Wer mit Basti eine Produkt- oder
+Planungsentscheidung trifft, trägt sie in derselben Sitzung hier ein (Datum,
+Entscheidung, Link zur Notiz) und ins Projektgedächtnis. Was nur im Gespräch
+bleibt, ist später nicht auffindbar; so ging die ursprüngliche Fassung des
+Preismodells und der Gaming-Ursprung verloren.
+
+| Datum | Entscheidung | Quelle |
+| --- | --- | --- |
+| 11. Oktober 2026 | Diktier-Ablauf der iOS-App für die erste Beta: Auslösen per Aktionstaste, Rückseite oder Kontrollzentrum nimmt im Hintergrund auf, das Ergebnis kommt in die Zwischenablage, der Nutzer fügt selbst ein. Keine eigene Tastatur mit Vollzugriff und kein Diktieren nur in der App. Löst den Wunsch vom 29. September 2026 ab, direkt in das Feld anderer Apps einzufügen. | [iOS-Konzept](docs/ios-konzept.md); Karte im privaten Projektchat |
+| 10. Oktober 2026 | Die Empfehlung in der Mac-Kürzel-Abfrage hängt von der Tastatur ab: Fn halten bei MacBook- oder kompakter Apple-Tastatur, rechte Wahltaste bei Apple-Tastatur mit Ziffernblock (Fn liegt dort weit rechts) oder Tastatur eines anderen Herstellers. Anlass: Bastis Live-Test mit der großen Apple-Tastatur. | [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |
+| 9. Oktober 2026 | Das Designsystem „OpenDictate“ aus Claude Design wird die gemeinsame Quelle für das Aussehen aller Oberflächen (Kopie und Generator unter `design/`). Reihenfolge der Umstellung: Website (nach dem Merge der Beta-Website), Linux-Leiste, Support-Formular und Dashboard beim Livegang, Mac-App nach dem Start der Mac-Beta, iOS mit seinem Track, Windows zuletzt. Die Betas bleiben in der heutigen Optik. | [design/README.md](design/README.md); Karte im privaten Projektchat |
+| 9. Oktober 2026 | Kürzel-Abfrage nach der Installation wird Funktion der fertigen, bezahlten App: zwei bis drei recherchierte Vorschläge je Plattform, die Empfehlung vorausgewählt, eigenes Kürzel möglich. Alle empfohlenen Vorschläge übernommen (macOS Fn halten, Linux Super+D, Windows Strg+Win halten, iOS Aktionstaste, Android Mikrofon-Taste der Tastatur; Liste in der ROADMAP). Die dafür nötige Technik für Einzeltasten und Halten-zum-Sprechen wird gebaut, zuerst auf macOS. Die laufenden Betas bleiben unverändert. | [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |
+| 8. Oktober 2026 | Die Linux-Beta erscheint auf Englisch: Das Programm spricht die Systemsprache (Deutsch oder Englisch), die Anleitung gibt es auf Englisch und Deutsch, angekündigt wird in englischsprachigen Communities (r/omarchy, r/hyprland). Veröffentlichung und Ankündigung nur nach Bastis Go. | [Linux-Anleitung](linux/README.md); Gespräch im privaten Projektchat |
+| 8. Oktober 2026 | Reihenfolge der Betas: Linux und macOS werden jetzt zur Beta gebracht, iOS danach. Linux beginnt mit Anleitung und installierbarem Arch-Paket. | [ROADMAP](ROADMAP.md#track-linux); Gespräch im privaten Projektchat |
+| 8. Oktober 2026 | Der Livegang des Supports wartet auf die neue Marke: Domain und Supportadresse kommen von dort. Bis dahin wird nichts eingerichtet oder veröffentlicht; die erste Version bleibt ein Entwurf. | [PR #56](https://github.com/HerrStolzier/OpenDictate/pull/56), [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |
+| 8. Oktober 2026 | Support: eigenes kleines Backend statt fertiger Ticketsoftware. Kontaktformular und Supportadresse werden Tickets, Dashboard nur für Basti, ein Agent sortiert und schreibt nur Entwürfe, Basti entscheidet und versendet; KI-Chatbot später als weiterer Eingang. Produktneutral für spätere Apps, eigenes privates Repository; die Website bleibt statisch, das Formular schickt nur an das Backend. Grundlage: Support-Richtung seit dem 12. September (E-Mail zuerst, später gemeinsamer KI-Support). | [ROADMAP](ROADMAP.md#plattformübergreifend); Notizen nur lokal bei Basti |
+| 8. Oktober 2026 | Alle fünf Plattformen laufen parallel als eigene Tracks; jeder Track endet in einer Beta; Einzelfall-Live-Tests übernehmen Beta-Nutzer. Preismodell: offener Code, CLI gratis, fertige App einmalig bezahlt. Gaming ist ein Anwendungsfall. Die Regel „eine Plattform zur Zeit“ und die Mac-Stufen 3 und 4 im alten Umfang entfallen. Verbrauchsanzeige in der App als plattformübergreifender Wunsch aufgenommen, nicht beauftragt ([ROADMAP](ROADMAP.md#plattformübergreifend)). | [Neuordnung 8. Oktober](docs/roadmap-neuordnung-2026-10-08.md) |
+| 5. Oktober 2026 | Linux wird aktive Plattform mit Schwerpunkt Übersetzung nach dem Sprechen; Echtzeit erst als möglicher zweiter Schritt. Aus `rescue/grok-clone-2026-09` nur drei Härtungen übernommen (PR #46). | [Übersetzungsplan](docs/linux-live-translation-plan.md) |
+| 2. Oktober 2026 | Eine Plattform zur Zeit, Stufe 6 „Launch & Zuhören“, iOS zurückgestellt (alle drei am 8. Oktober abgelöst). Go-Regel für Live-Tests; APPROVALS.md ins Archiv. Zielgruppe und Kostenargument; konfigurierbarer Endpunkt; Provider-Vertrag. Plan 3 als Eigennutzung, Plan 5 als Beta-Release. | [Neuordnung 2. Oktober](docs/roadmap-neuordnung-2026-10-02.md), [Plan-4-Notiz](docs/plan4-aenderungen-2026-10-02.md) |
+| 29. September 2026 | Eigenständige, spielerische Markenidentität als langfristiges Ziel. | oben, Abschnitt Marke |
+| 28. September 2026 | Windows: öffentliche Verteilung vorbereiten (Ziel B). | [Windows-Plan](docs/windows-plan.md) |
+| 26. September 2026 | Streaming als gewünschte spätere Erweiterung; Gaming-Shortcut mit höchstens zwei Tasten (Textchat in World of Warcraft). | [ROADMAP](ROADMAP.md#plattformübergreifend) |
+| 25. September 2026 | Erster Mac-Release nur für Apple Silicon. | [Plan 2](docs/release-plans/02-verteilbares-mac-paket.md) |
+| 16. September 2026 | Abnahme nach Feldtypen und Situationen, nicht nach Lieblings-Apps. | [Kompatibilitätsmatrix](docs/compatibility-matrix.md) |
+| 12. September 2026 | Reihenfolge Mac → Windows → Linux → iOS → Android (am 2. Oktober aufgehoben). Geschäftsmodell-Notiz außerhalb des Repositorys: offener Code, fertige App einmalig, keine Basis/Pro-Aufteilung (am 8. Oktober hier übernommen). | [Windows-Plan](docs/windows-plan.md); Notiz nur lokal bei Basti |
+
+Frühere Freigaben liegen im [Archiv](docs/archive/APPROVALS.md) und werden
+nicht mehr gepflegt.
 
 ## Zuständige Quellen
 
 [AGENTS](AGENTS.md) enthält technische Invarianten, [CHECKS](CHECKS.md) die
-Prüfwege, [ROADMAP](ROADMAP.md) die zentrale Feature-/Plattform-Liste,
-[remaining-acceptance](docs/remaining-acceptance.md) den aktuellen
-Abnahme- und Übergabestand und [APPROVALS](APPROVALS.md) belegte Freigaben.
-Produktentscheidungen hier nur bei geänderter Entscheidung aktualisieren;
-Testergebnisse und laufende Aufgaben gehören nicht hierher.
+Prüfwege, [ROADMAP](ROADMAP.md) die Tracks mit den nächsten Schritten,
+[remaining-acceptance](docs/remaining-acceptance.md) den belegten Stand je
+Plattform. Produktentscheidungen hier nur bei geänderter Entscheidung
+aktualisieren; Testergebnisse und laufende Aufgaben gehören nicht hierher.

@@ -4,7 +4,7 @@ Stand: 30. September 2026. Ausgangspunkt ist `000e18e` (PR #34 integriert).
 Basti beauftragte nach dem bereinigten reinen Texttest die Fortsetzung mit
 „go“. Dieser Bericht trennt **Offline-Vorbereitung und begrenzte Gerätebelege**;
 eine vollständige Aufnahmeabnahme ist noch offen. [Ziel](ios-direction.md), [Prüfplan](../ios/PRUEFPLAN.md),
-[Freigaben](../APPROVALS.md).
+[Freigaben](archive/APPROVALS.md).
 
 ## Geschützter Ablauf
 

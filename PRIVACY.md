@@ -49,8 +49,11 @@ not include telemetry or analytics.
 For each non-empty dictation, OpenDictate sends the prepared audio over HTTPS to
 OpenAI's `/v1/audio/transcriptions` endpoint. The request also contains the
 selected model, the optional language, and the optional vocabulary prompt. The
-returned transcript is handled locally. OpenAI's own data handling terms apply
-to this transfer.
+returned transcript is handled locally. If a translation target language is
+set, the transcript text is then sent over HTTPS to OpenAI's
+`/v1/chat/completions` endpoint together with the target language and the
+translation model, and only the translation is copied and pasted. OpenAI's own
+data handling terms apply to these transfers.
 
 The OpenAI API key is stored as a generic password in the macOS Keychain under
 service `OpenDictate` and account `OPENAI_API_KEY_APP`. OpenDictate does not support
@@ -114,6 +117,22 @@ identity checks cannot atomically lock another application's focus or prove that
 it actually applied an accepted insertion command. The UI therefore asks the
 user to check the target, and preserves the manual text recovery path.
 
+## Single-key shortcut
+
+When Fn/Globe or the right Option key is the shortcut, OpenDictate observes
+keyboard modifier changes, key presses and mouse clicks in all applications
+through macOS event monitors. It only checks whether the chosen key was pressed
+on its own; it does not read, store, log or send which keys were typed, and the
+events still reach the frontmost application unchanged. The log records only
+which shortcut is active, when a hold was interrupted and when the permission
+arrived. Key combinations use the system hotkey registration
+and are not observed this way.
+
+To preselect a key in the first-launch shortcut question, OpenDictate reads the
+vendor and product IDs of connected keyboards from the macOS I/O Registry. It
+does not open the devices, read their names or send these IDs anywhere; the log
+records only the IDs and the resulting recommendation.
+
 ## Failed recordings
 
 When transcription fails, OpenDictate keeps a recovery copy under
@@ -138,28 +157,37 @@ eligible for upload. They remain available to the explicit delete action.
 
 `~/Library/Logs/OpenDictate.log` contains operational metadata such as times,
 bundle version, build and source identity, bundle and audio paths, selected model,
-input-device and application names,
+translation setting, input-device and application names,
 durations, levels, status, and error descriptions. It does not intentionally log
 API keys, transcript text, or audio contents. Logging is serialized and rotated at approximately 1 MiB, keeping one previous file. No timed log expiry is implemented.
 
 ## Last transcript and temporary originals
 
-The most recent non-empty transcript is also held in memory until replaced, cleared from the menu or the app exits. No persistent text history is created. If a recovery-store write fails, the original temporary audio is deliberately not deleted and its path is shown in the error status. Historical crash leftovers are not swept automatically because they may contain the only surviving recording.
+The most recent non-empty transcript is also held in memory until replaced, cleared from the menu or the app exits. No persistent text history is created. Temporary recording files are restricted to the current user (permissions 0600); the original recording is created with these permissions before audio is written. If restricting fails, the app logs it. If a recovery-store write fails, the original temporary audio is deliberately not deleted and its path is shown in the error status. Historical crash leftovers are not swept automatically because they may contain the only surviving recording.
 
-## Linux Clipboard-MVP core (not product scope)
+## Linux CLI
 
-The in-repo Linux CLI is not yet the macOS product or a published Linux product.
+The Linux CLI is being prepared for a beta and can be installed as an Arch
+package built from source; it is not yet published.
 On an explicit toggle it records the default PipeWire/Pulse input as an
 owner-only WAV. Recordings below one second or without a 50-ms window above
 −45 dBFS are not uploaded. Other recordings are sent over HTTPS to OpenAI's
 `/v1/audio/transcriptions` endpoint with the selected model and optional
-language. The returned transcript is written to the Wayland clipboard
-(`wl-copy`); there is no automatic target-app insertion.
+language. If a translation target language is set, the transcript text is then
+sent over HTTPS to OpenAI's `/v1/chat/completions` endpoint with the selected
+translation model, and only the translation is written to the clipboard. The
+returned text is written to the Wayland clipboard (`wl-copy`). Unless
+`settings insert off` is set, the CLI then reads the clipboard back
+(`wl-paste`, in memory only) and, if it still holds that text and the Hyprland
+window captured at recording start is still frontmost, sends that window a
+paste shortcut via `hyprctl`. Retry never pastes automatically. The optional
+bar module (Omarchy shell or Waybar) prints only the state and translation setting, never text.
 
 Secret Service items use attributes `service=opendictate` and `key=api-key` or
 `recording-auth`. The API key is accepted only on stdin. A probe item can be
 written, read and deleted to test the service. There is no file, environment or
-argument fallback. Settings contain only model and language and are stored under
+argument fallback. Settings contain only transcription model, language, optional and last target
+language, translation model and the auto-insert switch and are stored under
 `$XDG_CONFIG_HOME/opendictate/`.
 
 Pending and recovery audio live under `$XDG_STATE_HOME/opendictate/` (typically
@@ -168,9 +196,13 @@ is authenticated with HMAC-SHA256 using a device-local Secret Service value and
 binds the file name, creation time and exact bytes. Retry uploads only bytes that
 authenticate at access time. Managed authenticated recovery is limited to five
 files and 24 hours; unknown or modified files are not uploaded automatically.
-Audio is removed only after a non-empty transcript reaches the clipboard.
+Audio is removed only after a non-empty transcript, or its non-empty
+translation when a target language is set, reaches the clipboard. With
+auto-insert on, audio is kept for retry if the clipboard no longer holds
+exactly that text before the paste.
 
 The operations log under `$XDG_STATE_HOME/opendictate/operations.log` records
 bounded events, durations and the captured window class. It must not contain API
-keys, transcript text, window titles or audio contents. The Phase-1 core has
-offline loopback HTTP evidence only; no live Linux provider request is claimed.
+keys, transcript text, window titles or audio contents. Live Linux transcription
+and translation requests were exercised on one attended test system on
+5 October 2026; this is not a published Linux product.

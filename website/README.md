@@ -16,3 +16,11 @@ und Ressourcen bestand. Eine erneute visuelle Browser-Abnahme dieses Textstands
 liegt nicht vor; der Browserzugriff auf die lokale Datei wurde durch die
 URL-Richtlinie abgewiesen. Die Sichtprüfung vom 8. September gilt nur für den
 damaligen Seitenstand.
+
+Textstand 2026-10-02: „Gut zu wissen“ nennt Kosten pro Minute (0,0045 $ mit
+gpt-transcribe, rund 0,1 Cent bei einem typischen Diktat von rund 15 Sekunden, rund 18,5 Stunden für 5 $), das
+Transkriptionsmodell, eigenes Vokabular und die bewusste 90-Sekunden-Grenze,
+übereinstimmend mit README.md und PROJECT.md. Lokale Vorschau über
+127.0.0.1 im Browser geprüft: Desktop und 375 Pixel Mobilbreite, kein
+horizontaler Überlauf. Zoom und Tastaturweg wurden für diesen Stand nicht erneut
+geprüft.

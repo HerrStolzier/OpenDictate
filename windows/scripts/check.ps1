@@ -1,6 +1,21 @@
 $ErrorActionPreference = 'Stop'
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
 $env:DOTNET_NOLOGO = '1'
+
+$backgroundSource = Get-Content (Join-Path $PSScriptRoot '../browser-prototype/background.js') -Raw
+$insertionSource = Get-Content (Join-Path $PSScriptRoot '../browser-prototype/insertion-core.js') -Raw
+$backgroundLifetime = [regex]::Match($backgroundSource, 'const captureLifetimeMs = (?<ms>\d+);')
+$insertionLifetime = [regex]::Match($insertionSource, 'const defaultMaxAgeMs = (?<ms>\d+);')
+if (-not $backgroundLifetime.Success -or -not $insertionLifetime.Success) {
+    throw 'Browser capture lifetime constants are missing.'
+}
+$backgroundMs = [int]$backgroundLifetime.Groups['ms'].Value
+$insertionMs = [int]$insertionLifetime.Groups['ms'].Value
+if ($backgroundMs -ne $insertionMs -or $backgroundMs -lt 150000) {
+    throw "Browser capture lifetime must match across contexts and cover the 150-second recording/provider maximum."
+}
+Write-Output "Browser capture lifetime policy: $backgroundMs ms."
+
 Push-Location (Join-Path $PSScriptRoot '..')
 try {
     & dotnet --version

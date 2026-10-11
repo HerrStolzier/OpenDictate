@@ -22,7 +22,7 @@ konkrete App-Group-Registrierung bei Apple, Profile mit der bestehenden
 Entwicklungsidentität, Installation dieses geänderten Kandidaten und höchstens
 drei lokale Mikrofonaufnahmen à maximal 15 Sekunden separat freizugeben.
 Basti hat diese konkrete Freigabe am 30. September erteilt
-([Freigaben](../APPROVALS.md)).
+([Freigaben](../docs/archive/APPROVALS.md)).
 Kein Provider-Upload oder Veröffentlichungsauftrag. Die frühere reine
 Texttest-Freigabe deckt diese Aufnahmeprüfung nicht ab.
 

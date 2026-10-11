@@ -70,7 +70,7 @@ Zertifikats- und Schlüsselverwaltung, Notarisierungs-Upload sowie der echte
 Live-Diktattest brauchen jeweils passende konkrete Autorisierung. Dieser
 Plan führt nichts davon aus.
 
-**Übergabe an [Plan 3](03-begrenzter-betatest.md):** Privater Paketlink,
-Manifest, Prüfergebnisse und Installationsanleitung für die Tester.
+**Übergabe an [Plan 3](03-eigennutzung.md):** Geprüftes Paket, Manifest,
+Prüfergebnisse und die [Installationsanleitung](installationsanleitung.md).
 
 Apple-Referenz: [Notarisierung und Voraussetzungen](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution).

@@ -6,12 +6,31 @@ struct TranscriptionOptions: Sendable {
     let model: TranscriptionModel
     let language: String?
     let prompt: String?
+    /// Captured with the other options, so a menu change during processing
+    /// applies to the next dictation.
+    let translationTarget: String?
+    let translationModel: String
+
+    init(
+        apiKey: String, model: TranscriptionModel, language: String?, prompt: String?,
+        translationTarget: String? = nil, translationModel: String = Translation.defaultModel
+    ) {
+        self.apiKey = apiKey
+        self.model = model
+        self.language = language
+        self.prompt = prompt
+        self.translationTarget = translationTarget
+        self.translationModel = translationModel
+    }
 
     static func current() throws -> Self {
         guard let key = Config.apiKey else { throw OpenDictateError.missingAPIKey }
         let model = Config.model
-        guard model.isUsableForUpload else { throw OpenDictateError.invalidResponse }
-        return Self(apiKey: key, model: model, language: Config.language, prompt: Config.prompt)
+        guard model.isUsableForUpload else { throw OpenDictateError.unusableTranscriptionModel }
+        return Self(
+            apiKey: key, model: model, language: Config.language, prompt: Config.prompt,
+            translationTarget: Config.settings.translationTarget,
+            translationModel: Config.settings.translationModel)
     }
 }
 
@@ -48,9 +67,10 @@ struct OpenAITranscriber: Sendable {
     }
 
     static func request(audioData: Data, options: TranscriptionOptions) throws -> URLRequest {
-        guard options.model.isUsableForUpload, !audioData.isEmpty,
-            audioData.count <= 25 * 1_024 * 1_024
-        else { throw OpenDictateError.invalidResponse }
+        guard options.model.isUsableForUpload else { throw OpenDictateError.unusableTranscriptionModel }
+        guard !audioData.isEmpty, audioData.count <= 25 * 1_024 * 1_024 else {
+            throw OpenDictateError.audioNotEligibleForUpload
+        }
         let boundary = "OpenDictateBoundary-\(UUID().uuidString)"
         var request = URLRequest(url: URL(string: "https://api.openai.com/v1/audio/transcriptions")!)
         request.httpMethod = "POST"

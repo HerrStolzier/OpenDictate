@@ -25,6 +25,10 @@ struct DictationFlowTests {
         var uploadFails = false
         var suspendUpload = false
         var kept: [URL] = []
+        var target: String?
+        var translation = "translated text"
+        var translationFails = false
+        var translated: [(text: String, target: String)] = []
         var cleaned: [URL] = []
         var removed = 0
         let original = URL(fileURLWithPath: "/test/original.m4a")
@@ -69,6 +73,12 @@ struct DictationFlowTests {
                         self.pasted += 1
                         self.pastedText = text
                         return self.pasteResult
+                    },
+                    translationTarget: { self.target },
+                    translate: { text, target in
+                        self.translated.append((text, target))
+                        if self.translationFails { throw URLError(.timedOut) }
+                        return self.translation
                     }
                 ))
         }
@@ -83,6 +93,62 @@ struct DictationFlowTests {
             }
             return false
         }
+    }
+
+    @Test func chosenTargetDeliversTheTranslationInsteadOfTheTranscript() async throws {
+        let h = Harness()
+        h.target = "en"
+        h.text = " Hallo Welt "
+        var statuses: [String] = []
+        h.flow.onStatus = { statuses.append($0) }
+        _ = try h.flow.start()
+        _ = h.flow.stop()
+        await h.flow.task?.value
+        #expect(h.translated.map(\.text) == ["Hallo Welt"] && h.translated.map(\.target) == ["en"])
+        #expect(h.copiedTexts == ["translated text"] && h.pastedText == "translated text")
+        #expect(statuses.contains("Übersetzen …"))
+        #expect(h.kept.isEmpty)
+    }
+
+    @Test func noTargetDeliversTheTranscriptWithoutTranslating() async throws {
+        let h = Harness()
+        _ = try h.flow.start()
+        _ = h.flow.stop()
+        await h.flow.task?.value
+        #expect(h.translated.isEmpty)
+        #expect(h.pastedText == h.text)
+    }
+
+    @Test(arguments: [true, false])
+    func failedOrEmptyTranslationKeepsAudioAndNeverFallsBackToTheOriginal(fails: Bool) async throws {
+        let h = Harness()
+        h.target = "en"
+        h.translationFails = fails
+        h.translation = fails ? "unused" : "  \n"
+        var outcomes: [DictationOutcome] = []
+        h.flow.onOutcome = { outcomes.append($0) }
+        _ = try h.flow.start()
+        _ = h.flow.stop()
+        await h.flow.task?.value
+        #expect(h.copiedTexts.isEmpty && h.pasted == 0)
+        #expect(h.flow.lastTranscript == nil)
+        #expect(h.kept == [h.original])
+        #expect(outcomes == [.failed])
+        #expect(h.flow.state == .idle)
+    }
+
+    @Test func retryTranslatesAndKeepsItsSourceWhenTranslationFails() async {
+        let h = Harness()
+        h.target = "fr"
+        h.translationFails = true
+        #expect(h.flow.retry(h.payload))
+        await h.flow.task?.value
+        #expect(h.removed == 0 && h.copiedTexts.isEmpty)
+
+        h.translationFails = false
+        #expect(h.flow.retry(h.payload))
+        await h.flow.task?.value
+        #expect(h.removed == 1 && h.copiedTexts == ["translated text"] && h.pasted == 0)
     }
 
     @Test func retryCannotOverlapRecordingOrDisableStop() async throws {

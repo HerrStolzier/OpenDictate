@@ -30,6 +30,18 @@ whitespace check compares the checked-out commit with its first parent
 (`git diff --check HEAD^ HEAD`); on pull requests this covers the merge diff
 against the base branch. Local `git diff --check` checks uncommitted edits.
 
+Pull requests that change only Markdown files, `docs/**` or `website/**` skip
+the Swift, Linux and Windows jobs: a small `changes` job in each of these workflows runs
+`scripts/ci/docs-only-change.sh` against the merge commit's first parent, and
+the heavy jobs are skipped by condition. Skipped jobs satisfy the required
+checks on `main`. Any other path, an empty diff or a failed detection runs the
+full jobs, and pushes to `main` always run them. Repository hygiene always runs
+and checks commit whitespace for documentation-only changes too. CodeQL uses
+GitHub's default setup outside these workflow files and is not skipped.
+The Swift jobs restore `.build` with `actions/cache`, keyed by job, Swift
+toolchain and the hashes of `Package.swift`, `Sources/` and `Tests/`; the
+bundle script still recreates the app bundle on every run.
+
 The local Mac runs macOS 27 and exposes only the macOS 27 SDK. It cannot
 reproduce the macOS 14 runtime gate; a passing local build on macOS 27 does not
 replace that runner's compatibility evidence.
@@ -175,6 +187,18 @@ bash scripts/ci/check-linux.sh
 The script runs formatting, locked tests, locked Clippy and a locked release
 build. On Ubuntu, CI installs `libasound2-dev` and `pkg-config` first.
 
+For changes to the Arch package (`linux/packaging/arch/PKGBUILD`), run on an
+Arch host as a normal user, from that directory:
+
+```bash
+makepkg -sf && namcap PKGBUILD opendictate-*.pkg.tar.zst
+```
+
+`makepkg` runs the crate tests in `check()` and refuses to build when `pkgver`
+differs from the version in `linux/Cargo.toml`. Installing the package
+(`makepkg -si` or `pacman -U`) changes the system and belongs to the attended
+installation check.
+
 Do not add this crate to `.github/workflows/checks.yml`. Live microphone,
 Secret Service writes, OpenAI requests and Wayland clipboard checks require
 separate attended verification and are not default tests. The transcription
@@ -285,7 +309,7 @@ The rationale for the retained and removed isolated tests is recorded in
 [`docs/test-signal-audit.md`](docs/test-signal-audit.md).
 
 - `swift test -Xswiftc -warnings-as-errors`: offline logic, lifecycle, HTTP stubs, recovery, logging and synthetic audio-file tests, with compiler warnings treated as failures. Optional benchmark and live API test are skipped by default.
-- `python3 -m unittest discover ...`: offline regression tests for the transcript evaluator and process sampler, including output-file preservation.
+- `python3 -m unittest discover ...`: offline regression tests for the transcript evaluator and process sampler, including output-file preservation, and for the design-token generator (generated files under `design/generated/` must match `design/tokens.json`).
 - `swift format lint --strict --configuration .swift-format --recursive Sources Tests Package.swift`: project formatting; lint warnings cause a failed check.
 - `./scripts/build-app.sh`: release bundle, Plist, signature and Hardened Runtime verification. Does not launch/install it.
 - `git diff --check` and `bash -n` for all scripts listed above before handoff.

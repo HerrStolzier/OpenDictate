@@ -3,6 +3,8 @@ const host = 'de.opendictate.prototype';
 let port = null;
 let connecting = false;
 const captures = new Map();
+// 90 s recording + 60 s provider timeout, with 30 s for preparation/delivery.
+const captureLifetimeMs = 180000;
 
 async function activeTab() {
   const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
@@ -27,7 +29,7 @@ async function capture() {
   const match = matches[0];
   const token = crypto.randomUUID();
   captures.set(token, { tabId: tab.id, windowId: tab.windowId, documentId: match.documentId,
-    innerToken: match.result.token, expires: Date.now() + 120000 });
+    innerToken: match.result.token, expires: Date.now() + captureLifetimeMs });
   return { ok: true, token, kind: match.result.kind };
 }
 async function insert(token, text) {

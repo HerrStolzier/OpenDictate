@@ -5,6 +5,11 @@ benannt und den Ablauf **„Direkt in anderen Apps diktieren“** gewählt.
 Eine App, die nur aufnimmt und anschließend Kopieren/Teilen anbietet, erfüllt
 dieses Ziel nicht. Die zentrale Aufgabenliste bleibt [ROADMAP](../ROADMAP.md).
 
+**Abgelöst am 11. Oktober 2026:** Basti hat für die erste Beta den Weg ohne
+eigene Tastatur gewählt: Aufnahme im Hintergrund aus der Ziel-App heraus,
+Ergebnis in die Zwischenablage, Einfügen durch den Nutzer
+([Konzept](ios-konzept.md)). Die Befunde unten bleiben als Begründung gültig.
+
 ## Belegte technische Ausgangslage
 
 Eine eigene iOS-Tastatur kann über `UITextDocumentProxy.insertText` Text in

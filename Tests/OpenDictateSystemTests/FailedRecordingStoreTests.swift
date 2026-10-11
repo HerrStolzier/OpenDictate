@@ -182,6 +182,29 @@ struct FailedRecordingStoreTests {
         #expect(!FileManager.default.fileExists(atPath: authentication.path))
     }
 
+    @Test("An undeletable expired recording is logged once and retried silently")
+    func undeletableExpiredRecordingLogsOnce() throws {
+        let fixture = try Fixture()
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let audio = fixture.directory.appendingPathComponent(
+            timestamp(now.addingTimeInterval(-RecordingRetention.maximumAge)) + "-ABCDEF12.m4a")
+        try Data("fixture audio".utf8).write(to: audio)
+        #expect(chflags(audio.path, UInt32(UF_IMMUTABLE)) == 0)
+        defer { _ = chflags(audio.path, 0) }
+        var messages: [String] = []
+
+        for _ in 0..<3 {
+            #expect(FailedRecordingStore.prune(now: now, in: fixture.directory) { messages.append($0) } == 0)
+        }
+        #expect(messages.count == 1)
+        #expect(messages.first?.contains("\(audio.lastPathComponent): errno=\(EPERM)") == true)
+
+        #expect(chflags(audio.path, 0) == 0)
+        #expect(FailedRecordingStore.prune(now: now, in: fixture.directory) { messages.append($0) } == 1)
+        #expect(!FileManager.default.fileExists(atPath: audio.path))
+        #expect(messages.last == "Pruned 1 expired failed recording(s)")
+    }
+
     private func timestamp(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")

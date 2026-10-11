@@ -8,10 +8,18 @@ use crate::settings::{validate_model, Settings};
 
 const DEFAULT_ENDPOINT: &str = "https://api.openai.com/v1/audio/transcriptions";
 const MAX_UPLOAD_BYTES: usize = 25 * 1_024 * 1_024;
+/// Waiting time for the provider's answer on top of the upload. A request
+/// that stalls because the network is gone ends after this budget instead
+/// of an open-ended read timeout. A write blocked when the network drops
+/// can still last up to the time that was left at connect.
+const RESPONSE_BUDGET: Duration = Duration::from_secs(15);
+/// Upload allowance for a slow uplink of about 2 Mbit/s.
+const SLOW_UPLINK_BYTES_PER_SECOND: u64 = 250_000;
 
 pub struct Transcriber {
     endpoint: String,
     agent: ureq::Agent,
+    response_budget: Duration,
 }
 
 impl Transcriber {
@@ -21,14 +29,13 @@ impl Transcriber {
 
     fn with_endpoint(endpoint: &str) -> Self {
         let agent = ureq::AgentBuilder::new()
-            .timeout_connect(Duration::from_secs(30))
-            .timeout_read(Duration::from_secs(120))
-            .timeout_write(Duration::from_secs(30))
+            .timeout_connect(Duration::from_secs(10))
             .redirects(0)
             .build();
         Self {
             endpoint: endpoint.to_string(),
             agent,
+            response_budget: RESPONSE_BUDGET,
         }
     }
 
@@ -40,9 +47,10 @@ impl Transcriber {
     ) -> Result<String, String> {
         validate_model(&settings.model)?;
         if api_key.is_empty() {
-            return Err("API-Schlüssel fehlt.".to_string());
+            return Err(crate::tr!("API-Schlüssel fehlt.", "API key is missing."));
         }
-        let audio = std::fs::read(audio_path).map_err(|_| "Aufnahme nicht lesbar.".to_string())?;
+        let audio = std::fs::read(audio_path)
+            .map_err(|_| crate::tr!("Aufnahme nicht lesbar.", "Recording unreadable."))?;
         self.transcribe_bytes(&audio, api_key, settings)
     }
 
@@ -54,16 +62,20 @@ impl Transcriber {
     ) -> Result<String, String> {
         validate_model(&settings.model)?;
         if api_key.is_empty() {
-            return Err("API-Schlüssel fehlt.".to_string());
+            return Err(crate::tr!("API-Schlüssel fehlt.", "API key is missing."));
         }
         if audio.is_empty() || audio.len() > MAX_UPLOAD_BYTES {
-            return Err("Aufnahme hat eine ungültige Größe.".to_string());
+            return Err(crate::tr!(
+                "Aufnahme hat eine ungültige Größe.",
+                "Recording has an invalid size."
+            ));
         }
         let boundary = format!("OpenDictateBoundary{}", std::process::id());
         let body = multipart_body(&boundary, audio, settings);
         let response = self
             .agent
             .post(&self.endpoint)
+            .timeout(request_timeout(self.response_budget, body.len()))
             .set("Authorization", &format!("Bearer {api_key}"))
             .set(
                 "Content-Type",
@@ -72,6 +84,14 @@ impl Transcriber {
             .send_bytes(&body);
         decode_response(response)
     }
+}
+
+/// Overall limit for one request, counted from its start: connection setup,
+/// upload and response share the response budget plus the time the upload
+/// may take on a slow uplink. A normal connection takes well under a second.
+fn request_timeout(response_budget: Duration, upload_bytes: usize) -> Duration {
+    let upload_seconds = (upload_bytes as u64).div_ceil(SLOW_UPLINK_BYTES_PER_SECOND);
+    response_budget + Duration::from_secs(upload_seconds)
 }
 
 fn multipart_body(boundary: &str, audio: &[u8], settings: &Settings) -> Vec<u8> {
@@ -113,14 +133,23 @@ fn decode_response(response: Result<ureq::Response, ureq::Error>) -> Result<Stri
                 .take(16 * 1_024)
                 .read_to_end(&mut ignored);
             return Err(match status {
-                401 => "API-Schlüssel ist ungültig.".to_string(),
-                413 => "Aufnahme ist für den Upload zu groß.".to_string(),
-                429 => "OpenAI-Limit erreicht. Bitte später erneut versuchen.".to_string(),
-                _ => "Transkription fehlgeschlagen.".to_string(),
+                401 => crate::tr!("API-Schlüssel ist ungültig.", "API key is invalid."),
+                413 => crate::tr!(
+                    "Aufnahme ist für den Upload zu groß.",
+                    "Recording is too large to upload."
+                ),
+                429 => crate::tr!(
+                    "OpenAI-Limit erreicht. Bitte später erneut versuchen.",
+                    "OpenAI limit reached. Please try again later."
+                ),
+                _ => crate::tr!("Transkription fehlgeschlagen.", "Transcription failed."),
             });
         }
         Err(ureq::Error::Transport(_)) => {
-            return Err("Netzwerkfehler bei der Transkription.".to_string())
+            return Err(crate::tr!(
+                "Netzwerkfehler oder Zeitüberschreitung bei der Transkription.",
+                "Network error or timeout during transcription."
+            ))
         }
     };
     let mut data = Vec::new();
@@ -128,67 +157,29 @@ fn decode_response(response: Result<ureq::Response, ureq::Error>) -> Result<Stri
         .into_reader()
         .take(1_024 * 1_024)
         .read_to_end(&mut data)
-        .map_err(|_| "Ungültige Antwort von OpenAI.".to_string())?;
+        .map_err(|_| {
+            crate::tr!(
+                "Ungültige Antwort von OpenAI.",
+                "Invalid response from OpenAI."
+            )
+        })?;
     #[derive(Deserialize)]
     struct Response {
         text: String,
     }
-    let parsed: Response =
-        serde_json::from_slice(&data).map_err(|_| "Ungültige Antwort von OpenAI.".to_string())?;
+    let parsed: Response = serde_json::from_slice(&data).map_err(|_| {
+        crate::tr!(
+            "Ungültige Antwort von OpenAI.",
+            "Invalid response from OpenAI."
+        )
+    })?;
     Ok(parsed.text.trim().to_string())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::{Read, Write};
-    use std::net::TcpListener;
-    use std::thread;
-
-    fn serve(status: &str, body: &str) -> (String, thread::JoinHandle<Vec<u8>>) {
-        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-        let address = listener.local_addr().unwrap();
-        let status = status.to_string();
-        let body = body.to_string();
-        let handle = thread::spawn(move || {
-            let (mut stream, _) = listener.accept().unwrap();
-            let mut request = Vec::new();
-            let mut chunk = [0u8; 4096];
-            loop {
-                let count = stream.read(&mut chunk).unwrap();
-                if count == 0 {
-                    break;
-                }
-                request.extend_from_slice(&chunk[..count]);
-                if let Some(length) = content_length(&request) {
-                    if request
-                        .windows(4)
-                        .position(|part| part == b"\r\n\r\n")
-                        .is_some_and(|header_end| request.len() >= header_end + 4 + length)
-                    {
-                        break;
-                    }
-                }
-            }
-            write!(
-                stream,
-                "HTTP/1.1 {status}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
-                body.len()
-            )
-            .unwrap();
-            request
-        });
-        (format!("http://{address}"), handle)
-    }
-
-    fn content_length(request: &[u8]) -> Option<usize> {
-        let text = String::from_utf8_lossy(request);
-        text.lines().find_map(|line| {
-            line.to_ascii_lowercase()
-                .strip_prefix("content-length: ")
-                .and_then(|value| value.trim().parse().ok())
-        })
-    }
+    use crate::test_http::{serve, serve_without_answer};
 
     fn audio_file(case: &str) -> std::path::PathBuf {
         let path = std::env::temp_dir().join(format!(
@@ -226,6 +217,32 @@ mod tests {
             .unwrap_err();
         assert!(error.contains("ungültig"));
         assert!(!error.contains("private"));
+        server.join().unwrap();
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn request_timeout_grows_only_with_the_upload() {
+        assert_eq!(request_timeout(RESPONSE_BUDGET, 0), RESPONSE_BUDGET);
+        // 90 seconds of 48 kHz mono audio, the longest recording.
+        assert_eq!(
+            request_timeout(RESPONSE_BUDGET, 8_640_044),
+            Duration::from_secs(50)
+        );
+    }
+
+    #[test]
+    fn stalled_request_ends_at_the_deadline() {
+        let (endpoint, server) = serve_without_answer();
+        let path = audio_file("stalled");
+        let mut transcriber = Transcriber::with_endpoint(&endpoint);
+        transcriber.response_budget = Duration::from_millis(300);
+        let started = std::time::Instant::now();
+        let error = transcriber
+            .transcribe(&path, "test-key", &Settings::default())
+            .unwrap_err();
+        assert!(error.contains("Netzwerkfehler"));
+        assert!(started.elapsed() < Duration::from_secs(5));
         server.join().unwrap();
         let _ = std::fs::remove_file(path);
     }

@@ -1,0 +1,17 @@
+{
+  "_comment": "Example entry for the Omarchy 4 shell bar (~/.config/omarchy/shell.json, bar.layout.right). Merge only the module object into your own layout; point exec and onClick at a PATH binary or an absolute path.",
+  "bar": {
+    "layout": {
+      "right": [
+        {
+          "id": "opendictate",
+          "type": "command",
+          "exec": "opendictate bar",
+          "interval": 1,
+          "tooltip": "OpenDictate",
+          "onClick": "opendictate settings target toggle"
+        }
+      ]
+    }
+  }
+}

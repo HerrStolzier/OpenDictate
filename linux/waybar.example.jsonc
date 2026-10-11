@@ -1,0 +1,12 @@
+// Example Waybar module for OpenDictate. Add "custom/opendictate" to one of
+// your bar's modules-* lists and merge this block into your Waybar config.
+// Point exec and on-click at a PATH binary or an absolute path.
+{
+  "custom/opendictate": {
+    "exec": "opendictate waybar",
+    "return-type": "json",
+    "interval": 1,
+    "on-click": "opendictate settings target toggle",
+    "tooltip": true
+  }
+}

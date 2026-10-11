@@ -84,6 +84,7 @@ final class SettingsWindowController: NSWindowController {
             addRow("Mikrofon", id: "microphone", to: stack)
             addRow("Tastenkürzel", id: "shortcut", to: stack)
             addRow("Sprache", id: "language", to: stack)
+            addRow("Übersetzen", id: "translation", to: stack)
             if let item = item("autoPaste") { addControl(item, to: stack) }
             let disclosure = addButton(
                 expanded ? "▾ Erweitert" : "▸ Erweitert", id: "advanced",
@@ -199,7 +200,7 @@ final class SettingsWindowController: NSWindowController {
     }
 
     private func valueTitle(_ item: NSMenuItem) -> String {
-        if ["microphone", "shortcut", "language", "model"].contains(item.identifier?.rawValue ?? ""),
+        if ["microphone", "shortcut", "language", "translation", "model"].contains(item.identifier?.rawValue ?? ""),
             page == .settings, let colon = item.title.firstIndex(of: ":")
         {
             return String(item.title[item.title.index(after: colon)...]).trimmingCharacters(in: .whitespaces)

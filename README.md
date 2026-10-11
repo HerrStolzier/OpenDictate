@@ -28,9 +28,17 @@ open .build/OpenDictate.app
 2. Choose your microphone and language in **Einstellungen**. Allow microphone
    access when recording. Automatic insertion additionally needs macOS
    Accessibility access; clipboard-only use does not need that permission.
-3. Select the destination text field. Press **Option+Shift+Space** to record,
-   speak, then press it again to stop. The maximum recording length is 90 seconds.
-4. Check the destination. The complete transcript also remains available in the
+3. After the key is set up, the app asks once how you want to start recording
+   (also once after an update, if no shortcut was ever chosen):
+   hold **Fn/Globe**, the **right Option key**, or **Control+Option+D**, or a
+   custom shortcut. On a MacBook or a compact Apple keyboard, Fn/Globe is
+   preselected; with an Apple keyboard with numeric keypad or another brand,
+   where Fn sits far away or may not reach macOS, the right Option key is. A test step shows whether the
+   key reaches OpenDictate. Closing the question keeps **Option+Shift+Space**.
+4. Select the destination text field. Press your shortcut to record, speak,
+   then press it again to stop; with a held key, release it to stop. Each
+   dictation is limited to 90 seconds, a deliberate product limit for short texts.
+5. Check the destination. The complete transcript also remains available in the
    panel and on the clipboard. If input was interrupted, part may already be in
    the destination: inspect it before pasting the full transcript manually.
 
@@ -82,11 +90,31 @@ The panel’s Settings window groups the four everyday options first. Advanced
 options are collapsed initially; saved recordings and Help open secondary pages.
 Changes apply to the next dictation, no restart needed.
 
-- **Hotkey** — custom modified shortcuts plus `Option+Shift+Space` (default), `Control+Option+D`, or `F5`. Useful
-  when another app already claims the default.
+- **Hotkey** — a single key or a combination. Single keys count only while no
+  other key, modifier or mouse button is used, so combinations such as
+  Option+L for "@" keep typing:
+  - `Fn/Globus halten`: hold to record, release to stop. Set **System Settings ›
+    Keyboard › Press 🌐 key to** to **Do Nothing**; otherwise Fn also opens
+    Emoji or Apple's Dictation, because OpenDictate only observes the key.
+  - `Rechte Wahltaste` (right Option): tap to start or stop, hold to record
+    until release.
+  - Combinations: `Option+Shift+Space` (default), `Control+Option+D`, `F5`, or a
+    custom modified shortcut. Useful when another app already claims one.
+
+  Single keys need Accessibility access, because macOS delivers key events to
+  other apps' observers only then. Without it the menu explains the permission
+  and keeps the current shortcut. If another key or a mouse click joins a hold
+  after recording started, the dictation is cancelled and its audio is kept for
+  a manual retry.
 - **Model** — `gpt-transcribe` or `gpt-4o-mini-transcribe`, with the per-minute
-  price next to each.
+  price next to each. The `gpt-4o-mini-transcribe` price is approximate because
+  OpenAI bills that model by tokens, not by minute.
 - **Language** — Auto, German, or English. Auto lets the API detect it.
+- **Übersetzen** — off by default. With a target language (for example English),
+  the transcript is translated by a text model (`gpt-5.4-mini` by default) and
+  only the translation is copied and pasted. If the translation fails or comes
+  back empty, nothing is pasted, the original text is not used as a fallback and
+  the recording is kept for retry; a retry translates again.
 - **Vokabular und Kontext** — local prompt setting (up to 2,000 characters in the editor), sent with each dictation. A stored value overrides the legacy environment variable.
 - **Automatisch einfügen** — disable for clipboard-only delivery. At delivery,
   the app captured when dictation began is brought forward if it is still
@@ -105,7 +133,7 @@ active recording. The recorder also enforces the 90-second cap natively.
 
 A failed upload no longer throws the recording away. It keeps a recovery copy in
 `~/Library/Application Support/OpenDictate/failed/`, and `Letzte Aufnahme wiederholen` in
-the menu uploads it again. Recordings are authenticated with a device-local
+the menu uploads it again. A failed translation is handled the same way. Recordings are authenticated with a device-local
 Keychain secret before retry. Managed recovery files are limited to five and
 expire after 24 hours. Pruning runs at launch, after every keep and periodically
 while the app is open; expired recordings cannot be retried. Files can remain on
@@ -121,12 +149,26 @@ recordings. Temporary originals are outside that action.
 
 Recordings classified as too short or too quiet are retained for a deliberate manual retry. These heuristics do not prove that no speech exists; they never trigger an automatic upload.
 
+## Cost
+
+You pay OpenAI per minute of speech instead of a flat fee. With the default
+`gpt-transcribe` at $0.0045/min, a typical 15-second dictation costs about
+0.1 cent; the price of a $5 monthly subscription buys about 18.5 hours of
+speech. These figures come
+from the maintainer's own OpenAI usage from July to October 2026
+([decision note](docs/plan4-aenderungen-2026-10-02.md)); your cost depends on
+how long you speak. Translation adds one text-model request per dictation,
+which OpenAI bills separately by tokens.
+
+Transcription uses `gpt-transcribe`, OpenAI's current accuracy-focused model.
+**Vokabular und Kontext** adds your own vocabulary for names and technical terms.
+
 ## Cost controls
 
 OpenDictate keeps API usage lean by default:
 
 - skips recordings shorter than 1 second
-- auto-stops recordings after 90 seconds
+- auto-stops recordings after 90 seconds (deliberate per-dictation limit)
 - trims silence from the beginning and end before upload
 - records speech-focused mono AAC at 24 kHz / 48 kbps
 - defaults to `gpt-transcribe` ($0.0045/min), the accuracy-focused async model
@@ -134,7 +176,7 @@ OpenDictate keeps API usage lean by default:
 Optional environment variables. A choice made in the menu wins over these, so the
 menu is not silently ignored for anyone who exports them:
 
-- `OPENAI_TRANSCRIBE_MODEL`, default `gpt-transcribe`. Set `gpt-4o-mini-transcribe` ($0.003/min) to trade accuracy for cost. Setting `gpt-live-transcribe` is caught at launch with a warning: it targets the realtime endpoint, not this upload flow.
+- `OPENAI_TRANSCRIBE_MODEL`, default `gpt-transcribe`. Set `gpt-4o-mini-transcribe` (approx. $0.003/min, billed by tokens) to trade accuracy for cost. Setting `gpt-live-transcribe` is caught at launch with a warning: it targets the realtime endpoint, not this upload flow.
 - `OPENAI_TRANSCRIBE_LANGUAGE`, for example `de`
 - `OPENAI_TRANSCRIBE_PROMPT`, for vocabulary hints. The in-app vocabulary setting overrides this value.
 
@@ -143,8 +185,9 @@ menu is not silently ignored for anyone who exports them:
 macOS will ask for:
 
 - Microphone access for recording.
-- Accessibility access when automatic insertion is enabled. It is not requested
-  at launch for clipboard-only use.
+- Accessibility access when automatic insertion is enabled or a single key
+  (Fn/Globe, right Option) starts recording. It is not requested at launch for
+  clipboard-only use with a key combination.
 
 Automatic insertion remembers the application in front when dictation starts.
 After transcription, OpenDictate puts the text on the general clipboard, brings
@@ -196,16 +239,17 @@ See [CHECKS.md](CHECKS.md), [docs/performance-decisions.md](docs/performance-dec
 [docs/audio-quality-fixtures.md](docs/audio-quality-fixtures.md),
 [docs/remaining-acceptance.md](docs/remaining-acceptance.md) and the
 [project roadmap](ROADMAP.md). Live microphone, target-app, VoiceOver and paid
-API checks remain separate. Streaming and hold-to-talk are not enabled; the
-roadmap lists them as future requests, not current app behavior.
+API checks remain separate. Streaming is not enabled; the roadmap lists it as
+a future request, not current app behavior.
 
 ## Development and project context
 
 Local launchers, isolated previews and API-key setup for older installations are described
 in [development workflows](docs/development.md). Product scope lives in
 [PROJECT.md](PROJECT.md), and the cross-platform feature/platform backlog lives
-in [ROADMAP.md](ROADMAP.md); repository rules and evidenced authorizations live
-in [AGENTS.md](AGENTS.md) and [APPROVALS.md](APPROVALS.md). The
+in [ROADMAP.md](ROADMAP.md); repository rules live in [AGENTS.md](AGENTS.md),
+and earlier approvals are archived in
+[docs/archive/APPROVALS.md](docs/archive/APPROVALS.md). The
 [compatibility matrix](docs/compatibility-matrix.md) defines the broader testing
 goal, and [CHECKS.md](CHECKS.md) provides reproducible verification commands.
 
