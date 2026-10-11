@@ -18,7 +18,7 @@ struct OpenAITranslator: Sendable {
             configuration.timeoutIntervalForResource = 60
             configuration.urlCache = nil
             configuration.httpCookieStorage = nil
-            self.session = URLSession(configuration: configuration)
+            self.session = RedirectBlocker.session(configuration)
         }
     }
 

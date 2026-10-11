@@ -11,10 +11,14 @@ private final class LoopbackServer: @unchecked Sendable {
     private let listener: NWListener
     private let queue = DispatchQueue(label: "LoopbackServer")
     private let responseBody: Data
+    private let statusLine: String
+    private let extraHeaders: String
     private(set) var request = Data()
 
-    init(responseBody: String) throws {
+    init(responseBody: String, statusLine: String = "200 OK", extraHeaders: String = "") throws {
         self.responseBody = Data(responseBody.utf8)
+        self.statusLine = statusLine
+        self.extraHeaders = extraHeaders
         let parameters = NWParameters.tcp
         parameters.requiredLocalEndpoint = .hostPort(host: "127.0.0.1", port: .any)
         listener = try NWListener(using: parameters)
@@ -47,7 +51,7 @@ private final class LoopbackServer: @unchecked Sendable {
             if let data { request.append(data) }
             if isComplete || done {
                 let header =
-                    "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: \(responseBody.count)\r\nConnection: close\r\n\r\n"
+                    "HTTP/1.1 \(statusLine)\r\n\(extraHeaders)Content-Type: application/json\r\nContent-Length: \(responseBody.count)\r\nConnection: close\r\n\r\n"
                 connection.send(
                     content: Data(header.utf8) + responseBody,
                     completion: .contentProcessed { _ in connection.cancel() })
@@ -105,5 +109,39 @@ struct LocalServerTransportTests {
         #expect(server.head.hasPrefix("POST /v1/chat/completions HTTP/1.1"))
         #expect(!server.head.lowercased().contains("authorization"))
         #expect(String(decoding: server.request, as: UTF8.self).contains("local-llm"))
+    }
+
+    @Test func redirectsAreNotFollowedSoAudioStaysWithTheConfiguredServer() async throws {
+        let other = try LoopbackServer(responseBody: #"{"text":"must not be reached"}"#)
+        defer { other.stop() }
+        let otherPort = try await other.start()
+        let local = try LoopbackServer(
+            responseBody: "", statusLine: "307 Temporary Redirect",
+            extraHeaders: "Location: http://127.0.0.1:\(otherPort)/v1/audio/transcriptions\r\n")
+        defer { local.stop() }
+        let port = try await local.start()
+        do {
+            _ = try await OpenAITranscriber().transcribe(audioData: Data([1, 2, 3]), options: options(port: port))
+            Issue.record("a redirect must not produce a transcript")
+        } catch {
+            #expect(error is OpenDictateError, "the redirect itself is reported as a service error")
+        }
+        #expect(local.head.hasPrefix("POST /v1/audio/transcriptions"))
+        #expect(other.request.isEmpty)
+    }
+
+    @Test func translationDoesNotFollowRedirectsEither() async throws {
+        let other = try LoopbackServer(responseBody: #"{"choices":[]}"#)
+        defer { other.stop() }
+        let otherPort = try await other.start()
+        let local = try LoopbackServer(
+            responseBody: "", statusLine: "308 Permanent Redirect",
+            extraHeaders: "Location: http://127.0.0.1:\(otherPort)/v1/chat/completions\r\n")
+        defer { local.stop() }
+        let port = try await local.start()
+        await #expect(throws: OpenDictateError.self) {
+            try await OpenAITranslator().translate("Hallo", into: "en", options: options(port: port))
+        }
+        #expect(other.request.isEmpty)
     }
 }

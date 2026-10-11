@@ -12,7 +12,11 @@ the instructions below describe the macOS app.
 
 ## First dictation
 
-You need a Mac, internet access and an OpenAI API key. A public signed and
+You need a Mac and either an OpenAI API key with internet access, or a
+transcription server running on this Mac (see
+[Using your own server](#using-your-own-server)). With a local server no key is
+needed; in step 1, enter its address under **Einstellungen → Erweitert →
+Eigener Server** instead. A public signed and
 notarized download is not available yet. GitHub CI also retains explicitly
 labelled [development archives](docs/development.md#ci-development-archives)
 for later testing. To build from source, use Swift 6 on macOS:
@@ -28,7 +32,7 @@ open .build/OpenDictate.app
 2. Choose your microphone and language in **Einstellungen**. Allow microphone
    access when recording. Automatic insertion additionally needs macOS
    Accessibility access; clipboard-only use does not need that permission.
-3. After the key is set up, the app asks once how you want to start recording
+3. After the key (or a local server) is set up, the app asks once how you want to start recording
    (also once after an update, if no shortcut was ever chosen):
    hold **Fn/Globe**, the **right Option key**, or **Control+Option+D**, or a
    custom shortcut. On a MacBook or a compact Apple keyboard, Fn/Globe is
@@ -200,6 +204,8 @@ OpenAI. The address is the base URL including `/v1`; OpenDictate appends
 - **Other servers need `https://`** and receive your saved API key, for
   example a Groq key. Plain `http://` to another computer is rejected, so audio
   and keys never travel unencrypted over a network.
+- Redirects are not followed, so audio and text go only to the address you
+  entered, never on to another host.
 - If an address taken from `OPENAI_BASE_URL` is not allowed, dictation stops
   with a message instead of falling back to OpenAI.
 

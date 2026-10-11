@@ -25,7 +25,9 @@ struct ServiceEndpointTests {
         arguments: [
             "http://192.168.1.5:8080/v1", "http://example.com/v1", "ftp://127.0.0.1/v1",
             "https://user:secret@example.com/v1", "https://example.com/v1?key=1", "https://example.com/v1#x",
-            "", "127.0.0.1:8080", "not a url", "http://127.0.0.1.example.com/v1"
+            "", "127.0.0.1:8080", "not a url", "http://127.0.0.1.example.com/v1",
+            "https://example.com:99999/v1", "http://127.0.0.1:0/v1",
+            "https://example.com:99999999999999999999999/v1"
         ])
     func rejectsUnsafeAddresses(address: String) {
         #expect(ServiceEndpoint(address) == nil)

@@ -22,6 +22,7 @@ public struct ServiceEndpoint: Sendable, Equatable {
             let scheme = components.scheme?.lowercased(), let host = components.host?.lowercased(),
             !host.isEmpty, components.user == nil, components.password == nil,
             components.query == nil, components.fragment == nil,
+            Self.hasValidPort(components),
             let url = components.url
         else { return nil }
         switch scheme {
@@ -30,6 +31,14 @@ public struct ServiceEndpoint: Sendable, Equatable {
         default: return nil
         }
         self.init(validated: url)
+    }
+
+    /// A written port must parse and be a usable TCP port; an overflowing
+    /// number parses as no port at all, so it is rejected as well.
+    private static func hasValidPort(_ components: URLComponents) -> Bool {
+        guard components.rangeOfPort != nil else { return true }
+        guard let port = components.port else { return false }
+        return (1...65_535).contains(port)
     }
 
     private static let loopbackHosts: Set<String> = ["localhost", "127.0.0.1", "::1", "[::1]"]

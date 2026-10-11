@@ -53,6 +53,20 @@ struct TranscriptionOptions: Sendable {
     }
 }
 
+/// Refuses HTTP redirects, so audio and text go only to the validated address
+/// and never on to a host the user did not configure. The redirect response
+/// itself is then reported as a service error.
+final class RedirectBlocker: NSObject, URLSessionTaskDelegate, Sendable {
+    static func session(_ configuration: URLSessionConfiguration) -> URLSession {
+        URLSession(configuration: configuration, delegate: RedirectBlocker(), delegateQueue: nil)
+    }
+
+    func urlSession(
+        _ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
+        newRequest request: URLRequest
+    ) async -> URLRequest? { nil }
+}
+
 struct OpenAITranscriber: Sendable {
     private let session: URLSession
 
@@ -65,7 +79,7 @@ struct OpenAITranscriber: Sendable {
             configuration.timeoutIntervalForResource = 120
             configuration.urlCache = nil
             configuration.httpCookieStorage = nil
-            self.session = URLSession(configuration: configuration)
+            self.session = RedirectBlocker.session(configuration)
         }
     }
 
