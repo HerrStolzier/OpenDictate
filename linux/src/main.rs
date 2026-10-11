@@ -328,28 +328,34 @@ fn cancel() -> Result<(), String> {
     let socket = paths::socket_path().map_err(path_error)?;
     let state_path = paths::state_path().map_err(path_error)?;
     let cancel_path = paths::cancel_path().map_err(path_error)?;
-    match state::read(&state_path, &socket) {
-        state::State::Idle => Err(tr!(
+    let mut current = state::read(&state_path, &socket);
+    if current == state::State::Idle {
+        return Err(tr!(
             "Keine laufende Aufnahme oder Verarbeitung.",
             "No recording or processing is running."
-        )),
-        state::State::Starting | state::State::Processing | state::State::Delivering => {
-            state::request_cancel(&cancel_path).map_err(path_error)?;
-            println!("{}", cancel_requested());
-            Ok(())
-        }
-        state::State::Recording => {
-            state::request_cancel(&cancel_path).map_err(path_error)?;
-            ipc::send(&socket, ipc::STOP).map_err(|_| {
-                tr!(
-                    "Aufnahmeprozess hat nicht geantwortet.",
-                    "Recording process did not respond."
-                )
-            })?;
-            println!("{}", cancel_requested());
-            Ok(())
-        }
+        ));
     }
+    state::request_cancel(&cancel_path).map_err(path_error)?;
+    // A start may switch to Recording right after the worker checked for a
+    // cancel; then the recording has to be stopped like any other.
+    let deadline = Instant::now() + record::START_TIMEOUT + Duration::from_secs(1);
+    while current == state::State::Starting && Instant::now() < deadline {
+        std::thread::sleep(Duration::from_millis(20));
+        current = state::read(&state_path, &socket);
+    }
+    // A worker that saw the cancel itself ends without answering; that is
+    // the requested outcome, not a failure.
+    if current == state::State::Recording
+        && ipc::send(&socket, ipc::STOP).is_err()
+        && state::read(&state_path, &socket) != state::State::Idle
+    {
+        return Err(tr!(
+            "Aufnahmeprozess hat nicht geantwortet.",
+            "Recording process did not respond."
+        ));
+    }
+    println!("{}", cancel_requested());
+    Ok(())
 }
 
 fn copy_status() -> Result<(), String> {
