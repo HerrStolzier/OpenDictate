@@ -77,9 +77,10 @@ Anzeige ab und nimmt kein Audio auf; mit „Bewegung reduzieren“ steht sie sti
 Notch-Anzeige und Blink sind als „Vorschau“ gekennzeichnet. Texte zu Kürzel
 (Fn halten oder rechte Wahltaste) und eigenem Server folgen dem Textstand für
 Build 10. „Fn“ steht als Text in Geist Pixel auf der Kappe, weil das
-Designsystem nur Symbole für ⌥, ⇧ und Leertaste hat. Impressum und Datenschutz
-verlinken auf support.opendictate.app (live seit 11. Oktober 2026). Vor dem Livegang der Website Cloudflare Web Analytics abschalten,
-weil die Datenschutzerklärung „kein Tracking“ sagt. Headless Chromium: 1440, 375 und 320
+Designsystem nur Symbole für ⌥, ⇧ und Leertaste hat. Kontakt, Impressum und
+Datenschutz verlinken auf support.opendictate.app (live seit 11. Oktober 2026).
+Cloudflare Web Analytics ist aus, weil die Datenschutzerklärung „kein Tracking“
+sagt (siehe [Auslieferung](#auslieferung)). Headless Chromium: 1440, 375 und 320
 Pixel Breite ohne horizontalen Überlauf, keine Konsolenfehler, alle fünf
 Schriften geladen. Zoom und Tastaturweg wurden für diesen Stand nicht erneut
 geprüft.
