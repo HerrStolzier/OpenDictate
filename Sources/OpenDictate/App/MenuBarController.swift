@@ -164,7 +164,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         let retryItem = makeActionItem(
             "Letzte Aufnahme wiederholen",
             action: #selector(retryLastRecording),
-            toolTip: "Die neueste gültige Aufnahme bewusst erneut an OpenAI senden."
+            toolTip: "Die neueste gültige Aufnahme bewusst erneut an den eingestellten Dienst senden."
         )
         menu.addItem(retryItem)
         self.retryMenuItem = retryItem

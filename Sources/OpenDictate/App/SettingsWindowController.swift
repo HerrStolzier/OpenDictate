@@ -109,7 +109,7 @@ final class SettingsWindowController: NSWindowController {
             addText(
                 "Bis zu fünf gespeicherte Aufnahmen. Gültige Aufnahmen sind bis zu 24 Stunden wiederholbar. "
                     + "Bereinigt wird, während die App geöffnet ist. "
-                    + "Erneutes Verarbeiten sendet die gewählte Aufnahme an OpenAI und fragt vorher nach.",
+                    + "Erneutes Verarbeiten sendet die gewählte Aufnahme an den eingestellten Dienst und fragt vorher nach.",
                 to: stack)
             if let recordings = item("recordings")?.submenu, !recordings.items.isEmpty {
                 for recording in recordings.items { addControl(recording, to: stack) }

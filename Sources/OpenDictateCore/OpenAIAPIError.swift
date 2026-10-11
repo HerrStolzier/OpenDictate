@@ -41,7 +41,7 @@ public enum OpenAIAPIErrorMessage {
         case "model_not_found":
             return "Das eingestellte Modell ist beim Dienst nicht verfügbar."
         case "rate_limit_exceeded":
-            return "Zu viele Anfragen an OpenAI. Warte einen Moment und versuche es erneut."
+            return "Zu viele Anfragen an den Dienst. Warte einen Moment und versuche es erneut."
         default:
             return fallback
         }
