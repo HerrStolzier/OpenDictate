@@ -12,6 +12,14 @@ import OpenDictateCore
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBar: MenuBarController?
     private lazy var dictationPanel = DictationPanel()
+    private let indicator = DictationIndicator()
+    /// The latest dictation or retry. "Nochmal senden" offers only the recording
+    /// this attempt kept, never one inferred from timestamps.
+    private var attempt: Attempt?
+    private struct Attempt {
+        /// File name of the authenticated recording this attempt kept or retried.
+        var recording: String?
+    }
     private var pendingRetryFilename: String?
     private let hotKey = HotKeyManager()
     private var modifierMonitor: ModifierKeyMonitor?
@@ -51,7 +59,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 transcribeRetry: { [unowned self] in
                     try await transcriber.transcribe(audioData: $0.data, options: requestOptions)
                 },
-                keep: { FailedRecordingStore.keep($0, recordedAt: Date()) != nil },
+                keep: { [unowned self] in
+                    guard let kept = FailedRecordingStore.keep($0, recordedAt: Date()) else { return false }
+                    // A retry attempt already names the recording it resent; keep that name.
+                    if attempt?.recording == nil { attempt?.recording = kept.lastPathComponent }
+                    return true
+                },
                 removeRetry: { _ = FailedRecordingStore.remove($0) },
                 clean: { try? FileManager.default.removeItem(at: $0) },
                 copy: { [unowned self] in pasteboard.copy($0) },
@@ -92,6 +105,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 DesignPreview.runFocusFixture(app)
                 return
             }
+            let arguments = ProcessInfo.processInfo.arguments
+            if arguments.contains("--indicator-preview") || arguments.contains("--indicator-snapshots") {
+                IndicatorPreview.run(app, arguments: arguments)
+                return
+            }
             if ProcessInfo.processInfo.arguments.contains("--design-preview") || executable == "OpenDictatePreview" {
                 DesignPreview.run(app)
                 return
@@ -114,12 +132,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             "Translation: \(Config.settings.translationTarget ?? "off") (model \(Config.settings.translationModel))")
         AppLog.write("Service: \(Self.serviceDescription)")
         verifyHotKeyConstants()
+        BrandFonts.register()
         ApplicationMenu.install()
         latestExternalApplication = currentFrontmostApplication()
         NSWorkspace.shared.notificationCenter.addObserver(
             self, selector: #selector(applicationActivated(_:)),
             name: NSWorkspace.didActivateApplicationNotification, object: nil)
         configureMenuBar()
+        configureIndicator()
         configureDictationPanel()
         flow.onStatus = { [weak self] in self?.updateStatus($0) }
         flow.onOutcome = { [weak self] outcome in
@@ -158,23 +178,47 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         guard lifecycle.acceptsActions else { return true }
         if menuBar?.reopenSettingsIfVisible() == true { return true }
-        dictationPanel.showForInteraction()
+        menuBar?.showSettings()
         return true
     }
 
     private func configureMenuBar() {
         let controller = MenuBarController(delegate: self)
         controller.onShowSettings = { [weak self] in self?.dictationPanel.window?.orderOut(nil) }
-        controller.onShowDaily = { [weak self] anchor in
-            guard let self, lifecycle.acceptsActions else { return }
-            dictationPanel.showForInteraction(near: anchor)
-        }
         controller.install()
         menuBar = controller
     }
 
+    private func configureIndicator() {
+        indicator.style = { Config.settings.indicatorStyle }
+        indicator.onStatusItemTitle = { [weak self] title, alert in
+            self?.menuBar?.setIndicatorTitle(title, alert: alert)
+        }
+        indicator.onAnnounce = { [weak self] text in
+            // The window keeps its own announcements while it is open.
+            guard let self, dictationPanel.window?.isVisible != true else { return }
+            NSAccessibility.post(
+                element: NSApp as Any, notification: .announcementRequested,
+                userInfo: [.announcement: text, .priority: NSAccessibilityPriorityLevel.high.rawValue])
+        }
+        indicator.onRetry = { [weak self] in
+            guard let self, lifecycle.acceptsActions, let entry = retryCandidate else { return }
+            proposeRetry(filename: entry.filename)
+        }
+    }
+
+    /// The kept recording of the latest failed attempt, if it can be sent again.
+    private var retryCandidate: SavedRecording? {
+        guard let recording = attempt?.recording, flow.state.canRetry else { return nil }
+        return savedRecordings.first { $0.retryable && $0.filename == recording }
+    }
+
     private func configureDictationPanel() {
         dictationPanel.setShortcut(Config.trigger.displayName)
+        dictationPanel.onDisplayChange = { [weak self] display, detail in
+            guard let self, !lifecycle.isTerminating else { return }
+            indicator.follow(display, detail: detail)
+        }
         dictationPanel.onRecord = { [weak self] in
             guard let self, lifecycle.canBeginOperation else { return }
             let target = flow.state.canStop ? previousApplication : latestExternalApplication
@@ -424,6 +468,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     ) async {
         defer { lifecycle.finish(operation) }
         guard lifecycle.isCurrent(operation), !Task.isCancelled, flow.state.canStart else { return }
+        // A new attempt replaces the old one; a failure before recording keeps nothing to resend.
+        attempt = nil
+        indicator.canRetry = false
         guard hasUsableServer() else { return }
         guard hasAPIKey(for: operation) else { return }
         guard Config.model.isUsableForUpload else {
@@ -447,6 +494,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 previousApplication = target
                 if try flow.start() {
                     pendingRetryFilename = nil
+                    attempt = Attempt()
+                    indicator.setTranslating(options.translationTarget != nil)
                     scheduleAutoStop()
                 }
             }
@@ -473,6 +522,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             snapshotTask = nil
             guard !Task.isCancelled, !lifecycle.isTerminating else { return }
             savedRecordings = recordings
+            indicator.canRetry = retryCandidate != nil
             menuBar?.refresh()
             if snapshotNeedsRefresh {
                 snapshotNeedsRefresh = false
@@ -500,7 +550,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 guard flow.state.canRetry else { return }
                 requestOptions = options
                 previousApplication = target
-                _ = flow.retry(payload)
+                if flow.retry(payload) {
+                    attempt = Attempt(recording: filename)
+                    indicator.canRetry = false
+                    indicator.setTranslating(options.translationTarget != nil)
+                }
             }
         } catch {
             guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
@@ -529,6 +583,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let message = OpenDictateError.invalidServerAddress.errorDescription ?? ""
         updateStatus(message)
         dictationPanel.updateFailure(message)
+        indicator.showProblem(message)
         return false
     }
 
@@ -552,6 +607,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             + "Prüfe den macOS-Schlüsselbund oder richte den Schlüssel erneut ein."
         dictationPanel.updateAPIKeySetup(needsSetup: true, message: apiKeyNeedsSetup ? nil : message)
         apiKeyNeedsSetup = true
+        indicator.canRetry = false
+        indicator.showProblem("Der API-Schlüssel fehlt. Richte ihn im Menü unter „API-Schlüssel einrichten“ ein.")
         menuBar?.refresh()
         return false
     }
@@ -590,6 +647,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 let level = recorder.level()
                 menuBar?.updateState(.recording, elapsed: seconds, level: level)
                 dictationPanel.updateRecording(elapsed: seconds, level: level)
+                indicator.updateRecording(elapsed: seconds)
                 if seconds >= Config.maximumRecordingDuration {
                     stopRecordingAutomatically()
                     return
@@ -725,10 +783,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard lifecycle.isCurrent(operation) else { return }
             apiKeyNeedsSetup = false
             menuBar?.updateStatus("API-Schlüssel gespeichert")
-            if settingUp {
-                dictationPanel.updateAPIKeySetup(needsSetup: false)
-                menuBar?.showDaily()
-            }
+            if settingUp { dictationPanel.updateAPIKeySetup(needsSetup: false) }
             AppLog.write("API key saved to Keychain")
             if case .savedWithLegacyCleanupPending(let status) = result {
                 AppLog.write("API key legacy cleanup pending: \(status)")
@@ -849,7 +904,6 @@ extension AppDelegate: MenuBarControllerDelegate {
                 needsSetup: needsSetup, message: needsKey ? nil : Self.localServerReadyMessage)
             menuBar?.refresh()
             guard wasSettingUp, !needsSetup else { return }
-            menuBar?.showDaily()
             if !Config.settings.hasStoredTrigger, flow.state == .idle, let operation = lifecycle.beginOperation() {
                 defer { lifecycle.finish(operation) }
                 askForTrigger(operation: operation)
@@ -877,7 +931,7 @@ extension AppDelegate: MenuBarControllerDelegate {
         guard flow.state == .idle, let operation = lifecycle.beginOperation() else { return }
         defer { lifecycle.finish(operation) }
         Config.settings.autoPaste.toggle()
-        menuBar?.showSettings()
+        if menuBar?.hasVisibleSettings == true { menuBar?.showSettings() }
         requestAccessibilityPermissionIfNeeded()
     }
     var menuBarRecordings: [SavedRecording] { savedRecordings }
@@ -1027,6 +1081,22 @@ extension AppDelegate: MenuBarControllerDelegate {
         AppLog.write("Translation target changed to \(translationTarget ?? "off")")
     }
 
+    func menuBarDidSelect(indicatorStyle: IndicatorStyle) {
+        guard indicatorStyle != Config.settings.indicatorStyle else { return }
+        Config.settings.indicatorStyle = indicatorStyle
+        AppLog.write("Indicator style changed to \(indicatorStyle.rawValue)")
+    }
+
+    func menuBarDidShowLastText() {
+        guard lifecycle.acceptsActions, flow.state == .idle, let text = flow.lastTranscript else { return }
+        dictationPanel.presentLastText(text)
+    }
+
+    var menuBarIndicatorStyle: IndicatorStyle { Config.settings.indicatorStyle }
+    var menuBarStateWord: String {
+        if indicator.phase != .closed { return indicator.phase.word }
+        return apiKeyNeedsSetup ? "Einrichten" : "Bereit"
+    }
     var menuBarTrigger: RecordingTrigger { Config.trigger }
     var menuBarModel: TranscriptionModel { Config.model }
     var menuBarLanguage: String? { Config.language }

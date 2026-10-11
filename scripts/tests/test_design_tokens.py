@@ -50,6 +50,13 @@ class DesignTokensTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             MODULE.resolve_colors(tokens)
 
+    def test_waybar_example_uses_token_colours(self):
+        css = (Path(__file__).parents[2] / "linux" / "waybar.example.css").read_text()
+        colours = dict(MODULE.resolve_colors(MODULE.load()))
+        for name in ("rec", "signal"):
+            self.assertIn(f"@define-color od_{name} {colours[name]['nacht']};", css)
+            self.assertIn(colours[name]["papier"], css)
+
     def test_swift_lengths(self):
         self.assertEqual(MODULE.swift_number("18px"), "18.0")
         self.assertEqual(MODULE.swift_number("22.5%"), "0.225")

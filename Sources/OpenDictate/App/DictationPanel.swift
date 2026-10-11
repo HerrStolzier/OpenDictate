@@ -4,48 +4,7 @@ import OpenDictateCore
 /// UI-only state. A submitted paste command never maps to confirmed success.
 @MainActor
 final class DictationPanel: NSWindowController {
-    enum Display: String, CaseIterable {
-        case ready, setup, recording, processing, confirmed, manual, unconfirmed, failure, retry, cancelling
-
-        var title: String {
-            switch self {
-            case .ready: "Bereit zum Diktieren."
-            case .setup: "Fast bereit"
-            case .recording: "Aufnahme läuft."
-            case .processing: "Text wird verarbeitet."
-            case .confirmed: "Text eingefügt."
-            case .manual: "Text ist verfügbar."
-            case .unconfirmed: "Diktat verarbeitet."
-            case .failure: "Nicht abgeschlossen"
-            case .retry: "Diese Aufnahme erneut verarbeiten?"
-            case .cancelling: "Wird abgebrochen …"
-            }
-        }
-
-        var symbol: String {
-            switch self {
-            case .ready, .recording: "mic"
-            case .setup: "key"
-            case .processing, .cancelling: "text.alignleft"
-            case .confirmed: "checkmark"
-            case .manual: "doc.text"
-            case .unconfirmed: "arrow.right.doc.on.clipboard"
-            case .failure: "exclamationmark.triangle"
-            case .retry: "arrow.clockwise"
-            }
-        }
-
-        @MainActor var color: NSColor {
-            switch self {
-            case .recording: PanelColors.pair(0xA53B25, 0xFFB09B)
-            case .processing, .manual: PanelColors.pair(0x245DC1, 0x99BFFF)
-            case .confirmed: PanelColors.pair(0x216444, 0x91DFB3)
-            case .unconfirmed: PanelColors.pair(0x245DC1, 0x99BFFF)
-            case .failure: PanelColors.pair(0xAF293B, 0xFFADB7)
-            default: PanelColors.ink
-            }
-        }
-    }
+    typealias Display = DictationDisplay
 
     private static let pasteDetail = "Automatisches Einfügen wurde ausgelöst. Prüfe den Text im Zielprogramm."
 
@@ -57,6 +16,9 @@ final class DictationPanel: NSWindowController {
     var onRecovery: (() -> Void)?
     var onRetry: (() -> Void)?
     var onActions: ((NSView) -> Void)?
+    /// Reports every state the flow, setup or error paths set, with its detail
+    /// line, so the indicator can follow without its own state machine.
+    var onDisplayChange: ((Display, String) -> Void)?
     private(set) var display: Display = .ready
     private var busy = false
     private var showingText = false
@@ -230,6 +192,15 @@ final class DictationPanel: NSWindowController {
         render()
     }
 
+    /// Shows the last transcript on request from the menu. The indicator is not
+    /// told: the user looks at old text, nothing new happened.
+    func presentLastText(_ text: String) {
+        textView.string = text
+        showingText = true
+        set(.manual, detail: "Dein letzter Text. Er bleibt bis zum Beenden der App gespeichert.", notify: false)
+        showForInteraction()
+    }
+
     func confirmRetry(description: String) {
         showingText = false
         set(
@@ -262,11 +233,12 @@ final class DictationPanel: NSWindowController {
         set(value, detail: previewDetail)
     }
 
-    private func set(_ value: Display, detail text: String) {
+    private func set(_ value: Display, detail text: String, notify: Bool = true) {
         let changed = display != value
         display = value
         currentDetail = text
         render()
+        if notify { onDisplayChange?(value, text) }
         if changed, window?.isVisible == true {
             if !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
                 icon.alphaValue = 0.65
@@ -487,6 +459,32 @@ final class DictationPanel: NSWindowController {
         } else {
             showingText = false
             set(.ready, detail: "Starte die Aufnahme oder nutze dein Tastenkürzel.")
+        }
+    }
+}
+
+extension DictationDisplay {
+    var symbol: String {
+        switch self {
+        case .ready, .recording: "mic"
+        case .setup: "key"
+        case .processing, .cancelling: "text.alignleft"
+        case .confirmed: "checkmark"
+        case .manual: "doc.text"
+        case .unconfirmed: "arrow.right.doc.on.clipboard"
+        case .failure: "exclamationmark.triangle"
+        case .retry: "arrow.clockwise"
+        }
+    }
+
+    @MainActor var color: NSColor {
+        switch self {
+        case .recording: PanelColors.pair(0xA53B25, 0xFFB09B)
+        case .processing, .manual: PanelColors.pair(0x245DC1, 0x99BFFF)
+        case .confirmed: PanelColors.pair(0x216444, 0x91DFB3)
+        case .unconfirmed: PanelColors.pair(0x245DC1, 0x99BFFF)
+        case .failure: PanelColors.pair(0xAF293B, 0xFFADB7)
+        default: PanelColors.ink
         }
     }
 }

@@ -7,7 +7,8 @@ instead of hard-coding colours or sizes:
 
 - design/generated/tokens.css: CSS custom properties (website, web dashboards)
 - design/generated/gtk-colors.css: GTK @define-color entries (Waybar, GTK)
-- design/generated/DesignTokens.swift: Swift values (macOS, later iOS)
+- Sources/OpenDictateCore/DesignTokens.swift: Swift values (macOS, later iOS),
+  compiled into the app's core module
 
 Run without arguments to rewrite the files, or with --check to fail when they
 are out of date.
@@ -24,6 +25,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TOKENS = ROOT / "design" / "tokens.json"
 OUT = ROOT / "design" / "generated"
+SWIFT_OUT = ROOT / "Sources" / "OpenDictateCore"
 HEADER = "Generated from design/tokens.json by scripts/design-tokens.py. Do not edit."
 HEX = re.compile(r"^#[0-9A-Fa-f]{6}$")
 ALIAS = re.compile(r"^\{([A-Za-z0-9][A-Za-z0-9_.-]*)\}$")
@@ -199,11 +201,11 @@ def swift(tokens: dict) -> str:
     return "\n".join(out) + "\n"
 
 
-def render(tokens: dict) -> dict[str, str]:
+def render(tokens: dict) -> dict[Path, str]:
     return {
-        "tokens.css": css(tokens),
-        "gtk-colors.css": gtk(tokens),
-        "DesignTokens.swift": swift(tokens),
+        OUT / "tokens.css": css(tokens),
+        OUT / "gtk-colors.css": gtk(tokens),
+        SWIFT_OUT / "DesignTokens.swift": swift(tokens),
     }
 
 
@@ -213,11 +215,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     files = render(load())
     stale = []
-    for name, content in files.items():
-        path = OUT / name
+    for path, content in files.items():
         if args.check:
             if not path.exists() or path.read_text(encoding="utf-8") != content:
-                stale.append(name)
+                stale.append(str(path.relative_to(ROOT)))
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content, encoding="utf-8")
