@@ -224,8 +224,9 @@ Screen and in the Dynamic Island shows that a recording is running.
   is accepted, or `http://` for a server on the iPhone itself, which gets no
   API key. Redirects are not followed. The chosen service may keep audio and
   text for a while under its own terms (OpenAI, for example, for abuse
-  monitoring); the app's privacy manifest therefore declares both as collected
-  for app functionality, not linked to the user and not used for tracking.
+  monitoring) and can link them to the account behind the API key; the app's
+  privacy manifest therefore declares both as collected for app functionality
+  and linked to the user, not used for tracking.
   Once per launch and address, while the app is open, it sends a `GET`
   without key or audio to the custom server's `/models` address, so iOS can
   ask for local network access for a server in the home network.
