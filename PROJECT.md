@@ -145,8 +145,8 @@ der ersten Beta und blockiert keine ([ROADMAP](ROADMAP.md#plattformübergreifend
   Veröffentlichung braucht Bastis ausdrückliches Go.
 - Künftige Preise, Vertrieb und Firmengründung bleiben offen; das Preismodell
   oben ist die Richtung, nicht die Umsetzung.
-- Die Website ist ein lokaler Entwurf mit illustrativer Demo, kein
-  Diktiernachweis.
+- Die Website unter opendictate.app (live seit dem 11. Oktober 2026) zeigt
+  eine illustrative Demo, keinen Diktiernachweis.
 - Support läuft seit dem 11. Oktober 2026 über support@opendictate.app und
   das Formular unter support.opendictate.app; zugesagte Antwortzeiten gibt es
   nicht, und der KI-Agent ist aus.

@@ -59,7 +59,12 @@ async function load(env, path, hash) {
     if (!response.ok) throw new Error(`source ${response.status} for ${path}`);
     body = await response.arrayBuffer();
     if ((await digest(body)) !== hash) throw new Error(`hash mismatch for ${path}`);
-    await env.SITE.put(path, body);
+    // KV allows one write per key and second; a lost race must not cost the visitor the file.
+    try {
+      await env.SITE.put(path, body);
+    } catch (error) {
+      console.error(`kv put ${path}: ${error}`);
+    }
   }
   loaded.set(path, body);
   return body;
