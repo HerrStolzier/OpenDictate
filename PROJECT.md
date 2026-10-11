@@ -85,8 +85,9 @@ Schritte in der [ROADMAP](ROADMAP.md).
   Einrichtung: [README](README.md).
 - **Linux:** Rust-CLI für Hyprland (Arch/omarchy) mit Aufnahme, Keyring,
   Transkription, Übersetzung, Zwischenablage, Auto-Einfügen in das beim Start
-  erfasste Fenster, Leistenanzeige und Hotkey. Seit dem 7. Oktober 2026 im
-  Alltag genutzt. Einrichtung: [linux/README.de.md](linux/README.de.md).
+  erfasste Fenster, Leistenanzeige und Hotkey; seit 11. Oktober auch eigener
+  Server und geführte Einrichtung (`opendictate setup`, offline geprüft). Seit
+  dem 7. Oktober 2026 im Alltag genutzt. Einrichtung: [linux/README.de.md](linux/README.de.md).
 - **Windows:** Versionierter Prototyp unter [windows/](windows/README.md),
   nur offline geprüft; kein echtes Diktat, keine Paketierung.
 - **iOS:** Synthetischer Textpfad eines Tastatur-Prototyps belegt; echte
@@ -158,6 +159,7 @@ Preismodells und der Gaming-Ursprung verloren.
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
 | 11. Oktober 2026 | Basti liest und mergt keine PRs mehr. Fertige, von critic geprüfte PRs mit grüner CI mergt der Workflow „Auto-Merge“ selbst; PRs, die Workflow-Dateien ändern, mergt Claude. Als Entwurf bleibt ein PR nur, wenn er auf ein Ereignis wartet (Release, Livegang). | [CLAUDE.md](CLAUDE.md); Karte im privaten Projektchat |
+| 11. Oktober 2026 | Die Linux-Beta bekommt vor ihrem Pre-Release zwei offene Punkte: eigener Server als Stufe 1 für ein lokales Modell (kostenlos, gleiche Begriffe und Regeln wie auf dem Mac) und die geführte Einrichtung `opendictate setup` mit Kürzel-Abfrage (Super+D, F9, rechte Alt nur bei US-Layout). Anlass: Bastis Auftrag „Mach alle offenen To-Dos parallel fertig“; die Abfrage aus der Entscheidung vom 9. Oktober kommt damit für Linux in das kostenlose CLI. Pre-Release und Ankündigungen warten weiter auf Bastis eigenes Go. | [ROADMAP](ROADMAP.md#track-linux); Projektchat 11. Oktober |
 | 11. Oktober 2026 | Diktier-Ablauf der iOS-App für die erste Beta: Auslösen per Aktionstaste, Rückseite oder Kontrollzentrum nimmt im Hintergrund auf, das Ergebnis kommt in die Zwischenablage, der Nutzer fügt selbst ein. Keine eigene Tastatur mit Vollzugriff und kein Diktieren nur in der App. Löst den Wunsch vom 29. September 2026 ab, direkt in das Feld anderer Apps einzufügen. | [iOS-Konzept](docs/ios-konzept.md); Karte im privaten Projektchat |
 | 10. Oktober 2026 | Die Empfehlung in der Mac-Kürzel-Abfrage hängt von der Tastatur ab: Fn halten bei MacBook- oder kompakter Apple-Tastatur, rechte Wahltaste bei Apple-Tastatur mit Ziffernblock (Fn liegt dort weit rechts) oder Tastatur eines anderen Herstellers. Anlass: Bastis Live-Test mit der großen Apple-Tastatur. | [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |
 | 9. Oktober 2026 | Ein lokales Modell statt OpenAI wird eine kostenlose Funktion, keine bezahlte. Umsetzung als „Eigener Server“: Ein Server auf demselben Rechner bekommt keinen API-Schlüssel und braucht keinen; andere Server nur über `https://` und mit dem gespeicherten Schlüssel; eine ungültige Adresse fällt nie auf OpenAI zurück. Zuerst die Adresse (Mac und Linux), ein mitgeliefertes Modell erst später. Build 9 bleibt der Beta-Kandidat. | [ROADMAP](ROADMAP.md#plattformübergreifend), [PR #70](https://github.com/HerrStolzier/OpenDictate/pull/70); Gespräch im privaten Projektchat |

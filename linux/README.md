@@ -2,7 +2,8 @@
 
 English · [Deutsch](README.de.md)
 
-OpenDictate records your voice at the press of a key, has OpenAI transcribe it,
+OpenDictate records your voice at the press of a key, has OpenAI (or your own
+server, see [Custom server](#custom-server)) transcribe it,
 translates it if you want (for example into English) and inserts the text into
 the window that was in front when you started. It is a small command-line
 program without a window of its own, made for Hyprland.
@@ -43,7 +44,9 @@ the file is not deleted automatically either.
 - A keyring with Secret Service, for example `gnome-keyring` (included in
   Omarchy). The API key is stored only there, never in a file.
 - An OpenAI API key with credit
-  ([platform.openai.com](https://platform.openai.com/api-keys)).
+  ([platform.openai.com](https://platform.openai.com/api-keys)), or a
+  [custom server](#custom-server) that speaks the OpenAI API, for example a
+  model on your own computer.
 
 ## Install
 
@@ -81,6 +84,23 @@ stay behind; they are in `~/.config/opendictate/` and
 `secret-tool clear service opendictate key recording-auth`.
 
 ## Set up
+
+**Quickest way:** run `opendictate setup` in a terminal. It asks two things:
+
+1. Who transcribes: OpenAI with your API key (it asks for the key without
+   showing it and checks it right away), or a [custom server](#custom-server).
+2. Which shortcut starts and stops a dictation: Super+D, F9, or, on a US
+   keyboard layout, the right Alt key alone. It shows which keys Hyprland
+   already uses and writes the line into your Hyprland config, after asking
+   and with a backup next to the file (`….opendictate-backup-…`). For Omarchy
+   that is `~/.config/hypr/bindings.lua`; a plain Lua config only gets the line
+   to copy.
+
+After that, steps 3 to 5 below are optional. `opendictate shortcut status`
+shows the current shortcut later, `opendictate shortcut set f9` changes it
+without questions.
+
+**By hand instead:**
 
 **1. Store the API key.** The key is only accepted through a pipe, never as an
 argument or environment variable. This command asks for it without showing it
@@ -142,6 +162,50 @@ afterwards too. `opendictate settings insert off` turns automatic inserting
 off. `opendictate cancel` stops a running recording; the recording is kept for
 `retry`.
 
+## Custom server
+
+Instead of OpenAI, OpenDictate can send recordings to your own server that
+speaks the OpenAI API, for example a speech model on this computer. That
+costs nothing per minute and the recording does not leave the machine.
+
+```bash
+opendictate settings server http://127.0.0.1:8080/v1
+opendictate settings model NAME              # the model name your server expects
+opendictate settings translation-model NAME  # only if you translate
+opendictate settings server off              # back to OpenAI
+```
+
+- The **server address** is the base address including `/v1`. OpenDictate
+  appends `/audio/transcriptions` for transcription and `/chat/completions`
+  for translation; both go to the same address. A server that only
+  transcribes works with translation off.
+- `https://` works for any address. Plain `http://` only for this computer
+  (`localhost`, `127.0.0.1`, `[::1]`). Addresses with credentials, `?` or `#`
+  are rejected.
+- **API key:** an address on this computer gets no key and needs none. Any
+  other server gets your stored key (useful for OpenAI-compatible providers);
+  only use servers you trust with it.
+- Model names are free-form with a custom server; with OpenAI only the known
+  transcription models are accepted. `settings server off` resets a model
+  OpenAI does not offer.
+- Alternatively the environment variable `OPENAI_BASE_URL` sets the address;
+  a stored address wins. Hyprland must see the variable, not just your shell.
+- Local models on the CPU are slow, so OpenDictate waits up to 2 minutes for a
+  custom server (plus upload time) instead of 15 seconds.
+- The log names only the server's host, never its path or a key.
+
+Example with [whisper.cpp](https://github.com/ggml-org/whisper.cpp)
+(transcription only; it uses the model it was started with via `-m`):
+
+```bash
+whisper-server -m models/ggml-base.bin --host 127.0.0.1 --port 8080 \
+  --inference-path /v1/audio/transcriptions
+opendictate settings server http://127.0.0.1:8080/v1
+```
+
+**Only OpenAI is verified.** Custom servers are new in this beta; whether a
+given server works is exactly the feedback we are looking for.
+
 ## When something goes wrong
 
 - `opendictate status` shows whether it is recording or processing.
@@ -166,18 +230,21 @@ most:
 - The timeouts (network error after about 20 seconds) are only tested
   offline.
 - Hyprland only, Arch-based systems only. No settings window, no
-  push-to-talk, no custom vocabulary, no provider other than OpenAI.
+  push-to-talk, no custom vocabulary. Only OpenAI is verified; custom
+  servers are untested.
 - At most 90 seconds per dictation.
 
 ## Privacy in short
 
 The recording goes to OpenAI over HTTPS for transcription; with translation on,
-the text then goes to OpenAI for translation. To no one else. Details:
+the text then goes to OpenAI for translation. To no one else. With a
+[custom server](#custom-server), both go only to that server instead. Details:
 [PRIVACY.md](../PRIVACY.md#linux-cli).
 
 ## All commands
 
 ```bash
+opendictate setup                   # guided setup: key or custom server, shortcut
 opendictate toggle                  # start or stop a recording
 opendictate status                  # idle / recording / processing / delivering
 opendictate bar                     # status as a JSON line for the bar (`waybar` works too)
@@ -191,6 +258,9 @@ opendictate settings target de      # translate dictations into German; `off` to
 opendictate settings target toggle  # off, or on with the last target language (else en)
 opendictate settings insert off     # clipboard only, no auto-insert
 opendictate settings translation-model gpt-5.4-mini
+opendictate settings server http://127.0.0.1:8080/v1  # custom server; `off` for OpenAI
+opendictate shortcut status         # current shortcut, which keys are free
+opendictate shortcut set f9         # super-d, f9 or right-alt into the Hyprland config
 opendictate secrets status
 ```
 
@@ -239,7 +309,7 @@ secrets; the HTTP tests only use a local stub.
   uploaded. Detected speech keeps a 0.25-second margin; only savings of 0.35
   seconds or more produce a trimmed upload WAV. The 90-second limit stays on.
 - With a target language set, the transcript is then translated via
-  `/v1/chat/completions` and only the translation is delivered. If the
+  `/chat/completions` of the same server and only the translation is delivered. If the
   translation fails or is empty, the recording is kept like with any other
   error; `retry` translates again.
 - A non-empty transcript is written only to the Wayland clipboard. The
@@ -258,10 +328,11 @@ secrets; the HTTP tests only use a local stub.
   counts as delivered once the copy succeeded. `retry` never inserts
   automatically.
 - Every request has a time limit from its start, connecting included:
-  transcription 15 seconds plus upload time at about 2 Mbit/s (about 50 seconds
-  for a 90-second recording at 48 kHz), translation 15 seconds plus one second
-  per 100 characters (at most 60 seconds). Connecting alone may take at most 10
-  seconds. If the network drops during a short dictation, the "network error
+  transcription 15 seconds plus upload time at about 2 Mbit/s (about 50
+  seconds for a 90-second recording at 48 kHz), translation 15 seconds plus
+  one second per 100 characters (at most 60 seconds). With a custom server the
+  base is 2 minutes instead of 15 seconds (translation at most 3 minutes).
+  Connecting alone may take at most 10 seconds. If the network drops during a short dictation, the "network error
   or timeout" message comes after about 20 seconds instead of up to two
   minutes; if it breaks in the middle of a long upload, it can take up to twice
   the limit. The limit does not cover a hanging name lookup (DNS).

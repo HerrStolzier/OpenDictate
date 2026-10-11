@@ -10,8 +10,8 @@ the provider side is shared; each client keeps its own code. Decided on
 - `POST <base>/audio/transcriptions`. The base address defaults to
   `https://api.openai.com/v1`; a custom server replaces only the base.
 - `Authorization: Bearer <key>` for OpenAI and other `https://` servers. A
-  server on the same computer (loopback) gets no header. macOS implements
-  this; Linux follows with the same rule.
+  server on the same computer (loopback) gets no header. macOS and Linux
+  implement this; Windows follows with the same rule.
 - `Content-Type: multipart/form-data` with these fields in this order:
   1. `model`
   2. `response_format` = `json`
@@ -30,7 +30,7 @@ the provider side is shared; each client keeps its own code. Decided on
   Linux reject larger or empty audio locally before any request. Windows
   instead limits a recording to 90 s of WAV (2,880,044 bytes).
 - Timeouts: macOS 30 s without data and 120 s overall; Linux 10 s to connect,
-  then a 15 s response budget plus upload time at about 2 Mbit/s; Windows 60 s
+  then a 15 s response budget (120 s for a custom server) plus upload time at about 2 Mbit/s; Windows 60 s
   overall.
 
 ## Response
@@ -42,7 +42,8 @@ the provider side is shared; each client keeps its own code. Decided on
 - Any other status is an error. Every client shows its own message and never
   the provider's raw text. On macOS, the OpenAI error `code` (or `type` when
   `code` is missing) selects a more specific message; Linux and Windows map by
-  status code only.
+  status code, Linux also by whether the server is OpenAI, a custom server or
+  one on this computer.
 
 ## Cases
 

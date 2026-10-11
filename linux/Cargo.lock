@@ -723,6 +723,7 @@ dependencies = [
  "hex",
  "hmac",
  "hound",
+ "libc",
  "serde",
  "serde_json",
  "sha2",
