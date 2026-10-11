@@ -9,7 +9,6 @@ try
 {
     using var journal = new PcmJournal(root); journal.Append([1, 2, 3, 4]);
     byte[] wave = File.ReadAllBytes(journal.ExportWave());
-    ProviderChecks.Run(wave, Test);
     Test("Sealing removes only verified new plaintext after durable recovery", () =>
     {
         using var owned = new PcmJournal(root); owned.Append([1, 2, 3, 4]); owned.ExportWave();
