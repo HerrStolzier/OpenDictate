@@ -211,5 +211,5 @@ legal matters or anger for personal handling.
 
 Closed requests are deleted automatically 180 days after they were closed;
 open requests are kept until they are closed.
-On request, a ticket and all its messages are deleted at once, and the
-copies in the developer's mailbox, including sent replies, are deleted by hand.
+On request, a ticket and all its messages, replies included, are deleted at
+once.
