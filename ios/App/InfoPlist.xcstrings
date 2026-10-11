@@ -1,0 +1,17 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSMicrophoneUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenDictate nimmt deine Stimme nur während eines Diktats auf und schickt sie an den gewählten Dienst, der daraus Text macht."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

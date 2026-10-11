@@ -2,8 +2,9 @@
 
 Stand: 11. Oktober 2026. Erster Schritt im [Track iOS](../ROADMAP.md#track-ios).
 Den Ablauf hat Basti am 11. Oktober gewählt
-([Entscheidungs-Log](../PROJECT.md#entscheidungen)). Gebaut ist noch nichts.
-Die iOS-Beta folgt nach den Betas für Linux und macOS.
+([Entscheidungs-Log](../PROJECT.md#entscheidungen)). Die Beta-App dazu liegt
+unter [ios/](../ios/README.md), auf dem iPhone ist sie noch nicht geprüft.
+Die iOS-Beta folgt nach den Betas für Linux und macOS, vor Windows.
 
 ## Versprechen
 

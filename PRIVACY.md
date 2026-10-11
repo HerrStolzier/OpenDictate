@@ -238,7 +238,8 @@ Screen and in the Dynamic Island shows that a recording is running.
   the Mac: at most the five newest, none older than 24 hours, checked whenever
   the list is read. The folder is excluded from backups. A recording shorter
   than one second is deleted at once. A recording cut off because iOS ended
-  the app during it cannot be played and is deleted at the next start.
+  the app during it is moved to the kept recordings at the next start and
+  expires under the same rule.
 - **No log, no telemetry:** the iPhone app writes no log file and sends
   nothing else anywhere.
 
