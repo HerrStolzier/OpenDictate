@@ -1,7 +1,7 @@
 import Foundation
 
 /// Shared provider fixtures in `fixtures/provider/`, the same files the Linux
-/// and Windows clients are meant to test against.
+/// client tests against and the Windows client is meant to.
 enum ProviderFixtures {
     static let directory = URL(fileURLWithPath: #filePath)
         .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()

@@ -60,7 +60,10 @@ omarchy; Löschen nur mit Bastis Go. Die leere Datei vom gescheiterten Start
 wurde am 8. Oktober mit Bastis Go gelöscht.
 
 **Letzter Nachweis:** 8. Oktober 2026, Arch-Paket aus `0a04ed5` (PR #59)
-([Live-Nachweise](linux-live-2026-10-05-bis-07.md)).
+([Live-Nachweise](linux-live-2026-10-05-bis-07.md)). Seit 11. Oktober ist
+`afa3506` als Pre-Release
+[`linux-v0.1.0-beta.1`](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1)
+veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
 
 ## macOS
 
