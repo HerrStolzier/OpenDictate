@@ -146,8 +146,12 @@ final class DictationRunner {
 
     func copyAgain() {
         guard let lastText else { return }
-        UIPasteboard.general.string = lastText
-        phase = .copied
+        do {
+            try Self.copy(lastText)
+            phase = .copied
+        } catch {
+            phase = .oops(DictationFailure(error).message)
+        }
     }
 
     /// Transcribes, translates if a target is set, and copies. A failed or
@@ -165,8 +169,9 @@ final class DictationRunner {
                 text = try await client.translate(text, into: target, configuration: configuration)
                 guard !text.isEmpty else { throw DictationFailure.emptyTranslation }
             }
-            UIPasteboard.general.string = text
             lastText = text
+            // Until the clipboard took the text, the recording stays for "Send again".
+            try Self.copy(text)
             store.remove(url)
             retryable = store.newest()
             phase = .copied
@@ -180,9 +185,19 @@ final class DictationRunner {
     private func fail(_ failure: DictationFailure) async -> DictationFailure {
         retryable = store.newest()
         phase = .oops(failure.message)
-        let detail = retryable == nil ? failure.message : failure.message + " " + L10n.keptDetail
+        // A text that missed the clipboard is waiting in the app; no need to send it again.
+        let pointsToRetry = retryable != nil && failure != .clipboardFailed
+        let detail = pointsToRetry ? failure.message + " " + L10n.keptDetail : failure.message
         await endActivity(.oops, detail: detail, after: 10)
         return failure
+    }
+
+    /// The setter reports nothing; an unchanged count means iOS refused the
+    /// write. Reading the count, unlike the contents, shows no paste prompt.
+    private static func copy(_ text: String) throws {
+        let before = UIPasteboard.general.changeCount
+        UIPasteboard.general.string = text
+        guard UIPasteboard.general.changeCount != before else { throw DictationFailure.clipboardFailed }
     }
 
     // MARK: Live Activity

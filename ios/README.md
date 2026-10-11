@@ -14,7 +14,7 @@ geschrieben, aber noch nicht auf dem iPhone gebaut und geprüft.
   Swift-Paket im Repository-Hauptordner ein (Server-Adresse, Übersetzung,
   Aufbewahrung, Blink, Design-Werte).
 - `App/`: App, Kurzbefehl „Diktieren“ (`ToggleDictationIntent`, ein
-  `AudioRecordingIntent`), Aufnahme, Anfragen nach
+  `AudioRecordingIntent` und `LiveActivityIntent`), Aufnahme, Anfragen nach
   [Provider-Vertrag](../fixtures/provider/CONTRACT.md), Schlüsselbund,
   gesicherte Aufnahmen, Start- und Einstellungsbildschirm.
 - `Shared/`: in App und Erweiterung: Daten der Live-Aktivität, Stopp-Taste

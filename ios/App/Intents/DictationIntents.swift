@@ -2,9 +2,10 @@ import AppIntents
 
 /// The action for "Back Tap", the Action button and Siri. iOS keeps recording
 /// in the background only for an `AudioRecordingIntent` that shows a Live
-/// Activity, which `DictationRunner.start()` requests before the microphone.
+/// Activity, which `DictationRunner.start()` requests before the microphone;
+/// `LiveActivityIntent` lets it start that activity without the app in front.
 /// The app never comes to the front.
-struct ToggleDictationIntent: AudioRecordingIntent {
+struct ToggleDictationIntent: AudioRecordingIntent, LiveActivityIntent {
     static let title: LocalizedStringResource = "Dictate"
     static let description = IntentDescription(
         "Starts a dictation. Run it again to stop; the text is then on the clipboard.")

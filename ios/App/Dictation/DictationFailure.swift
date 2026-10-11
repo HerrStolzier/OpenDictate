@@ -17,6 +17,7 @@ enum DictationFailure: Error, Equatable {
     case tooShort
     case nothingRecognized
     case emptyTranslation
+    case clipboardFailed
     case offline
     case invalidResponse
     /// HTTP status and the provider's error code, if it sent one.
@@ -74,6 +75,10 @@ enum DictationFailure: Error, Equatable {
             L10n.pick("No speech was recognized.", "Es wurde keine Sprache erkannt.")
         case .emptyTranslation:
             L10n.pick("The translation came back empty.", "Die Übersetzung kam leer zurück.")
+        case .clipboardFailed:
+            L10n.pick(
+                "The text could not be copied. Open OpenDictate to copy it.",
+                "Der Text konnte nicht kopiert werden. Öffne OpenDictate, um ihn zu kopieren.")
         case .offline:
             L10n.pick("No connection to the service.", "Keine Verbindung zum Dienst.")
         case .invalidResponse:
