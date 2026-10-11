@@ -30,6 +30,8 @@ final class DictationRunner {
     private(set) var phase: Phase = .ready
     /// The last result, in memory only, so "Copy again" works while the app runs.
     private(set) var lastText: String?
+    /// The recording behind `lastText` while that text missed the clipboard.
+    @ObservationIgnored private var uncopiedRecording: URL?
     /// Newest kept recording, for "Send again".
     private(set) var retryable: RecordingRetention.Entry?
 
@@ -69,8 +71,8 @@ final class DictationRunner {
     }
 
     /// The shortcut's action: starts a dictation and returns an empty text, or
-    /// stops it and returns the text that is now on the clipboard. While a
-    /// dictation is written, another press changes nothing.
+    /// stops it and returns the text, which is then on the clipboard unless iOS
+    /// refused it. While a dictation is written, another press changes nothing.
     func toggle() async throws -> String {
         switch phase {
         case .listening: return try await finish()
@@ -102,8 +104,8 @@ final class DictationRunner {
         }
     }
 
-    /// Stops the recording, sends it and copies the result. Returns an empty
-    /// text when nothing was recording.
+    /// Stops the recording, sends it, copies the result and returns it. Returns
+    /// an empty text when nothing was recording.
     @discardableResult
     func finish() async throws -> String {
         guard case .listening = phase, let configuration else { return "" }
@@ -172,6 +174,12 @@ final class DictationRunner {
         do {
             try Self.copy(lastText)
             phase = .copied
+            // The text is delivered now; its recording need not be sent again.
+            if let uncopiedRecording {
+                store.remove(uncopiedRecording)
+                self.uncopiedRecording = nil
+                retryable = store.newest()
+            }
         } catch {
             phase = .oops(DictationFailure(error).message)
         }
@@ -193,8 +201,16 @@ final class DictationRunner {
                 guard !text.isEmpty else { throw DictationFailure.emptyTranslation }
             }
             lastText = text
-            // Until the clipboard took the text, the recording stays for "Send again".
-            try Self.copy(text)
+            uncopiedRecording = nil
+            do {
+                try Self.copy(text)
+            } catch {
+                // The recording stays for "Send again" until "Copy again" works;
+                // the shortcut still gets the text to copy it itself.
+                uncopiedRecording = url
+                _ = await fail(.clipboardFailed)
+                return text
+            }
             store.remove(url)
             retryable = store.newest()
             phase = .copied
