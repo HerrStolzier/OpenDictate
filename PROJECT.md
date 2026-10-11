@@ -80,13 +80,15 @@ Schritte in der [ROADMAP](ROADMAP.md).
 
 - **macOS:** Native Menüleisten-App für macOS 14+, SwiftPM und Swift 6, zuerst
   für Apple Silicon. Aufnahme, Transkription, Zwischenablage und automatisches
-  Einfügen per ⌘V in die beim Start aktive App, eigenes Vokabular. Build 8 ist
-  notarisiert und als Paket geprüft; Installation und Übersetzung stehen aus.
+  Einfügen per ⌘V in die beim Start aktive App, eigenes Vokabular. Build 10 ist
+  notarisiert, als Update installiert und hat ein Diktat mit Übersetzung
+  bestanden ([Nachweis](docs/release-plans/evidence/2026-10-11-build10.md)).
   Einrichtung: [README](README.md).
 - **Linux:** Rust-CLI für Hyprland (Arch/omarchy) mit Aufnahme, Keyring,
   Transkription, Übersetzung, Zwischenablage, Auto-Einfügen in das beim Start
-  erfasste Fenster, Leistenanzeige und Hotkey. Seit dem 7. Oktober 2026 im
-  Alltag genutzt. Einrichtung: [linux/README.de.md](linux/README.de.md).
+  erfasste Fenster, Leistenanzeige und Hotkey; seit 11. Oktober auch eigener
+  Server und geführte Einrichtung (`opendictate setup`, offline geprüft). Seit
+  dem 7. Oktober 2026 im Alltag genutzt. Einrichtung: [linux/README.de.md](linux/README.de.md).
 - **Windows:** Versionierter Prototyp unter [windows/](windows/README.md),
   nur offline geprüft; kein echtes Diktat, keine Paketierung.
 - **iOS:** Synthetischer Textpfad eines Tastatur-Prototyps belegt; echte
@@ -158,7 +160,9 @@ Preismodells und der Gaming-Ursprung verloren.
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
 | 11. Oktober 2026 | Name, Wortmarke, Blink und App-Icons sind von der MIT-Lizenz ausgenommen; der Quellcode bleibt MIT. Berichte, Links und unveränderte Kopien sind erlaubt, veränderte Versionen brauchen einen eigenen Namen und ein eigenes Icon. Anlass: Schutz der bezahlten, signierten App vor Nachbauten unter gleichem Namen. Keine eingetragene Marke; das wäre ein eigener späterer Schritt. | [TRADEMARKS.md](TRADEMARKS.md); Karte im privaten Projektchat |
-| 11. Oktober 2026 | Die offenen Design-Punkte laufen parallel statt nacheinander: Mac-Diktatanzeige, Linux-Leiste mit englischen Markentexten und die Website auf Basis der Beta-Website. Für Macs ohne Notch ist die Anzeige mittig in der Menüleiste der Standard, weil sie dort nichts verdeckt; eine schwebende Anzeige unter der Menüleiste und „Aus“ sind Einstellungen. Bastis Wahl zwischen diesen drei steht noch aus. Anlass: Bastis Sorge, eine schwebende Anzeige verdecke die Browserleiste. Build 9 und die Betas bleiben unverändert. | [ROADMAP](ROADMAP.md#track-macos); Gespräch im privaten Projektchat |
+| 11. Oktober 2026 | Die offenen Design-Punkte laufen parallel statt nacheinander: Mac-Diktatanzeige, Linux-Leiste mit englischen Markentexten und die Website auf Basis der Beta-Website. Für Macs ohne Notch ist die Anzeige mittig in der Menüleiste der Standard, weil sie dort nichts verdeckt; eine schwebende Anzeige unter der Menüleiste und „Aus“ sind Einstellungen. Im Live-Test am 11. Oktober hat Basti die Anzeige in der Menüleiste bestätigt („schön klein, aber groß genug, dass man sie sieht“); sie bleibt Standard. Anlass: Bastis Sorge, eine schwebende Anzeige verdecke die Browserleiste. Build 9 und die Betas bleiben unverändert. | [ROADMAP](ROADMAP.md#track-macos); Gespräch im privaten Projektchat |
+| 11. Oktober 2026 | Basti liest und mergt keine PRs mehr. Fertige, von critic geprüfte PRs mit grüner CI mergt der Workflow „Auto-Merge“ selbst; PRs, die Workflow-Dateien ändern, mergt Claude. Als Entwurf bleibt ein PR nur, wenn er auf ein Ereignis wartet (Release, Livegang). | [CLAUDE.md](CLAUDE.md); Karte im privaten Projektchat |
+| 11. Oktober 2026 | Die Linux-Beta bekommt vor ihrem Pre-Release zwei offene Punkte: eigener Server als Stufe 1 für ein lokales Modell (kostenlos, gleiche Begriffe und Regeln wie auf dem Mac) und die geführte Einrichtung `opendictate setup` mit Kürzel-Abfrage (Super+D, F9, rechte Alt nur bei US-Layout). Anlass: Bastis Auftrag „Mach alle offenen To-Dos parallel fertig“; die Abfrage aus der Entscheidung vom 9. Oktober kommt damit für Linux in das kostenlose CLI. Pre-Release und Ankündigungen warten weiter auf Bastis eigenes Go. | [ROADMAP](ROADMAP.md#track-linux); Projektchat 11. Oktober |
 | 11. Oktober 2026 | Diktier-Ablauf der iOS-App für die erste Beta: Auslösen per Aktionstaste, Rückseite oder Kontrollzentrum nimmt im Hintergrund auf, das Ergebnis kommt in die Zwischenablage, der Nutzer fügt selbst ein. Keine eigene Tastatur mit Vollzugriff und kein Diktieren nur in der App. Löst den Wunsch vom 29. September 2026 ab, direkt in das Feld anderer Apps einzufügen. | [iOS-Konzept](docs/ios-konzept.md); Karte im privaten Projektchat |
 | 10. Oktober 2026 | Die Empfehlung in der Mac-Kürzel-Abfrage hängt von der Tastatur ab: Fn halten bei MacBook- oder kompakter Apple-Tastatur, rechte Wahltaste bei Apple-Tastatur mit Ziffernblock (Fn liegt dort weit rechts) oder Tastatur eines anderen Herstellers. Anlass: Bastis Live-Test mit der großen Apple-Tastatur. | [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |
 | 9. Oktober 2026 | Die neue Diktatanzeige der Mac-App wird vorgezogen: Statt des heutigen Fensters zeigt eine kleine Anzeige an der Notch mit Blink den Stand des Diktats und schließt sich bei Erfolg von selbst; „Beenden“ kommt ins Menü der Menüleiste. Entwurf sofort, Bau gleich nach dem Start der Mac-Beta und vor der Linux-Leiste. Anlass: Bastis Test, im heutigen Fenster stehen zu viele gleich starke Elemente und „Beenden“ ist versteckt. Build 9 und die Beta bleiben unverändert. | [design/README.md](design/README.md), [ROADMAP](ROADMAP.md#track-macos); Karte im privaten Projektchat |

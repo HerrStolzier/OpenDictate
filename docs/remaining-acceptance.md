@@ -48,7 +48,14 @@ nächste Versuch klappte); seit PR #59 steht der Grund im Protokoll
 (`recording-start-failed`), und die leere Datei wird entfernt. Einfügen in Chromium-, Electron- und
 Discord-Fenstern; gemischtes Deutsch/Englisch; Abbruch genau während der
 Übersetzung; andere Compositoren als Hyprland; andere Distributionen;
-Vokabular; konfigurierbarer Endpunkt. Für das Arch-Paket ungeprüft: `namcap`, Bau mit pacman-Rust und `makepkg -si`,
+Vokabular. Eigener Server und `opendictate setup` mit Kürzel-Abfrage
+(11. Oktober) sind nur offline geprüft: Tests mit lokalem HTTP-Stub (kein
+Schlüssel an Loopback, Schlüssel an Fremdserver) und ein Durchlauf im
+Test-Terminal mit Attrappen für `hyprctl` und `secret-tool`. Ebenso nur mit
+einer `hyprctl`-Attrappe geprüft: Übernimmt Hyprland ein neues Kürzel nicht,
+stellt `setup` die Konfiguration wieder her (seit dem Folge-PR zu #67). Live offen:
+Durchlauf auf omarchy, die Lua-Zeilen für F9 und rechte Alt, ein echter
+lokaler Server. Für das Arch-Paket ungeprüft: `namcap`, Bau mit pacman-Rust und `makepkg -si`,
 frische Ersteinrichtung des Schlüssels.
 Eine alte Testaufnahme vom 7. Oktober liegt noch im Recovery-Ordner auf
 omarchy; Löschen nur mit Bastis Go. Die leere Datei vom gescheiterten Start
@@ -97,7 +104,7 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   Aufnahme im App-Log, Tests schreiben in eine temporäre Logdatei (Zeilenzahl
   des echten Logs vor und nach `swift test` gleich), „ca.“ beim Preis des
   Mini-Modells.
-- Einzeltasten und Kürzel-Abfrage (nach Build 9, noch in keinem Kandidaten):
+- Einzeltasten und Kürzel-Abfrage (seit Build 10, [Nachweis](release-plans/evidence/2026-10-11-build10.md)):
   Fn/Globus halten und rechte Wahltaste über NSEvent-Monitore, Abfrage beim
   ersten Start nach dem API-Schlüssel mit Tastendruck-Test. Offline geprüft:
   Erkennung von Antippen, Halten, fremder Taste und Mindestdauer in
@@ -180,9 +187,10 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   Abfrage bestätigt war. Bekannte Grenze der Beta (Entscheidung Basti).
 - „Text ansehen“ und „Text kopieren“ wurden in Teil B nicht eigens geprüft;
   seit der neuen Anzeige öffnet „Letzten Text ansehen“ im Menü dieses Fenster.
-- Übersetzung und die Punkte vom 7. Oktober: noch kein echtes Diktat auf dem
-  Mac; das prüft der nächste Kandidat (Installation und ein Diktat mit
-  Übersetzung).
+- Übersetzung: Ein echtes Diktat mit Übersetzung nach Englisch wurde am
+  11. Oktober mit Build 10 eingefügt ([Nachweis](release-plans/evidence/2026-10-11-build10.md)).
+  Die Dateirechte `0600` der Originalaufnahme während einer Live-Aufnahme sind
+  damit nicht geprüft.
 - Der ⌘V-Pfad bindet kein Feld: Cursor- oder Fokuswechsel nach dem Stopp
   können den Einfügeort innerhalb der ursprünglichen App verändern; er hat
   keinen Zeilenumbruchfilter. Terminal-Tabs, Markierung, Secure Input, iTerm2
@@ -195,7 +203,7 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   `OPENAI_API_KEY` mit Build-Hashes in der Zugriffsliste; er wird nur durch die
   App-Migration entfernt, nicht manuell.
 
-**Letzter Nachweis:** 8. Oktober 2026 (Teil B, Build 8).
+**Letzter Nachweis:** 11. Oktober 2026 (Build 10 notarisiert, als Update installiert, ein Diktat mit Übersetzung; [Nachweis](release-plans/evidence/2026-10-11-build10.md)).
 
 ## Windows
 

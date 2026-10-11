@@ -8,7 +8,10 @@ mod paths;
 mod policy;
 mod record;
 mod recovery;
+mod server;
 mod settings;
+mod setup;
+mod shortcut;
 mod state;
 mod transcribe;
 mod translate;
@@ -32,7 +35,11 @@ const CLIPBOARD_SPIKE_EN: &str = "OpenDictate: clipboard ok.";
 const USAGE_DE: &str = "\
 opendictate — Diktieren für Hyprland (Beta)
 
+Zum Start: `opendictate setup` richtet Schlüssel oder eigenen Server und das
+Kürzel ein.
+
 Befehle:
+  setup                  geführte Einrichtung: Dienst und Kürzel
   toggle                 Aufnahme starten oder stoppen
   status                 idle / recording / processing / delivering
   bar                    Status als JSON-Zeile für Omarchy-Leiste oder Waybar
@@ -50,13 +57,20 @@ Befehle:
   settings target toggle Übersetzung aus- oder mit letzter Zielsprache einschalten
   settings insert on|off Text automatisch ins Startfenster einfügen
   settings translation-model NAME  Modell für die Übersetzung setzen
+  settings server URL    Eigener Server: Server-Adresse inkl. /v1; `off` = OpenAI
+  shortcut status        Kürzel und freie Tasten anzeigen
+  shortcut set KÜRZEL    super-d, f9 oder right-alt in die Hyprland-Konfiguration
   version                Version anzeigen
   record --daemon        interner Aufnahmeprozess
 ";
 const USAGE_EN: &str = "\
 opendictate — dictation for Hyprland (beta)
 
+To begin: `opendictate setup` sets up your key or custom server and the
+shortcut.
+
 Commands:
+  setup                  guided setup: service and shortcut
   toggle                 start or stop a recording
   status                 idle / recording / processing / delivering
   bar                    status as a JSON line for the Omarchy bar or Waybar
@@ -74,6 +88,9 @@ Commands:
   settings target toggle turn translation off, or on with the last language
   settings insert on|off paste the text into the window you started in
   settings translation-model NAME  set the model for translation
+  settings server URL    custom server: server address incl. /v1; `off` = OpenAI
+  shortcut status        show the shortcut and which keys are free
+  shortcut set KEY       write super-d, f9 or right-alt into the Hyprland config
   version                show the version
   record --daemon        internal recording process
 ";
@@ -103,6 +120,9 @@ fn run(args: Vec<String>) -> Result<(), String> {
             println!("opendictate {}", env!("CARGO_PKG_VERSION"));
             Ok(())
         }
+        ["setup"] => setup::run(),
+        ["shortcut", "status"] => shortcut_status(),
+        ["shortcut", "set", id] => shortcut_set(id),
         ["toggle"] => toggle(),
         ["status"] => status(),
         ["bar"] | ["waybar"] => waybar_status(),
@@ -121,6 +141,8 @@ fn run(args: Vec<String>) -> Result<(), String> {
         ["settings", "insert", "on"] => settings_insert(true),
         ["settings", "insert", "off"] => settings_insert(false),
         ["settings", "translation-model", model] => settings_translation_model(model),
+        ["settings", "server", "off"] => settings_server_off(),
+        ["settings", "server", address] => settings_server(address),
         ["record", "--daemon"] => worker(),
         _ => Err(tr!(
             "Unbekanntes Kommando. `opendictate help` zeigt die Befehle.",
@@ -326,21 +348,29 @@ fn init_auth() -> Result<(), String> {
 fn settings_show() -> Result<(), String> {
     let path = paths::settings_path().map_err(path_error)?;
     let settings = settings::Settings::load(&path)?;
+    let (server, source) = server::Server::resolve(settings.server.as_deref())?;
+    let server = match source {
+        server::Source::Default => "openai".to_string(),
+        server::Source::Settings => server.base().to_string(),
+        server::Source::Environment => format!("{} ({})", server.base(), server::BASE_URL_ENV),
+    };
     println!(
-        "model={} language={} target={} translation-model={} insert={}",
+        "model={} language={} target={} translation-model={} insert={} server={}",
         settings.model,
         settings.language.as_deref().unwrap_or("auto"),
         settings.target_language.as_deref().unwrap_or("off"),
         settings.translation_model,
-        if settings.auto_insert { "on" } else { "off" }
+        if settings.auto_insert { "on" } else { "off" },
+        server
     );
     Ok(())
 }
 
 fn settings_model(model: &str) -> Result<(), String> {
-    settings::validate_model(model)?;
     let path = paths::settings_path().map_err(path_error)?;
     let mut settings = settings::Settings::load(&path)?;
+    let (server, _) = server::Server::resolve(settings.server.as_deref())?;
+    settings::validate_model_for(model, &server)?;
     settings.model = model.to_string();
     settings.save(&path)?;
     println!("{}", i18n::t("Modell gespeichert", "Model saved"));
@@ -420,20 +450,220 @@ fn settings_translation_model(model: &str) -> Result<(), String> {
     Ok(())
 }
 
+fn shortcut_status() -> Result<(), String> {
+    let binds = shortcut::active_binds();
+    let current = shortcut::current(binds.as_deref());
+    let config = match shortcut::detect(&shortcut::hypr_dir()) {
+        Some(target) => format!(
+            "{} ({})",
+            shortcut::display_path(&target.path),
+            match target.style {
+                shortcut::Style::OmarchyLua => "omarchy-lua",
+                shortcut::Style::Lua => "lua",
+                shortcut::Style::Classic => "classic",
+            }
+        ),
+        None => "none".to_string(),
+    };
+    println!(
+        "current={} config={config}",
+        current.map(shortcut::Choice::id).unwrap_or("none")
+    );
+    for choice in shortcut::Choice::ALL {
+        let availability = match shortcut::availability(choice, binds.as_deref()) {
+            shortcut::Availability::Free => "free".to_string(),
+            shortcut::Availability::OpenDictate => "opendictate".to_string(),
+            shortcut::Availability::Taken(action) => format!("taken ({action})"),
+            shortcut::Availability::Unknown => "unknown".to_string(),
+        };
+        println!("{}={availability}", choice.id());
+    }
+    if shortcut::has_other_opendictate_bind(binds.as_deref(), current) {
+        println!("other-opendictate-bind=yes");
+    }
+    if shortcut::right_alt_suits() == Some(false) {
+        println!(
+            "{}",
+            i18n::t(
+                "Hinweis: Auf diesem Tastaturlayout ist die rechte Alt-Taste AltGr (für @, € usw.).",
+                "Note: on this keyboard layout right Alt is AltGr (for @, € and so on)."
+            )
+        );
+    }
+    Ok(())
+}
+
+fn shortcut_set(id: &str) -> Result<(), String> {
+    let choice = shortcut::Choice::from_id(id).ok_or_else(|| {
+        tr!(
+            "Unbekanntes Kürzel. Möglich: super-d, f9, right-alt.",
+            "Unknown shortcut. Possible: super-d, f9, right-alt."
+        )
+    })?;
+    let binds = shortcut::active_binds();
+    if let shortcut::Availability::Taken(action) = shortcut::availability(choice, binds.as_deref())
+    {
+        return Err(tr!(
+            "{} ist schon belegt ({action}). `opendictate setup` fragt, ob es trotzdem gelten soll.",
+            "{} is already taken ({action}). `opendictate setup` asks whether to use it anyway.",
+            choice.label()
+        ));
+    }
+    if choice == shortcut::Choice::RightAlt && shortcut::right_alt_suits() == Some(false) {
+        println!(
+            "{}",
+            i18n::t(
+                "Achtung: Auf diesem Tastaturlayout ist die rechte Alt-Taste AltGr; Zeichen wie @ oder € gehen dann nicht mehr über sie.",
+                "Careful: on this keyboard layout right Alt is AltGr; characters like @ or € no longer work through it."
+            )
+        );
+    }
+    setup::apply(choice, false).map(|_| ())
+}
+
+fn settings_server(address: &str) -> Result<(), String> {
+    let server = server::Server::parse(address)?;
+    let path = paths::settings_path().map_err(path_error)?;
+    let mut settings = settings::Settings::load(&path)?;
+    if !server.is_custom() {
+        return settings_server_off();
+    }
+    settings.server = Some(server.base().to_string());
+    settings.save(&path)?;
+    println!(
+        "{}",
+        tr!(
+            "Eigener Server gespeichert: {}",
+            "Custom server saved: {}",
+            server.base()
+        )
+    );
+    if server.lacks_path() {
+        println!(
+            "{}",
+            i18n::t(
+                "Hinweis: Die meisten Server erwarten die Adresse mit /v1 am Ende.",
+                "Note: most servers expect the address to end in /v1."
+            )
+        );
+    }
+    println!(
+        "{}",
+        if server.sends_api_key() {
+            i18n::t(
+                "Dein gespeicherter API-Schlüssel wird an diesen Server gesendet.",
+                "Your stored API key is sent to this server.",
+            )
+        } else {
+            i18n::t(
+                "An Adressen auf diesem Rechner sendet OpenDictate keinen API-Schlüssel.",
+                "OpenDictate sends no API key to addresses on this computer.",
+            )
+        }
+    );
+    println!(
+        "{}",
+        tr!(
+            "Modellnamen deines Servers setzen: `opendictate settings model NAME`, für Übersetzungen `opendictate settings translation-model NAME` (jetzt: {}, {}).",
+            "Set your server's model names: `opendictate settings model NAME`, for translations `opendictate settings translation-model NAME` (now: {}, {}).",
+            settings.model,
+            settings.translation_model
+        )
+    );
+    Ok(())
+}
+
+/// Back to OpenAI. A transcription model OpenAI does not offer is reset to
+/// the default, so the next dictation does not fail.
+fn settings_server_off() -> Result<(), String> {
+    let path = paths::settings_path().map_err(path_error)?;
+    let mut settings = settings::Settings::load(&path)?;
+    settings.server = None;
+    let (server, source) = server::Server::resolve(None)?;
+    let reset_model = settings::validate_model_for(&settings.model, &server).is_err();
+    if reset_model {
+        settings.model = settings::DEFAULT_MODEL.to_string();
+    }
+    settings.save(&path)?;
+    match source {
+        server::Source::Environment => println!(
+            "{}",
+            tr!(
+                "Gespeicherter Server entfernt; {} zeigt weiter auf {}.",
+                "Stored server removed; {} still points to {}.",
+                server::BASE_URL_ENV,
+                server.base()
+            )
+        ),
+        _ => println!(
+            "{}",
+            i18n::t(
+                "Eigener Server aus; OpenDictate nutzt OpenAI.",
+                "Custom server off; OpenDictate uses OpenAI."
+            )
+        ),
+    }
+    if reset_model {
+        println!(
+            "{}",
+            tr!(
+                "Transkriptionsmodell auf {} zurückgesetzt.",
+                "Transcription model reset to {}.",
+                settings::DEFAULT_MODEL
+            )
+        );
+    }
+    if settings.translation_model != settings::DEFAULT_TRANSLATION_MODEL {
+        println!(
+            "{}",
+            tr!(
+                "Übersetzungsmodell bleibt {}; `opendictate settings translation-model {}` stellt den Standard wieder her.",
+                "Translation model stays {}; `opendictate settings translation-model {}` restores the default.",
+                settings.translation_model,
+                settings::DEFAULT_TRANSLATION_MODEL
+            )
+        );
+    }
+    Ok(())
+}
+
+/// The key for the server, or none for an address on this computer, which
+/// works without a key and never receives one.
+fn api_key_for(server: &server::Server) -> Result<Option<String>, String> {
+    if server.sends_api_key() {
+        keyring::api_key().map(Some)
+    } else {
+        Ok(None)
+    }
+}
+
+/// Log suffix naming a custom server by host only, never path or key.
+fn server_log(server: &server::Server) -> String {
+    if server.is_custom() {
+        format!(" server={}", server.log_host())
+    } else {
+        String::new()
+    }
+}
+
 /// Returns the text to deliver: the transcript itself, or its translation
 /// when a target language is set. Fails instead of falling back silently, so
 /// the caller keeps the audio for retry.
 fn deliverable_text(
     transcript: String,
     settings: &settings::Settings,
-    api_key: &str,
+    server: &server::Server,
+    api_key: Option<&str>,
     state_guard: &state::StateGuard,
 ) -> Result<String, String> {
     let Some(target) = settings.target_language.as_deref() else {
         return Ok(transcript);
     };
-    log_ops(&format!("translation-started target={target}"));
-    let translation = translate::Translator::new().translate(
+    log_ops(&format!(
+        "translation-started target={target}{}",
+        server_log(server)
+    ));
+    let translation = translate::Translator::new(server).translate(
         &transcript,
         target,
         &settings.translation_model,
@@ -569,11 +799,15 @@ fn process_new_recording(
         ensure_not_cancelled(state_guard)?;
         let prepared = record::prepare_for_upload(path)?;
         ensure_not_cancelled(state_guard)?;
-        let api_key = keyring::api_key()?;
         let settings = settings::Settings::load(&paths::settings_path().map_err(path_error)?)?;
-        log_ops("transcription-started");
-        let transcript =
-            transcribe::Transcriber::new().transcribe(prepared.path(), &api_key, &settings)?;
+        let (server, _) = server::Server::resolve(settings.server.as_deref())?;
+        let api_key = api_key_for(&server)?;
+        log_ops(&format!("transcription-started{}", server_log(&server)));
+        let transcript = transcribe::Transcriber::new(&server).transcribe(
+            prepared.path(),
+            api_key.as_deref(),
+            &settings,
+        )?;
         ensure_not_cancelled(state_guard)?;
         if transcript.is_empty() {
             return Err(tr!(
@@ -581,7 +815,13 @@ fn process_new_recording(
                 "Empty transcription; the recording was kept."
             ));
         }
-        let text = deliverable_text(transcript, &settings, &api_key, state_guard)?;
+        let text = deliverable_text(
+            transcript,
+            &settings,
+            &server,
+            api_key.as_deref(),
+            state_guard,
+        )?;
         state_guard
             .set(state::State::Delivering)
             .map_err(path_error)?;
@@ -657,12 +897,13 @@ fn retry() -> Result<(), String> {
             )
         })?;
     ensure_not_cancelled(&state_guard)?;
-    let api_key = keyring::api_key()?;
     let settings = settings::Settings::load(&paths::settings_path().map_err(path_error)?)?;
-    log_ops("retry-started");
-    let transcript = transcribe::Transcriber::new().transcribe_bytes(
+    let (server, _) = server::Server::resolve(settings.server.as_deref())?;
+    let api_key = api_key_for(&server)?;
+    log_ops(&format!("retry-started{}", server_log(&server)));
+    let transcript = transcribe::Transcriber::new(&server).transcribe_bytes(
         &authenticated_bytes,
-        &api_key,
+        api_key.as_deref(),
         &settings,
     )?;
     ensure_not_cancelled(&state_guard)?;
@@ -672,7 +913,13 @@ fn retry() -> Result<(), String> {
             "Empty transcription; the recording is kept."
         ));
     }
-    let text = deliverable_text(transcript, &settings, &api_key, &state_guard)?;
+    let text = deliverable_text(
+        transcript,
+        &settings,
+        &server,
+        api_key.as_deref(),
+        &state_guard,
+    )?;
     state_guard
         .set(state::State::Delivering)
         .map_err(path_error)?;
