@@ -19,15 +19,17 @@ pub fn render(state: State, settings: &Settings) -> String {
     match state {
         State::Idle => {}
         State::Recording => parts.push(REC.to_string()),
-        State::Processing | State::Delivering => parts.push(BUSY.to_string()),
+        State::Starting | State::Processing | State::Delivering => parts.push(BUSY.to_string()),
     }
     if let Some(target) = settings.target_language.as_deref() {
         parts.push(target.to_ascii_uppercase());
     }
     let text = parts.join(" ");
-    // The state words of the brand (design/brand.md).
+    // The state words of the brand (design/brand.md); the short start while
+    // the microphone opens has none and is named plainly.
     let word = match state {
         State::Idle => t("Bereit", "Ready"),
+        State::Starting => t("Mikrofon startet", "Microphone starting"),
         State::Recording => t("Hört zu", "Listening"),
         State::Processing | State::Delivering => t("Schreibt", "Writing"),
     };
@@ -87,6 +89,17 @@ mod tests {
             json!(["recording", "active", "translating"])
         );
         assert!(value["tooltip"].as_str().unwrap().contains("Hört zu"));
+    }
+
+    #[test]
+    fn starting_is_not_shown_as_active_yet() {
+        let value = parse(&render(State::Starting, &Settings::default()));
+        assert_eq!(value["text"], "\u{25ae} \u{2026}");
+        assert_eq!(value["class"], json!(["starting"]));
+        assert!(value["tooltip"]
+            .as_str()
+            .unwrap()
+            .contains("Mikrofon startet"));
     }
 
     #[test]

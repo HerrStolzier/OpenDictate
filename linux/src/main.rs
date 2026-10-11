@@ -21,12 +21,14 @@ mod window;
 #[cfg(test)]
 mod test_http;
 
-use std::fs::{self, OpenOptions};
+use std::fs::{self, File, OpenOptions};
 use std::io::{self, IsTerminal, Read, Write};
+use std::os::unix::fs::OpenOptionsExt;
+use std::os::unix::io::AsRawFd;
 use std::os::unix::process::CommandExt;
 use std::path::Path;
-use std::process::{Command, Stdio};
-use std::time::{Duration, Instant};
+use std::process::{Child, Command, Stdio};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use ipc::Event;
 
@@ -41,7 +43,7 @@ Kürzel ein.
 Befehle:
   setup                  geführte Einrichtung: Dienst und Kürzel
   toggle                 Aufnahme starten oder stoppen
-  status                 idle / recording / processing / delivering
+  status                 idle / starting / recording / processing / delivering
   bar                    Status als JSON-Zeile für Omarchy-Leiste oder Waybar
   cancel                 Aufnahme oder Verarbeitung sicher abbrechen
   retry                  neueste authentifizierte Aufnahme erneut senden
@@ -72,7 +74,7 @@ shortcut.
 Commands:
   setup                  guided setup: service and shortcut
   toggle                 start or stop a recording
-  status                 idle / recording / processing / delivering
+  status                 idle / starting / recording / processing / delivering
   bar                    status as a JSON line for the Omarchy bar or Waybar
   cancel                 safely cancel a recording or processing
   retry                  send the newest authenticated recording again
@@ -152,6 +154,9 @@ fn run(args: Vec<String>) -> Result<(), String> {
 }
 
 fn toggle() -> Result<(), String> {
+    // Held until this call returns: a second `toggle` before the worker has
+    // even bound its socket is refused instead of starting another worker.
+    let _lock = lock_toggle()?;
     let socket = paths::socket_path().map_err(path_error)?;
     let state_path = paths::state_path().map_err(path_error)?;
     match state::read(&state_path, &socket) {
@@ -176,11 +181,40 @@ fn toggle() -> Result<(), String> {
                 "Recording process did not respond."
             )),
         },
+        state::State::Starting => Err(starting()),
         state::State::Processing | state::State::Delivering => Err(tr!(
             "OpenDictate verarbeitet bereits eine Aufnahme.",
             "OpenDictate is already processing a recording."
         )),
     }
+}
+
+fn lock_toggle() -> Result<File, String> {
+    let file = OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .write(true)
+        .mode(0o600)
+        .open(paths::toggle_lock_path().map_err(path_error)?)
+        .map_err(path_error)?;
+    // SAFETY: flock only reads the descriptor, which `file` keeps open.
+    if unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) } != 0 {
+        return Err(match io::Error::last_os_error().kind() {
+            io::ErrorKind::WouldBlock => starting(),
+            _ => tr!(
+                "Aufnahme konnte nicht starten.",
+                "Recording could not start."
+            ),
+        });
+    }
+    Ok(file)
+}
+
+fn starting() -> String {
+    tr!(
+        "Die Aufnahme startet gerade; gleich noch einmal versuchen.",
+        "The recording is starting; try again in a moment."
+    )
 }
 
 fn start_worker() -> Result<(), String> {
@@ -200,28 +234,76 @@ fn start_worker() -> Result<(), String> {
         .stdout(Stdio::null())
         .stderr(log_file)
         .env_remove("OPENAI_API_KEY")
-        .env_remove("OPENDICTATE_API_KEY");
+        .env_remove("OPENDICTATE_API_KEY")
+        .env(START_BY_ENV, start_by_millis().to_string());
     command.process_group(0);
-    command.spawn().map_err(|_| {
+    let mut child = command.spawn().map_err(|_| {
         tr!(
             "Aufnahmeprozess konnte nicht starten.",
             "Recording process could not start."
         )
     })?;
-    wait_for_socket(Duration::from_secs(2))?;
+    // The worker gives up at the deadline passed above; waiting a second
+    // longer means a recording never starts after this reported a failure.
+    wait_for_recording(
+        &mut child,
+        &log,
+        record::START_TIMEOUT + Duration::from_secs(1),
+    )?;
     let started = i18n::t("Aufnahme läuft", "Recording started");
     notify::status(started);
     println!("{started}");
     Ok(())
 }
 
-fn wait_for_socket(timeout: Duration) -> Result<(), String> {
+/// Passes the start deadline to the detached worker, as milliseconds since
+/// the Unix epoch, so both processes measure it from the same moment.
+const START_BY_ENV: &str = "OPENDICTATE_START_BY";
+
+fn start_by_millis() -> u128 {
+    (SystemTime::now() + record::START_TIMEOUT)
+        .duration_since(UNIX_EPOCH)
+        .map(|elapsed| elapsed.as_millis())
+        .unwrap_or_default()
+}
+
+/// The deadline `toggle` passed in, or `START_TIMEOUT` from now when the
+/// worker was started some other way.
+fn start_deadline() -> SystemTime {
+    std::env::var(START_BY_ENV)
+        .ok()
+        .and_then(|value| value.parse::<u64>().ok())
+        .map(|millis| UNIX_EPOCH + Duration::from_millis(millis))
+        .unwrap_or_else(|| SystemTime::now() + record::START_TIMEOUT)
+}
+
+/// Waits until the detached worker reports a running recording. A worker that
+/// exits first has written its reason to the log (its stderr).
+fn wait_for_recording(child: &mut Child, log: &Path, timeout: Duration) -> Result<(), String> {
     let socket = paths::socket_path().map_err(path_error)?;
     let state_path = paths::state_path().map_err(path_error)?;
+    let cancel_path = paths::cancel_path().map_err(path_error)?;
     let deadline = Instant::now() + timeout;
     while Instant::now() < deadline {
-        if state::read(&state_path, &socket) == state::State::Recording {
+        let current = state::read(&state_path, &socket);
+        // The worker clears the cancel request before it reports Starting, so
+        // one seen from then on was made during this start, which then ends.
+        if matches!(current, state::State::Starting | state::State::Recording)
+            && cancel_path.is_file()
+        {
+            return Err(tr!("Aufnahme abgebrochen.", "Recording cancelled."));
+        }
+        if current == state::State::Recording {
             return Ok(());
+        }
+        // A second worker that lost the socket to a running one exits too;
+        // only an exit that left no socket behind means the start failed.
+        if matches!(child.try_wait(), Ok(Some(_))) && !socket.exists() {
+            let log = log.display();
+            return Err(tr!(
+                "Aufnahme konnte nicht starten. Der Grund steht in {log}.",
+                "Recording could not start. The reason is in {log}."
+            ));
         }
         std::thread::sleep(Duration::from_millis(20));
     }
@@ -255,28 +337,42 @@ fn cancel() -> Result<(), String> {
     let socket = paths::socket_path().map_err(path_error)?;
     let state_path = paths::state_path().map_err(path_error)?;
     let cancel_path = paths::cancel_path().map_err(path_error)?;
-    match state::read(&state_path, &socket) {
-        state::State::Idle => Err(tr!(
+    let mut current = state::read(&state_path, &socket);
+    if current == state::State::Idle {
+        return Err(tr!(
             "Keine laufende Aufnahme oder Verarbeitung.",
             "No recording or processing is running."
-        )),
-        state::State::Recording => {
-            state::request_cancel(&cancel_path).map_err(path_error)?;
-            ipc::send(&socket, ipc::STOP).map_err(|_| {
-                tr!(
-                    "Aufnahmeprozess hat nicht geantwortet.",
-                    "Recording process did not respond."
-                )
-            })?;
-            println!("{}", cancel_requested());
-            Ok(())
-        }
-        state::State::Processing | state::State::Delivering => {
-            state::request_cancel(&cancel_path).map_err(path_error)?;
-            println!("{}", cancel_requested());
-            Ok(())
-        }
+        ));
     }
+    state::request_cancel(&cancel_path).map_err(path_error)?;
+    // A start may switch to Recording right after the worker checked for a
+    // cancel; then the recording has to be stopped like any other.
+    let deadline = Instant::now() + record::START_TIMEOUT + Duration::from_secs(1);
+    while current == state::State::Starting && Instant::now() < deadline {
+        std::thread::sleep(Duration::from_millis(20));
+        current = state::read(&state_path, &socket);
+    }
+    // The marker stays, so the worker ends the start once the microphone
+    // answers; until then nothing has been cancelled yet.
+    if current == state::State::Starting {
+        return Err(tr!(
+            "Das Mikrofon startet noch; die Aufnahme wird abgebrochen, sobald es antwortet.",
+            "The microphone is still starting; the recording is cancelled once it responds."
+        ));
+    }
+    // A worker that saw the cancel itself ends without answering; that is
+    // the requested outcome, not a failure.
+    if current == state::State::Recording
+        && ipc::send(&socket, ipc::STOP).is_err()
+        && state::read(&state_path, &socket) != state::State::Idle
+    {
+        return Err(tr!(
+            "Aufnahmeprozess hat nicht geantwortet.",
+            "Recording process did not respond."
+        ));
+    }
+    println!("{}", cancel_requested());
+    Ok(())
 }
 
 fn copy_status() -> Result<(), String> {
@@ -748,10 +844,11 @@ fn worker() -> Result<(), String> {
     let _guard = SocketGuard {
         path: socket.clone(),
     };
+    let deadline = start_deadline();
     let state_guard = state::StateGuard::begin(
         paths::state_path().map_err(path_error)?,
         paths::cancel_path().map_err(path_error)?,
-        state::State::Recording,
+        state::State::Starting,
     )
     .map_err(path_error)?;
     let target = window::active_window();
@@ -760,7 +857,31 @@ fn worker() -> Result<(), String> {
     }
     let path = paths::next_pending_path().map_err(path_error)?;
     restrict_file_parent(&path)?;
-    let handle = record::start(&path)?;
+    // This process runs detached: `toggle` reports a started recording only
+    // once the state says so, and a failed start is shown as a notification.
+    let handle = record::start(&path).inspect_err(|error| notify::status(error))?;
+    if SystemTime::now() > deadline {
+        abort_start(handle, &path, "timeout");
+        let error = tr!(
+            "Das Mikrofon hat zu lange zum Starten gebraucht; die Aufnahme wurde abgebrochen.",
+            "The microphone took too long to start; the recording was stopped."
+        );
+        notify::status(&error);
+        return Err(error);
+    }
+    // A cancel written before this check ends the start here; a later one
+    // finds Recording and stops it via the socket, keeping the audio.
+    let published = ensure_not_cancelled(&state_guard)
+        .and_then(|()| state_guard.set(state::State::Recording).map_err(path_error));
+    if let Err(error) = published {
+        let reason = if state_guard.is_cancelled() {
+            "cancelled"
+        } else {
+            "state-failed"
+        };
+        abort_start(handle, &path, reason);
+        return Err(error);
+    }
     log_ops("recording-started");
     let event =
         ipc::wait_for_stop(&listener, Instant::now() + record::MAX_RECORDING).map_err(|_| {
@@ -930,6 +1051,21 @@ fn retry() -> Result<(), String> {
     log_ops("retry-copied");
     println!("{status}");
     Ok(())
+}
+
+/// Ends a start that is not used. A recording without audio and without a
+/// capture error is removed;
+/// one that already holds audio is secured for `retry` like any kept one,
+/// and stays where it is if that fails.
+fn abort_start(handle: record::RecordingHandle, path: &Path, reason: &str) {
+    let Some(complete) = handle.abort() else {
+        log_ops(&format!("recording-start-{reason} kept=false"));
+        return;
+    };
+    let preserved = complete && preserve_recording(path).is_ok();
+    log_ops(&format!(
+        "recording-start-{reason} kept=true preserved={preserved}"
+    ));
 }
 
 fn preserve_recording(path: &Path) -> Result<(), String> {

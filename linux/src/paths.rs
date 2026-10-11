@@ -64,6 +64,10 @@ pub fn cancel_path() -> io::Result<PathBuf> {
     Ok(runtime_dir()?.join("cancel"))
 }
 
+pub fn toggle_lock_path() -> io::Result<PathBuf> {
+    Ok(runtime_dir()?.join("toggle.lock"))
+}
+
 pub fn worker_log_path() -> io::Result<PathBuf> {
     Ok(state_dir()?.join("operations.log"))
 }
