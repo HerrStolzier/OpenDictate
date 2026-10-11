@@ -120,8 +120,9 @@ struct SettingsView: View {
                 Text(
                     L10n.pick(
                         "This address does not work. Use https://, or http:// only for a server on this iPhone.",
-                        "Diese Adresse geht nicht. Nimm https:// oder http:// nur für einen Server auf dem iPhone."))
-                    .foregroundStyle(.red)
+                        "Diese Adresse geht nicht. Nimm https:// oder http:// nur für einen Server auf dem iPhone.")
+                )
+                .foregroundStyle(.red)
             } else {
                 Text(
                     L10n.pick(

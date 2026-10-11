@@ -1,3 +1,4 @@
+import AVFAudio
 import ActivityKit
 import AppIntents
 import OpenDictateCore

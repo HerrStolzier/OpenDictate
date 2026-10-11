@@ -7,8 +7,6 @@ struct StopDictationIntent: LiveActivityIntent {
     static let title: LocalizedStringResource = "Stop dictation"
     static let isDiscoverable = false
 
-    init() {}
-
     func perform() async throws -> some IntentResult {
         await DictationEntry.stop()
         return .result()

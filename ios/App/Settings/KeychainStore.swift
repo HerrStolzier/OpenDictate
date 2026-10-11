@@ -9,8 +9,10 @@ enum KeychainStore {
     private static let account = "openai-api-key"
 
     private static var query: [String: Any] {
-        [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
-         kSecAttrAccount as String: account]
+        [
+            kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
+            kSecAttrAccount as String: account
+        ]
     }
 
     static func apiKey() -> String? {

@@ -1,5 +1,6 @@
-import ActivityKit
 import AVFoundation
+// `Activity` is not Sendable in the SDK; this runner calls it only on the main actor.
+@preconcurrency import ActivityKit
 import Foundation
 import Observation
 import OpenDictateCore

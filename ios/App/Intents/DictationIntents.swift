@@ -9,8 +9,6 @@ struct ToggleDictationIntent: AudioRecordingIntent {
     static let description = IntentDescription(
         "Starts a dictation. Run it again to stop; the text is then on the clipboard.")
 
-    init() {}
-
     @MainActor
     func perform() async throws -> some IntentResult & ReturnsValue<String> {
         .result(value: try await DictationRunner.shared.toggle())
