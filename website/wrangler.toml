@@ -1,0 +1,14 @@
+# Cloudflare Worker for opendictate.app; see README.md ("Auslieferung").
+name = "opendictate-website"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+workers_dev = false
+preview_urls = false
+routes = [
+  { pattern = "opendictate.app", custom_domain = true },
+  { pattern = "www.opendictate.app", custom_domain = true },
+]
+
+[[kv_namespaces]]
+binding = "SITE"
+id = "f601dd7d046644f19cba88602508b6e0"

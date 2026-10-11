@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Threading;
 using OpenDictate.Core;
+using OpenDictate.Provider;
 using OpenDictate.Windows;
 using Forms = System.Windows.Forms;
 
@@ -32,6 +33,8 @@ internal sealed partial class PrototypeWindow : Window
     private readonly DispatcherTimer clock = new() { Interval = TimeSpan.FromMilliseconds(100) };
     private readonly Stopwatch elapsed = new();
     private AudioSession? audio;
+    private static readonly string RecordingRoot = System.IO.Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "OpenDictatePrototype", "Recordings");
     private HwndSource? source;
     private nint handle;
     private long focusEpoch;
@@ -52,7 +55,7 @@ internal sealed partial class PrototypeWindow : Window
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
         var panel = new StackPanel { Margin = new Thickness(28) };
         panel.Children.Add(new TextBlock { Text = "OpenDictate für Windows", FontSize = 25, FontWeight = FontWeights.SemiBold });
-        AddText(panel, "Windows-Prototyp · Lokale Prüfung oder ausdrücklich aktivierte OpenAI-Transkription.");
+        AddText(panel, "Windows-Prototyp · Lokale Prüfung oder ausdrücklich aktivierte Transkription über OpenAI oder einen eigenen Server.");
         AddText(panel, "Strg + Umschalt + Leertaste: Aufnahme starten / stoppen\nStrg + Alt + Leertaste: Testtext nach 3 Sekunden einfügen", 16);
         panel.Children.Add(record);
         AddText(panel, "Im verbundenen Ablauf wird die Aufnahme vor der Verarbeitung verschlüsselt gesichert. Bis zu fünf gültige Kopien bleiben für 24 Stunden wiederherstellbar. Reine lokale Aufnahmen und ältere Originale bleiben im Aufnahmeordner.");
@@ -77,8 +80,8 @@ internal sealed partial class PrototypeWindow : Window
         var folder = new Button { Content = "Aufnahmeordner öffnen", Margin = new Thickness(0, 0, 8, 8), Padding = new Thickness(10, 6, 10, 6) };
         folder.Click += (_, _) =>
         {
-            if (Directory.Exists(AudioSession.RecordingRoot))
-                Process.Start(new ProcessStartInfo(AudioSession.RecordingRoot) { UseShellExecute = true });
+            if (Directory.Exists(RecordingRoot))
+                Process.Start(new ProcessStartInfo(RecordingRoot) { UseShellExecute = true });
             else SetStatus("Noch keine Aufnahme gespeichert.");
         };
         controls.Children.Add(folder);
@@ -191,7 +194,7 @@ internal sealed partial class PrototypeWindow : Window
         long ticket = gate.Begin(AttemptKind.Recording);
         try
         {
-            audio = new AudioSession();
+            audio = new AudioSession(RecordingRoot);
             audio.Start();
             elapsed.Restart(); clock.Start();
             record.Content = "Aufnahme stoppen";
@@ -236,11 +239,19 @@ internal sealed partial class PrototypeWindow : Window
         if (gate.IsBusy || closing) return;
         bool live = !synthetic && liveFlow.IsChecked == true;
         string? key = null;
+        DictationSettings? settings = null;
+        ProviderServer? server = null;
         if (live)
         {
-            try { key = new CredentialStore().Read(); }
-            catch (Exception) { SetStatus("Schlüsselablage nicht verfügbar. Keine Aufnahme und kein Upload gestartet."); return; }
-            if (string.IsNullOrWhiteSpace(key)) { SetStatus("Bitte zuerst den API-Schlüssel direkt in der App speichern. Keine Aufnahme und kein Upload gestartet."); return; }
+            try { settings = SettingsFile.Load(SettingsFile.DefaultPath); server = settings.ResolveServer(); }
+            catch (UserFacingException error) { SetStatus(error.Message + " Keine Aufnahme und kein Upload gestartet."); return; }
+            // A server on this computer gets no key and needs none.
+            if (server.SendsApiKey)
+            {
+                try { key = new CredentialStore().Read(); }
+                catch (Exception) { SetStatus("Schlüsselablage nicht verfügbar. Keine Aufnahme und kein Upload gestartet."); return; }
+                if (string.IsNullOrWhiteSpace(key)) { SetStatus("Bitte zuerst den API-Schlüssel direkt in der App speichern. Keine Aufnahme und kein Upload gestartet."); return; }
+            }
         }
         bool failOffline = !live && simulateFailure.IsChecked == true;
         RecoveryStore store;
@@ -275,13 +286,13 @@ internal sealed partial class PrototypeWindow : Window
                     string file = journal.ExportWave();
                     return (await Task.Run(() => ProtectedJournal.Seal(journal, store))).Wave;
                 }
-                var current = new AudioSession();
+                var current = new AudioSession(RecordingRoot);
                 audio = current;
                 try
                 {
                     current.Start(); elapsed.Restart(); clock.Start();
                     record.Content = "Aufnahme stoppen";
-                    SetStatus(live ? "Aufnahme läuft. Nach dem Stop wird sie geschützt gesichert und einmal an OpenAI gesendet." : "Aufnahme läuft. Danach folgt eine feste lokale Testantwort ohne Upload.");
+                    SetStatus(live ? $"Aufnahme läuft. Nach dem Stop wird sie geschützt gesichert und einmal an {ServerName(server!)} gesendet." : "Aufnahme läuft. Danach folgt eine feste lokale Testantwort ohne Upload.");
                     using var cancellation = token.Register(current.Stop);
                     string file = await current.Completion;
                     SetStatus("Aufnahme wird verschlüsselt und geprüft …");
@@ -297,9 +308,11 @@ internal sealed partial class PrototypeWindow : Window
             {
                 if (live)
                 {
-                    SetStatus("Geschützte Aufnahme wird einmal an OpenAI übertragen …");
-                    using var provider = new OpenAiTranscriber();
-                    return await provider.TranscribeAsync(bytes, key!, token);
+                    SetStatus(settings!.TargetLanguage is null
+                        ? $"Geschützte Aufnahme wird einmal an {ServerName(server!)} übertragen …"
+                        : $"Geschützte Aufnahme wird einmal an {ServerName(server!)} übertragen und danach übersetzt …");
+                    using var provider = new ProviderSession(server!);
+                    return await provider.ProcessAsync(bytes, key, settings, token);
                 }
                 SetStatus("Lokale Testantwort wird verarbeitet … Keine Verbindung zu einem Anbieter.");
                 await Task.Delay(3000, token);
@@ -333,7 +346,9 @@ internal sealed partial class PrototypeWindow : Window
                 DictationOutcome.Cancelled => "Ablauf abgebrochen. Aufnahme erhalten; kein verspäteter Text wird eingefügt.",
                 DictationOutcome.EmptyResponse => "Leere Antwort. Aufnahme bleibt erhalten; es wurde nichts eingefügt.",
                 DictationOutcome.DeliveryUncertain => "Übergabe nicht bestätigt. Kein automatischer Neuversuch; Text und Aufnahme erhalten. Vor einem neuen Versuch Ziel prüfen und App neu starten.",
-                _ => "Ablauf fehlgeschlagen. Bereits gespeicherte Aufnahme bleibt erhalten; kein automatischer Neuversuch."
+                _ => result.Message is { } message
+                    ? $"{message} Aufnahme bleibt erhalten; kein automatischer Neuversuch."
+                    : "Ablauf fehlgeschlagen. Bereits gespeicherte Aufnahme bleibt erhalten; kein automatischer Neuversuch."
             });
         }
         catch (Exception) { SetStatus("Ablauf konnte nicht abgeschlossen werden. Vorhandene Aufnahmen bleiben erhalten."); }
@@ -343,6 +358,8 @@ internal sealed partial class PrototypeWindow : Window
             gate.Complete(ticket); key = null; SetIntegrationBusy(false); await RefreshRecoveryAsync();
         }
     }
+
+    private static string ServerName(ProviderServer server) => server.IsCustom ? $"den eigenen Server ({server.Host})" : "OpenAI";
 
     private async Task TryInsertionAsync()
     {

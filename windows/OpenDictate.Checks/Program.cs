@@ -109,6 +109,8 @@ foreach (var test in tests)
 }
 Console.WriteLine($"{tests.Length - failures}/{tests.Length} checks passed; synthetic data only.");
 failures += await DictationChecks.RunAsync();
+failures += await ProviderChecks.RunAsync(SyntheticWave());
+failures += ShortcutChecks.Run();
 return failures == 0 ? 0 : 1;
 
 static void Check(bool condition) { if (!condition) throw new InvalidOperationException("Assertion failed."); }
@@ -116,6 +118,13 @@ static void Throws<T>(Action action) where T : Exception
 {
     try { action(); } catch (T) { return; }
     throw new InvalidOperationException($"Expected {typeof(T).Name}.");
+}
+static byte[] SyntheticWave()
+{
+    var directory = Path.Combine(Path.GetTempPath(), "opendictate-wave-" + Guid.NewGuid().ToString("N"));
+    Directory.CreateDirectory(directory);
+    try { using var journal = new PcmJournal(directory); journal.Append([1, 2, 3, 4]); return File.ReadAllBytes(journal.ExportWave()); }
+    finally { Directory.Delete(directory, true); }
 }
 static void InTemporaryDirectory(Action<string> action)
 {

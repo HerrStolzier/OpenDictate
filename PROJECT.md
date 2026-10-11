@@ -82,8 +82,11 @@ Schritte in der [ROADMAP](ROADMAP.md).
 - **macOS:** Native Menüleisten-App für macOS 14+, SwiftPM und Swift 6, zuerst
   für Apple Silicon. Aufnahme, Transkription, Zwischenablage und automatisches
   Einfügen per ⌘V in die beim Start aktive App, eigenes Vokabular. Build 10 ist
-  notarisiert, als Update installiert und hat ein Diktat mit Übersetzung
-  bestanden ([Nachweis](docs/release-plans/evidence/2026-10-11-build10.md)).
+  als Beta `v0.1.0-beta.10` veröffentlicht
+  ([Nachweis](docs/release-plans/evidence/2026-10-11-build10.md)). Build 11 mit
+  eigenem Server und neuer Diktatanzeige ist notarisiert, als Update installiert
+  und hat ein Diktat mit Übersetzung bestanden, ist aber nicht veröffentlicht
+  ([Nachweis](docs/release-plans/evidence/2026-10-11-build11.md)).
   Einrichtung: [README](README.md).
 - **Linux:** Rust-CLI für Hyprland (Arch/omarchy) mit Aufnahme, Keyring,
   Transkription, Übersetzung, Zwischenablage, Auto-Einfügen in das beim Start
@@ -93,10 +96,11 @@ Schritte in der [ROADMAP](ROADMAP.md).
   [`linux-v0.1.0-beta.1`](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1) veröffentlicht. Einrichtung: [linux/README.de.md](linux/README.de.md).
 - **Windows:** Versionierter Prototyp unter [windows/](windows/README.md),
   nur offline geprüft; kein echtes Diktat, keine Paketierung.
-- **iOS:** Synthetischer Textpfad eines Tastatur-Prototyps belegt; echte
-  Aufnahme offen. Produktkonzept seit dem 11. Oktober 2026: Aufnahme im
+- **iOS:** Produktkonzept seit dem 11. Oktober 2026: Aufnahme im
   Hintergrund, Ergebnis in die Zwischenablage, keine eigene Tastatur
-  ([Konzept](docs/ios-konzept.md)).
+  ([Konzept](docs/ios-konzept.md)). Die Beta-App dazu liegt unter
+  [ios/](ios/README.md); auf dem iPhone ist sie noch nicht gebaut und geprüft.
+  Nächste Beta nach Mac und Linux, vor Windows.
 - **Android:** Kein Code.
 - MIT-lizenzierter Quellcode. Nach erfolgreichen CI-Prüfungen sind zeitlich
   begrenzte, ad-hoc signierte [Entwicklungsarchive](docs/development.md#ci-development-archives)
@@ -145,8 +149,8 @@ der ersten Beta und blockiert keine ([ROADMAP](ROADMAP.md#plattformübergreifend
   Veröffentlichung braucht Bastis ausdrückliches Go.
 - Künftige Preise, Vertrieb und Firmengründung bleiben offen; das Preismodell
   oben ist die Richtung, nicht die Umsetzung.
-- Die Website ist ein lokaler Entwurf mit illustrativer Demo, kein
-  Diktiernachweis.
+- Die Website unter opendictate.app (live seit dem 11. Oktober 2026) zeigt
+  eine illustrative Demo, keinen Diktiernachweis.
 - Support läuft seit dem 11. Oktober 2026 über support@opendictate.app und
   das Formular unter support.opendictate.app; zugesagte Antwortzeiten gibt es
   nicht, und der KI-Agent ist aus.
@@ -161,7 +165,14 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
+| 11. Oktober 2026 | Die nächste Beta ist iOS, danach Windows. Beide Tracks laufen parallel weiter, aber iOS geht zuerst an Tester (TestFlight). Vorgaben des iOS-Threads für die erste iOS-Beta, Basti mitgeteilt: Erkennung über OpenAI mit eigenem Schlüssel oder einen eigenen Server (Apples Erkennung auf dem Gerät folgt später); Start über „Auf Rückseite tippen“ oder die Aktionstaste, das Kontrollzentrum folgt später; der alte Tastatur-Prototyp (PR #40) ist geschlossen, sein Zweig bleibt. Hochladen zu TestFlight und das Einladen von Testern brauchen Bastis eigenes Go. | [ROADMAP](ROADMAP.md#track-ios); Projektchat 11. Oktober |
+| 11. Oktober 2026 | Die Live-Abnahme der Windows-Beta (Installation, ein Diktat in Editor und Spielchat, beide Kürzel) läuft auf Bastis Windows-PC `xmg`, wenn die Beta-App fertig ist, und nur mit seinem Go. | [Windows-Plan](docs/windows-plan.md#weg-zur-windows-beta-stand-11-oktober-2026); Karte im Projektchat 11. Oktober |
+| 11. Oktober 2026 | Windows läuft ab jetzt parallel zu iOS weiter. Reihenfolge der nächsten Betas: zuerst iOS, danach Windows. Was ohne Windows-Gerät geht, wird jetzt gebaut und offline geprüft; die Live-Abnahme kommt am Ende. | [Windows-Plan](docs/windows-plan.md#weg-zur-windows-beta-stand-11-oktober-2026); Projektchat 11. Oktober |
+| 11. Oktober 2026 | Die Website geht live unter opendictate.app, als Cloudflare Worker mit den Dateien eines festen Commits. Cloudflare Web Analytics, das Cloudflare bei kostenlosen Domains von selbst einschaltet, ist für die ganze Domain aus, weil Website und Support „kein Tracking“ zusagen. | [website/README.md](website/README.md#auslieferung); Bastis „website live“ im privaten Projektchat |
 | 11. Oktober 2026 | Linux-Beta veröffentlicht: Pre-Release `linux-v0.1.0-beta.1` auf Commit `afa3506` nach Bastis „go release“, ohne vorherigen Durchlauf von `opendictate setup` auf omarchy (als bekannte Grenze im Release-Text). Angekündigt wird vorerst nirgends; Reddit-Posts erst, wenn Basti das Thema wieder aufmacht. | [Release](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1); Projektchat 11. Oktober |
+| 11. Oktober 2026 | Auf Macs ohne Notch ist die schwebende Pille unter der Menüleiste der Standard; die flache Pille in der Menüleiste und „Aus“ bleiben Einstellungen. Ersetzt den Standard aus der Zeile zu den parallelen Design-Punkten. Anlass: Basti hat beide Varianten live ausprobiert und „schwebend“ gewählt. | [docs/remaining-acceptance.md](docs/remaining-acceptance.md); Projektchat 11. Oktober |
+| 11. Oktober 2026 | Name, Wortmarke, Blink und App-Icons sind von der MIT-Lizenz ausgenommen; der Quellcode bleibt MIT. Berichte, Links und unveränderte Kopien sind erlaubt, veränderte Versionen brauchen einen eigenen Namen und ein eigenes Icon. Anlass: Schutz der bezahlten, signierten App vor Nachbauten unter gleichem Namen. Keine eingetragene Marke; das wäre ein eigener späterer Schritt. | [TRADEMARKS.md](TRADEMARKS.md); Karte im privaten Projektchat |
+| 11. Oktober 2026 | Die offenen Design-Punkte laufen parallel statt nacheinander: Mac-Diktatanzeige, Linux-Leiste mit englischen Markentexten und die Website auf Basis der Beta-Website. Für Macs ohne Notch ist die Anzeige mittig in der Menüleiste der Standard, weil sie dort nichts verdeckt; eine schwebende Anzeige unter der Menüleiste und „Aus“ sind Einstellungen. Im Live-Test am 11. Oktober hat Basti die Anzeige in der Menüleiste bestätigt („schön klein, aber groß genug, dass man sie sieht“); sie bleibt Standard. (Standard am selben Tag ersetzt, siehe die neuere Zeile zur schwebenden Pille.) Anlass: Bastis Sorge, eine schwebende Anzeige verdecke die Browserleiste. Build 9 und die Betas bleiben unverändert. | [ROADMAP](ROADMAP.md#track-macos); Gespräch im privaten Projektchat |
 | 11. Oktober 2026 | Mac-Beta startet („Beta los“). Beta-Kandidat ist Build 10 aus `a1903a9` (Einzeltasten und Kürzel-Abfrage, Übersetzung), nicht mehr Build 9; der eigene Server folgt mit der nächsten Version. Jede Veröffentlichung und Ankündigung bekommt weiter ein eigenes Go; der Pre-Release `v0.1.0-beta.10` ist am 11. Oktober mit Bastis Go veröffentlicht. | [Build-10-Nachweis](docs/release-plans/evidence/2026-10-11-build10.md); Gespräch im privaten Projektchat |
 | 11. Oktober 2026 | Der Support-Agent schreibt seine Antwortentwürfe weiter mit OpenAI. Cloudflare Workers AI wurde als Alternative recherchiert (kein zweiter Auftragsverarbeiter, günstiger) und nicht gewählt. Der Agent bleibt aus, bis der Auftragsverarbeitungsvertrag mit OpenAI abgeschlossen ist; Basti versendet jede Antwort weiterhin selbst. | [ROADMAP](ROADMAP.md#plattformübergreifend); Karte im privaten Projektchat |
 | 11. Oktober 2026 | Basti liest und mergt keine PRs mehr. Fertige, von critic geprüfte PRs mit grüner CI mergt der Workflow „Auto-Merge“ selbst; PRs, die Workflow-Dateien ändern, mergt Claude. Als Entwurf bleibt ein PR nur, wenn er auf ein Ereignis wartet (Release, Livegang). | [CLAUDE.md](CLAUDE.md); Karte im privaten Projektchat |
@@ -172,6 +183,8 @@ Preismodells und der Gaming-Ursprung verloren.
 | 11. Oktober 2026 | Support-Mails laufen nur über Cloudflare: Empfang mit Email Routing, Antworten direkt aus dem Support-Dashboard über Cloudflare Email Service (braucht Workers Paid, 5 $ im Monat). Kein zusätzlicher Mail-Anbieter, keine Kopie der Anfragen in ein Postfach. | [PR #66](https://github.com/HerrStolzier/OpenDictate/pull/66); Karte im privaten Projektchat |
 | 11. Oktober 2026 | Die Domain für Website und Support wird opendictate.app (bei Cloudflare, wo Worker und Email Routing liegen); opendictate.com ist anderweitig registriert. | [PR #66](https://github.com/HerrStolzier/OpenDictate/pull/66); Gespräch im privaten Projektchat |
 | 10. Oktober 2026 | Die Empfehlung in der Mac-Kürzel-Abfrage hängt von der Tastatur ab: Fn halten bei MacBook- oder kompakter Apple-Tastatur, rechte Wahltaste bei Apple-Tastatur mit Ziffernblock (Fn liegt dort weit rechts) oder Tastatur eines anderen Herstellers. Anlass: Bastis Live-Test mit der großen Apple-Tastatur. | [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |
+| 9. Oktober 2026 | Die neue Diktatanzeige der Mac-App wird vorgezogen: Statt des heutigen Fensters zeigt eine kleine Anzeige an der Notch mit Blink den Stand des Diktats und schließt sich bei Erfolg von selbst; „Beenden“ kommt ins Menü der Menüleiste. Entwurf sofort, Bau gleich nach dem Start der Mac-Beta und vor der Linux-Leiste. Anlass: Bastis Test, im heutigen Fenster stehen zu viele gleich starke Elemente und „Beenden“ ist versteckt. Build 9 und die Beta bleiben unverändert. | [design/README.md](design/README.md), [ROADMAP](ROADMAP.md#track-macos); Karte im privaten Projektchat |
+| 9. Oktober 2026 | Der Entwurf der Startseite im neuen Design ist abgenommen. Er übernimmt die Beta-Texte der Website; Notch-Anzeige und Blink sind als Vorschau gekennzeichnet. Eingebaut wird er nach dem Merge der Beta-Website; vor der Veröffentlichung fehlt noch ein Impressum. | [design/README.md](design/README.md); Gespräch im privaten Projektchat |
 | 9. Oktober 2026 | Ein lokales Modell statt OpenAI wird eine kostenlose Funktion, keine bezahlte. Umsetzung als „Eigener Server“: Ein Server auf demselben Rechner bekommt keinen API-Schlüssel und braucht keinen; andere Server nur über `https://` und mit dem gespeicherten Schlüssel; eine ungültige Adresse fällt nie auf OpenAI zurück. Zuerst die Adresse (Mac und Linux), ein mitgeliefertes Modell erst später. Build 9 bleibt der Beta-Kandidat. | [ROADMAP](ROADMAP.md#plattformübergreifend), [PR #70](https://github.com/HerrStolzier/OpenDictate/pull/70); Gespräch im privaten Projektchat |
 | 9. Oktober 2026 | Das Designsystem „OpenDictate“ aus Claude Design wird die gemeinsame Quelle für das Aussehen aller Oberflächen (Kopie und Generator unter `design/`). Reihenfolge der Umstellung: Website (nach dem Merge der Beta-Website), Linux-Leiste, Support-Formular und Dashboard beim Livegang, Mac-App nach dem Start der Mac-Beta, iOS mit seinem Track, Windows zuletzt. Die Betas bleiben in der heutigen Optik. | [design/README.md](design/README.md); Karte im privaten Projektchat |
 | 9. Oktober 2026 | Kürzel-Abfrage nach der Installation wird Funktion der fertigen, bezahlten App: zwei bis drei recherchierte Vorschläge je Plattform, die Empfehlung vorausgewählt, eigenes Kürzel möglich. Alle empfohlenen Vorschläge übernommen (macOS Fn halten, Linux Super+D, Windows Strg+Win halten, iOS Aktionstaste, Android Mikrofon-Taste der Tastatur; Liste in der ROADMAP). Die dafür nötige Technik für Einzeltasten und Halten-zum-Sprechen wird gebaut, zuerst auf macOS. Die laufenden Betas bleiben unverändert. | [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |

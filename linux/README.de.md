@@ -146,9 +146,9 @@ bind = SUPER, D, exec, opendictate toggle
 
 Hyprland lädt die Änderung beim Speichern neu.
 
-**3. Leistenanzeige (optional).** Ein Symbol in der Leiste zeigt Aufnahme,
-Verarbeitung und die eingestellte Zielsprache; ein Klick schaltet die
-Übersetzung um. Einrichtung unter [Leistenanzeige](#leistenanzeige).
+**3. Leistenanzeige (optional).** Blink, der Cursor von OpenDictate, zeigt in
+der Leiste, ob OpenDictate zuhört oder schreibt, und die eingestellte
+Zielsprache; ein Klick schaltet die Übersetzung um. Einrichtung unter [Leistenanzeige](#leistenanzeige).
 
 **4. Sprache.** Meldungen und Hilfe folgen der Systemsprache: Deutsch, wenn
 `LC_ALL`, `LC_MESSAGES` oder `LANG` (die erste gesetzte) mit `de` beginnt,
@@ -286,21 +286,25 @@ opendictate secrets status
 
 ## Leistenanzeige
 
-`opendictate bar` gibt jede Abfrage eine JSON-Zeile im Waybar-Format aus:
-Mikrofon-Symbol, Sanduhr während der Verarbeitung und die aktive Zielsprache
-(z. B. `EN`). Während der Aufnahme trägt sie die Klasse `active`. Ein Klick soll
+`opendictate bar` gibt jede Abfrage eine JSON-Zeile im Waybar-Format aus. Der
+Text ist Blink, der Block-Cursor von OpenDictate `▮`, dahinter `REC` während der
+Aufnahme, `…` während das Mikrofon startet oder er schreibt, und die aktive
+Zielsprache (z. B. `▮ REC EN`). Der Tooltip nennt den Zustand: Bereit, Hört zu
+oder Schreibt, kurz auch „Mikrofon startet“.
+Während der Aufnahme trägt die Zeile die Klasse `active`. Ein Klick soll
 `settings target toggle` aufrufen. Die Ausgabe enthält nur Zustand und
-Einstellungen, nie Text. Die Symbole brauchen eine Nerd Font, wie sie Omarchy
-mitbringt. Die Beispieldateien liegen nach der Installation auch unter
-`/usr/share/doc/opendictate/`.
+Einstellungen, nie Text. Eine Nerd Font ist nicht nötig. Die Beispieldateien liegen nach der Installation auch unter
+`/usr/share/doc/opendictate/`. Das Pre-Release `linux-v0.1.0-beta.1` zeigt noch
+Mikrofon und Sanduhr aus der Nerd Font; Blink kommt mit dem nächsten
+Linux-Release.
 
 - Omarchy 4 (Omarchy-Shell-Leiste): Befehlsmodul nach
   [omarchy-bar.example.json](omarchy-bar.example.json) in
   `~/.config/omarchy/shell.json` unter `bar.layout` ergänzen. Die Leiste hebt
   das Modul während der Aufnahme hervor.
 - Waybar: [waybar.example.jsonc](waybar.example.jsonc) und
-  [waybar.example.css](waybar.example.css); dort wird das Symbol während der
-  Aufnahme rot.
+  [waybar.example.css](waybar.example.css) in den Farben von OpenDictate;
+  dort wird Blink während der Aufnahme rot und blinkt, beim Schreiben grün.
 
 ## Technische Details
 

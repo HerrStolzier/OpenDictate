@@ -73,12 +73,16 @@ fixture or one successful dictation into a general speech-quality claim.
 - `README.md`: current product behavior and setup (macOS); `linux/README.md`
   (English) and `linux/README.de.md` (German) for Linux; change both together.
   Linux CLI messages exist in German and English (`tr!` in `linux/src/i18n.rs`).
+- `ios/README.md`: structure, flow and build of the iPhone app; its user-facing
+  text exists in English and German (`L10n.pick` in `ios/Shared/L10n.swift`).
 - `PRIVACY.md`: complete current data flow and retention behavior.
 - `design/`: copy of the OpenDictate design system from Claude Design (brand
   book, tokens, fonts, logos). Claude Design stays the original; update the
   copy there first, then regenerate `design/generated/` with
   `scripts/design-tokens.py`. A surface that adopts the design system takes its
-  colours and sizes from `design/generated/`, not from hard-coded values.
+  colours and sizes from `design/generated/`, not from hard-coded values. The
+  Swift output is generated straight into `Sources/OpenDictateCore/DesignTokens.swift`
+  because SwiftPM compiles only files inside a target.
 - `CHECKS.md`: reproducible verification commands and explicit live-test gates.
 - `docs/compatibility-matrix.md`: current product-wide text-field and focus
   acceptance plan; programs are representative examples, not blanket support claims.

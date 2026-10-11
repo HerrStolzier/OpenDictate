@@ -2,8 +2,9 @@
 
 Stand: 11. Oktober 2026. Erster Schritt im [Track iOS](../ROADMAP.md#track-ios).
 Den Ablauf hat Basti am 11. Oktober gewählt
-([Entscheidungs-Log](../PROJECT.md#entscheidungen)). Gebaut ist noch nichts.
-Die iOS-Beta folgt nach den Betas für Linux und macOS.
+([Entscheidungs-Log](../PROJECT.md#entscheidungen)). Die Beta-App dazu liegt
+unter [ios/](../ios/README.md), auf dem iPhone ist sie noch nicht geprüft.
+Die iOS-Beta folgt nach den Betas für Linux und macOS, vor Windows.
 
 ## Versprechen
 
@@ -16,13 +17,16 @@ und keine Portierung der Mac-Oberfläche.
 
 ## Ablauf
 
-1. In der Ziel-App auslösen: Aktionstaste, „Auf Rückseite tippen“
-   (Bedienungshilfen) oder Steuerelement im Kontrollzentrum. OpenDictate geht
-   dabei nicht auf.
+1. In der Ziel-App auslösen: Aktionstaste oder „Auf Rückseite tippen“
+   (Bedienungshilfen); ein Steuerelement im Kontrollzentrum folgt nach der
+   ersten Beta. OpenDictate geht dabei nicht auf.
 2. Die Live-Aktivität in der Dynamic Island zeigt „Hört zu“.
-3. Erneut auslösen oder auf die Live-Aktivität tippen. Sie zeigt „Schreibt“.
-4. Erfolg: Der Text liegt in der Zwischenablage, das iPhone vibriert kurz, die
-   Anzeige zeigt „Kopiert“. Der Nutzer fügt mit Apples Tastatur selbst ein.
+3. Erneut auslösen oder Stopp in der Live-Aktivität tippen. Sie zeigt
+   „Schreibt“.
+4. Erfolg: Der Text liegt in der Zwischenablage, die Anzeige zeigt „Kopiert“.
+   Der Nutzer fügt mit Apples Tastatur selbst ein. (Die kurze Vibration ist
+   in der ersten Fassung nicht gebaut; iOS spielt Vibrationen einer App im
+   Hintergrund nicht zuverlässig ab.)
 5. Fehler: Die Anzeige zeigt „Hoppla“, die Aufnahme bleibt, und „Nochmal
    senden“ steht auf dem Start-Bildschirm der App.
 
@@ -38,7 +42,9 @@ und keine Portierung der Mac-Oberfläche.
   in den iOS-Einstellungen. Vorausgewählt ist die Aktionstaste, auf Geräten
   ohne sie „Auf Rückseite tippen“.
 - Ob die App im Hintergrund selbst in die Zwischenablage schreiben darf, ist
-  offen. Sonst kopiert ein mitgelieferter Kurzbefehl das Ergebnis.
+  offen. Der Kurzbefehl „Diktieren“ gibt den Text darum zusätzlich als
+  Ergebnis zurück; notfalls kopiert ein Schritt „In Zwischenablage kopieren“
+  im Kurzbefehl.
 - Eigene Tastaturen dürfen nicht aufnehmen; Zwischenablage und Netz brauchen
   Vollzugriff ([Richtung](ios-direction.md)). Deshalb gibt es keine Tastatur,
   solange Beta-Nutzer nicht danach fragen.
@@ -55,7 +61,9 @@ Einstellungen.
 - Übersetzung nach dem Sprechen (`gpt-5.4-mini`), Zielsprache in den
   Einstellungen.
 - Eigene Server-Adresse statt OpenAI, kostenlos wie auf den anderen
-  Plattformen.
+  Plattformen. Wie dort gilt `http://` nur für einen Server auf dem Gerät
+  selbst; ein Server im Heimnetz braucht `https://` und die iOS-Freigabe
+  „Lokales Netzwerk“, die die App beim Öffnen anfragt.
 - Aufnahme bleibt bei Fehlern erhalten; dieselbe 90-Sekunden-Grenze pro Diktat
   wie am Mac.
 
@@ -91,7 +99,9 @@ Auf Bastis iPhone 15 mit „Auf Rückseite tippen“:
 ## Offen
 
 - Apples Spracherkennung auf dem Gerät (`SpeechAnalyzer`, ab iOS 26) als
-  kostenlose Wahl ohne Schlüssel: im Prototyp gegen OpenAI vergleichen, dann
-  entscheiden. Ohne sie reicht iOS 18 als Mindestversion.
-- Draft-PR #40 (Kopplung von App und Tastatur mit Vollzugriff) passt nicht zu
-  diesem Weg; ob er geschlossen wird, entscheidet Basti.
+  kostenlose Wahl ohne Schlüssel. Vorgabe vom 11. Oktober: Die erste Beta
+  schreibt mit OpenAI oder dem eigenen Server wie Mac und Linux; Apples
+  Erkennung kommt danach, im Vergleich mit OpenAI. Mindestversion bleibt
+  iOS 18.
+- ~~Draft-PR #40 (Kopplung von App und Tastatur mit Vollzugriff).~~ Am
+  11. Oktober geschlossen, der Zweig bleibt erhalten.

@@ -1,9 +1,9 @@
 {
   "success": {"file": "response-ok.json", "status": 200, "text": "Hallo Welt."},
   "errors": [
-    {"file": "error-401.json", "status": 401, "mac_message_contains": "API-Schlüssel ist ungültig", "linux_message_contains": "API-Schlüssel ist ungültig"},
-    {"file": "error-413.json", "status": 413, "mac_message_contains": "zu groß", "linux_message_contains": "zu groß"},
-    {"file": "error-429.json", "status": 429, "mac_message_contains": "Guthaben oder Nutzungslimit", "linux_message_contains": "OpenAI-Limit erreicht"},
-    {"file": "error-500.json", "status": 500, "mac_message_contains": "nicht verfügbar", "linux_message_contains": "Transkription fehlgeschlagen"}
+    {"file": "error-401.json", "status": 401, "mac_message_contains": "API-Schlüssel ist ungültig", "linux_message_contains": "API-Schlüssel ist ungültig", "windows_message_contains": "API-Schlüssel ist ungültig"},
+    {"file": "error-413.json", "status": 413, "mac_message_contains": "zu groß", "linux_message_contains": "zu groß", "windows_message_contains": "zu groß"},
+    {"file": "error-429.json", "status": 429, "mac_message_contains": "Guthaben oder Nutzungslimit", "linux_message_contains": "OpenAI-Limit erreicht", "windows_message_contains": "OpenAI-Limit erreicht"},
+    {"file": "error-500.json", "status": 500, "mac_message_contains": "nicht verfügbar", "linux_message_contains": "Transkription fehlgeschlagen", "windows_message_contains": "nicht verfügbar"}
   ]
 }

@@ -26,7 +26,10 @@ eine bekannte Grenze, die in der jeweiligen Anleitung stehen muss.
   `retry` liefert. Die seitdem kürzeren Zeitlimits (PR #51) sind nur offline
   geprüft.
 - Physischer Hotkey Super+D; Leistenanzeige in der Omarchy-Leiste mit
-  Klick-Umschalter der Zielsprache.
+  Klick-Umschalter der Zielsprache. Seit dem 11. Oktober zeigt die Leiste Blink
+  (`▮`) statt Mikrofon und Sanduhr, noch nicht im Pre-Release
+  `linux-v0.1.0-beta.1`; diese neue Darstellung, der Tooltip und das
+  Waybar-Beispiel sind nur offline geprüft, noch nicht live gesehen.
 - Auto-Einfügen in das beim Start erfasste Fenster (Editor, Terminal), mit
   Fokus- und Zwischenablage-Prüfung; Fensterwechsel wird korrekt übersprungen.
 - Offline: `scripts/ci/check-linux.sh` (Formatierung, Tests, Clippy,
@@ -148,7 +151,52 @@ veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
   gelesen: ein Magic Keyboard mit Ziffernblock (`004C:026C`) ergibt die rechte
   Wahltaste, das Fenster wurde gerendert und angesehen.
 
-- Eigener Server (11. Oktober, noch in keinem Kandidaten): Adresse unter
+- Neue Diktatanzeige und Menü der Menüleiste (seit Build 11, nicht
+  veröffentlicht, Entwurf in Claude Design vom 9. Oktober): kleine schwarze Anzeige
+  oben am Bildschirm mit Blink, Zustandswort und Zeile; an der Notch, ohne
+  Notch schwebend unter der Menüleiste (Standard seit Bastis Wahl am
+  11. Oktober), flach in der Menüleiste oder aus; Menü mit
+  „OpenDictate beenden“. Offline geprüft: Zuordnung der Fensterzustände,
+  Wahl der Variante je Bildschirm, Aufnahmezeile mit Countdown, Menüreihenfolge,
+  Anzeige ohne Fokus (`DictationIndicatorTests`), Blink Pixel für Pixel gegen
+  die Web-Komponente des Designsystems (`BlinkConformanceTests`). Alle Varianten
+  und Zustände wurden als Bilder gerendert (`--indicator-snapshots`) und
+  angesehen.
+- Live am 11. Oktober 2026 auf Bastis Mac Mini (ohne Notch, 3440 × 1440 bei
+  1×) mit einem lokalen Testbuild aus `47fe2dd` (Developer-ID-signiert, nicht
+  notarisiert, nicht in /Applications): Diktat per Fn halten mit Übersetzung
+  nach Englisch in TextEdit. Die Pille in der Menüleiste zeigte laut
+  Bildschirmaufnahmen „Hört zu REC 0:00“ bis „0:03“, „Schreibt OpenAI
+  übersetzt“ und „Eingefügt per ⌘V, kurz prüfen“ und schloss danach von selbst;
+  laut App-Log 2,9 s vom Stopp bis zum Ergebnis. Basti bestätigte: Der Text kam
+  in TextEdit an, TextEdit blieb vorne, die Pille ist klein und gut sichtbar.
+  Ein zu kurzes Diktat (0,6 s) zeigte die Fehlerkarte mit Grund und ohne
+  „Nochmal senden“. Ein selbstsignierter Testbuild bekommt den API-Schlüssel
+  nicht, weil der installierte Schlüsselbund-Helfer die Developer-ID verlangt;
+  die Anzeige meldete das als „Hoppla“ mit dem Hinweis auf die Einrichtung.
+  Zweites Diktat neben einem Spiel: Als das Einfügen das Vollbild-Spiel nach
+  vorne holte, blieb die Menüleisten-Pille bis zum nächsten Zustandswechsel über
+  der Leiste des Spiels und sprang erst dann in die schwebende Pille. Seitdem
+  platziert sich die Anzeige auch beim Wechsel der vorderen App neu; das ist
+  offline geprüft, live noch nicht wiederholt.
+  Dritte Runde mit „Schwebend unter der Menüleiste“ (Testbuild aus `8872044`):
+  „Hört zu REC 0:01“, „Schreibt OpenAI übersetzt“, „Eingefügt“, danach von
+  selbst zu; der übersetzte Text kam an (3,0 s vom Stopp bis zum Ergebnis).
+  Zwei Versuche davor waren zu leise (Spitze −45 dB, Basti zu weit vom
+  Mikrofon); die Fehlerkarte zeigte Grund, „Schließen“ und „Nochmal senden“.
+  Basti wählte danach „schwebend“ als Standard.
+  Vollbild: Basti diktierte in World of Warcraft im Vollbild und bestätigte,
+  dass es funktioniert; laut App-Log ein Diktat mit 2,2 s vom Stopp bis zum
+  Ergebnis (davor ein zu leiser Versuch, der als Fehler endete). Was die
+  Anzeige dabei im Einzelnen zeigte, ist nur von Basti beobachtet, nicht
+  aufgezeichnet.
+  Notch: Auf Bastis MacBook Air 15" (M3, macOS 27.0.1) lief die Debug-Vorschau
+  (`--indicator-preview`) an der echten Notch, ohne Diktat und ohne Schlüssel.
+  Laut Bastis Screenshots ist die Anzeige offen etwa 355 × 90 Punkte groß,
+  bei „Hoppla“ etwa 115 Punkte hoch; Wort und Zeile sitzen unter der Kamera.
+  Basti bestätigte die Maße („passt“). Die Vorschau wurde danach beendet und
+  vom MacBook gelöscht.
+- Eigener Server (11. Oktober, seit Build 11, nicht veröffentlicht): Adresse unter
   Einstellungen → Erweitert, `https://` beliebig, `http://` nur auf diesem Mac.
   Offline geprüft: Adressregeln, Vorrang vor `OPENAI_BASE_URL`, kein Rückfall
   auf OpenAI bei ungültiger Adresse, Schlüssel nur an Server außerhalb dieses
@@ -162,12 +210,18 @@ veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
 
 **Offen / bekannte Grenzen:**
 
+- Diktatanzeige live noch offen: „Nochmal senden“ mit Rückfrage; „Aus“;
+  andere Ziel-Apps als TextEdit; ein echtes Diktat an einem MacBook mit Notch
+  (die Maße sind nur mit der Vorschau bestätigt). Im Vollbild gilt eine App als Vollbild, wenn ihr vorderstes
+  Fenster den ganzen Bildschirm bedeckt. Mit der Einstellung „In der Menüleiste“
+  liegt die Pille bei „Menüleiste immer ausblenden“ über dem Fensterinhalt, und
+  in Apps mit sehr vielen Menüs kann sie in der Mitte einen Menütitel verdecken, solange sie
+  sichtbar ist. Gehörte VoiceOver-Ansagen der Anzeige sind ungeprüft.
 - Eigener Server: kein Live-Diktat gegen einen echten lokalen Modellserver;
   andere Server als OpenAI werden nicht abgenommen. Ebenfalls nur aus dem Code
   abgeleitet: Bei einer frischen Installation ohne Schlüssel führt das
   Speichern eines lokalen Servers wie das Speichern eines Schlüssels weiter zur
   Kürzel-Abfrage und zur Bedienungshilfen-Freigabe.
-
 - Empfehlung je Tastatur: MacBook-Tastatur und Fremdtastatur am echten Gerät
   ungeprüft. Jedes HID-Gerät mit Tastatur-Schnittstelle oder einer
   Tastatur-Collection neben seiner Hauptfunktion zählt, auch Gaming-Mäuse mit
@@ -190,7 +244,8 @@ veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
 - Beenden der App während der Transkription: nur ohne Netz geprüft. Live
   antwortete OpenAI in zwei Versuchen am 8. Oktober nach gut 3 s, bevor die
   Abfrage bestätigt war. Bekannte Grenze der Beta (Entscheidung Basti).
-- „Text ansehen“ und „Text kopieren“ wurden in Teil B nicht eigens geprüft.
+- „Text ansehen“ und „Text kopieren“ wurden in Teil B nicht eigens geprüft;
+  seit der neuen Anzeige öffnet „Letzten Text ansehen“ im Menü dieses Fenster.
 - Übersetzung: Diktate mit Übersetzung nach Englisch wurden mit Build 9 und
   Build 10 eingefügt ([Build 9](release-plans/evidence/2026-10-08-build9.md),
   [Build 10](release-plans/evidence/2026-10-11-build10.md)); Wiederholen,
@@ -207,7 +262,7 @@ veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
   `OPENAI_API_KEY` mit Build-Hashes in der Zugriffsliste; er wird nur durch die
   App-Migration entfernt, nicht manuell.
 
-**Letzter Nachweis:** 11. Oktober 2026 (Build 10 notarisiert, als Update installiert, ein Diktat mit Übersetzung; [Nachweis](release-plans/evidence/2026-10-11-build10.md)).
+**Letzter Nachweis:** 11. Oktober 2026 (Build 11 aus `8d178ed` notarisiert, als Update installiert, ein Diktat mit Übersetzung, nicht veröffentlicht; [Nachweis](release-plans/evidence/2026-10-11-build11.md)).
 
 ## Windows
 
@@ -220,12 +275,28 @@ bestanden am 28. September 2026 auf dem Windows-PC
 vom 12. September bestand Cursor-, Auswahl- und Abbruchfälle mit künstlichem
 Text in Editor und Chrome-Testprofil ([Windows-Plan](windows-plan.md)).
 
-**Offen / bekannte Grenzen:** Kein echtes Diktat, keine Provideranfrage;
-Modell fest `gpt-transcribe`, keine Sprache, kein Prompt, keine Übersetzung;
-keine reproduzierbare Paketierung, keine Signatur, kein Installer; Update- und
+Seit 11. Oktober 2026 nimmt der Prototyp Modell, gesprochene Sprache,
+Übersetzung nach dem Sprechen (`gpt-5.4-mini`) und eigenen Server aus
+`%APPDATA%\OpenDictate\settings.json`; ein Server auf diesem Computer bekommt
+keinen Schlüssel. 40 Kern-, Ablauf- und Provider-Prüfungen (Provider gegen
+`fixtures/provider/`) und die Builds bestanden offline auf Linux mit .NET SDK
+10.0.401; die 13 Schutzprüfungen wurden dabei nicht ausgeführt.
+
+Ebenfalls seit 11. Oktober gibt es die Beta-App `OpenDictate.App`
+([Beschreibung](../windows/README.md#beta-app-11-oktober-2026)): Infobereich,
+Strg+Win halten oder rechte Strg, Einfügen per Zwischenablage und Strg+V nur ins
+erfasste Fenster, Diktatanzeige, Begrüßung mit Kürzeltest. 60 Offline-Prüfungen
+(davon 20 für Kürzel, Auslöser, Einfügeregel, Einstellungen und Anzeige) und
+alle Builds bestanden auf Linux; die App wurde nicht gestartet.
+
+**Offen / bekannte Grenzen:** Kein echtes Diktat, keine Provideranfrage, auch
+nicht gegen ein lokales Modell; die Beta-App lief noch nie auf Windows (Hook,
+Startmenü nach Strg+Win, Anzeige über Spielen, Strg+V, Mikrofonfreigabe,
+Autostart, Skalierung); kein Prompt (Vokabular); keine Maus-Seitentaste; keine
+reproduzierbare Paketierung, keine Signatur, kein Installer; Update- und
 Deinstallationsweg; Pflichtprogramme nicht festgelegt.
 
-**Letzter Nachweis:** 28. September 2026.
+**Letzter Nachweis:** 11. Oktober 2026 (offline).
 
 ## iOS
 
@@ -234,11 +305,17 @@ Installation und den synthetischen Safari-Textpfad auf einem frischen
 Simulator (29. September, [Nachweis](ios-keyboard-e2e-2026-09-29.md)) und auf
 Bastis iPhone 15 mit iOS 27.0.1 (30. September, signiert gebaut, installiert,
 Einfügen in beide Safari-Felder, Systemtastatur im Passwortfeld,
-[Gerätenachweis](ios-device-2026-09-30.md)). Test-App deinstalliert; Draft-PR
-#40 bleibt erhalten.
+[Gerätenachweis](ios-device-2026-09-30.md)). Test-App deinstalliert.
+
+**Geschrieben, nicht geprüft:** Die Beta-App nach dem [Konzept](ios-konzept.md)
+liegt seit dem 11. Oktober unter [ios/](../ios/README.md). Am Mac baut sie
+für den Simulator ohne Warnungen; keine Installation am Gerät, kein Diktat.
+Start der Live-Aktivität aus dem Hintergrund, Prüfung der Zwischenablage und
+die Abfrage „Lokales Netzwerk“ sind aus dem Code und Apples Doku abgeleitet,
+nicht am Gerät gesehen. Draft-PR #40 ist geschlossen.
 
 **Offen / bekannte Grenzen:** Echte Aufnahme und Transkription, Aufnahmestart
-im Hintergrund nach dem [Konzept](ios-konzept.md) vom 11. Oktober,
+im Hintergrund und Schreiben in die Zwischenablage aus dem Hintergrund,
 Abbruch-/Unterbrechungsfälle, Dateischutz am Gerät, Verteilung über TestFlight,
 Barrierefreiheit. Die ferngesteuerte Device-Hub-Steuerung bleibt blockiert;
 Basti bedient das Gerät selbst.

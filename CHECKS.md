@@ -217,8 +217,9 @@ and check scope. On Windows, from the repository root:
 ./windows/scripts/check.ps1
 ```
 
-This runs 23 core/flow checks and builds the app, browser host and Windows
-protection checker. It does not execute the 18 protection checks. After
+This runs 60 core, flow, provider and shortcut checks (the provider checks read
+`fixtures/provider/`) and builds the beta app, the prototype, the browser host
+and the Windows protection checker. It does not execute the 13 protection checks. After
 specific authorization for synthetic files and an isolated dummy Credential
 Manager entry, run those from a separate test copy in the signed-in Windows
 desktop with normal user privileges:
@@ -231,9 +232,40 @@ Verify deletion of the dummy credential and owned test files afterwards.
 SSH Session 0 is not equivalent to an interactive desktop credential test.
 Neither command proves live dictation, installation or public release readiness.
 
+Without a Windows computer, the same 60 checks and the builds run on Linux
+with .NET SDK 10.0.401:
+
+```bash
+dotnet run --project windows/OpenDictate.Checks -c Release
+dotnet build windows/OpenDictate.App -c Release -p:EnableWindowsTargeting=true
+dotnet build windows/OpenDictate.Prototype -c Release -p:EnableWindowsTargeting=true
+```
+
+After a change to `design/tokens.json`, `scripts/design-tokens.py` also
+regenerates `windows/OpenDictate.Core/DesignTokens.cs`; after a change to the
+Blink logos or the app icon, `python3 windows/scripts/make-icon.py` rebuilds
+the Windows icon.
+
 The Windows workflow uses `windows-2025`, selects the SDK from
 `windows/global.json`, and runs only `windows/scripts/check.ps1`. It does not
 run the interactive Credential Manager checks.
+
+## iOS app
+
+The beta app in `ios/OpenDictate.xcodeproj` is not yet part of CI. On the Mac,
+run its formatter check and an unsigned simulator build from the repository
+root:
+
+```bash
+swift format lint --strict --configuration .swift-format --recursive ios/App ios/Shared ios/Widgets
+xcodebuild -project ios/OpenDictate.xcodeproj -scheme OpenDictateiOS \
+  -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+```
+
+The build proves neither a background start nor a clipboard write. The device
+check with Basti's Go follows the acceptance list in
+[docs/ios-konzept.md](docs/ios-konzept.md); uploading to TestFlight is a
+publication and needs Basti's explicit Go.
 
 ## iOS prototype
 
@@ -299,8 +331,9 @@ manifests, with at most three open update pull requests.
 and error responses and `cases.json` with the expected message per platform.
 The Swift tests `TranscriptionRequestTests` and `TranscriptionTransportTests`
 read these files, and so do the Linux tests in `transcribe.rs`
-(`tests::contract`); change the fixtures and the contract together. Windows
-tests are meant to read the same files once its provider tests move to them.
+(`tests::contract`), and the Windows provider checks in
+`windows/OpenDictate.Checks/ProviderChecks.cs`; change the fixtures and the
+contract together.
 
 ## Meaning of checks
 
@@ -308,7 +341,7 @@ The rationale for the retained and removed isolated tests is recorded in
 [`docs/test-signal-audit.md`](docs/test-signal-audit.md).
 
 - `swift test -Xswiftc -warnings-as-errors`: offline logic, lifecycle, HTTP stubs, recovery, logging and synthetic audio-file tests, with compiler warnings treated as failures. Optional benchmark and live API test are skipped by default.
-- `python3 -m unittest discover ...`: offline regression tests for the transcript evaluator and process sampler, including output-file preservation, and for the design-token generator (generated files under `design/generated/` must match `design/tokens.json`).
+- `python3 -m unittest discover ...`: offline regression tests for the transcript evaluator and process sampler, including output-file preservation, and for the design-token generator (generated files under `design/generated/` and the Swift and C# copies must match `design/tokens.json`), and for `scripts/website-worker.py` (the website Worker's file hashes must match its pinned commit). CI clones only two commits, so it skips that pin check; run `python3 scripts/website-worker.py --check` locally before deploying the Worker; a change to `website/worker.js` alone counts as documentation-only and skips the Python tests in CI entirely.
 - `swift format lint --strict --configuration .swift-format --recursive Sources Tests Package.swift`: project formatting; lint warnings cause a failed check.
 - `./scripts/build-app.sh`: release bundle, Plist, signature and Hardened Runtime verification. Does not launch/install it.
 - `git diff --check` and `bash -n` for all scripts listed above before handoff.
@@ -398,6 +431,34 @@ fixtures, not microphone-to-target acceptance. Historical fixture evidence is in
 [the September 13 report](docs/live-acceptance-2026-09-13.md); it does not establish
 acceptance of the integrated candidate.
 
+## Dictation indicator
+
+Offline, `swift test` covers the mapping from window states to indicator
+words, the choice of variant per screen (notch, menu bar, floating, off, full
+screen), the recording line and countdown, the daily menu order, and, on a Mac
+with a screen, that the shown indicator window cannot become key or main. That
+test briefly orders a real window above the menu bar; without a screen it is
+skipped. `BlinkConformanceTests` runs the design
+system's own web component (`design/components/web/bundle.js`) in
+JavaScriptCore and compares every pixel run of Blink with the Swift port.
+
+Two debug-only modes need no hotkey, microphone, Keychain or provider:
+
+```bash
+swift build
+.build/debug/OpenDictate --indicator-snapshots /tmp/indicator   # one PNG per variant and state
+.build/debug/OpenDictate --indicator-preview [--style menuBar|floating|off] [--simulate-notch]
+```
+
+Run them from the checkout so the brand fonts in `design/fonts` are found; a
+built bundle loads them from `Contents/Resources/Fonts`. The preview cycles the
+real indicator through every state on the current screen. Snapshots and the
+preview are visual checks only. The deciding live test is a real dictation
+into another application with the indicator visible: the text must arrive by
+Command-V in that application, and OpenDictate must not become the active app
+while the indicator appears, changes or closes. Repeat it with the menu bar style ("In der Menüleiste"), with "Aus", over a full-screen app, and on a MacBook with a notch (its sizes in
+`IndicatorMetrics` were confirmed with the preview on a 15-inch MacBook Air).
+
 ## Compact settings acceptance
 
 Inspect the actual installed settings at compact and larger window sizes. The
@@ -405,7 +466,8 @@ four main options must be visible without a large leading blank area. Navigate
 with Tab/Shift+Tab and activate “Erweitert”, “Aufnahmen” and “Hilfe” with Space.
 Inspect menus/dialog entry points without changing preferences or sending a
 recording. Confirm that cancellation, discard, copy and clear remain accessible
-from the recording panel's “Weitere Aktionen”. Compare preference and recovery
+from the dictation window's “Weitere Aktionen” (open it with “Letzten Text
+ansehen” in the menu). Compare preference and recovery
 file integrity before/after; do not delete recordings created by the user.
 
 ## Repräsentative Kompatibilitätsabnahme
