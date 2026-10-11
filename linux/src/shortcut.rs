@@ -2,6 +2,7 @@
 //! them, and the bind line in the user's Hyprland config.
 
 use std::fs;
+use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -322,7 +323,8 @@ pub struct Installed {
 
 /// Writes the bind into the target file: removes earlier OpenDictate binds
 /// in that file, appends the new line and keeps a backup next to it. The
-/// file is rewritten in place, so a symlinked dotfile stays a symlink.
+/// new text replaces the file in one step, so a failed write leaves the
+/// working config untouched; a symlinked dotfile stays a symlink.
 pub fn install(choice: Choice, target: &Target) -> Result<Installed, String> {
     if !target.writable() {
         return Err(t(
@@ -352,15 +354,70 @@ pub fn install(choice: Choice, target: &Target) -> Result<Installed, String> {
         )
     })?;
     let (updated, replaced) = with_bind(&original, choice, target.style);
-    fs::write(&target.path, updated).map_err(|_| {
-        crate::tr!(
-            "{} nicht schreibbar; die Sicherung liegt unter {}.",
-            "{} is not writable; the backup is at {}.",
-            display_path(&target.path),
-            display_path(&backup)
-        )
-    })?;
+    if replace_contents(&target.path, &updated).is_err() {
+        let _ = fs::remove_file(&backup);
+        return Err(crate::tr!(
+            "{} nicht schreibbar; nichts geändert.",
+            "{} is not writable; nothing changed.",
+            display_path(&target.path)
+        ));
+    }
     Ok(Installed { backup, replaced })
+}
+
+/// Puts the config from before `install` back, for a bind Hyprland did not
+/// take, and drops the backup, which then equals the file.
+pub fn restore(target: &Target, installed: &Installed) -> Result<(), String> {
+    let failed = || {
+        crate::tr!(
+            "{} ließ sich nicht zurücksetzen; die Sicherung liegt unter {}.",
+            "Could not restore {}; the backup is at {}.",
+            display_path(&target.path),
+            display_path(&installed.backup)
+        )
+    };
+    let original = fs::read(&installed.backup).map_err(|_| failed())?;
+    replace_contents(&target.path, &original).map_err(|_| failed())?;
+    let _ = fs::remove_file(&installed.backup);
+    Ok(())
+}
+
+/// Asks Hyprland to read its config again; false without a running Hyprland.
+pub fn reload() -> bool {
+    Command::new("hyprctl")
+        .arg("reload")
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .is_ok_and(|status| status.success())
+}
+
+/// Writes a sibling file and renames it over the real file (behind a
+/// symlink), so readers see either the old or the new text, never a
+/// truncated one.
+fn replace_contents(path: &Path, contents: impl AsRef<[u8]>) -> io::Result<()> {
+    let real = fs::canonicalize(path)?;
+    let permissions = fs::metadata(&real)?.permissions();
+    let name = real
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let temporary = real.with_file_name(format!(".{name}.opendictate-{}", std::process::id()));
+    let written = (|| {
+        let mut file = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&temporary)?;
+        file.write_all(contents.as_ref())?;
+        file.set_permissions(permissions)?;
+        file.sync_all()?;
+        fs::rename(&temporary, &real)
+    })();
+    if written.is_err() {
+        let _ = fs::remove_file(&temporary);
+    }
+    written
 }
 
 fn unreadable(path: &Path) -> String {
@@ -590,6 +647,44 @@ bind = , F9, exec, opendictate toggle
             style: Style::Lua,
         };
         assert!(install(Choice::SuperD, &plain_lua).is_err());
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn install_and_restore_replace_the_file_behind_a_symlink() {
+        let dir = std::env::temp_dir().join(format!("opendictate-link-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(dir.join("dotfiles")).unwrap();
+        let real = dir.join("dotfiles").join("bindings.conf");
+        let original = "bind = SUPER, RETURN, exec, kitty\nbind = , F9, exec, opendictate toggle\n";
+        fs::write(&real, original).unwrap();
+        let link = dir.join("bindings.conf");
+        std::os::unix::fs::symlink(&real, &link).unwrap();
+        let target = Target {
+            path: link.clone(),
+            style: Style::Classic,
+        };
+        let installed = install(Choice::SuperD, &target).unwrap();
+        assert_eq!(installed.replaced, 1);
+        assert!(fs::symlink_metadata(&link)
+            .unwrap()
+            .file_type()
+            .is_symlink());
+        let written = fs::read_to_string(&real).unwrap();
+        assert!(written.contains("bind = SUPER, D, exec, opendictate toggle"));
+        assert!(!written.contains("F9"));
+        restore(&target, &installed).unwrap();
+        assert!(fs::symlink_metadata(&link)
+            .unwrap()
+            .file_type()
+            .is_symlink());
+        assert_eq!(fs::read_to_string(&real).unwrap(), original);
+        let leftovers: Vec<_> = fs::read_dir(dir.join("dotfiles"))
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+            .filter(|name| name.starts_with('.'))
+            .collect();
+        assert!(leftovers.is_empty(), "{leftovers:?}");
         let _ = fs::remove_dir_all(&dir);
     }
 }

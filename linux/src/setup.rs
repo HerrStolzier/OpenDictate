@@ -231,14 +231,20 @@ fn ensure_key(server: &Server) -> Result<(), String> {
         if key.is_empty() {
             continue;
         }
+        // Checked before storing, so a rejected key never replaces a
+        // working one.
+        let result = check(server, Some(&key));
+        if result == Check::KeyRejected {
+            report_check(server, result);
+            continue;
+        }
         if let Err(error) = keyring::store_api_key(&key) {
             println!("{error}");
             continue;
         }
         println!("{}", t("API-Schlüssel gespeichert.", "API key saved."));
-        if report_check(server, check(server, Some(&key))) != Check::KeyRejected {
-            return Ok(());
-        }
+        report_check(server, result);
+        return Ok(());
     }
 }
 
@@ -469,26 +475,22 @@ pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
             )
         );
     }
-    report_loaded(choice);
-    Ok(choice)
-}
-
-/// Hyprland reloads its config when a file changes; give it a moment.
-fn report_loaded(choice: Choice) {
-    let deadline = Instant::now() + Duration::from_secs(3);
-    loop {
-        let binds = shortcut::active_binds();
-        let Some(binds) = binds else {
-            println!(
-                "{}",
-                t(
-                    "Das Kürzel gilt ab dem nächsten Hyprland-Start.",
-                    "The shortcut works from the next Hyprland start."
-                )
-            );
-            return;
-        };
-        if shortcut::availability(choice, Some(&binds)) == Availability::OpenDictate {
+    // Hyprland reloads its config when a file changes; without that
+    // (autoreload off) it is asked once. A bind it still does not show is
+    // undone, so the previous shortcut keeps working.
+    let loaded = match wait_loaded(choice, Duration::from_secs(3)) {
+        Some(false) if shortcut::reload() => wait_loaded(choice, Duration::from_secs(2)),
+        loaded => loaded,
+    };
+    match loaded {
+        None => println!(
+            "{}",
+            t(
+                "Das Kürzel gilt ab dem nächsten Hyprland-Start.",
+                "The shortcut works from the next Hyprland start."
+            )
+        ),
+        Some(true) => {
             println!(
                 "{}",
                 t(
@@ -496,7 +498,10 @@ fn report_loaded(choice: Choice) {
                     "Hyprland knows the shortcut now."
                 )
             );
-            if shortcut::has_other_opendictate_bind(Some(&binds), Some(choice)) {
+            if shortcut::has_other_opendictate_bind(
+                shortcut::active_binds().as_deref(),
+                Some(choice),
+            ) {
                 println!(
                     "{}",
                     t(
@@ -505,17 +510,54 @@ fn report_loaded(choice: Choice) {
                     )
                 );
             }
-            return;
         }
-        if Instant::now() >= deadline {
+        Some(false) => {
+            shortcut::restore(&target, &installed)?;
+            let restored = if shortcut::reload() {
+                t(
+                    "das bisherige Kürzel gilt weiter",
+                    "the previous shortcut still works",
+                )
+            } else {
+                t(
+                    "nach `hyprctl reload` gilt das bisherige Kürzel wieder",
+                    "after `hyprctl reload` the previous shortcut works again",
+                )
+            };
             println!(
                 "{}",
-                t(
-                    "Hyprland hat das Kürzel noch nicht geladen; `hyprctl reload` lädt es.",
-                    "Hyprland has not loaded the shortcut yet; `hyprctl reload` loads it."
+                tr!(
+                    "Hyprland hat {} nicht übernommen; {} ist wieder wie vorher, {restored}. Den Grund zeigt `hyprctl configerrors`.",
+                    "Hyprland did not take {}; {} is back as before, {restored}. `hyprctl configerrors` shows why.",
+                    choice.label(),
+                    shortcut::display_path(&target.path)
                 )
             );
-            return;
+            println!(
+                "{}",
+                tr!(
+                    "Wer die Zeile trotzdem will, trägt sie selbst ein:",
+                    "To use it anyway, add this line yourself:"
+                )
+            );
+            println!("  {}", choice.line(target.style));
+            return Err(t("Kürzel nicht geändert.", "Shortcut not changed.").to_string());
+        }
+    }
+    Ok(choice)
+}
+
+/// Whether Hyprland shows the bind within `timeout`; `None` without a
+/// running Hyprland.
+fn wait_loaded(choice: Choice, timeout: Duration) -> Option<bool> {
+    let deadline = Instant::now() + timeout;
+    loop {
+        let binds = shortcut::active_binds()?;
+        if shortcut::availability(choice, Some(&binds)) == Availability::OpenDictate {
+            return Some(true);
+        }
+        if Instant::now() >= deadline {
+            return Some(false);
         }
         std::thread::sleep(Duration::from_millis(250));
     }

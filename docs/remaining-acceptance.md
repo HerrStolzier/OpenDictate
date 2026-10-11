@@ -49,7 +49,9 @@ Discord-Fenstern; gemischtes Deutsch/Englisch; Abbruch genau während der
 Vokabular. Eigener Server und `opendictate setup` mit Kürzel-Abfrage
 (11. Oktober) sind nur offline geprüft: Tests mit lokalem HTTP-Stub (kein
 Schlüssel an Loopback, Schlüssel an Fremdserver) und ein Durchlauf im
-Test-Terminal mit Attrappen für `hyprctl` und `secret-tool`. Live offen:
+Test-Terminal mit Attrappen für `hyprctl` und `secret-tool`. Ebenso nur mit
+einer `hyprctl`-Attrappe geprüft: Übernimmt Hyprland ein neues Kürzel nicht,
+stellt `setup` die Konfiguration wieder her (seit dem Folge-PR zu #67). Live offen:
 Durchlauf auf omarchy, die Lua-Zeilen für F9 und rechte Alt, ein echter
 lokaler Server. Für das Arch-Paket ungeprüft: `namcap`, Bau mit pacman-Rust und `makepkg -si`,
 frische Ersteinrichtung des Schlüssels.
