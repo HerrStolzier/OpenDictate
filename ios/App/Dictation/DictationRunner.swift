@@ -165,8 +165,10 @@ final class DictationRunner {
         retryable = store.newest()
     }
 
+    /// Only between dictations: a phase change while recording or writing
+    /// would orphan the running dictation.
     func copyAgain() {
-        guard let lastText else { return }
+        guard !isBusy, let lastText else { return }
         do {
             try Self.copy(lastText)
             phase = .copied

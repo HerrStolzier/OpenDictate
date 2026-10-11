@@ -155,6 +155,7 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             Button(L10n.pick("Copy again", "Nochmal kopieren")) { runner.copyAgain() }
                 .font(BrandFont.mono(15, semibold: true))
+                .disabled(runner.isBusy)
         }
         .padding(DesignMetric.space4)
         .background(
