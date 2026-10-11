@@ -36,3 +36,21 @@ Kürzel-Zeile zeigt Fn halten statt ⌥⇧Leertaste und nennt die Kürzel-Abfrag
 beim ersten Start; „Loslegen“ angepasst; der eigene Server ist „ab der
 nächsten Version“ erwähnt. Headless Chrome: Desktop sowie 375 und 320 Pixel
 Breite geprüft.
+
+Textstand 2026-10-11: Seite im neuen Designsystem (Entwurf aus Claude Design,
+am 9. Oktober abgenommen). Inhalte und Links der Beta-Seite bleiben: Beta,
+„Loslegen“ in drei Schritten, Übersetzung, Pre-Release `v0.1.0-beta.10`,
+Installationsanleitung und Rückmelde-Vorlage. `tokens.css` ist eine Kopie von
+`design/generated/tokens.css`; Schriften sind aus den TTF in `design/fonts/` nach
+WOFF2 umgewandelt, `fonts/OFL.txt` stammt von dort, `blink-32.svg` aus `design/assets/logos/`. Diese Dateien bei
+Änderungen am Designsystem mitziehen. `site.js` spielt nur die Vorschau der
+Anzeige ab und nimmt kein Audio auf; mit „Bewegung reduzieren“ steht sie still.
+Notch-Anzeige und Blink sind als „Vorschau“ gekennzeichnet. Texte zu Kürzel
+(Fn halten oder rechte Wahltaste) und eigenem Server folgen dem Textstand für
+Build 10. „Fn“ steht als Text in Geist Pixel auf der Kappe, weil das
+Designsystem nur Symbole für ⌥, ⇧ und Leertaste hat. Impressum und Datenschutz
+verlinken auf support.opendictate.app (live seit 11. Oktober 2026). Vor dem Livegang der Website Cloudflare Web Analytics abschalten,
+weil die Datenschutzerklärung „kein Tracking“ sagt. Headless Chromium: 1440, 375 und 320
+Pixel Breite ohne horizontalen Überlauf, keine Konsolenfehler, alle fünf
+Schriften geladen. Zoom und Tastaturweg wurden für diesen Stand nicht erneut
+geprüft.
