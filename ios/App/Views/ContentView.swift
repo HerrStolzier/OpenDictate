@@ -129,7 +129,7 @@ struct ContentView: View {
                     .buttonStyle(PixelButtonStyle(primary: true, theme: theme))
                     .disabled(true)
             case .ready, .copied, .oops:
-                Button(L10n.pick("Start dictation", "Diktat starten")) { try? runner.start() }
+                Button(L10n.pick("Start dictation", "Diktat starten")) { Task { try? await runner.start() } }
                     .buttonStyle(PixelButtonStyle(primary: true, theme: theme))
             }
             if let entry = runner.retryable, !runner.isBusy {

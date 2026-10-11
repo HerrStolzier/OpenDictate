@@ -78,28 +78,27 @@ final class DictationRunner {
         case .listening: return try await finish()
         case .writing: return ""
         case .ready, .copied, .oops:
-            try start()
+            try await start()
             return ""
         }
     }
 
-    func start() throws {
+    func start() async throws {
         guard !isBusy else { return }
         do {
             let configuration = try DictationConfiguration.current()
             let startedAt = Date()
             try startActivity(at: startedAt)
-            do {
-                try recorder.start(into: store.newRecordingURL(), limit: Self.limit)
-            } catch {
-                endActivityNow()
-                throw error
-            }
+            try recorder.start(into: store.newRecordingURL(), limit: Self.limit)
             self.configuration = configuration
             self.startedAt = startedAt
             phase = .listening(since: startedAt)
         } catch {
             phase = .oops(DictationFailure(error).message)
+            // After the phase, so a start during the wait is not overwritten.
+            // Awaited: the shortcut returns right after, and without a
+            // recording iOS may suspend the app before a detached task ran.
+            await endActivityNow()
             throw DictationFailure(error)
         }
     }
@@ -280,10 +279,10 @@ final class DictationRunner {
             dismissalPolicy: .after(Date() + seconds))
     }
 
-    private func endActivityNow() {
+    private func endActivityNow() async {
         guard let activity else { return }
         self.activity = nil
-        Task { await activity.end(nil, dismissalPolicy: .immediate) }
+        await activity.end(nil, dismissalPolicy: .immediate)
     }
 }
 
