@@ -9,6 +9,7 @@ instead of hard-coding colours or sizes:
 - design/generated/gtk-colors.css: GTK @define-color entries (Waybar, GTK)
 - Sources/OpenDictateCore/DesignTokens.swift: Swift values (macOS, later iOS),
   compiled into the app's core module
+- windows/OpenDictate.Core/DesignTokens.cs: C# values for the Windows app
 
 Run without arguments to rewrite the files, or with --check to fail when they
 are out of date.
@@ -26,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TOKENS = ROOT / "design" / "tokens.json"
 OUT = ROOT / "design" / "generated"
 SWIFT_OUT = ROOT / "Sources" / "OpenDictateCore"
+CSHARP_OUT = ROOT / "windows" / "OpenDictate.Core"
 HEADER = "Generated from design/tokens.json by scripts/design-tokens.py. Do not edit."
 HEX = re.compile(r"^#[0-9A-Fa-f]{6}$")
 ALIAS = re.compile(r"^\{([A-Za-z0-9][A-Za-z0-9_.-]*)\}$")
@@ -201,11 +203,54 @@ def swift(tokens: dict) -> str:
     return "\n".join(out) + "\n"
 
 
+def pascal(name: str) -> str:
+    return "".join(part[:1].upper() + part[1:] for part in re.split(r"[-_.]", name))
+
+
+def csharp(tokens: dict) -> str:
+    ids = themes(tokens)
+    colours = resolve_colors(tokens)
+    out = [f"// {HEADER}", "", "namespace OpenDictate.Core;", ""]
+    out += ["public enum DesignTheme { " + ", ".join(pascal(theme) for theme in ids) + " }", ""]
+    out += ["public enum DesignColor", "{"]
+    out += [f"    {pascal(name)}," for name, _ in colours]
+    out += ["}", "", "public static class DesignTokens", "{"]
+    out += ["    // sRGB value as 0xRRGGBB.", "    public static uint Rgb(DesignColor color, DesignTheme theme) => (color, theme) switch", "    {"]
+    for name, values in colours:
+        for theme in ids:
+            out.append(f"        (DesignColor.{pascal(name)}, DesignTheme.{pascal(theme)}) => 0x{values[theme][1:]},")
+    out += ["        _ => throw new ArgumentOutOfRangeException(nameof(color)),", "    };", "}", ""]
+    out += ["// Lengths in device-independent pixels; RadiusIcon is a fraction of the icon size.", "public static class DesignMetric", "{"]
+    for name, value in length_tokens(tokens):
+        out.append(f"    public const double {pascal(name)} = {swift_number(value)};")
+    out += ["}", ""]
+    out += [
+        "// Letter spacing is a fraction of Size (CSS em); 0 when the style sets none.",
+        "public sealed record DesignTextStyle(string Family, double Size, double LineHeight, int Weight, double Tracking);",
+        "",
+        "public static class DesignFont",
+        "{",
+    ]
+    for name, stack in tokens["type"]["families"].items():
+        primary = stack.split(",")[0].strip().strip('"')
+        out.append(f'    public const string {pascal(name)} = "{primary}";')
+    out.append("")
+    for style in text_styles(tokens):
+        out.append(
+            f"    public static readonly DesignTextStyle {pascal(style['name'])} = new({pascal(style['family'])}, "
+            f"{swift_number(style['fontSize'])}, {swift_number(style['lineHeight'])}, {int(style['fontWeight'])}, "
+            f"{swift_em(style.get('letterSpacing', '0em'))});"
+        )
+    out.append("}")
+    return "\n".join(out) + "\n"
+
+
 def render(tokens: dict) -> dict[Path, str]:
     return {
         OUT / "tokens.css": css(tokens),
         OUT / "gtk-colors.css": gtk(tokens),
         SWIFT_OUT / "DesignTokens.swift": swift(tokens),
+        CSHARP_OUT / "DesignTokens.cs": csharp(tokens),
     }
 
 

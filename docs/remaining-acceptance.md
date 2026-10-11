@@ -270,9 +270,17 @@ keinen Schlüssel. 40 Kern-, Ablauf- und Provider-Prüfungen (Provider gegen
 `fixtures/provider/`) und die Builds bestanden offline auf Linux mit .NET SDK
 10.0.401; die 13 Schutzprüfungen wurden dabei nicht ausgeführt.
 
+Ebenfalls seit 11. Oktober gibt es die Beta-App `OpenDictate.App`
+([Beschreibung](../windows/README.md#beta-app-11-oktober-2026)): Infobereich,
+Strg+Win halten oder rechte Strg, Einfügen per Zwischenablage und Strg+V nur ins
+erfasste Fenster, Diktatanzeige, Begrüßung mit Kürzeltest. 59 Offline-Prüfungen
+(davon 19 für Kürzel, Auslöser, Einfügeregel, Einstellungen und Anzeige) und
+alle Builds bestanden auf Linux; die App wurde nicht gestartet.
+
 **Offen / bekannte Grenzen:** Kein echtes Diktat, keine Provideranfrage, auch
-nicht gegen ein lokales Modell; kein Prompt (Vokabular); keine Beta-App-Hülle
-(Infobereich, Kürzel nach Wahl, Einfügen per Zwischenablage); keine
+nicht gegen ein lokales Modell; die Beta-App lief noch nie auf Windows (Hook,
+Startmenü nach Strg+Win, Anzeige über Spielen, Strg+V, Mikrofonfreigabe,
+Autostart, Skalierung); kein Prompt (Vokabular); keine Maus-Seitentaste; keine
 reproduzierbare Paketierung, keine Signatur, kein Installer; Update- und
 Deinstallationsweg; Pflichtprogramme nicht festgelegt.
 

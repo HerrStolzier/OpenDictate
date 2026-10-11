@@ -22,6 +22,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'The SDK from global.json is required.' }
     & dotnet run --project OpenDictate.Checks -c Release
     if ($LASTEXITCODE -ne 0) { throw 'Offline checks failed.' }
+    & dotnet build OpenDictate.App -c Release
+    if ($LASTEXITCODE -ne 0) { throw 'Beta app build failed.' }
     & dotnet build OpenDictate.Prototype -c Release
     if ($LASTEXITCODE -ne 0) { throw 'Windows build failed.' }
     Write-Output 'Offline checks and Windows build passed. Interactive acceptance has not been run by this script.'
