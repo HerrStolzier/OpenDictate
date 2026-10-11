@@ -200,10 +200,11 @@ and translation requests were exercised on one attended test system on
 
 ## Support requests
 
-This section covers all platforms. The support channel is not live yet: there
-is no support address or contact form so far. It describes how support
-requests will be handled once both are published; the website's privacy
-policy will name the same details with the legal bases.
+This section covers all platforms. Support has been live since 11 October
+2026: e-mail to support@opendictate.app or the contact form at
+https://support.opendictate.app/kontakt. The privacy policy at
+https://support.opendictate.app/datenschutz names the same details with the
+legal bases.
 
 OpenDictate itself never contacts support and sends no logs, diagnostics or
 recordings there. A request contains only what you type into the contact form

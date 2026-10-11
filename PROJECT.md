@@ -146,9 +146,9 @@ der ersten Beta und blockiert keine ([ROADMAP](ROADMAP.md#plattformübergreifend
   oben ist die Richtung, nicht die Umsetzung.
 - Die Website ist ein lokaler Entwurf mit illustrativer Demo, kein
   Diktiernachweis.
-- Support läuft bis zum Livegang des Support-Backends nur über die
-  Projektkanäle; es gibt noch keine Supportadresse und keine zugesagten
-  Antwortzeiten.
+- Support läuft seit dem 11. Oktober 2026 über support@opendictate.app und
+  das Formular unter support.opendictate.app; zugesagte Antwortzeiten gibt es
+  nicht, und der KI-Agent ist aus.
 
 ## Entscheidungen
 
