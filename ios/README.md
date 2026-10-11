@@ -69,6 +69,10 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
   Prüfpunkt ([ROADMAP](../ROADMAP.md#track-ios)).
 - Kein Kontrollzentrum-Schalter, keine Erkennung auf dem Gerät, kein
   Vokabular und keine feste Sprache; die Sprache erkennt der Dienst.
+- Das Datenschutz-Manifest gibt Audio und Text als für die App-Funktion
+  erfasst an (aus Sicht der App nicht mit der Person verknüpft, kein Tracking),
+  weil der gewählte Dienst beides eine Zeit lang aufbewahren kann. Die Angaben im App Store
+  werden beim TestFlight-Schritt noch einmal geprüft.
 - Ein eigener Server im Heimnetz braucht `https://`; `http://` gilt nur für
   einen Server auf dem iPhone selbst. Dazu braucht er die iOS-Freigabe
   „Lokales Netzwerk“, die die App beim Öffnen anfragt; aus dem Hintergrund
