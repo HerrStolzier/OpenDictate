@@ -22,7 +22,7 @@ public struct ServiceEndpoint: Sendable, Equatable {
             let scheme = components.scheme?.lowercased(), let host = components.host?.lowercased(),
             Self.isPlainHost(host), components.user == nil, components.password == nil,
             components.query == nil, components.fragment == nil,
-            Self.hasValidPort(components),
+            Self.hasValidPort(in: trimmed),
             let url = components.url
         else { return nil }
         switch scheme {
@@ -40,11 +40,28 @@ public struct ServiceEndpoint: Sendable, Equatable {
         !host.isEmpty && host.allSatisfy { $0.isLetter || $0.isNumber || "-._:[]".contains($0) }
     }
 
-    /// A written port must parse and be a usable TCP port; an overflowing
-    /// number parses as no port at all, so it is rejected as well.
-    private static func hasValidPort(_ components: URLComponents) -> Bool {
-        guard components.rangeOfPort != nil else { return true }
-        guard let port = components.port else { return false }
+    /// A written port must be 1 to 65535 in plain digits. Read from the text
+    /// itself, because Foundation versions differ in how they parse an
+    /// overflowing port. Runs after userinfo, query and fragment are rejected,
+    /// so the authority holds only host and port.
+    private static func hasValidPort(in address: String) -> Bool {
+        guard let start = address.range(of: "://")?.upperBound else { return false }
+        let authority = address[start...].prefix { $0 != "/" }
+        let afterHost: Substring
+        if authority.hasPrefix("[") {
+            guard let close = authority.firstIndex(of: "]") else { return false }
+            afterHost = authority[authority.index(after: close)...]
+        } else if let colon = authority.firstIndex(of: ":") {
+            afterHost = authority[colon...]
+        } else {
+            return true
+        }
+        guard !afterHost.isEmpty else { return true }
+        let digits = afterHost.dropFirst()
+        guard afterHost.first == ":", !digits.isEmpty, digits.count <= 5,
+            digits.allSatisfy({ ("0"..."9").contains($0) }),
+            let port = Int(digits)
+        else { return false }
         return (1...65_535).contains(port)
     }
 
