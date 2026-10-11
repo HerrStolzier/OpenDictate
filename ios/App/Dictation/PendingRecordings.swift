@@ -81,12 +81,16 @@ struct PendingRecordings: Sendable {
     }
 
     /// Deletes expired recordings, then returns the newest one with a valid
-    /// tag. An entry that fails the check never hides an older valid one.
-    func newest(now: Date = Date()) -> RecordingRetention.Entry? {
+    /// tag, leaving out `excluded`. An entry that fails the check or is left
+    /// out never hides an older valid one.
+    func newest(now: Date = Date(), excluding excluded: URL? = nil) -> RecordingRetention.Entry? {
         let entries = self.entries()
         let expired = RecordingRetention.expired(from: entries, now: now)
         for entry in expired { remove(entry.url) }
-        var candidates = entries.filter { !expired.contains($0) }
+        // By name: the listed URLs need not equal the ones `keep` returned.
+        var candidates = entries.filter {
+            !expired.contains($0) && $0.url.lastPathComponent != excluded?.lastPathComponent
+        }
         while let entry = RecordingRetention.newest(in: candidates) {
             if authenticatedAudio(at: entry.url) != nil { return entry }
             candidates.removeAll { $0 == entry }

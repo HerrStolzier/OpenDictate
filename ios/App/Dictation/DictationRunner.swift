@@ -53,7 +53,7 @@ final class DictationRunner {
 
     private init() {
         store.prepare()
-        retryable = store.newest()
+        retryable = pendingRetry()
         recorder.onUnexpectedStop = { Task { try? await DictationRunner.shared.finish() } }
         // A phone call or Siri takes the microphone: send what was said so far.
         NotificationCenter.default.addObserver(
@@ -133,7 +133,7 @@ final class DictationRunner {
     /// Sends the newest kept recording again with the current settings.
     func retry() async {
         guard !isBusy else { return }
-        guard let entry = store.newest() else {
+        guard let entry = pendingRetry() else {
             retryable = nil
             return
         }
@@ -163,7 +163,7 @@ final class DictationRunner {
     /// while the app stayed open.
     func refreshRetryable() {
         guard !isBusy else { return }
-        retryable = store.newest()
+        retryable = pendingRetry()
     }
 
     /// Only between dictations: a phase change while recording or writing
@@ -177,7 +177,7 @@ final class DictationRunner {
             if let uncopiedRecording {
                 store.remove(uncopiedRecording)
                 self.uncopiedRecording = nil
-                retryable = store.newest()
+                retryable = pendingRetry()
             }
         } catch {
             phase = .oops(DictationFailure(error).message)
@@ -211,7 +211,7 @@ final class DictationRunner {
                 return text
             }
             store.remove(url)
-            retryable = store.newest()
+            retryable = pendingRetry()
             phase = .copied
             await endActivity(.copied, detail: L10n.copiedDetail, after: 4)
             return text
@@ -221,13 +221,19 @@ final class DictationRunner {
     }
 
     private func fail(_ failure: DictationFailure) async -> DictationFailure {
-        retryable = store.newest()
+        retryable = pendingRetry()
         phase = .oops(failure.message)
         // A text that missed the clipboard is waiting in the app; no need to send it again.
         let pointsToRetry = retryable != nil && failure != .clipboardFailed
         let detail = pointsToRetry ? failure.message + " " + L10n.keptDetail : failure.message
         await endActivity(.oops, detail: detail, after: 10)
         return failure
+    }
+
+    /// The newest kept recording that still needs sending. The one whose text
+    /// only awaits "Copy again" is left out, so it is not sent and billed twice.
+    private func pendingRetry() -> RecordingRetention.Entry? {
+        store.newest(excluding: uncopiedRecording)
     }
 
     /// The setter reports nothing; an unchanged count means iOS refused the
