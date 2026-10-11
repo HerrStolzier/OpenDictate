@@ -147,9 +147,9 @@ der ersten Beta und blockiert keine ([ROADMAP](ROADMAP.md#plattformübergreifend
   oben ist die Richtung, nicht die Umsetzung.
 - Die Website ist ein lokaler Entwurf mit illustrativer Demo, kein
   Diktiernachweis.
-- Support läuft bis zum Livegang des Support-Backends nur über die
-  Projektkanäle; es gibt noch keine Supportadresse und keine zugesagten
-  Antwortzeiten.
+- Support läuft seit dem 11. Oktober 2026 über support@opendictate.app und
+  das Formular unter support.opendictate.app; zugesagte Antwortzeiten gibt es
+  nicht, und der KI-Agent ist aus.
 
 ## Entscheidungen
 
@@ -170,6 +170,10 @@ Preismodells und der Gaming-Ursprung verloren.
 | 11. Oktober 2026 | Basti liest und mergt keine PRs mehr. Fertige, von critic geprüfte PRs mit grüner CI mergt der Workflow „Auto-Merge“ selbst; PRs, die Workflow-Dateien ändern, mergt Claude. Als Entwurf bleibt ein PR nur, wenn er auf ein Ereignis wartet (Release, Livegang). | [CLAUDE.md](CLAUDE.md); Karte im privaten Projektchat |
 | 11. Oktober 2026 | Die Linux-Beta bekommt vor ihrem Pre-Release zwei offene Punkte: eigener Server als Stufe 1 für ein lokales Modell (kostenlos, gleiche Begriffe und Regeln wie auf dem Mac) und die geführte Einrichtung `opendictate setup` mit Kürzel-Abfrage (Super+D, F9, rechte Alt nur bei US-Layout). Anlass: Bastis Auftrag „Mach alle offenen To-Dos parallel fertig“; die Abfrage aus der Entscheidung vom 9. Oktober kommt damit für Linux in das kostenlose CLI. Pre-Release und Ankündigungen warten weiter auf Bastis eigenes Go. | [ROADMAP](ROADMAP.md#track-linux); Projektchat 11. Oktober |
 | 11. Oktober 2026 | Diktier-Ablauf der iOS-App für die erste Beta: Auslösen per Aktionstaste, Rückseite oder Kontrollzentrum nimmt im Hintergrund auf, das Ergebnis kommt in die Zwischenablage, der Nutzer fügt selbst ein. Keine eigene Tastatur mit Vollzugriff und kein Diktieren nur in der App. Löst den Wunsch vom 29. September 2026 ab, direkt in das Feld anderer Apps einzufügen. | [iOS-Konzept](docs/ios-konzept.md); Karte im privaten Projektchat |
+| 11. Oktober 2026 | Der Support geht live: Kontaktformular, Impressum und Datenschutz unter support.opendictate.app, Mails an support@opendictate.app landen als Ticket im Dashboard, das nur nach Cloudflare-Anmeldung erreichbar ist. Der KI-Agent bleibt aus. | [PR #66](https://github.com/HerrStolzier/OpenDictate/pull/66); Bastis Freigabe im privaten Projektchat |
+| 11. Oktober 2026 | Cloudflare-Einstellungen (DNS, Zugangsschutz, Speicher) richtet Claude über Cloudflares offiziellen API-Connector selbst ein; Änderungen fragen vorher nach, Deploys weiterhin nur mit ausdrücklichem OK. | [PR #66](https://github.com/HerrStolzier/OpenDictate/pull/66); Karte im privaten Projektchat |
+| 11. Oktober 2026 | Support-Mails laufen nur über Cloudflare: Empfang mit Email Routing, Antworten direkt aus dem Support-Dashboard über Cloudflare Email Service (braucht Workers Paid, 5 $ im Monat). Kein zusätzlicher Mail-Anbieter, keine Kopie der Anfragen in ein Postfach. | [PR #66](https://github.com/HerrStolzier/OpenDictate/pull/66); Karte im privaten Projektchat |
+| 11. Oktober 2026 | Die Domain für Website und Support wird opendictate.app (bei Cloudflare, wo Worker und Email Routing liegen); opendictate.com ist anderweitig registriert. | [PR #66](https://github.com/HerrStolzier/OpenDictate/pull/66); Gespräch im privaten Projektchat |
 | 10. Oktober 2026 | Die Empfehlung in der Mac-Kürzel-Abfrage hängt von der Tastatur ab: Fn halten bei MacBook- oder kompakter Apple-Tastatur, rechte Wahltaste bei Apple-Tastatur mit Ziffernblock (Fn liegt dort weit rechts) oder Tastatur eines anderen Herstellers. Anlass: Bastis Live-Test mit der großen Apple-Tastatur. | [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |
 | 9. Oktober 2026 | Die neue Diktatanzeige der Mac-App wird vorgezogen: Statt des heutigen Fensters zeigt eine kleine Anzeige an der Notch mit Blink den Stand des Diktats und schließt sich bei Erfolg von selbst; „Beenden“ kommt ins Menü der Menüleiste. Entwurf sofort, Bau gleich nach dem Start der Mac-Beta und vor der Linux-Leiste. Anlass: Bastis Test, im heutigen Fenster stehen zu viele gleich starke Elemente und „Beenden“ ist versteckt. Build 9 und die Beta bleiben unverändert. | [design/README.md](design/README.md), [ROADMAP](ROADMAP.md#track-macos); Karte im privaten Projektchat |
 | 9. Oktober 2026 | Der Entwurf der Startseite im neuen Design ist abgenommen. Er übernimmt die Beta-Texte der Website; Notch-Anzeige und Blink sind als Vorschau gekennzeichnet. Eingebaut wird er nach dem Merge der Beta-Website; vor der Veröffentlichung fehlt noch ein Impressum. | [design/README.md](design/README.md); Gespräch im privaten Projektchat |
