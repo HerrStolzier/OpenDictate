@@ -188,10 +188,11 @@ and message before the request is stored.
 Requests are handled by a small support service on Cloudflare Workers,
 operated by the developer. It stores the e-mail address, the optional name,
 subject, message, chosen topic, processing state, replies and internal notes
-in a Cloudflare D1 database restricted to the EU jurisdiction. Attachments are
-not stored. Mail to the support address passes through Cloudflare Email
-Routing, and a copy is forwarded to the developer's mailbox at an e-mail
-provider; replies are written and sent from there.
+in a Cloudflare D1 database restricted to the EU jurisdiction. The support
+service does not store attachments. Mail to the support address passes through
+Cloudflare Email Routing, and a copy, attachments included, is forwarded to the
+developer's mailbox at an e-mail provider; replies are written and sent from
+there.
 
 Against spam, the form uses a hidden field, an origin check and daily limits.
 For the per-sender limit the IP address is kept only as a hash combined with
@@ -202,11 +203,13 @@ An optional assistant can sort a request and draft a reply. It is off unless
 the developer enables it. When enabled, it sends the subject and messages, not
 the stored address field, to the OpenAI API with storage of the request turned
 off (`store: false`); addresses inside quoted text or signatures are part of
-the message. The assistant never sends anything. Every reply is written or
+the message. Its result is stored with the request and deleted with it. The
+assistant never sends anything. Every reply is written or
 checked by the developer. Independently of the assistant, a fixed keyword
 check marks requests that mention privacy, security, payments, data loss,
 legal matters or anger for personal handling.
 
-Closed requests are deleted automatically 180 days after they were closed.
+Closed requests are deleted automatically 180 days after they were closed;
+open requests are kept until they are closed.
 On request, a ticket and all its messages are deleted at once, and the
 copies in the developer's mailbox, including sent replies, are deleted by hand.
