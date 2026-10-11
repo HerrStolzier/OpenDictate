@@ -46,7 +46,12 @@ nächste Versuch klappte); seit PR #59 steht der Grund im Protokoll
 (`recording-start-failed`), und die leere Datei wird entfernt. Einfügen in Chromium-, Electron- und
 Discord-Fenstern; gemischtes Deutsch/Englisch; Abbruch genau während der
 Übersetzung; andere Compositoren als Hyprland; andere Distributionen;
-Vokabular; konfigurierbarer Endpunkt. Für das Arch-Paket ungeprüft: `namcap`, Bau mit pacman-Rust und `makepkg -si`,
+Vokabular. Eigener Server und `opendictate setup` mit Kürzel-Abfrage
+(11. Oktober) sind nur offline geprüft: Tests mit lokalem HTTP-Stub (kein
+Schlüssel an Loopback, Schlüssel an Fremdserver) und ein Durchlauf im
+Test-Terminal mit Attrappen für `hyprctl` und `secret-tool`. Live offen:
+Durchlauf auf omarchy, die Lua-Zeilen für F9 und rechte Alt, ein echter
+lokaler Server. Für das Arch-Paket ungeprüft: `namcap`, Bau mit pacman-Rust und `makepkg -si`,
 frische Ersteinrichtung des Schlüssels.
 Eine alte Testaufnahme vom 7. Oktober liegt noch im Recovery-Ordner auf
 omarchy; Löschen nur mit Bastis Go. Die leere Datei vom gescheiterten Start

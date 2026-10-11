@@ -18,14 +18,11 @@ pub fn serve(status: &str, body: &str) -> (String, thread::JoinHandle<Vec<u8>>) 
                 break;
             }
             request.extend_from_slice(&chunk[..count]);
-            if let Some(length) = content_length(&request) {
-                if request
-                    .windows(4)
-                    .position(|part| part == b"\r\n\r\n")
-                    .is_some_and(|header_end| request.len() >= header_end + 4 + length)
-                {
-                    break;
-                }
+            let header_end = request.windows(4).position(|part| part == b"\r\n\r\n");
+            // A request without a body (GET) ends with its headers.
+            let length = content_length(&request).unwrap_or(0);
+            if header_end.is_some_and(|header_end| request.len() >= header_end + 4 + length) {
+                break;
             }
         }
         write!(

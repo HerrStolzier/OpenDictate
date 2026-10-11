@@ -17,7 +17,7 @@ files. Test sentences only. English or German is fine.
 
 **Target program and field:** <!-- e.g. Chromium, reply field in a webmail; Discord; kitty -->
 
-**Settings:** <!-- output of `opendictate settings show` -->
+**Settings:** <!-- output of `opendictate settings show`; replace a private server address with "custom" -->
 
 **What you said:**
 <!-- The sentence as you spoke it -->
