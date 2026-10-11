@@ -270,7 +270,7 @@
   var HUD = {
     bereit: { word: 'Bereit', sub: 'fn halten' },
     hoert: { word: 'Hört zu', sub: 'REC 0:0' },
-    schreibt: { word: 'Schreibt', sub: 'OpenAI wandelt um' },
+    schreibt: { word: 'Schreibt', sub: 'Wird umgewandelt' },
     eingefuegt: { word: 'Eingefügt', sub: 'ins Textfeld' },
     hoppla: { word: 'Hoppla', sub: 'Keine Verbindung. Deine Aufnahme ist gesichert.' }
   };
