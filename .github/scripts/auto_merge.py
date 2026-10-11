@@ -29,6 +29,7 @@ OK_CONCLUSIONS = {"success", "neutral", "skipped"}
 SELF_CHECK = "Auto-Merge"  # Name des eigenen Jobs; seine Prüfung zählt nicht mit.
 GRACE_SECONDS = 90  # So lange bekommen andere Workflows Zeit, ihre Prüfungen anzulegen.
 POLL_SECONDS = 30
+FILE_CAP = 3000  # Obergrenze der Dateilisten von GitHub (Commit und PR)
 
 
 def needs_review(paths):
@@ -188,6 +189,8 @@ def comment_once(gh, number, sha, kind, text):
 
 def paths(files):
     """Alle betroffenen Pfade, bei Umbenennungen auch der alte Name."""
+    if len(files) >= FILE_CAP:  # GitHub liefert höchstens so viele Dateien; der Rest wäre ungeprüft.
+        raise RuntimeError(f"mehr als {FILE_CAP - 1} geänderte Dateien, bitte selbst mergen")
     return [p for f in files for p in (f.get("filename"), f.get("previous_filename")) if p]
 
 
