@@ -49,7 +49,12 @@ angeschlossen war (PipeWire ohne Quelle). Bis dahin meldete `toggle` trotzdem
 „Aufnahme läuft“ und der Grund stand nur im Protokoll; seitdem erscheint ein
 gescheiterter Start als Benachrichtigung, die nach dem Mikrofon fragt, und
 `toggle` meldet ihn mit Verweis auf das Protokoll (in der Sandbox ohne
-Audiogerät geprüft, auf omarchy noch nicht). Einfügen in Chromium-, Electron- und
+Audiogerät geprüft, auf omarchy noch nicht). Während das Mikrofon öffnet,
+heißt der Zustand `starting`; ein weiteres `toggle` wird dann abgelehnt, und
+braucht das Mikrofon länger als 5 Sekunden, bricht der Start ab. Bekannte
+Grenze: Hängt das Öffnen des Mikrofons ganz, bleibt `starting` stehen, bis der
+Aufnahmeprozess beendet wird; geprüft ist das nur mit einer nachgestellten
+Zustandsdatei, nicht mit einem langsamen Mikrofon. Einfügen in Chromium-, Electron- und
 Discord-Fenstern; gemischtes Deutsch/Englisch; Abbruch genau während der
 Übersetzung; andere Compositoren als Hyprland; andere Distributionen;
 Vokabular. Eigener Server und `opendictate setup` mit Kürzel-Abfrage

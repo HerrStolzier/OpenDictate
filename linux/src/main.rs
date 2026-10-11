@@ -26,7 +26,7 @@ use std::io::{self, IsTerminal, Read, Write};
 use std::os::unix::process::CommandExt;
 use std::path::Path;
 use std::process::{Child, Command, Stdio};
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use ipc::Event;
 
@@ -41,7 +41,7 @@ Kürzel ein.
 Befehle:
   setup                  geführte Einrichtung: Dienst und Kürzel
   toggle                 Aufnahme starten oder stoppen
-  status                 idle / recording / processing / delivering
+  status                 idle / starting / recording / processing / delivering
   bar                    Status als JSON-Zeile für Omarchy-Leiste oder Waybar
   cancel                 Aufnahme oder Verarbeitung sicher abbrechen
   retry                  neueste authentifizierte Aufnahme erneut senden
@@ -72,7 +72,7 @@ shortcut.
 Commands:
   setup                  guided setup: service and shortcut
   toggle                 start or stop a recording
-  status                 idle / recording / processing / delivering
+  status                 idle / starting / recording / processing / delivering
   bar                    status as a JSON line for the Omarchy bar or Waybar
   cancel                 safely cancel a recording or processing
   retry                  send the newest authenticated recording again
@@ -176,11 +176,19 @@ fn toggle() -> Result<(), String> {
                 "Recording process did not respond."
             )),
         },
+        state::State::Starting => Err(starting()),
         state::State::Processing | state::State::Delivering => Err(tr!(
             "OpenDictate verarbeitet bereits eine Aufnahme.",
             "OpenDictate is already processing a recording."
         )),
     }
+}
+
+fn starting() -> String {
+    tr!(
+        "Die Aufnahme startet gerade; gleich noch einmal versuchen.",
+        "The recording is starting; try again in a moment."
+    )
 }
 
 fn start_worker() -> Result<(), String> {
@@ -200,7 +208,8 @@ fn start_worker() -> Result<(), String> {
         .stdout(Stdio::null())
         .stderr(log_file)
         .env_remove("OPENAI_API_KEY")
-        .env_remove("OPENDICTATE_API_KEY");
+        .env_remove("OPENDICTATE_API_KEY")
+        .env(START_BY_ENV, start_by_millis().to_string());
     command.process_group(0);
     let mut child = command.spawn().map_err(|_| {
         tr!(
@@ -208,12 +217,38 @@ fn start_worker() -> Result<(), String> {
             "Recording process could not start."
         )
     })?;
-    // Includes opening the microphone, which can take a moment on first use.
-    wait_for_recording(&mut child, &log, Duration::from_secs(5))?;
+    // The worker gives up at the deadline passed above; waiting a second
+    // longer means a recording never starts after this reported a failure.
+    wait_for_recording(
+        &mut child,
+        &log,
+        record::START_TIMEOUT + Duration::from_secs(1),
+    )?;
     let started = i18n::t("Aufnahme läuft", "Recording started");
     notify::status(started);
     println!("{started}");
     Ok(())
+}
+
+/// Passes the start deadline to the detached worker, as milliseconds since
+/// the Unix epoch, so both processes measure it from the same moment.
+const START_BY_ENV: &str = "OPENDICTATE_START_BY";
+
+fn start_by_millis() -> u128 {
+    (SystemTime::now() + record::START_TIMEOUT)
+        .duration_since(UNIX_EPOCH)
+        .map(|elapsed| elapsed.as_millis())
+        .unwrap_or_default()
+}
+
+/// The deadline `toggle` passed in, or `START_TIMEOUT` from now when the
+/// worker was started some other way.
+fn start_deadline() -> SystemTime {
+    std::env::var(START_BY_ENV)
+        .ok()
+        .and_then(|value| value.parse::<u64>().ok())
+        .map(|millis| UNIX_EPOCH + Duration::from_millis(millis))
+        .unwrap_or_else(|| SystemTime::now() + record::START_TIMEOUT)
 }
 
 /// Waits until the detached worker reports a running recording. A worker that
@@ -272,6 +307,11 @@ fn cancel() -> Result<(), String> {
             "Keine laufende Aufnahme oder Verarbeitung.",
             "No recording or processing is running."
         )),
+        state::State::Starting | state::State::Processing | state::State::Delivering => {
+            state::request_cancel(&cancel_path).map_err(path_error)?;
+            println!("{}", cancel_requested());
+            Ok(())
+        }
         state::State::Recording => {
             state::request_cancel(&cancel_path).map_err(path_error)?;
             ipc::send(&socket, ipc::STOP).map_err(|_| {
@@ -280,11 +320,6 @@ fn cancel() -> Result<(), String> {
                     "Recording process did not respond."
                 )
             })?;
-            println!("{}", cancel_requested());
-            Ok(())
-        }
-        state::State::Processing | state::State::Delivering => {
-            state::request_cancel(&cancel_path).map_err(path_error)?;
             println!("{}", cancel_requested());
             Ok(())
         }
@@ -760,22 +795,42 @@ fn worker() -> Result<(), String> {
     let _guard = SocketGuard {
         path: socket.clone(),
     };
+    let deadline = start_deadline();
+    let state_guard = state::StateGuard::begin(
+        paths::state_path().map_err(path_error)?,
+        paths::cancel_path().map_err(path_error)?,
+        state::State::Starting,
+    )
+    .map_err(path_error)?;
     let target = window::active_window();
     if let Some(target) = &target {
         log_ops(&format!("window-captured class={}", target.class));
     }
     let path = paths::next_pending_path().map_err(path_error)?;
     restrict_file_parent(&path)?;
-    // `toggle` reports a started recording once the state says so, and this
-    // process runs detached, so the state is only set once the microphone
-    // runs and a failed start is shown as a notification.
+    // This process runs detached: `toggle` reports a started recording only
+    // once the state says so, and a failed start is shown as a notification.
     let handle = record::start(&path).inspect_err(|error| notify::status(error))?;
-    let state_guard = state::StateGuard::begin(
-        paths::state_path().map_err(path_error)?,
-        paths::cancel_path().map_err(path_error)?,
-        state::State::Recording,
-    )
-    .map_err(path_error)?;
+    if SystemTime::now() > deadline {
+        let kept = !handle.abort();
+        log_ops(&format!("recording-start-timeout kept={kept}"));
+        let error = tr!(
+            "Das Mikrofon hat zu lange zum Starten gebraucht; die Aufnahme wurde abgebrochen.",
+            "The microphone took too long to start; the recording was stopped."
+        );
+        notify::status(&error);
+        return Err(error);
+    }
+    state_guard
+        .set(state::State::Recording)
+        .map_err(path_error)?;
+    // Checked after publishing Recording: a cancel written while the state
+    // still said Starting is seen here, a later one stops via the socket.
+    if let Err(error) = ensure_not_cancelled(&state_guard) {
+        let kept = !handle.abort();
+        log_ops(&format!("recording-start-cancelled kept={kept}"));
+        return Err(error);
+    }
     log_ops("recording-started");
     let event =
         ipc::wait_for_stop(&listener, Instant::now() + record::MAX_RECORDING).map_err(|_| {

@@ -13,7 +13,7 @@ const HOURGLASS: &str = "\u{f252}";
 /// settings, never transcript text.
 pub fn render(state: State, settings: &Settings) -> String {
     let icon = match state {
-        State::Idle | State::Recording => MICROPHONE,
+        State::Idle | State::Starting | State::Recording => MICROPHONE,
         State::Processing | State::Delivering => HOURGLASS,
     };
     let text = match settings.target_language.as_deref() {
@@ -22,6 +22,7 @@ pub fn render(state: State, settings: &Settings) -> String {
     };
     let activity = match state {
         State::Idle => t("bereit", "ready"),
+        State::Starting => t("Aufnahme startet", "recording starts"),
         State::Recording => t("Aufnahme läuft", "recording"),
         State::Processing => t("verarbeitet", "processing"),
         State::Delivering => t("liefert Text", "delivering text"),
@@ -86,6 +87,13 @@ mod tests {
             .as_str()
             .unwrap()
             .contains("Aufnahme läuft"));
+    }
+
+    #[test]
+    fn starting_is_not_shown_as_active_yet() {
+        let value = parse(&render(State::Starting, &Settings::default()));
+        assert_eq!(value["text"], MICROPHONE);
+        assert_eq!(value["class"], json!(["starting"]));
     }
 
     #[test]

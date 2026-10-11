@@ -251,7 +251,7 @@ the text then goes to OpenAI for translation. To no one else. With a
 ```bash
 opendictate setup                   # guided setup: key or custom server, shortcut
 opendictate toggle                  # start or stop a recording
-opendictate status                  # idle / recording / processing / delivering
+opendictate status                  # idle / starting / recording / processing / delivering
 opendictate bar                     # status as a JSON line for the bar (`waybar` works too)
 opendictate cancel                  # safely cancel recording/processing
 opendictate retry                   # send the newest authenticated recording again
@@ -307,9 +307,12 @@ secrets; the HTTP tests only use a local stub.
 
 ### Flow and safety rules
 
-- `toggle` starts a recording without taking focus. The second call stops it
-  and switches to `processing`; further starts during `processing` or
-  `delivering` are refused.
+- `toggle` starts a recording without taking focus. While the microphone opens
+  the state is `starting`; only then is the recording reported as started, and
+  a microphone that fails or takes longer than 5 seconds ends the start with a
+  notification. The second call stops the recording and switches to
+  `processing`; further starts during `starting`, `processing` or `delivering`
+  are refused.
 - Below 1 second, or without a 50 ms window above −45 dBFS, nothing is
   uploaded. Detected speech keeps a 0.25-second margin; only savings of 0.35
   seconds or more produce a trimmed upload WAV. The 90-second limit stays on.

@@ -261,7 +261,7 @@ diesen Server. Details: [PRIVACY.md](../PRIVACY.md#linux-cli).
 ```bash
 opendictate setup                   # geführte Einrichtung: Schlüssel oder eigener Server, Kürzel
 opendictate toggle                  # Aufnahme starten oder stoppen
-opendictate status                  # idle / recording / processing / delivering
+opendictate status                  # idle / starting / recording / processing / delivering
 opendictate bar                     # Status als JSON-Zeile für die Leiste (`waybar` gleichwertig)
 opendictate cancel                  # Aufnahme/Verarbeitung sicher abbrechen
 opendictate retry                   # neueste authentifizierte Aufnahme erneut senden
@@ -322,9 +322,12 @@ Quelle per Pipe (`trusted-secret-command | opendictate secrets set-api-key`).
 
 ### Ablauf und Schutzregeln
 
-- `toggle` startet eine fokusneutrale Aufnahme. Der zweite Aufruf beendet sie
-  und wechselt auf `processing`; weitere Starts während `processing` oder
-  `delivering` werden abgelehnt.
+- `toggle` startet eine fokusneutrale Aufnahme. Solange das Mikrofon öffnet,
+  ist der Zustand `starting`; erst danach gilt die Aufnahme als gestartet, und
+  ein Mikrofon, das scheitert oder länger als 5 Sekunden braucht, beendet den
+  Start mit einer Benachrichtigung. Der zweite Aufruf beendet die Aufnahme und
+  wechselt auf `processing`; weitere Starts während `starting`, `processing`
+  oder `delivering` werden abgelehnt.
 - Unter 1 Sekunde oder ohne 50-ms-Fenster oberhalb −45 dBFS erfolgt kein Upload.
   Erkannte Sprache erhält 0,25 Sekunden Rand; nur Einsparungen ab 0,35 Sekunden
   erzeugen eine zugeschnittene Upload-WAV. Das 90-Sekunden-Limit bleibt aktiv.

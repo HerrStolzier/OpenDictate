@@ -6,6 +6,9 @@ use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use hound::{SampleFormat, WavSpec, WavWriter};
 
 pub const MAX_RECORDING: Duration = Duration::from_secs(90);
+/// How long the worker may take to open the microphone before it gives up;
+/// `toggle` waits a little longer than this.
+pub const START_TIMEOUT: Duration = Duration::from_secs(5);
 pub const MINIMUM_RECORDING: Duration = Duration::from_secs(1);
 pub const SILENCE_THRESHOLD_DB: f64 = -45.0;
 pub const SILENCE_PADDING: Duration = Duration::from_millis(250);
@@ -265,6 +268,14 @@ fn discard_if_silent(capture: &Arc<Mutex<Capture>>, path: &Path) {
 }
 
 impl RecordingHandle {
+    /// Stops a recording that is not used, removing it only while it holds
+    /// no audio. Returns whether it was removed; otherwise it stays in pending.
+    pub fn abort(self) -> bool {
+        drop(self.stream);
+        discard_if_silent(&self.capture, &self.path);
+        !self.path.exists()
+    }
+
     pub fn stop(self) -> Result<Recording, String> {
         drop(self.stream);
         let mut capture = self.capture.lock().map_err(|_| {
