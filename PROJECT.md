@@ -96,10 +96,11 @@ Schritte in der [ROADMAP](ROADMAP.md).
   [`linux-v0.1.0-beta.1`](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1) veröffentlicht. Einrichtung: [linux/README.de.md](linux/README.de.md).
 - **Windows:** Versionierter Prototyp unter [windows/](windows/README.md),
   nur offline geprüft; kein echtes Diktat, keine Paketierung.
-- **iOS:** Synthetischer Textpfad eines Tastatur-Prototyps belegt; echte
-  Aufnahme offen. Produktkonzept seit dem 11. Oktober 2026: Aufnahme im
+- **iOS:** Produktkonzept seit dem 11. Oktober 2026: Aufnahme im
   Hintergrund, Ergebnis in die Zwischenablage, keine eigene Tastatur
-  ([Konzept](docs/ios-konzept.md)).
+  ([Konzept](docs/ios-konzept.md)). Die Beta-App dazu liegt unter
+  [ios/](ios/README.md); auf dem iPhone ist sie noch nicht gebaut und geprüft.
+  Nächste Beta nach Mac und Linux, vor Windows.
 - **Android:** Kein Code.
 - MIT-lizenzierter Quellcode. Nach erfolgreichen CI-Prüfungen sind zeitlich
   begrenzte, ad-hoc signierte [Entwicklungsarchive](docs/development.md#ci-development-archives)
@@ -164,6 +165,7 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
+| 11. Oktober 2026 | Die nächste Beta ist iOS, danach Windows. Beide Tracks laufen parallel weiter, aber iOS geht zuerst an Tester (TestFlight). Vorgaben des iOS-Threads für die erste iOS-Beta, Basti mitgeteilt: Erkennung über OpenAI mit eigenem Schlüssel oder einen eigenen Server (Apples Erkennung auf dem Gerät folgt später); Start über „Auf Rückseite tippen“ oder die Aktionstaste, das Kontrollzentrum folgt später; der alte Tastatur-Prototyp (PR #40) ist geschlossen, sein Zweig bleibt. Hochladen zu TestFlight und das Einladen von Testern brauchen Bastis eigenes Go. | [ROADMAP](ROADMAP.md#track-ios); Projektchat 11. Oktober |
 | 11. Oktober 2026 | Die Live-Abnahme der Windows-Beta (Installation, ein Diktat in Editor und Spielchat, beide Kürzel) läuft auf Bastis Windows-PC `xmg`, wenn die Beta-App fertig ist, und nur mit seinem Go. | [Windows-Plan](docs/windows-plan.md#weg-zur-windows-beta-stand-11-oktober-2026); Karte im Projektchat 11. Oktober |
 | 11. Oktober 2026 | Windows läuft ab jetzt parallel zu iOS weiter. Reihenfolge der nächsten Betas: zuerst iOS, danach Windows. Was ohne Windows-Gerät geht, wird jetzt gebaut und offline geprüft; die Live-Abnahme kommt am Ende. | [Windows-Plan](docs/windows-plan.md#weg-zur-windows-beta-stand-11-oktober-2026); Projektchat 11. Oktober |
 | 11. Oktober 2026 | Die Website geht live unter opendictate.app, als Cloudflare Worker mit den Dateien eines festen Commits. Cloudflare Web Analytics, das Cloudflare bei kostenlosen Domains von selbst einschaltet, ist für die ganze Domain aus, weil Website und Support „kein Tracking“ zusagen. | [website/README.md](website/README.md#auslieferung); Bastis „website live“ im privaten Projektchat |
