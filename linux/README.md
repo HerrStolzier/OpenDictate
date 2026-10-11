@@ -88,13 +88,15 @@ stay behind; they are in `~/.config/opendictate/` and
 **Quickest way:** run `opendictate setup` in a terminal. It asks two things:
 
 1. Who transcribes: OpenAI with your API key (it asks for the key without
-   showing it and checks it right away), or a [custom server](#custom-server).
+   showing it and checks it before saving; only a key that passes the check
+   replaces a stored one), or a [custom server](#custom-server).
 2. Which shortcut starts and stops a dictation: Super+D, F9, or, on a US
    keyboard layout, the right Alt key alone. It shows which keys Hyprland
    already uses and writes the line into your Hyprland config, after asking
    and with a backup next to the file (`….opendictate-backup-…`). For Omarchy
    that is `~/.config/hypr/bindings.lua`; a plain Lua config only gets the line
-   to copy.
+   to copy. If Hyprland does not take the new line, setup puts the file back
+   as it was, so the previous shortcut keeps working.
 
 After that, steps 3 to 5 below are optional. `opendictate shortcut status`
 shows the current shortcut later, `opendictate shortcut set f9` changes it

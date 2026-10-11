@@ -92,7 +92,8 @@ Schlüsselbund-Einträge entfernt
 Dinge:
 
 1. Wer abschreibt: OpenAI mit deinem API-Schlüssel (es fragt den Schlüssel
-   verdeckt ab und prüft ihn gleich), oder ein
+   verdeckt ab und prüft ihn vor dem Speichern; nur ein Schlüssel, der die
+   Prüfung besteht, ersetzt einen gespeicherten), oder ein
    [eigener Server](#eigenen-server-verwenden).
 2. Mit welchem Kürzel du ein Diktat startest und stoppst: Super+D, F9 oder,
    bei US-Tastaturlayout, die rechte Alt-Taste allein. Es zeigt, welche Tasten
@@ -100,7 +101,8 @@ Dinge:
    Hyprland-Konfiguration ein, mit einer Sicherung neben der Datei
    (`….opendictate-backup-…`). Bei Omarchy ist das
    `~/.config/hypr/bindings.lua`; eine reine Lua-Konfiguration bekommt nur die
-   Zeile zum Kopieren.
+   Zeile zum Kopieren. Übernimmt Hyprland die neue Zeile nicht, stellt setup
+   die Datei wieder her, und das bisherige Kürzel gilt weiter.
 
 Danach sind die Schritte 3 bis 5 unten optional. `opendictate shortcut status`
 zeigt später das aktuelle Kürzel, `opendictate shortcut set f9` ändert es ohne
