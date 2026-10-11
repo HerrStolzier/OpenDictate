@@ -319,6 +319,7 @@ fn layout_suits_right_alt(json: &[u8]) -> Option<bool> {
 pub struct Installed {
     pub backup: PathBuf,
     pub replaced: usize,
+    written: String,
 }
 
 /// Writes the bind into the target file: removes earlier OpenDictate binds
@@ -362,7 +363,11 @@ pub fn install(choice: Choice, target: &Target) -> Result<Installed, String> {
             display_path(&target.path)
         ));
     }
-    Ok(Installed { backup, replaced })
+    Ok(Installed {
+        backup,
+        replaced,
+        written: updated,
+    })
 }
 
 /// Puts the config from before `install` back, for a bind Hyprland did not
@@ -376,6 +381,16 @@ pub fn restore(target: &Target, installed: &Installed) -> Result<(), String> {
             display_path(&installed.backup)
         )
     };
+    // Someone else changed the file meanwhile: keep their edit.
+    let current = fs::read_to_string(&target.path).map_err(|_| failed())?;
+    if current != installed.written {
+        return Err(crate::tr!(
+            "{} wurde inzwischen geändert und bleibt deshalb, wie es ist; die Sicherung liegt unter {}.",
+            "{} was changed meanwhile and stays as it is; the backup is at {}.",
+            display_path(&target.path),
+            display_path(&installed.backup)
+        ));
+    }
     let original = fs::read(&installed.backup).map_err(|_| failed())?;
     replace_contents(&target.path, &original).map_err(|_| failed())?;
     let _ = fs::remove_file(&installed.backup);
@@ -673,7 +688,15 @@ bind = , F9, exec, opendictate toggle
         let written = fs::read_to_string(&real).unwrap();
         assert!(written.contains("bind = SUPER, D, exec, opendictate toggle"));
         assert!(!written.contains("F9"));
+        let ours = fs::read_to_string(&real).unwrap();
+        let theirs = format!("{ours}bind = SUPER, E, exec, nautilus\n");
+        fs::write(&real, &theirs).unwrap();
+        assert!(restore(&target, &installed).is_err());
+        assert!(installed.backup.exists());
+        assert_eq!(fs::read_to_string(&real).unwrap(), theirs);
+        fs::write(&real, &ours).unwrap();
         restore(&target, &installed).unwrap();
+        assert!(!installed.backup.exists());
         assert!(fs::symlink_metadata(&link)
             .unwrap()
             .file_type()

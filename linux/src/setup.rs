@@ -541,7 +541,13 @@ pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
             }
         }
         Some(false) => {
-            shortcut::restore(&target, &installed)?;
+            shortcut::restore(&target, &installed).map_err(|error| {
+                tr!(
+                    "Hyprland hat {} nicht übernommen. {error} Den Grund zeigt `hyprctl configerrors`.",
+                    "Hyprland did not take {}. {error} `hyprctl configerrors` shows why.",
+                    choice.label()
+                )
+            })?;
             let restored = if shortcut::reload() {
                 t(
                     "das bisherige Kürzel gilt weiter",
