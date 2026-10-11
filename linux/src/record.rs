@@ -268,12 +268,21 @@ fn discard_if_silent(capture: &Arc<Mutex<Capture>>, path: &Path) {
 }
 
 impl RecordingHandle {
-    /// Stops a recording that is not used, removing it only while it holds
-    /// no audio. Returns whether it was removed; otherwise it stays in pending.
-    pub fn abort(self) -> bool {
+    /// Stops a recording that is not used. Without audio it is removed and
+    /// this returns `None`; with audio it stays and this returns whether the
+    /// file was completed so it can be secured for retry.
+    pub fn abort(self) -> Option<bool> {
         drop(self.stream);
-        discard_if_silent(&self.capture, &self.path);
-        !self.path.exists()
+        let Ok(mut capture) = self.capture.lock() else {
+            return Some(false);
+        };
+        let writer = capture.writer.take();
+        if capture.frames == 0 {
+            drop(writer);
+            let _ = std::fs::remove_file(&self.path);
+            return None;
+        }
+        Some(writer.is_some_and(|writer| writer.finalize().is_ok()))
     }
 
     pub fn stop(self) -> Result<Recording, String> {

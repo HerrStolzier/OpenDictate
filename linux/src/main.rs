@@ -21,8 +21,10 @@ mod window;
 #[cfg(test)]
 mod test_http;
 
-use std::fs::{self, OpenOptions};
+use std::fs::{self, File, OpenOptions};
 use std::io::{self, IsTerminal, Read, Write};
+use std::os::unix::fs::OpenOptionsExt;
+use std::os::unix::io::AsRawFd;
 use std::os::unix::process::CommandExt;
 use std::path::Path;
 use std::process::{Child, Command, Stdio};
@@ -152,6 +154,9 @@ fn run(args: Vec<String>) -> Result<(), String> {
 }
 
 fn toggle() -> Result<(), String> {
+    // Held until this call returns: a second `toggle` before the worker has
+    // even bound its socket is refused instead of starting another worker.
+    let _lock = lock_toggle()?;
     let socket = paths::socket_path().map_err(path_error)?;
     let state_path = paths::state_path().map_err(path_error)?;
     match state::read(&state_path, &socket) {
@@ -182,6 +187,27 @@ fn toggle() -> Result<(), String> {
             "OpenDictate is already processing a recording."
         )),
     }
+}
+
+fn lock_toggle() -> Result<File, String> {
+    let file = OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .write(true)
+        .mode(0o600)
+        .open(paths::toggle_lock_path().map_err(path_error)?)
+        .map_err(path_error)?;
+    // SAFETY: flock only reads the descriptor, which `file` keeps open.
+    if unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) } != 0 {
+        return Err(match io::Error::last_os_error().kind() {
+            io::ErrorKind::WouldBlock => starting(),
+            _ => tr!(
+                "Aufnahme konnte nicht starten.",
+                "Recording could not start."
+            ),
+        });
+    }
+    Ok(file)
 }
 
 fn starting() -> String {
@@ -812,8 +838,7 @@ fn worker() -> Result<(), String> {
     // once the state says so, and a failed start is shown as a notification.
     let handle = record::start(&path).inspect_err(|error| notify::status(error))?;
     if SystemTime::now() > deadline {
-        let kept = !handle.abort();
-        log_ops(&format!("recording-start-timeout kept={kept}"));
+        abort_start(handle, &path, "timeout");
         let error = tr!(
             "Das Mikrofon hat zu lange zum Starten gebraucht; die Aufnahme wurde abgebrochen.",
             "The microphone took too long to start; the recording was stopped."
@@ -827,8 +852,7 @@ fn worker() -> Result<(), String> {
     // Checked after publishing Recording: a cancel written while the state
     // still said Starting is seen here, a later one stops via the socket.
     if let Err(error) = ensure_not_cancelled(&state_guard) {
-        let kept = !handle.abort();
-        log_ops(&format!("recording-start-cancelled kept={kept}"));
+        abort_start(handle, &path, "cancelled");
         return Err(error);
     }
     log_ops("recording-started");
@@ -1000,6 +1024,20 @@ fn retry() -> Result<(), String> {
     log_ops("retry-copied");
     println!("{status}");
     Ok(())
+}
+
+/// Ends a start that is not used. A recording without audio is removed;
+/// one that already holds audio is secured for `retry` like any kept one,
+/// and stays where it is if that fails.
+fn abort_start(handle: record::RecordingHandle, path: &Path, reason: &str) {
+    let Some(complete) = handle.abort() else {
+        log_ops(&format!("recording-start-{reason} kept=false"));
+        return;
+    };
+    let preserved = complete && preserve_recording(path).is_ok();
+    log_ops(&format!(
+        "recording-start-{reason} kept=true preserved={preserved}"
+    ));
 }
 
 fn preserve_recording(path: &Path) -> Result<(), String> {
