@@ -13,9 +13,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBar: MenuBarController?
     private lazy var dictationPanel = DictationPanel()
     private let indicator = DictationIndicator()
-    /// The latest dictation or retry, so "Nochmal senden" picks its recording
-    /// and never an older one.
-    private var attempt: (startedAt: Date, retryFilename: String?)?
+    /// The latest dictation or retry. "Nochmal senden" offers only the recording
+    /// this attempt kept, never one inferred from timestamps.
+    private var attempt: Attempt?
+    private struct Attempt {
+        /// File name of the authenticated recording this attempt kept or retried.
+        var recording: String?
+    }
     private var pendingRetryFilename: String?
     private let hotKey = HotKeyManager()
     private var modifierMonitor: ModifierKeyMonitor?
@@ -55,7 +59,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 transcribeRetry: { [unowned self] in
                     try await transcriber.transcribe(audioData: $0.data, options: requestOptions)
                 },
-                keep: { FailedRecordingStore.keep($0, recordedAt: Date()) != nil },
+                keep: { [unowned self] in
+                    guard let kept = FailedRecordingStore.keep($0, recordedAt: Date()) else { return false }
+                    // A retry attempt already names the recording it resent; keep that name.
+                    if attempt?.recording == nil { attempt?.recording = kept.lastPathComponent }
+                    return true
+                },
                 removeRetry: { _ = FailedRecordingStore.remove($0) },
                 clean: { try? FileManager.default.removeItem(at: $0) },
                 copy: { [unowned self] in pasteboard.copy($0) },
@@ -200,12 +209,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// The kept recording of the latest failed attempt, if it can be sent again.
     private var retryCandidate: SavedRecording? {
-        guard let attempt, flow.state.canRetry else { return nil }
-        return savedRecordings.first { entry in
-            guard entry.retryable else { return false }
-            if let filename = attempt.retryFilename { return entry.filename == filename }
-            return entry.created.timeIntervalSince(attempt.startedAt) > -1
-        }
+        guard let recording = attempt?.recording, flow.state.canRetry else { return nil }
+        return savedRecordings.first { $0.retryable && $0.filename == recording }
     }
 
     private func configureDictationPanel() {
@@ -489,7 +494,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 previousApplication = target
                 if try flow.start() {
                     pendingRetryFilename = nil
-                    attempt = (Date(), nil)
+                    attempt = Attempt()
                     indicator.setTranslating(options.translationTarget != nil)
                     scheduleAutoStop()
                 }
@@ -546,7 +551,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 requestOptions = options
                 previousApplication = target
                 if flow.retry(payload) {
-                    attempt = (Date(), filename)
+                    attempt = Attempt(recording: filename)
                     indicator.canRetry = false
                     indicator.setTranslating(options.translationTarget != nil)
                 }
