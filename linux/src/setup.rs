@@ -208,6 +208,9 @@ fn ensure_key(server: &Server) -> Result<(), String> {
         return Ok(());
     }
     let (present, _) = keyring::status()?;
+    // A stored key that may still work is only replaced by one that is
+    // confirmed to work.
+    let mut keep_stored = present;
     if present {
         let replace = ask_yes(
             t(
@@ -221,6 +224,7 @@ fn ensure_key(server: &Server) -> Result<(), String> {
             if report_check(server, check(server, Some(&key))) != Check::KeyRejected {
                 return Ok(());
             }
+            keep_stored = false;
         }
     }
     loop {
@@ -237,6 +241,30 @@ fn ensure_key(server: &Server) -> Result<(), String> {
         if result == Check::KeyRejected {
             report_check(server, result);
             continue;
+        }
+        if keep_stored && result != Check::Works {
+            let reason = match (result, server.is_custom()) {
+                (Check::Unreachable, false) => t(
+                    "OpenAI ist gerade nicht erreichbar",
+                    "OpenAI is not reachable right now",
+                ),
+                (Check::Unreachable, true) => t(
+                    "Der Server antwortet nicht (läuft er?)",
+                    "The server does not answer (is it running?)",
+                ),
+                _ => t(
+                    "Die Prüfung brachte keine klare Antwort",
+                    "The check gave no clear answer",
+                ),
+            };
+            println!(
+                "{}",
+                tr!(
+                    "{reason}; der bisherige Schlüssel bleibt gespeichert. Später `opendictate setup` noch einmal ausführen.",
+                    "{reason}; the stored key stays. Run `opendictate setup` again later."
+                )
+            );
+            return Ok(());
         }
         if let Err(error) = keyring::store_api_key(&key) {
             println!("{error}");
@@ -455,6 +483,7 @@ pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
             return Ok(choice);
         }
     }
+    let running = shortcut::active_binds().is_some();
     let installed = shortcut::install(choice, &target)?;
     println!(
         "{}",
@@ -478,8 +507,8 @@ pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
     // Hyprland reloads its config when a file changes; without that
     // (autoreload off) it is asked once. A bind it still does not show is
     // undone, so the previous shortcut keeps working.
-    let loaded = match wait_loaded(choice, Duration::from_secs(3)) {
-        Some(false) if shortcut::reload() => wait_loaded(choice, Duration::from_secs(2)),
+    let loaded = match wait_loaded(choice, running, Duration::from_secs(3)) {
+        Some(false) if shortcut::reload() => wait_loaded(choice, running, Duration::from_secs(2)),
         loaded => loaded,
     };
     match loaded {
@@ -547,14 +576,20 @@ pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
     Ok(choice)
 }
 
-/// Whether Hyprland shows the bind within `timeout`; `None` without a
-/// running Hyprland.
-fn wait_loaded(choice: Choice, timeout: Duration) -> Option<bool> {
+/// Whether Hyprland shows the bind within `timeout`; `None` when Hyprland
+/// was not running before the change. While it was, a failed query is
+/// retried and counts as not loaded at the deadline.
+fn wait_loaded(choice: Choice, running: bool, timeout: Duration) -> Option<bool> {
     let deadline = Instant::now() + timeout;
     loop {
-        let binds = shortcut::active_binds()?;
-        if shortcut::availability(choice, Some(&binds)) == Availability::OpenDictate {
-            return Some(true);
+        match shortcut::active_binds() {
+            Some(binds)
+                if shortcut::availability(choice, Some(&binds)) == Availability::OpenDictate =>
+            {
+                return Some(true);
+            }
+            None if !running => return None,
+            _ => {}
         }
         if Instant::now() >= deadline {
             return Some(false);

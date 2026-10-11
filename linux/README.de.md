@@ -92,8 +92,8 @@ Schlüsselbund-Einträge entfernt
 Dinge:
 
 1. Wer abschreibt: OpenAI mit deinem API-Schlüssel (es fragt den Schlüssel
-   verdeckt ab und prüft ihn vor dem Speichern; ein abgelehnter Schlüssel
-   ersetzt nie den gespeicherten), oder ein
+   verdeckt ab und prüft ihn vor dem Speichern; nur ein Schlüssel, der die
+   Prüfung besteht, ersetzt einen gespeicherten), oder ein
    [eigener Server](#eigenen-server-verwenden).
 2. Mit welchem Kürzel du ein Diktat startest und stoppst: Super+D, F9 oder,
    bei US-Tastaturlayout, die rechte Alt-Taste allein. Es zeigt, welche Tasten
