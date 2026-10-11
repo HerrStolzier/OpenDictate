@@ -21,8 +21,15 @@ permissions:
   statuses: read
   actions: read
 
+# Je Ereignis und auslösendem CI-Workflow eine eigene Gruppe: Ein Lauf zu einem fertigen
+# CI-Workflow bricht so weder den wartenden PR-Lauf ab (dessen abgebrochene Prüfung sonst rot
+# am PR hinge) noch die Läufe zu den anderen CI-Workflows (die sonst abgebrochen am main-Commit
+# stünden). Ein neuer Push bricht weiter den älteren Lauf ab; der gehört zum alten Stand und
+# erscheint nicht beim aktuellen Prüfstand des PRs.
 concurrency:
-  group: auto-merge-${{ github.head_ref || github.event.workflow_run.head_branch || 'alle' }}
+  group: >-
+    auto-merge-${{ github.event_name }}-${{ github.event.workflow_run.name }}-${{
+    github.head_ref || github.event.workflow_run.head_branch || 'alle' }}
   cancel-in-progress: true
 
 jobs:
