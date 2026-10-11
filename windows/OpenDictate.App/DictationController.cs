@@ -55,7 +55,8 @@ internal sealed class DictationController : IDisposable
     internal string? LastText { get; private set; }
     internal bool IsRecording => audio is not null;
     internal bool IsBusy => flow.IsBusy;
-    // Set while the settings window is in front: gestures only show there.
+    // Set while the settings window is in front: gestures only show there,
+    // unless a recording is running.
     internal Action<ShortcutGestureKind>? GestureTest { get; set; }
     internal event Action? StateChanged;
     internal event Action? SettingsNeeded;
@@ -90,7 +91,8 @@ internal sealed class DictationController : IDisposable
             timer.Start();
         }
         if (step.Gesture is not { } kind) return;
-        if (GestureTest is { } test) { test(kind); return; }
+        // A running recording keeps its stop and cancel gestures.
+        if (GestureTest is { } test && !IsRecording) { test(kind); return; }
         switch (trigger.Handle(kind, IsRecording, IsBusy))
         {
             case TriggerAction.Start: Start(Native.ForegroundTarget()); break;
