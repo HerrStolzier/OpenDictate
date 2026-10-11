@@ -53,10 +53,14 @@ Skript wurde nicht ausgeführt und bleibt außerhalb des Releasepfads.
    migriert oder unlesbar werden. Deinstallation entfernt Programmdateien,
    löscht aber keine Nutzeraufnahmen, Wiederherstellungen oder Zugangsdaten
    ohne eine spätere ausdrücklich bestätigte Produktentscheidung.
-6. **Aufnahmen und Schlüssel schützen.** Der aktuelle Quellstand schreibt
-   PCM-/WAV-Originale nach `%LOCALAPPDATA%\OpenDictatePrototype\Recordings`;
-   Recovery liegt separat unter `%LOCALAPPDATA%\OpenDictatePrototype\Recovery`.
+6. **Aufnahmen und Schlüssel schützen.** Die Beta-App schreibt
+   PCM-/WAV-Originale nach `%LOCALAPPDATA%\OpenDictate\Recordings` und die
+   Recovery nach `%LOCALAPPDATA%\OpenDictate\Recovery`; das Prüffenster nutzt
+   weiter `%LOCALAPPDATA%\OpenDictatePrototype\Recordings` und `…\Recovery`.
    Synthetische Abläufe verwenden `SyntheticChecks` und `SyntheticRecovery`.
+   Das Transkript liegt nach jedem Diktat in der Zwischenablage von Windows
+   (also auch im Zwischenablageverlauf, wenn der Nutzer ihn eingeschaltet hat)
+   und bis zum Beenden im Speicher der App für „Letzten Text kopieren“.
    Einstellungen (Modell, Sprache, Übersetzung, Server-Adresse) liegen ohne
    Geheimnis in `%APPDATA%\OpenDictate\settings.json`. Die Aufnahme geht an
    OpenAI oder an den eingetragenen eigenen Server; ist eine Übersetzung

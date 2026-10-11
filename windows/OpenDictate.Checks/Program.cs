@@ -110,6 +110,7 @@ foreach (var test in tests)
 Console.WriteLine($"{tests.Length - failures}/{tests.Length} checks passed; synthetic data only.");
 failures += await DictationChecks.RunAsync();
 failures += await ProviderChecks.RunAsync(SyntheticWave());
+failures += ShortcutChecks.Run();
 return failures == 0 ? 0 : 1;
 
 static void Check(bool condition) { if (!condition) throw new InvalidOperationException("Assertion failed."); }

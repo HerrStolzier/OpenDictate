@@ -8,9 +8,11 @@ using System.Threading.Tasks;
 using NAudio.Wave;
 using OpenDictate.Core;
 
-namespace OpenDictate.Prototype;
+namespace OpenDictate.Windows;
 
-internal sealed class AudioSession
+// One microphone recording into a PcmJournal under a private root. The
+// journal keeps every sample written, even when capture or export fails.
+public sealed class AudioSession
 {
     private readonly WasapiRecorder recorder;
     private readonly PcmJournal journal;
@@ -18,16 +20,13 @@ internal sealed class AudioSession
     private Exception? writeError;
     private int stopping;
     private float peak;
-    internal PcmJournal Journal => journal;
-    internal float Peak => Volatile.Read(ref peak);
-    internal Task<string> Completion => completion.Task;
+    public PcmJournal Journal => journal;
+    public float Peak => Volatile.Read(ref peak);
+    public Task<string> Completion => completion.Task;
 
-    internal static string RecordingRoot => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "OpenDictatePrototype", "Recordings");
-
-    internal AudioSession()
+    public AudioSession(string root)
     {
-        EnsurePrivateRoot(RecordingRoot);
+        EnsurePrivateRoot(root);
         recorder = new WasapiRecorderBuilder().WithFormat(new WaveFormat(PcmJournal.SampleRate, 16, 1)).Build();
         if (recorder.WaveFormat.SampleRate != PcmJournal.SampleRate || recorder.WaveFormat.Channels != 1 ||
             recorder.WaveFormat.BitsPerSample != 16 || recorder.WaveFormat.Encoding != WaveFormatEncoding.Pcm)
@@ -35,7 +34,7 @@ internal sealed class AudioSession
             recorder.Dispose();
             throw new InvalidOperationException("Unexpected capture format.");
         }
-        try { journal = new PcmJournal(RecordingRoot); }
+        try { journal = new PcmJournal(root); }
         catch { recorder.Dispose(); throw; }
         recorder.DataAvailable += (buffer, flags, _, _) =>
         {
@@ -72,7 +71,7 @@ internal sealed class AudioSession
         };
     }
 
-    internal static void EnsurePrivateRoot(string directory)
+    public static void EnsurePrivateRoot(string directory)
     {
         var security = new DirectorySecurity();
         var owner = WindowsIdentity.GetCurrent().User ?? throw new InvalidOperationException("No Windows user.");
@@ -91,13 +90,13 @@ internal sealed class AudioSession
         FileSystemAclExtensions.SetAccessControl(root, security);
     }
 
-    internal void Start()
+    public void Start()
     {
         try { recorder.StartRecording(); }
         catch { journal.Dispose(); recorder.Dispose(); throw; }
     }
 
-    internal void Stop()
+    public void Stop()
     {
         if (completion.Task.IsCompleted || Interlocked.Exchange(ref stopping, 1) != 0) return;
         try { recorder.StopRecording(); }

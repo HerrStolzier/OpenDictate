@@ -1,10 +1,10 @@
 # Privacy
 
-This document describes the macOS app. The separate Windows prototype and
+This document describes the macOS app. The separate Windows beta app and
 Linux CLI have different local storage and delivery paths; see their
 [Windows preparation notes](windows/RELEASE-PLAN.md) and
-[Linux behavior and retention rules](linux/README.md). The Windows prototype is
-not a public release; the Linux CLI is a public beta (pre-release) that has not
+[Linux behavior and retention rules](linux/README.md). The Windows app is
+not a public release yet; the Linux CLI is a public beta (pre-release) that has not
 completed product acceptance. The iPhone app is described in its own
 [section](#iphone-app); it is not released yet.
 
