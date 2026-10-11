@@ -84,9 +84,9 @@ Windows-Beta; das Prüffenster `OpenDictate.Prototype` bleibt Entwicklerwerkzeug
   vor dem Senden als geschützte Kopie unter `%LOCALAPPDATA%\OpenDictate\Recovery`
   gesichert (höchstens fünf, 24 Stunden); erst danach verschwindet das
   Original. Kürzer als eine halbe Sekunde wird nicht von selbst gesendet und
-  bekommt keinen Knopf „Nochmal senden“, bleibt aber gesichert.
-- Geprüft am 11. Oktober nur offline auf Linux mit .NET SDK 10.0.401: 59 von
-  59 Prüfungen (darunter 19 für Kürzel, Auslöser, Einfügeregel, Einstellungen
+  lässt sich nicht nochmal senden, bleibt aber gesichert.
+- Geprüft am 11. Oktober nur offline auf Linux mit .NET SDK 10.0.401: 60 von
+  60 Prüfungen (darunter 20 für Kürzel, Auslöser, Einfügeregel, Einstellungen
   und Anzeige), Beta-App, Prüffenster, Browser-Host und Schutzprüfer bauen ohne
   Warnung. Nicht gestartet: Hook, Mikrofon, Anzeige, Strg+V und Autostart sind
   erst mit einem Windows-PC prüfbar (Windows-Plan, Schritt 7).
@@ -123,7 +123,7 @@ beliebiger Editoren, Browser oder Webseiten.
 Das vorhandene Skript:
 
 1. zeigt die SDK-Version an und führt `OpenDictate.Checks` aus (14 Kern-/Bridge-,
-   neun Ablauf-, 17 Provider- und 19 Kürzel-/App-Checks),
+   neun Ablauf-, 17 Provider- und 20 Kürzel-/App-Checks),
 2. baut `OpenDictate.App` und `OpenDictate.Prototype`,
 3. baut `OpenDictate.BrowserHost`,
 4. baut `OpenDictate.WindowsChecks`.

@@ -75,7 +75,11 @@ public sealed class ShortcutGesture(ShortcutKey key, Func<int, bool>? physically
     {
         down.Remove(virtualKey);
         // A shortcut key whose key-up was lost must not keep the press spoiled.
-        if (phase == Phase.Spoiled && physicallyDown is not null) down.RemoveWhere(held => !physicallyDown(held));
+        if (phase == Phase.Spoiled && physicallyDown is not null)
+        {
+            down.RemoveWhere(held => !physicallyDown(held));
+            if (!down.Any(IsShortcutKey)) { phase = Phase.Idle; return default; }
+        }
         if (!IsShortcutKey(virtualKey)) return default;
         switch (phase)
         {

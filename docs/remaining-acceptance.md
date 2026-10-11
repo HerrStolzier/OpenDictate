@@ -273,8 +273,8 @@ keinen Schlüssel. 40 Kern-, Ablauf- und Provider-Prüfungen (Provider gegen
 Ebenfalls seit 11. Oktober gibt es die Beta-App `OpenDictate.App`
 ([Beschreibung](../windows/README.md#beta-app-11-oktober-2026)): Infobereich,
 Strg+Win halten oder rechte Strg, Einfügen per Zwischenablage und Strg+V nur ins
-erfasste Fenster, Diktatanzeige, Begrüßung mit Kürzeltest. 59 Offline-Prüfungen
-(davon 19 für Kürzel, Auslöser, Einfügeregel, Einstellungen und Anzeige) und
+erfasste Fenster, Diktatanzeige, Begrüßung mit Kürzeltest. 60 Offline-Prüfungen
+(davon 20 für Kürzel, Auslöser, Einfügeregel, Einstellungen und Anzeige) und
 alle Builds bestanden auf Linux; die App wurde nicht gestartet.
 
 **Offen / bekannte Grenzen:** Kein echtes Diktat, keine Provideranfrage, auch

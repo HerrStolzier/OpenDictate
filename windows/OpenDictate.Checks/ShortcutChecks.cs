@@ -119,6 +119,17 @@ internal static class ShortcutChecks
                 var press = gesture.KeyDown(LeftWin, 1001);
                 Check(gesture.HoldDeadlineReached(press.HoldDeadline!.Value).Gesture == ShortcutGestureKind.HoldBegan);
             }),
+            ("A lost right Ctrl key-up behind another key does not swallow the next press", () =>
+            {
+                var held = new HashSet<int>();
+                var gesture = new ShortcutGesture(ShortcutKey.RightCtrl, held.Contains);
+                held.Add(LeftShift); gesture.KeyDown(LeftShift, 0);
+                held.Add(RightCtrl); gesture.KeyDown(RightCtrl, 10);
+                // Right Ctrl's key-up is lost; Shift comes up normally.
+                held.Clear(); gesture.KeyUp(LeftShift, 50);
+                held.Add(RightCtrl);
+                Check(gesture.KeyDown(RightCtrl, 1000).HoldDeadline is not null);
+            }),
             ("Trigger: a hold records while held, a tap toggles", () =>
             {
                 var control = new TriggerControl();

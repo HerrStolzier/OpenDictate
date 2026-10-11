@@ -35,7 +35,9 @@ internal static class Program
         app.Startup += (_, _) => tray.Start();
         // An unexpected error in a key event or a finished dictation must not
         // end the app; it shows in the indicator, saved recordings stay.
-        app.DispatcherUnhandledException += (_, args) => { args.Handled = true; tray.Report(); };
+        // Before the tray icon is up, an error ends the app instead of leaving
+        // it running invisibly.
+        app.DispatcherUnhandledException += (_, args) => { args.Handled = tray.Started; if (tray.Started) tray.Report(); };
         app.Run();
         wait.Unregister(null);
         return 0;
@@ -53,6 +55,7 @@ internal sealed class TrayApp
     private DictationController? controller;
     private SettingsWindow? settings;
     private bool quitting;
+    internal bool Started { get; private set; }
 
     internal TrayApp(Dispatcher dispatcher) => this.dispatcher = dispatcher;
 
@@ -89,6 +92,7 @@ internal sealed class TrayApp
         controller.SettingsNeeded += OpenSettings;
         Refresh();
         icon.Visible = true;
+        Started = true;
         // The WinForms menu may install its own synchronization context; every
         // continuation of the app belongs to the WPF dispatcher.
         SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(dispatcher));
@@ -103,9 +107,16 @@ internal sealed class TrayApp
         catch (Exception) { Report(); }
     }
 
-    internal void Report() => controller?.Oops(UiText.T(
-        "Das hat nicht geklappt. Bereits gesicherte Aufnahmen bleiben erhalten.",
-        "That did not work. Recordings already saved stay kept."));
+    internal void Report()
+    {
+        try
+        {
+            controller?.Oops(UiText.T(
+                "Das hat nicht geklappt. Bereits gesicherte Aufnahmen bleiben erhalten.",
+                "That did not work. Recordings already saved stay kept."));
+        }
+        catch (Exception) { /* Showing the error failed too; the app keeps running. */ }
+    }
 
     private async Task ReportShortcutAsync()
     {

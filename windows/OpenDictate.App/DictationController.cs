@@ -198,8 +198,8 @@ internal sealed class DictationController : IDisposable
             saved = recording.Entry.Id;
             RemoveEmptyJournal(current.Journal);
             token.ThrowIfCancellationRequested();
-            // Kept for 24 hours like every recording, but never sent, not
-            // even with a button.
+            // Kept for 24 hours like every recording, but never sent; a
+            // resend refuses it as well.
             if (recording.Wave.Length - 44 < MinimumAudioBytes) { tooShort = true; throw new UserFacingException(TooShortMessage); }
             return recording.Wave;
         }, (wave, token) => TranscribeAsync(server, wave, key, settings, token), async (text, _) =>
@@ -257,7 +257,7 @@ internal sealed class DictationController : IDisposable
     private async Task RetryAsync(Guid id, DictationSettings settings, ProviderServer server, string? key)
     {
         var clipboard = ClipboardPaste.Result.ClipboardOnly;
-        bool readable = false;
+        bool readable = false, tooShort = false;
         retryable = null;
         var result = await flow.RunAsync(async token =>
         {
@@ -267,8 +267,10 @@ internal sealed class DictationController : IDisposable
             {
                 byte[] wave = (await Task.Run(() => OpenRecovery().Read(id), token)).Wave;
                 readable = true;
+                if (wave.Length - 44 < MinimumAudioBytes) { tooShort = true; throw new UserFacingException(TooShortMessage); }
                 return wave;
             }
+            catch (UserFacingException) { throw; }
             catch (Exception error) when (error is not OperationCanceledException)
             { throw new UserFacingException(UiText.T("Diese Aufnahme ist abgelaufen oder nicht mehr lesbar.", "This recording has expired or can no longer be read.")); }
         }, (wave, token) => TranscribeAsync(server, wave, key, settings, token), async (text, _) =>
@@ -277,7 +279,7 @@ internal sealed class DictationController : IDisposable
             clipboard = await ClipboardPaste.DeliverAsync(text, null, autoInsert: false);
             return TextDelivery.Rejected;
         }, shutdown.Token);
-        Finish(result, readable ? id : null, clipboard);
+        Finish(result, readable ? id : null, clipboard, canResend: !tooShort);
     }
 
     private static string SettingsTarget()
