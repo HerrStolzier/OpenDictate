@@ -71,9 +71,10 @@ choose **Schließen**, or **Nochmal senden** when the failed recording was kept.
 Sending again asks for confirmation first, because it can cost again.
 
 On a MacBook with a notch the indicator grows out of the notch. Without a notch
-it sits as a flat pill in the middle of the menu bar and covers nothing; an
-error drops a small card below it. **Ohne Notch** in Settings switches to a
-pill floating just below the menu bar or turns the indicator off (then only
+it floats as a pill just below the middle of the menu bar; an error turns it
+into a small card with the reason. **Ohne Notch** in Settings switches to a
+flat pill inside the menu bar, which covers nothing (an error then drops the
+card below it), or turns the indicator off (then only
 "REC" appears next to the menu bar symbol; an error still shows its card with
 the reason). Over a full-screen app without menu bar, the floating pill appears
 only while recording, writing or after an error; with the indicator off, only
@@ -136,7 +137,7 @@ Changes apply to the next dictation, no restart needed.
   back empty, nothing is pasted, the original text is not used as a fallback and
   the recording is kept for retry; a retry translates again.
 - **Ohne Notch** — how the indicator appears on screens without a notch:
-  in the menu bar (default), floating below the menu bar, or off.
+  floating below the menu bar (default), inside the menu bar, or off.
 - **Vokabular und Kontext** — local prompt setting (up to 2,000 characters in the editor), sent with each dictation. A stored value overrides the legacy environment variable.
 - **Automatisch einfügen** — disable for clipboard-only delivery. At delivery,
   the app captured when dictation began is brought forward if it is still

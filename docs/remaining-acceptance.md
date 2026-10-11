@@ -133,7 +133,8 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
 - Neue Diktatanzeige und Menü der Menüleiste (nach Build 9, noch in keinem
   Kandidaten, Entwurf in Claude Design vom 9. Oktober): kleine schwarze Anzeige
   oben am Bildschirm mit Blink, Zustandswort und Zeile; an der Notch, ohne
-  Notch mittig in der Menüleiste (Standard), schwebend oder aus; Menü mit
+  Notch schwebend unter der Menüleiste (Standard seit Bastis Wahl am
+  11. Oktober), flach in der Menüleiste oder aus; Menü mit
   „OpenDictate beenden“. Offline geprüft: Zuordnung der Fensterzustände,
   Wahl der Variante je Bildschirm, Aufnahmezeile mit Countdown, Menüreihenfolge,
   Anzeige ohne Fokus (`DictationIndicatorTests`), Blink Pixel für Pixel gegen
@@ -157,16 +158,22 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   der Leiste des Spiels und sprang erst dann in die schwebende Pille. Seitdem
   platziert sich die Anzeige auch beim Wechsel der vorderen App neu; das ist
   offline geprüft, live noch nicht wiederholt.
+  Dritte Runde mit „Schwebend unter der Menüleiste“ (Testbuild aus `8872044`):
+  „Hört zu REC 0:01“, „Schreibt OpenAI übersetzt“, „Eingefügt“, danach von
+  selbst zu; der übersetzte Text kam an (3,0 s vom Stopp bis zum Ergebnis).
+  Zwei Versuche davor waren zu leise (Spitze −45 dB, Basti zu weit vom
+  Mikrofon); die Fehlerkarte zeigte Grund, „Schließen“ und „Nochmal senden“.
+  Basti wählte danach „schwebend“ als Standard.
 
 **Offen / bekannte Grenzen:**
 
-- Diktatanzeige live noch offen: „Nochmal senden“ mit Rückfrage; schwebend,
-  aus und Vollbild; andere Ziel-Apps als TextEdit; echte Maße an einem MacBook
+- Diktatanzeige live noch offen: „Nochmal senden“ mit Rückfrage; aus und
+  Vollbild; andere Ziel-Apps als TextEdit; echte Maße an einem MacBook
   mit Notch. Die Notch-Werte sind ein
   erster Vorschlag. Im Vollbild gilt eine App als Vollbild, wenn ihr vorderstes
-  Fenster den ganzen Bildschirm bedeckt; bei „Menüleiste immer ausblenden“ liegt
-  die Pille in der Menüleiste über dem Fensterinhalt. In Apps mit sehr vielen
-  Menüs kann die Pille in der Mitte einen Menütitel verdecken, solange sie
+  Fenster den ganzen Bildschirm bedeckt. Mit der Einstellung „In der Menüleiste“
+  liegt die Pille bei „Menüleiste immer ausblenden“ über dem Fensterinhalt, und
+  in Apps mit sehr vielen Menüs kann sie in der Mitte einen Menütitel verdecken, solange sie
   sichtbar ist. Gehörte VoiceOver-Ansagen der Anzeige sind ungeprüft.
 - Empfehlung je Tastatur: MacBook-Tastatur und Fremdtastatur am echten Gerät
   ungeprüft. Jedes HID-Gerät mit Tastatur-Schnittstelle oder einer

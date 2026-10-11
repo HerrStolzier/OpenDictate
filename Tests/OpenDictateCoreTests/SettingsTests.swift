@@ -124,14 +124,14 @@ struct SettingsTests {
 
     // MARK: - Indicator
 
-    @Test("Screens without a notch show the indicator in the menu bar until the user picks another style")
+    @Test("Screens without a notch show the floating indicator until the user picks another style")
     func indicatorStyle() {
         let s = settings()
-        #expect(s.indicatorStyle == .menuBar)
-        s.indicatorStyle = .floating
         #expect(s.indicatorStyle == .floating)
+        s.indicatorStyle = .menuBar
+        #expect(s.indicatorStyle == .menuBar)
         #expect(settings(stored: ["indicatorStyle": "off"]).indicatorStyle == .off)
-        #expect(settings(stored: ["indicatorStyle": "bubble"]).indicatorStyle == .menuBar)
+        #expect(settings(stored: ["indicatorStyle": "bubble"]).indicatorStyle == .floating)
     }
 
     // MARK: - Reset
@@ -159,7 +159,7 @@ struct SettingsTests {
         #expect(s.autoPaste)
         #expect(s.prompt == "environment prompt")
         #expect(s.translationTarget == nil)
-        #expect(s.indicatorStyle == .menuBar)
+        #expect(s.indicatorStyle == .floating)
     }
 
 }

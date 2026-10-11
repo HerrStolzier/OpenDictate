@@ -111,8 +111,9 @@ die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleiner
    11. Oktober im Code und offline geprüft, Live-Test mit Basti steht aus,
    parallel zur Beta): Statt des Fensters zeigt eine
    kleine Anzeige an der Notch mit Blink den Stand und schließt sich bei Erfolg
-   von selbst. Macs ohne Notch zeigen sie mittig in der Menüleiste; eine
-   schwebende Anzeige oder „Aus“ lassen sich einstellen. „Beenden“ steht im
+   von selbst. Macs ohne Notch zeigen sie schwebend unter der Menüleiste
+   (Bastis Wahl nach dem Live-Test am 11. Oktober); flach in der Menüleiste
+   oder „Aus“ lassen sich einstellen. „Beenden“ steht im
    Menü der Menüleiste
    ([design/README.md](design/README.md#stand-je-oberfläche)).
 

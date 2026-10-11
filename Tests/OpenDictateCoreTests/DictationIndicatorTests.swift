@@ -55,7 +55,7 @@ struct DictationIndicatorTests {
 
     @Test func screenWithoutNotchFollowsTheSetting() {
         let mini = IndicatorScreen(hasNotch: false, showsMenuBar: true)
-        #expect(IndicatorStyle.default == .menuBar)
+        #expect(IndicatorStyle.default == .floating)
         #expect(IndicatorLayout.placement(for: .listening, on: mini, style: .menuBar) == .menuBar)
         #expect(IndicatorLayout.placement(for: .listening, on: mini, style: .floating) == .floating)
         #expect(IndicatorLayout.placement(for: .listening, on: mini, style: .off) == .statusItem)

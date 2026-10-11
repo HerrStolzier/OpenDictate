@@ -84,7 +84,8 @@ public enum IndicatorStyle: String, CaseIterable, Sendable {
     /// Only "REC" next to the menu bar symbol; errors still show their card.
     case off
 
-    public static let `default` = IndicatorStyle.menuBar
+    /// See the decision log in PROJECT.md.
+    public static let `default` = IndicatorStyle.floating
 
     public var title: String {
         switch self {
