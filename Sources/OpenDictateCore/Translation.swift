@@ -51,9 +51,5 @@ public enum Translation {
             && code.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") }
     }
 
-    /// Model identifiers stay short and free of spaces or path syntax.
-    public static func isValidModel(_ model: String) -> Bool {
-        !model.isEmpty && model.count <= 64
-            && model.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || "-._".contains($0)) }
-    }
+    public static func isValidModel(_ model: String) -> Bool { ModelName.isValid(model) }
 }

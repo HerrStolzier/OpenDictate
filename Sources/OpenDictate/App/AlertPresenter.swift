@@ -38,7 +38,7 @@ enum AlertPresenter {
         let alert = NSAlert()
         alert.messageText = "Vokabular und Kontext"
         alert.informativeText =
-            "Namen, Fachbegriffe oder ein kurzer Kontext. Maximal 2.000 Zeichen. Diese Hinweise werden mit jedem Diktat an OpenAI gesendet. Leer speichern entfernt die Hinweise."
+            "Namen, Fachbegriffe oder ein kurzer Kontext. Maximal 2.000 Zeichen. Diese Hinweise werden mit jedem Diktat an den Transkriptionsdienst gesendet. Leer speichern entfernt die Hinweise."
         let field = NSTextField(wrappingLabelWithString: "")
         field.isEditable = true
         field.isSelectable = true
@@ -52,6 +52,59 @@ enum AlertPresenter {
         alert.addButton(withTitle: "Abbrechen")
         guard alert.runModal() == .alertFirstButtonReturn else { return nil }
         return field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    struct CustomServer {
+        var address: String
+        var transcriptionModel: String
+        var translationModel: String
+    }
+
+    /// Address and model names for a server other than OpenAI. Empty
+    /// address means OpenAI; empty model fields restore the defaults.
+    static func promptForCustomServer(initialValue: CustomServer) -> CustomServer? {
+        let alert = NSAlert()
+        alert.messageText = "Eigener Server"
+        alert.informativeText =
+            "Statt OpenAI kann OpenDictate jeden Server nutzen, der dieselbe Schnittstelle anbietet, auch ein "
+            + "lokales Modell auf diesem Mac (zum Beispiel http://127.0.0.1:8080/v1). Ein Server auf diesem Mac "
+            + "bekommt keinen API-Schlüssel. Andere Server brauchen https:// und bekommen deinen gespeicherten "
+            + "Schlüssel. Leer lassen für OpenAI. Geprüft ist nur OpenAI."
+        alert.addButton(withTitle: "Speichern")
+        alert.addButton(withTitle: "Abbrechen")
+        func field(_ label: String, _ value: String, placeholder: String) -> (NSTextField, NSStackView) {
+            let title = NSTextField(labelWithString: label)
+            let input = NSTextField(string: value)
+            input.placeholderString = placeholder
+            input.setAccessibilityLabel(label)
+            input.widthAnchor.constraint(equalToConstant: 360).isActive = true
+            let row = NSStackView(views: [title, input])
+            row.orientation = .vertical
+            row.alignment = .leading
+            row.spacing = 4
+            return (input, row)
+        }
+        let (address, addressRow) = field(
+            "Server-Adresse", initialValue.address, placeholder: "Leer = OpenAI")
+        let (transcription, transcriptionRow) = field(
+            "Transkriptionsmodell", initialValue.transcriptionModel,
+            placeholder: TranscriptionModel.default.rawValue)
+        let (translation, translationRow) = field(
+            "Übersetzungsmodell", initialValue.translationModel, placeholder: Translation.defaultModel)
+        let stack = NSStackView(views: [addressRow, transcriptionRow, translationRow])
+        stack.orientation = .vertical
+        stack.alignment = .leading
+        stack.spacing = 10
+        stack.setFrameSize(stack.fittingSize)
+        alert.accessoryView = stack
+        alert.window.initialFirstResponder = address
+        guard alert.runModal() == .alertFirstButtonReturn else { return nil }
+        func trimmed(_ field: NSTextField) -> String {
+            field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return CustomServer(
+            address: trimmed(address), transcriptionModel: trimmed(transcription),
+            translationModel: trimmed(translation))
     }
 
     static func promptForAPIKey(initialValue: String?) -> String? {

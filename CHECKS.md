@@ -293,6 +293,15 @@ New or changed findings remain visible and fail the scan.
 Dependabot groups weekly updates for the repository's Actions, Cargo and NuGet
 manifests, with at most three open update pull requests.
 
+## Shared provider fixtures
+
+`fixtures/provider/` holds the provider contract (`CONTRACT.md`), the success
+and error responses and `cases.json` with the expected message per platform.
+The Swift tests `TranscriptionRequestTests` and `TranscriptionTransportTests`
+read these files; change the fixtures and the contract together. Linux and
+Windows tests are meant to read the same files once their provider tests move
+to them.
+
 ## Meaning of checks
 
 The rationale for the retained and removed isolated tests is recorded in

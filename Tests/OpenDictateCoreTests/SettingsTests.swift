@@ -134,6 +134,46 @@ struct SettingsTests {
         #expect(settings(stored: ["indicatorStyle": "bubble"]).indicatorStyle == .floating)
     }
 
+    // MARK: - Server
+
+    @Test("Without an address dictations go to OpenAI")
+    func endpointDefaultsToOpenAI() {
+        #expect(settings().endpoint == .openAI)
+        #expect(settings().serverAddress == nil)
+    }
+
+    @Test("OPENAI_BASE_URL is used until a stored choice exists; an empty choice means OpenAI")
+    func storedAddressBeatsEnvironment() {
+        let s = settings(env: ["OPENAI_BASE_URL": "http://127.0.0.1:8080/v1"])
+        #expect(s.endpoint?.isLoopback == true)
+        #expect(s.setServerAddress(""))
+        #expect(s.endpoint == .openAI)
+        #expect(s.setServerAddress("https://example.com/v1/"))
+        #expect(s.endpoint?.baseURL.absoluteString == "https://example.com/v1")
+    }
+
+    @Test("A rejected address keeps the previous one")
+    func rejectedAddressKeepsPrevious() {
+        let s = settings()
+        #expect(s.setServerAddress("http://127.0.0.1:8080/v1"))
+        #expect(!s.setServerAddress("http://192.168.1.5/v1"))
+        #expect(s.endpoint?.baseURL.absoluteString == "http://127.0.0.1:8080/v1")
+    }
+
+    @Test("An invalid address from the environment stops instead of falling back to OpenAI")
+    func invalidEnvironmentAddressHasNoEndpoint() {
+        #expect(settings(env: ["OPENAI_BASE_URL": "http://192.168.1.5/v1"]).endpoint == nil)
+    }
+
+    @Test("A translation model can be stored and an empty one restores the default")
+    func translationModelSetter() {
+        let s = settings()
+        s.translationModel = "qwen/qwen3-8b"
+        #expect(s.translationModel == "qwen/qwen3-8b")
+        s.translationModel = ""
+        #expect(s.translationModel == Translation.defaultModel)
+    }
+
     // MARK: - Reset
 
     @Test("Resetting clears every stored preference and hands control back to the environment")
@@ -151,6 +191,7 @@ struct SettingsTests {
         s.prompt = "stored prompt"
         s.translationTarget = "fr"
         s.indicatorStyle = .off
+        s.setServerAddress("http://127.0.0.1:8080/v1")
         s.resetToEnvironment()
         #expect(s.model == .whisper1)
         #expect(s.language == "de")
@@ -160,6 +201,7 @@ struct SettingsTests {
         #expect(s.prompt == "environment prompt")
         #expect(s.translationTarget == nil)
         #expect(s.indicatorStyle == .floating)
+        #expect(s.endpoint == .openAI)
     }
 
 }

@@ -169,6 +169,17 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   Ergebnis (davor ein zu leiser Versuch, der als Fehler endete). Was die
   Anzeige dabei im Einzelnen zeigte, ist nur von Basti beobachtet, nicht
   aufgezeichnet.
+- Eigener Server (11. Oktober, noch in keinem Kandidaten): Adresse unter
+  Einstellungen → Erweitert, `https://` beliebig, `http://` nur auf diesem Mac.
+  Offline geprüft: Adressregeln, Vorrang vor `OPENAI_BASE_URL`, kein Rückfall
+  auf OpenAI bei ungültiger Adresse, Schlüssel nur an Server außerhalb dieses
+  Macs, und ein echter Testserver auf 127.0.0.1 empfängt Transkription und
+  Übersetzung ohne Schlüssel (`LocalServerTransportTests`). Eine
+  http-Verbindung zu `127.0.0.1` und `localhost` blockiert macOS auch ohne
+  Ausnahme im App-Paket nicht (Probe-App am 11. Oktober; `http://example.com`
+  wurde blockiert); `[::1]` ist nicht geprobt. Dass bei lokalem Server kein
+  Schlüssel gelesen und keine Einrichtung verlangt wird, ist aus dem Code
+  abgeleitet, nicht getestet.
 
 **Offen / bekannte Grenzen:**
 
@@ -179,6 +190,12 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   liegt die Pille bei „Menüleiste immer ausblenden“ über dem Fensterinhalt, und
   in Apps mit sehr vielen Menüs kann sie in der Mitte einen Menütitel verdecken, solange sie
   sichtbar ist. Gehörte VoiceOver-Ansagen der Anzeige sind ungeprüft.
+- Eigener Server: kein Live-Diktat gegen einen echten lokalen Modellserver;
+  andere Server als OpenAI werden nicht abgenommen. Ebenfalls nur aus dem Code
+  abgeleitet: Bei einer frischen Installation ohne Schlüssel führt das
+  Speichern eines lokalen Servers wie das Speichern eines Schlüssels weiter zur
+  Kürzel-Abfrage und zur Bedienungshilfen-Freigabe.
+
 - Empfehlung je Tastatur: MacBook-Tastatur und Fremdtastatur am echten Gerät
   ungeprüft. Jedes HID-Gerät mit Tastatur-Schnittstelle oder einer
   Tastatur-Collection neben seiner Hauptfunktion zählt, auch Gaming-Mäuse mit

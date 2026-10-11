@@ -206,7 +206,8 @@ final class DictationPanel: NSWindowController {
         set(
             .retry,
             detail: description
-                + "\nErneuter Versand an OpenAI kann erneut Kosten verursachen. Ergebnis nur zum Kopieren.")
+                + "\nDie Aufnahme geht noch einmal an den eingestellten Dienst; bei OpenAI kostet das erneut. Ergebnis nur zum Kopieren."
+        )
         showForInteraction()
     }
 
@@ -226,7 +227,7 @@ final class DictationPanel: NSWindowController {
             case .manual: "Automatisches Einfügen war nicht möglich. Du kannst den Text kopieren."
             case .unconfirmed: Self.pasteDetail
             case .failure: "Beispiel: Die Verbindung ist fehlgeschlagen. Eine gesicherte Aufnahme bleibt verfügbar."
-            case .retry: "Ein neuer Versand an OpenAI kann erneut Kosten verursachen."
+            case .retry: "Ein neuer Versand an den eingestellten Dienst kann erneut Kosten verursachen."
             case .cancelling: "Die laufende Arbeit wird beendet."
             }
         set(value, detail: previewDetail)

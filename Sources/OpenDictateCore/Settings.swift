@@ -27,6 +27,7 @@ public final class Settings: Sendable {
         public static let translationTarget = "translationTarget"
         public static let translationModel = "translationModel"
         public static let indicatorStyle = "indicatorStyle"
+        public static let serverAddress = "serverAddress"
     }
 
     /// Stored value for "transcribe in whatever language you hear".
@@ -171,12 +172,52 @@ public final class Settings: Sendable {
         }
     }
 
-    /// Text model for the translation. Has no menu; a stored valid value wins.
+    /// Text model for the translation. A stored valid value wins.
     public var translationModel: String {
-        if let stored = store.object(forKey: Key.translationModel) as? String, Translation.isValidModel(stored) {
-            return stored
+        get {
+            if let stored = store.object(forKey: Key.translationModel) as? String, Translation.isValidModel(stored) {
+                return stored
+            }
+            return Translation.defaultModel
         }
-        return Translation.defaultModel
+        set {
+            if Translation.isValidModel(newValue), newValue != Translation.defaultModel {
+                store.set(newValue, forKey: Key.translationModel)
+            } else {
+                store.removeObject(forKey: Key.translationModel)
+            }
+        }
+    }
+
+    // MARK: - Server
+
+    /// The address as configured, for display; nil means OpenAI.
+    public var serverAddress: String? {
+        let value = (store.object(forKey: Key.serverAddress) as? String) ?? environment["OPENAI_BASE_URL"]
+        return (value?.isEmpty ?? true) ? nil : value
+    }
+
+    /// Where dictations go. nil means an address is configured but invalid:
+    /// the caller must stop instead of falling back to OpenAI, because the
+    /// user chose not to send audio there.
+    public var endpoint: ServiceEndpoint? {
+        guard let address = serverAddress else { return .openAI }
+        return ServiceEndpoint(address)
+    }
+
+    /// Stores a validated address; an empty text selects OpenAI and wins over
+    /// `OPENAI_BASE_URL`. Returns false and keeps the previous value for an
+    /// address that is not allowed.
+    @discardableResult
+    public func setServerAddress(_ text: String) -> Bool {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            store.set("", forKey: Key.serverAddress)
+            return true
+        }
+        guard let endpoint = ServiceEndpoint(trimmed) else { return false }
+        store.set(endpoint.baseURL.absoluteString, forKey: Key.serverAddress)
+        return true
     }
 
     // MARK: - Indicator
@@ -202,5 +243,6 @@ public final class Settings: Sendable {
         store.removeObject(forKey: Key.translationTarget)
         store.removeObject(forKey: Key.translationModel)
         store.removeObject(forKey: Key.indicatorStyle)
+        store.removeObject(forKey: Key.serverAddress)
     }
 }
