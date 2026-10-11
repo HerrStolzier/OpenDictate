@@ -1,17 +1,31 @@
-/* Example styles for the OpenDictate Waybar module. */
+/* Example styles for the OpenDictate Waybar module in the OpenDictate colours.
+ * Values are the Nacht theme from design/generated/gtk-colors.css; on a light
+ * bar use the Papier values (rec #B52A1A, signal #1A4FE0) instead.
+ * Recording blinks like Blink's soles; turning off GTK animations
+ * (gtk-enable-animations=false) keeps it still. */
+@define-color od_rec #FF5D5D;
+@define-color od_signal #B6FF4D;
+
 #custom-opendictate {
   margin: 0 7px;
 }
 
 #custom-opendictate.recording {
-  color: #e06c75;
+  color: @od_rec;
+  animation: od-sole 0.8s steps(1) infinite;
 }
 
 #custom-opendictate.processing,
 #custom-opendictate.delivering {
-  color: #e5c07b;
+  color: @od_signal;
 }
 
 #custom-opendictate.translating {
   font-weight: bold;
+}
+
+@keyframes od-sole {
+  50% {
+    opacity: 0.45;
+  }
 }

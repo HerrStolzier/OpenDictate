@@ -113,6 +113,9 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Helpers"
 cp "$EXECUTABLE" "$APP/Contents/MacOS/OpenDictate"
 cp "$HELPER_EXECUTABLE" "$APP/Contents/Helpers/OpenDictateKeychainHelper"
 cp "$ICON_SOURCE" "$APP/Contents/Resources/OpenDictateIcon.png"
+# Brand fonts for the indicator and menu (SIL Open Font License, shipped with it).
+mkdir -p "$APP/Contents/Resources/Fonts"
+cp "$ROOT"/design/fonts/*.ttf "$ROOT/design/fonts/OFL.txt" "$APP/Contents/Resources/Fonts/"
 
 rm -rf "$ICONSET"
 mkdir -p "$ICONSET"

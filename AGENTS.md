@@ -78,7 +78,9 @@ fixture or one successful dictation into a general speech-quality claim.
   book, tokens, fonts, logos). Claude Design stays the original; update the
   copy there first, then regenerate `design/generated/` with
   `scripts/design-tokens.py`. A surface that adopts the design system takes its
-  colours and sizes from `design/generated/`, not from hard-coded values.
+  colours and sizes from `design/generated/`, not from hard-coded values. The
+  Swift output is generated straight into `Sources/OpenDictateCore/DesignTokens.swift`
+  because SwiftPM compiles only files inside a target.
 - `CHECKS.md`: reproducible verification commands and explicit live-test gates.
 - `docs/compatibility-matrix.md`: current product-wide text-field and focus
   acceptance plan; programs are representative examples, not blanket support claims.
