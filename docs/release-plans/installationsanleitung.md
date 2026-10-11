@@ -28,19 +28,25 @@ Transkription läuft über dein OpenAI-Konto und kostet mit `gpt-transcribe`
    **Schlüssel eingeben** wählen, Schlüssel einfügen, **Speichern**. Er liegt
    danach im macOS-Schlüsselbund und wird nur an OpenAI geschickt.
 2. Beim ersten Diktat fragt macOS nach dem **Mikrofon**: erlauben.
-3. Für automatisches Einfügen braucht die App **Bedienungshilfen**
+3. Für automatisches Einfügen und für Einzeltasten wie Fn halten braucht die
+   App **Bedienungshilfen**
    (Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen →
    OpenDictate einschalten; unter macOS 27 heißt der Bereich „Gerätesteuerung
    und Datenzugriff“). Ohne diese Freigabe landet der Text nur in der
-   Zwischenablage, und du fügst ihn mit ⌘V selbst ein. Hattest du vorher eine
+   Zwischenablage, und du fügst ihn mit ⌘V selbst ein; als Kürzel funktioniert
+   dann nur eine Tastenkombination wie ⌃⌥D oder ⌥⇧Leertaste. Hattest du vorher eine
    selbst gebaute OpenDictate-Version: den alten Eintrag mit „–“ entfernen,
    die App mit „+“ neu hinzufügen und OpenDictate neu starten.
 
 ## 4. Diktieren
 
-- Ins Zieltextfeld klicken, **⌥ Option + ⇧ Umschalt + Leertaste** drücken,
-  sprechen, dieselbe Kombination noch einmal drücken. Höchstens 90 Sekunden
-  pro Diktat.
+- Nach dem Speichern des Schlüssels fragt die App einmal, wie du die Aufnahme startest: **Fn halten**,
+  **rechte Wahltaste halten** oder **⌃ Control + ⌥ Option + D**; die passende
+  Taste für deine Tastatur ist vorausgewählt. Schließt du die Frage, bleibt
+  **⌥ Option + ⇧ Umschalt + Leertaste**.
+- Ins Zieltextfeld klicken, die gewählte Taste halten und sprechen; loslassen
+  beendet die Aufnahme. Eine Kombination drückst du einmal zum Start und noch
+  einmal zum Stopp. Höchstens 90 Sekunden pro Diktat.
 - Der Text erscheint im Feld und liegt zusätzlich in der Zwischenablage.
   Kam nichts an: **Text ansehen** oder **Text kopieren** im Panel. Das
   Kürzel lässt sich in den **Einstellungen** ändern.

@@ -2,7 +2,7 @@
 
 Native dictation for Apple Silicon Macs with macOS 14 and newer: press a
 shortcut, speak, then work with text in your chosen application. This is the
-scope of the planned first public Mac release. OpenDictate uses your own OpenAI API key,
+scope of the first public Mac beta. OpenDictate uses your own OpenAI API key,
 and audio is sent to OpenAI over HTTPS; transcription incurs separate API charges.
 Alternatively, a [server of your own](#using-your-own-server) can do the work,
 including a free local model on this Mac that needs no key.
@@ -15,12 +15,13 @@ macOS app.
 
 ## First dictation
 
-You need a Mac and either an OpenAI API key with internet access, or a
-transcription server running on this Mac (see
+You need a Mac and either an OpenAI API key with internet access, or (from the
+version after the current beta) a transcription server running on this Mac (see
 [Using your own server](#using-your-own-server)). With a local server no key is
 needed; in step 1, enter its address under **Einstellungen → Erweitert →
-Eigener Server** instead. A public signed and
-notarized download is not available yet. GitHub CI also retains explicitly
+Eigener Server** instead. The signed and notarized beta is
+a [pre-release on GitHub](https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.10);
+the [install guide](docs/release-plans/installationsanleitung.md) walks through it. GitHub CI also retains explicitly
 labelled [development archives](docs/development.md#ci-development-archives)
 for later testing. To build from source, use Swift 6 on macOS:
 
@@ -214,7 +215,7 @@ OpenAI. The address is the base URL including `/v1`; OpenDictate appends
 
 Only OpenAI is tested by the project; other servers are a known limit.
 Recordings that fail there stay available for retry as usual. The custom server
-is not part of Build 9, the current beta candidate; it arrives with the next
+is not part of Build 10, the current beta candidate; it arrives with the next
 Mac version.
 
 ## Permissions
