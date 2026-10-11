@@ -95,7 +95,7 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   Aufnahme im App-Log, Tests schreiben in eine temporäre Logdatei (Zeilenzahl
   des echten Logs vor und nach `swift test` gleich), „ca.“ beim Preis des
   Mini-Modells.
-- Einzeltasten und Kürzel-Abfrage (nach Build 9, noch in keinem Kandidaten):
+- Einzeltasten und Kürzel-Abfrage (seit Build 10, [Nachweis](release-plans/evidence/2026-10-11-build10.md)):
   Fn/Globus halten und rechte Wahltaste über NSEvent-Monitore, Abfrage beim
   ersten Start nach dem API-Schlüssel mit Tastendruck-Test. Offline geprüft:
   Erkennung von Antippen, Halten, fremder Taste und Mindestdauer in
@@ -161,7 +161,7 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   `OPENAI_API_KEY` mit Build-Hashes in der Zugriffsliste; er wird nur durch die
   App-Migration entfernt, nicht manuell.
 
-**Letzter Nachweis:** 8. Oktober 2026 (Teil B, Build 8).
+**Letzter Nachweis:** 11. Oktober 2026 (Build 10 notarisiert, als Update installiert, ein Diktat mit Übersetzung; [Nachweis](release-plans/evidence/2026-10-11-build10.md)).
 
 ## Windows
 
