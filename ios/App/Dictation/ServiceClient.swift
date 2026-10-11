@@ -16,6 +16,16 @@ struct ServiceClient: Sendable {
         translationSession = RedirectBlocker.session(requestTimeout: 15, resourceTimeout: 60)
     }
 
+    /// Contacts a custom server once from the foreground. iOS asks for local
+    /// network access only then and denies it silently to a background upload
+    /// (TN3179). Nothing but the address is sent, and the answer is ignored.
+    func reach(_ endpoint: ServiceEndpoint) async {
+        guard !endpoint.isOpenAI, !endpoint.isLoopback else { return }
+        var request = URLRequest(url: endpoint.baseURL.appendingPathComponent("models"))
+        request.timeoutInterval = 10
+        _ = try? await translationSession.data(for: request)
+    }
+
     func transcribe(_ audio: Data, configuration: DictationConfiguration) async throws -> String {
         let request = try Self.transcriptionRequest(audio: audio, configuration: configuration)
         let (data, response) = try await transcriptionSession.data(for: request)

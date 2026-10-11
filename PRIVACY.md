@@ -222,7 +222,10 @@ Screen and in the Dynamic Island shows that a recording is running.
   target the transcript goes to `/v1/chat/completions`. With a custom server
   ("Eigener Server") the requests go to that address instead; only `https://`
   is accepted, or `http://` for a server on the iPhone itself, which gets no
-  API key. Redirects are not followed.
+  API key. Redirects are not followed. Once per launch and address, while the
+  app is open, it sends a `GET` without key or audio to the custom server's
+  `/models` address, so iOS can ask for local network access for a server in
+  the home network.
 - **API key:** stored only in the iPhone's Keychain with "this device only"
   and readable after the first unlock, so a dictation from the Lock Screen
   works. It is not part of backups and never leaves the device except in the

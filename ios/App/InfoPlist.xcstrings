@@ -1,6 +1,17 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "NSLocalNetworkUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenDictate schickt deine Aufnahmen an den eingetragenen eigenen Server, wenn er in deinem lokalen Netzwerk läuft."
+          }
+        }
+      }
+    },
     "NSMicrophoneUsageDescription": {
       "extractionState": "manual",
       "localizations": {

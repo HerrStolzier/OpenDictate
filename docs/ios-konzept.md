@@ -62,7 +62,8 @@ Einstellungen.
   Einstellungen.
 - Eigene Server-Adresse statt OpenAI, kostenlos wie auf den anderen
   Plattformen. Wie dort gilt `http://` nur für einen Server auf dem Gerät
-  selbst; ein Server im Heimnetz braucht `https://`.
+  selbst; ein Server im Heimnetz braucht `https://` und die iOS-Freigabe
+  „Lokales Netzwerk“, die die App beim Öffnen anfragt.
 - Aufnahme bleibt bei Fehlern erhalten; dieselbe 90-Sekunden-Grenze pro Diktat
   wie am Mac.
 

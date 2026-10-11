@@ -288,8 +288,11 @@ Einfügen in beide Safari-Felder, Systemtastatur im Passwortfeld,
 [Gerätenachweis](ios-device-2026-09-30.md)). Test-App deinstalliert.
 
 **Geschrieben, nicht geprüft:** Die Beta-App nach dem [Konzept](ios-konzept.md)
-liegt seit dem 11. Oktober unter [ios/](../ios/README.md). Kein Build, keine
-Installation, kein Diktat. Draft-PR #40 ist geschlossen.
+liegt seit dem 11. Oktober unter [ios/](../ios/README.md). Am Mac baut sie
+für den Simulator ohne Warnungen; keine Installation am Gerät, kein Diktat.
+Start der Live-Aktivität aus dem Hintergrund, Prüfung der Zwischenablage und
+die Abfrage „Lokales Netzwerk“ sind aus dem Code und Apples Doku abgeleitet,
+nicht am Gerät gesehen. Draft-PR #40 ist geschlossen.
 
 **Offen / bekannte Grenzen:** Echte Aufnahme und Transkription, Aufnahmestart
 im Hintergrund und Schreiben in die Zwischenablage aus dem Hintergrund,

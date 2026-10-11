@@ -47,6 +47,7 @@ struct ContentView: View {
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { refresh() }
         }
+        .task { await runner.reachServer() }
     }
 
     // MARK: State
@@ -245,6 +246,7 @@ struct ContentView: View {
         microphone = Recorder.permission
         hasKey = KeychainStore.apiKey() != nil
         activitiesEnabled = ActivityAuthorizationInfo().areActivitiesEnabled
+        Task { await runner.reachServer() }
     }
 
     private func openSettings() {

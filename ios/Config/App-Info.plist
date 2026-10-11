@@ -9,6 +9,8 @@
 	</dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>OpenDictate sends your recordings to the custom server you entered if it runs in your local network.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>OpenDictate records your voice only while you dictate and sends it to the service you chose, which turns it into text.</string>
 	<key>NSSupportsLiveActivities</key>

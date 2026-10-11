@@ -46,6 +46,8 @@ final class DictationRunner {
     @ObservationIgnored private var configuration: DictationConfiguration?
     @ObservationIgnored private var activity: Activity<DictationAttributes>?
     @ObservationIgnored private var startedAt = Date()
+    /// The custom server already contacted from the foreground in this process.
+    @ObservationIgnored private var reachedServer: ServiceEndpoint?
 
     private init() {
         store.prepare()
@@ -142,6 +144,14 @@ final class DictationRunner {
         } catch {
             phase = .oops(DictationFailure(error).message)
         }
+    }
+
+    /// A server in the local network needs iOS's permission, which can only be
+    /// asked while the app is open: once per launch and address.
+    func reachServer() async {
+        guard let endpoint = AppSettings.endpoint, endpoint != reachedServer else { return }
+        reachedServer = endpoint
+        await client.reach(endpoint)
     }
 
     func copyAgain() {

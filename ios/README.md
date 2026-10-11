@@ -22,7 +22,7 @@ geschrieben, aber noch nicht auf dem iPhone gebaut und geprüft.
   Farben, Schriften und Blink im Designsystem.
 - `Widgets/`: Live-Aktivität auf dem Sperrbildschirm und in der Dynamic Island.
 - `Config/`: Info.plist-Ergänzungen (Hintergrund-Audio, Live-Aktivitäten,
-  Mikrofon-Text, Schriften).
+  Texte zu Mikrofon und lokalem Netzwerk, Schriften).
 
 ## Ablauf
 
@@ -70,7 +70,9 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
 - Kein Kontrollzentrum-Schalter, keine Erkennung auf dem Gerät, kein
   Vokabular und keine feste Sprache; die Sprache erkennt der Dienst.
 - Ein eigener Server im Heimnetz braucht `https://`; `http://` gilt nur für
-  einen Server auf dem iPhone selbst.
+  einen Server auf dem iPhone selbst. Dazu braucht er die iOS-Freigabe
+  „Lokales Netzwerk“, die die App beim Öffnen anfragt; aus dem Hintergrund
+  fragt iOS nicht (am Gerät noch nicht gesehen).
 
 ## Tastatur-Prototyp (September 2026, abgelöst)
 
