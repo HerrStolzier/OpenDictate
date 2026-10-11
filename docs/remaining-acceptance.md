@@ -133,12 +133,24 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   die Web-Komponente des Designsystems (`BlinkConformanceTests`). Alle Varianten
   und Zustände wurden als Bilder gerendert (`--indicator-snapshots`) und
   angesehen.
+- Live am 11. Oktober 2026 auf Bastis Mac Mini (ohne Notch, 3440 × 1440 bei
+  1×) mit einem lokalen Testbuild aus `47fe2dd` (Developer-ID-signiert, nicht
+  notarisiert, nicht in /Applications): Diktat per Fn halten mit Übersetzung
+  nach Englisch in TextEdit. Die Pille in der Menüleiste zeigte laut
+  Bildschirmaufnahmen „Hört zu REC 0:00“ bis „0:03“, „Schreibt OpenAI
+  übersetzt“ und „Eingefügt per ⌘V, kurz prüfen“ und schloss danach von selbst;
+  laut App-Log 2,9 s vom Stopp bis zum Ergebnis. Basti bestätigte: Der Text kam
+  in TextEdit an, TextEdit blieb vorne, die Pille ist klein und gut sichtbar.
+  Ein zu kurzes Diktat (0,6 s) zeigte die Fehlerkarte mit Grund und ohne
+  „Nochmal senden“. Ein selbstsignierter Testbuild bekommt den API-Schlüssel
+  nicht, weil der installierte Schlüsselbund-Helfer die Developer-ID verlangt;
+  die Anzeige meldete das als „Hoppla“ mit dem Hinweis auf die Einrichtung.
 
 **Offen / bekannte Grenzen:**
 
-- Diktatanzeige live: ⌘V landet bei sichtbarer Anzeige in der Ziel-App, ohne
-  dass OpenDictate aktiv wird; „Nochmal senden“ mit Rückfrage; schwebend, aus
-  und Vollbild; echte Maße an einem MacBook mit Notch. Die Notch-Werte sind ein
+- Diktatanzeige live noch offen: „Nochmal senden“ mit Rückfrage; schwebend,
+  aus und Vollbild; andere Ziel-Apps als TextEdit; echte Maße an einem MacBook
+  mit Notch. Die Notch-Werte sind ein
   erster Vorschlag. Im Vollbild gilt eine App als Vollbild, wenn ihr vorderstes
   Fenster den ganzen Bildschirm bedeckt; bei „Menüleiste immer ausblenden“ liegt
   die Pille in der Menüleiste über dem Fensterinhalt. In Apps mit sehr vielen
