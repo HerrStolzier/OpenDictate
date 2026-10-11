@@ -94,6 +94,7 @@ private final class MenuDelegateStub: MenuBarControllerDelegate {
 
     func menuBarDidConfigureShortcut() {}
     func menuBarDidConfigureVocabulary() {}
+    func menuBarDidConfigureCustomServer() {}
     func menuBarDidCancel(discard: Bool) {}
     func menuBarDidCopyLastText() {}
     func menuBarDidClearLastText() {}
