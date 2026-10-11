@@ -85,8 +85,9 @@ Schritte in der [ROADMAP](ROADMAP.md).
   Einrichtung: [README](README.md).
 - **Linux:** Rust-CLI für Hyprland (Arch/omarchy) mit Aufnahme, Keyring,
   Transkription, Übersetzung, Zwischenablage, Auto-Einfügen in das beim Start
-  erfasste Fenster, Leistenanzeige und Hotkey. Seit dem 7. Oktober 2026 im
-  Alltag genutzt. Einrichtung: [linux/README.de.md](linux/README.de.md).
+  erfasste Fenster, Leistenanzeige und Hotkey; seit 11. Oktober auch eigener
+  Server und geführte Einrichtung (`opendictate setup`, offline geprüft). Seit
+  dem 7. Oktober 2026 im Alltag genutzt. Einrichtung: [linux/README.de.md](linux/README.de.md).
 - **Windows:** Versionierter Prototyp unter [windows/](windows/README.md),
   nur offline geprüft; kein echtes Diktat, keine Paketierung.
 - **iOS:** Synthetischer Textpfad eines Tastatur-Prototyps belegt; echte
@@ -155,6 +156,7 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
+| 11. Oktober 2026 | Die Linux-Beta bekommt vor ihrem Pre-Release zwei offene Punkte: eigener Server als Stufe 1 für ein lokales Modell (kostenlos, gleiche Begriffe und Regeln wie auf dem Mac) und die geführte Einrichtung `opendictate setup` mit Kürzel-Abfrage (Super+D, F9, rechte Alt nur bei US-Layout). Anlass: Bastis Auftrag „Mach alle offenen To-Dos parallel fertig“; die Abfrage aus der Entscheidung vom 9. Oktober kommt damit für Linux in das kostenlose CLI. Pre-Release und Ankündigungen warten weiter auf Bastis eigenes Go. | [ROADMAP](ROADMAP.md#track-linux); Projektchat 11. Oktober |
 | 10. Oktober 2026 | Die Empfehlung in der Mac-Kürzel-Abfrage hängt von der Tastatur ab: Fn halten bei MacBook- oder kompakter Apple-Tastatur, rechte Wahltaste bei Apple-Tastatur mit Ziffernblock (Fn liegt dort weit rechts) oder Tastatur eines anderen Herstellers. Anlass: Bastis Live-Test mit der großen Apple-Tastatur. | [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |
 | 9. Oktober 2026 | Das Designsystem „OpenDictate“ aus Claude Design wird die gemeinsame Quelle für das Aussehen aller Oberflächen (Kopie und Generator unter `design/`). Reihenfolge der Umstellung: Website (nach dem Merge der Beta-Website), Linux-Leiste, Support-Formular und Dashboard beim Livegang, Mac-App nach dem Start der Mac-Beta, iOS mit seinem Track, Windows zuletzt. Die Betas bleiben in der heutigen Optik. | [design/README.md](design/README.md); Karte im privaten Projektchat |
 | 9. Oktober 2026 | Kürzel-Abfrage nach der Installation wird Funktion der fertigen, bezahlten App: zwei bis drei recherchierte Vorschläge je Plattform, die Empfehlung vorausgewählt, eigenes Kürzel möglich. Alle empfohlenen Vorschläge übernommen (macOS Fn halten, Linux Super+D, Windows Strg+Win halten, iOS Aktionstaste, Android Mikrofon-Taste der Tastatur; Liste in der ROADMAP). Die dafür nötige Technik für Einzeltasten und Halten-zum-Sprechen wird gebaut, zuerst auf macOS. Die laufenden Betas bleiben unverändert. | [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |

@@ -20,6 +20,7 @@ optdepends=(
 )
 # Arch's default LTO turns ring's C objects into GCC bytecode that rust-lld cannot link.
 options=('!debug' '!lto')
+install=opendictate.install
 
 _repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 _manifest="$_repo/linux/Cargo.toml"
