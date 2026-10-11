@@ -246,6 +246,7 @@ struct ContentView: View {
         microphone = Recorder.permission
         hasKey = KeychainStore.apiKey() != nil
         activitiesEnabled = ActivityAuthorizationInfo().areActivitiesEnabled
+        runner.refreshRetryable()
         Task { await runner.reachServer() }
     }
 

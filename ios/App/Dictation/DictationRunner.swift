@@ -131,7 +131,11 @@ final class DictationRunner {
 
     /// Sends the newest kept recording again with the current settings.
     func retry() async {
-        guard !isBusy, let entry = store.newest() else { return }
+        guard !isBusy else { return }
+        guard let entry = store.newest() else {
+            retryable = nil
+            return
+        }
         let background = BackgroundActivity(name: "Send again")
         defer { background.end() }
         do {
@@ -152,6 +156,13 @@ final class DictationRunner {
         guard let endpoint = AppSettings.endpoint, endpoint != reachedServer else { return }
         reachedServer = endpoint
         await client.reach(endpoint)
+    }
+
+    /// Syncs "Send again" with the kept recordings, e.g. after one expired
+    /// while the app stayed open.
+    func refreshRetryable() {
+        guard !isBusy else { return }
+        retryable = store.newest()
     }
 
     func copyAgain() {
