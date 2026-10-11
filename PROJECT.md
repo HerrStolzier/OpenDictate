@@ -145,8 +145,8 @@ der ersten Beta und blockiert keine ([ROADMAP](ROADMAP.md#plattformübergreifend
   Veröffentlichung braucht Bastis ausdrückliches Go.
 - Künftige Preise, Vertrieb und Firmengründung bleiben offen; das Preismodell
   oben ist die Richtung, nicht die Umsetzung.
-- Die Website ist ein lokaler Entwurf mit illustrativer Demo, kein
-  Diktiernachweis.
+- Die Website unter opendictate.app (live seit dem 11. Oktober 2026) zeigt
+  eine illustrative Demo, keinen Diktiernachweis.
 - Support läuft seit dem 11. Oktober 2026 über support@opendictate.app und
   das Formular unter support.opendictate.app; zugesagte Antwortzeiten gibt es
   nicht, und der KI-Agent ist aus.
@@ -162,6 +162,7 @@ Preismodells und der Gaming-Ursprung verloren.
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
 | 11. Oktober 2026 | Windows läuft ab jetzt parallel zu iOS weiter. Reihenfolge der nächsten Betas: zuerst iOS, danach Windows. Was ohne Windows-Gerät geht, wird jetzt gebaut und offline geprüft; die Live-Abnahme kommt am Ende. | [Windows-Plan](docs/windows-plan.md#weg-zur-windows-beta-stand-11-oktober-2026); Projektchat 11. Oktober |
+| 11. Oktober 2026 | Die Website geht live unter opendictate.app, als Cloudflare Worker mit den Dateien eines festen Commits. Cloudflare Web Analytics, das Cloudflare bei kostenlosen Domains von selbst einschaltet, ist für die ganze Domain aus, weil Website und Support „kein Tracking“ zusagen. | [website/README.md](website/README.md#auslieferung); Bastis „website live“ im privaten Projektchat |
 | 11. Oktober 2026 | Linux-Beta veröffentlicht: Pre-Release `linux-v0.1.0-beta.1` auf Commit `afa3506` nach Bastis „go release“, ohne vorherigen Durchlauf von `opendictate setup` auf omarchy (als bekannte Grenze im Release-Text). Angekündigt wird vorerst nirgends; Reddit-Posts erst, wenn Basti das Thema wieder aufmacht. | [Release](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1); Projektchat 11. Oktober |
 | 11. Oktober 2026 | Auf Macs ohne Notch ist die schwebende Pille unter der Menüleiste der Standard; die flache Pille in der Menüleiste und „Aus“ bleiben Einstellungen. Ersetzt den Standard aus der Zeile zu den parallelen Design-Punkten. Anlass: Basti hat beide Varianten live ausprobiert und „schwebend“ gewählt. | [docs/remaining-acceptance.md](docs/remaining-acceptance.md); Projektchat 11. Oktober |
 | 11. Oktober 2026 | Name, Wortmarke, Blink und App-Icons sind von der MIT-Lizenz ausgenommen; der Quellcode bleibt MIT. Berichte, Links und unveränderte Kopien sind erlaubt, veränderte Versionen brauchen einen eigenen Namen und ein eigenes Icon. Anlass: Schutz der bezahlten, signierten App vor Nachbauten unter gleichem Namen. Keine eingetragene Marke; das wäre ein eigener späterer Schritt. | [TRADEMARKS.md](TRADEMARKS.md); Karte im privaten Projektchat |

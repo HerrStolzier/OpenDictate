@@ -1,10 +1,39 @@
 # Produktseite (Beta)
 
-Auftrag: kleine deutsche Produktseite zu OpenDictate als lokale Entscheidungsgrundlage. Keine Veröffentlichung, Installation, API-Aufrufe oder Änderungen an der App.
+Auftrag: kleine deutsche Produktseite zu OpenDictate. Seit dem 11. Oktober 2026 ist sie unter https://opendictate.app live (Bastis „website live“).
 
-Umsetzung: eigenständige statische Seite ohne Abhängigkeiten. Die Demo ist illustrativ und nimmt kein Audio auf. Aussagen basieren auf README.md und PRIVACY.md des Projekts. Seit dem 11. Oktober 2026 verlinkt die Seite den Pre-Release `v0.1.0-beta.10`; sie ist noch nicht über GitHub Pages veröffentlicht.
+Umsetzung: eigenständige statische Seite ohne Abhängigkeiten. Die Demo ist illustrativ und nimmt kein Audio auf. Aussagen basieren auf README.md und PRIVACY.md des Projekts. Seit dem 11. Oktober 2026 verlinkt die Seite den Pre-Release `v0.1.0-beta.10`.
 
 Vorschau aus diesem Ordner: `python3 -m http.server 4317 --bind 127.0.0.1`.
+
+## Auslieferung
+
+Die Seite läuft als Cloudflare Worker `opendictate-website` auf
+`opendictate.app`; `www.opendictate.app` leitet dauerhaft dorthin um, die
+Adresse unter workers.dev ist aus. `worker.js` liefert die Dateien dieses
+Ordners aus genau einem Commit (`COMMIT`). Jede Datei holt er einmal von
+GitHub, prüft sie gegen ihren SHA-256-Fingerabdruck (`FILES`), legt sie im
+KV-Speicher `opendictate-website` ab und liefert sie von dort aus. Besucher
+verbinden sich nie mit GitHub. Der Worker setzt Sicherheitsregeln (CSP nur
+eigene Adresse, keine Einbettung in fremde Seiten) und beantwortet nur GET und
+HEAD. `README.md`, `worker.js` und `wrangler.toml` gehören nicht zur Seite.
+Der Worker selbst hat keine automatischen Tests; `scripts/website-worker.py`
+prüft nur, dass Commit und Fingerabdrücke zusammenpassen.
+
+Cloudflare Web Analytics ist für die ganze Domain ausgeschaltet. Cloudflare
+schaltet es bei kostenlosen Domains von selbst ein und fügt dann ein Zählskript
+in jede Seite ein; das widerspricht „kein Tracking“ in der
+Datenschutzerklärung. Nach jeder Änderung an der Domain prüfen, dass die
+ausgelieferte Seite kein `static.cloudflareinsights.com` enthält. Die CSP würde
+das Skript im Browser ohnehin blockieren.
+
+Neue Fassung ausrollen, nachdem die Änderung auf `main` ist:
+
+1. `python3 scripts/website-worker.py <commit>` trägt den Commit und die
+   Fingerabdrücke in `worker.js` ein; `--check` prüft sie.
+2. `worker.js` deployen, am Mac mit `npx wrangler deploy` in diesem Ordner
+   oder über Cloudflares API, und nur mit Bastis Wort.
+3. Ausgelieferte Seite prüfen: Seite, Schriften, kein Zählskript.
 
 Abnahme: HTML-Struktur und lokale Ressourcen prüfen, HTTP-Antwort prüfen, lokale Vorschau öffnen. Browser-Abnahme am 2026-09-08 durchgeführt: Desktop sowie 390 und 320 Pixel Mobilbreite visuell geprüft; Sprunglinks, Rücksprung und Tastaturweg (Zum Inhalt → Ablauf) erfolgreich. Kein horizontaler Überlauf bei 320 Pixel. Echter Browserzoom am 2026-09-08 in Helium über das Darstellungsmenü auf bestätigte 200 Prozent gesetzt: Einstieg, Beispiel, Ablauf, Informationen und Footer visuell geprüft; keine sichtbaren abgeschnittenen Texte oder horizontalen Überläufe. Sprungnavigation und Rücksprung geprüft. Zoom anschließend auf Originalgröße zurückgesetzt und separaten Testtab geschlossen. Kein Build-Schritt erforderlich, da HTML und CSS direkt ausgeliefert werden.
 
