@@ -76,8 +76,11 @@ dieser Pakete fehlt.
 Das Paket baut mit der Stable-Toolchain; gebaut auf Omarchy mit Rust 1.98.1. Danach liegt das Programm unter
 `/usr/bin/opendictate`; `opendictate version` zeigt die Version.
 
-**Aktualisieren:** im Ordner `OpenDictate` `git pull`, dann in
-`linux/packaging/arch` `makepkg -sfi`. Das `-f` erzwingt einen Neubau, auch wenn
+**Aktualisieren:** Der Klon steht auf einem Release-Tag, `git pull` greift
+daher nicht. Im Ordner `OpenDictate` `git fetch --tags` und `git checkout <Tag>`
+mit dem Tag des neuesten Linux-Releases von der
+[Release-Seite](https://github.com/HerrStolzier/OpenDictate/releases)
+ausführen, dann in `linux/packaging/arch` `makepkg -sfi`. Das `-f` erzwingt einen Neubau, auch wenn
 die Versionsnummer gleich geblieben ist; ohne es installiert `makepkg` ein dort
 schon liegendes älteres Paket.
 

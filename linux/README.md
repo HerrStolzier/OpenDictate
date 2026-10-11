@@ -74,8 +74,11 @@ The package builds with the stable toolchain; it was built on Omarchy with
 Rust 1.98.1. Afterwards the program is at `/usr/bin/opendictate`;
 `opendictate version` shows the version.
 
-**Update:** run `git pull` in the `OpenDictate` folder, then `makepkg -sfi` in
-`linux/packaging/arch`. The `-f` forces a rebuild even when the version number
+**Update:** the clone sits on a release tag, so `git pull` does not apply. In
+the `OpenDictate` folder run `git fetch --tags` and `git checkout <tag>` with
+the tag of the newest Linux release from the
+[releases page](https://github.com/HerrStolzier/OpenDictate/releases), then
+`makepkg -sfi` in `linux/packaging/arch`. The `-f` forces a rebuild even when the version number
 has not changed; without it `makepkg` installs an older package already lying
 there.
 
