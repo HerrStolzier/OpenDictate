@@ -9,6 +9,12 @@ enum SystemSettings {
         open("x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
     }
 
+    /// Keyboard pane, where "Press 🌐 key to" lives.
+    static func openKeyboard() {
+        AppLog.write("Opening Keyboard settings")
+        open("x-apple.systempreferences:com.apple.Keyboard-Settings.extension")
+    }
+
     static func openSound() {
         AppLog.write("Opening Sound settings")
         open("x-apple.systempreferences:com.apple.preference.sound")

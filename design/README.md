@@ -49,7 +49,7 @@ der heutigen Optik; die Markenarbeit blockiert keine Beta
 | Oberfläche | Wie sie das Designsystem übernimmt |
 | --- | --- |
 | Website (`website/`) | `tokens.css`, Schriften und SVGs in den Seitenordner kopieren; Entwurf der Startseite liegt in Claude Design |
-| macOS-App | `DesignTokens.swift` nach `OpenDictateCore`, Schriften im App-Bundle registrieren, `.icns` aus `app-icon-1024.png`, neue Diktatanzeige an der Notch mit Blink statt des heutigen Fensters, Blink in der Menüleiste (`blink-16.svg`); gebaut nach dem Start der Mac-Beta; bauen und prüfen nur auf dem Mac |
+| macOS-App | `DesignTokens.swift` nach `OpenDictateCore`, Schriften im App-Bundle registrieren, `.icns` aus `app-icon-1024.png`, neue Diktatanzeige an der Notch mit Blink statt des heutigen Fensters, Blink in der Menüleiste (`blink-16.svg`); ohne Notch mittig in der Menüleiste; im Bau seit 11. Oktober, bauen und prüfen nur auf dem Mac |
 | Linux | `gtk-colors.css` im Waybar-Beispiel, Blink als Symbol der Leistenanzeige |
 | Support-Formular und Dashboard | `tokens.css` und Schriften übernehmen, sobald der Support live geht (privates Repo `support-desk`) |
 | iOS | dieselbe Swift-Datei wie macOS |
