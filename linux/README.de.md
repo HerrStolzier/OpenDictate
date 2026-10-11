@@ -1,4 +1,4 @@
-# OpenDictate für Linux (Beta-Vorbereitung)
+# OpenDictate für Linux (Beta)
 
 [English](README.md) · Deutsch
 
@@ -8,7 +8,9 @@ abschreiben, übersetzt sie auf Wunsch (zum Beispiel ins Englische) und fügt de
 Text in das Fenster ein, das beim Start vorne war. Es ist ein kleines
 Kommandozeilenprogramm ohne eigenes Fenster, gedacht für Hyprland.
 
-**Stand:** Noch nicht veröffentlicht. Erprobt auf einem einzigen Rechner
+**Stand:** Öffentliche Beta seit dem 11. Oktober 2026:
+[Pre-Release `linux-v0.1.0-beta.1`](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1).
+Erprobt auf einem einzigen Rechner
 (Omarchy 4 mit Hyprland 0.56, Arch Linux), dort seit dem 7. Oktober 2026 im
 Alltag. Nachweise: [Live-Nachweise](../docs/linux-live-2026-10-05-bis-07.md),
 [belegter Stand](../docs/remaining-acceptance.md#linux). Die
@@ -59,7 +61,7 @@ baut das Programm, führt die Tests aus und installiert es nach Rückfrage mit
 
 ```bash
 sudo pacman -S --needed base-devel git rust
-git clone https://github.com/HerrStolzier/OpenDictate.git
+git clone --branch linux-v0.1.0-beta.1 https://github.com/HerrStolzier/OpenDictate.git
 cd OpenDictate/linux/packaging/arch
 makepkg -si
 ```
@@ -74,8 +76,11 @@ dieser Pakete fehlt.
 Das Paket baut mit der Stable-Toolchain; gebaut auf Omarchy mit Rust 1.98.1. Danach liegt das Programm unter
 `/usr/bin/opendictate`; `opendictate version` zeigt die Version.
 
-**Aktualisieren:** im Ordner `OpenDictate` `git pull`, dann in
-`linux/packaging/arch` `makepkg -sfi`. Das `-f` erzwingt einen Neubau, auch wenn
+**Aktualisieren:** Der Klon steht auf einem Release-Tag, `git pull` greift
+daher nicht. Im Ordner `OpenDictate` `git fetch --tags` und `git checkout <Tag>`
+mit dem Tag des neuesten Linux-Releases von der
+[Release-Seite](https://github.com/HerrStolzier/OpenDictate/releases)
+ausführen, dann in `linux/packaging/arch` `makepkg -sfi`. Das `-f` erzwingt einen Neubau, auch wenn
 die Versionsnummer gleich geblieben ist; ohne es installiert `makepkg` ein dort
 schon liegendes älteres Paket.
 
@@ -284,7 +289,9 @@ Aufnahme, `…` während er schreibt, und die aktive Zielsprache (z. B.
 Während der Aufnahme trägt die Zeile die Klasse `active`. Ein Klick soll
 `settings target toggle` aufrufen. Die Ausgabe enthält nur Zustand und
 Einstellungen, nie Text. Eine Nerd Font ist nicht nötig. Die Beispieldateien liegen nach der Installation auch unter
-`/usr/share/doc/opendictate/`.
+`/usr/share/doc/opendictate/`. Das Pre-Release `linux-v0.1.0-beta.1` zeigt noch
+Mikrofon und Sanduhr aus der Nerd Font; Blink kommt mit dem nächsten
+Linux-Release.
 
 - Omarchy 4 (Omarchy-Shell-Leiste): Befehlsmodul nach
   [omarchy-bar.example.json](omarchy-bar.example.json) in

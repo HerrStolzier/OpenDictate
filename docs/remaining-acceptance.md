@@ -27,7 +27,8 @@ eine bekannte Grenze, die in der jeweiligen Anleitung stehen muss.
   geprüft.
 - Physischer Hotkey Super+D; Leistenanzeige in der Omarchy-Leiste mit
   Klick-Umschalter der Zielsprache. Seit dem 11. Oktober zeigt die Leiste Blink
-  (`▮`) statt Mikrofon und Sanduhr; diese neue Darstellung, der Tooltip und das
+  (`▮`) statt Mikrofon und Sanduhr, noch nicht im Pre-Release
+  `linux-v0.1.0-beta.1`; diese neue Darstellung, der Tooltip und das
   Waybar-Beispiel sind nur offline geprüft, noch nicht live gesehen.
 - Auto-Einfügen in das beim Start erfasste Fenster (Editor, Terminal), mit
   Fokus- und Zwischenablage-Prüfung; Fensterwechsel wird korrekt übersprungen.
@@ -62,7 +63,10 @@ omarchy; Löschen nur mit Bastis Go. Die leere Datei vom gescheiterten Start
 wurde am 8. Oktober mit Bastis Go gelöscht.
 
 **Letzter Nachweis:** 8. Oktober 2026, Arch-Paket aus `0a04ed5` (PR #59)
-([Live-Nachweise](linux-live-2026-10-05-bis-07.md)).
+([Live-Nachweise](linux-live-2026-10-05-bis-07.md)). Seit 11. Oktober ist
+`afa3506` als Pre-Release
+[`linux-v0.1.0-beta.1`](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1)
+veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
 
 ## macOS
 

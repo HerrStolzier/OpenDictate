@@ -89,7 +89,8 @@ Schritte in der [ROADMAP](ROADMAP.md).
   Transkription, Übersetzung, Zwischenablage, Auto-Einfügen in das beim Start
   erfasste Fenster, Leistenanzeige und Hotkey; seit 11. Oktober auch eigener
   Server und geführte Einrichtung (`opendictate setup`, offline geprüft). Seit
-  dem 7. Oktober 2026 im Alltag genutzt. Einrichtung: [linux/README.de.md](linux/README.de.md).
+  dem 7. Oktober 2026 im Alltag genutzt, seit 11. Oktober als Pre-Release
+  [`linux-v0.1.0-beta.1`](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1) veröffentlicht. Einrichtung: [linux/README.de.md](linux/README.de.md).
 - **Windows:** Versionierter Prototyp unter [windows/](windows/README.md),
   nur offline geprüft; kein echtes Diktat, keine Paketierung.
 - **iOS:** Synthetischer Textpfad eines Tastatur-Prototyps belegt; echte
@@ -160,6 +161,7 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
+| 11. Oktober 2026 | Linux-Beta veröffentlicht: Pre-Release `linux-v0.1.0-beta.1` auf Commit `afa3506` nach Bastis „go release“, ohne vorherigen Durchlauf von `opendictate setup` auf omarchy (als bekannte Grenze im Release-Text). Angekündigt wird vorerst nirgends; Reddit-Posts erst, wenn Basti das Thema wieder aufmacht. | [Release](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1); Projektchat 11. Oktober |
 | 11. Oktober 2026 | Auf Macs ohne Notch ist die schwebende Pille unter der Menüleiste der Standard; die flache Pille in der Menüleiste und „Aus“ bleiben Einstellungen. Ersetzt den Standard aus der Zeile zu den parallelen Design-Punkten. Anlass: Basti hat beide Varianten live ausprobiert und „schwebend“ gewählt. | [docs/remaining-acceptance.md](docs/remaining-acceptance.md); Projektchat 11. Oktober |
 | 11. Oktober 2026 | Name, Wortmarke, Blink und App-Icons sind von der MIT-Lizenz ausgenommen; der Quellcode bleibt MIT. Berichte, Links und unveränderte Kopien sind erlaubt, veränderte Versionen brauchen einen eigenen Namen und ein eigenes Icon. Anlass: Schutz der bezahlten, signierten App vor Nachbauten unter gleichem Namen. Keine eingetragene Marke; das wäre ein eigener späterer Schritt. | [TRADEMARKS.md](TRADEMARKS.md); Karte im privaten Projektchat |
 | 11. Oktober 2026 | Die offenen Design-Punkte laufen parallel statt nacheinander: Mac-Diktatanzeige, Linux-Leiste mit englischen Markentexten und die Website auf Basis der Beta-Website. Für Macs ohne Notch ist die Anzeige mittig in der Menüleiste der Standard, weil sie dort nichts verdeckt; eine schwebende Anzeige unter der Menüleiste und „Aus“ sind Einstellungen. Im Live-Test am 11. Oktober hat Basti die Anzeige in der Menüleiste bestätigt („schön klein, aber groß genug, dass man sie sieht“); sie bleibt Standard. (Standard am selben Tag ersetzt, siehe die neuere Zeile zur schwebenden Pille.) Anlass: Bastis Sorge, eine schwebende Anzeige verdecke die Browserleiste. Build 9 und die Betas bleiben unverändert. | [ROADMAP](ROADMAP.md#track-macos); Gespräch im privaten Projektchat |

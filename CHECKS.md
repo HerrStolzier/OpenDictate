@@ -298,9 +298,9 @@ manifests, with at most three open update pull requests.
 `fixtures/provider/` holds the provider contract (`CONTRACT.md`), the success
 and error responses and `cases.json` with the expected message per platform.
 The Swift tests `TranscriptionRequestTests` and `TranscriptionTransportTests`
-read these files; change the fixtures and the contract together. Linux and
-Windows tests are meant to read the same files once their provider tests move
-to them.
+read these files, and so do the Linux tests in `transcribe.rs`
+(`tests::contract`); change the fixtures and the contract together. Windows
+tests are meant to read the same files once its provider tests move to them.
 
 ## Meaning of checks
 
