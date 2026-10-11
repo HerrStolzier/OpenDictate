@@ -67,7 +67,7 @@ See [privacy and retention](PRIVACY.md) and the
 
 While you dictate, a small black indicator at the top of the screen shows one
 word and a short line: **Hört zu** with the recording time, **Schreibt** while
-OpenAI transcribes or translates, **Eingefügt** after the Paste command
+the service transcribes or translates, **Eingefügt** after the Paste command
 (the app cannot confirm the result, so the line says to check it), **Kopiert**
 when the text is only on the clipboard, and **Hoppla** with the reason after an
 error. It never activates OpenDictate or takes the focus, so Paste reaches the

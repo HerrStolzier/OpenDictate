@@ -220,7 +220,7 @@ public struct IndicatorContent: Equatable, Sendable {
             detail = IndicatorText.listening(elapsed: elapsed, limit: limit)
             compactDetail = detail
         case .writing:
-            detail = translating ? "OpenAI übersetzt" : "OpenAI wandelt um"
+            detail = translating ? "Wird übersetzt" : "Wird umgewandelt"
             compactDetail = detail
         case .inserted:
             detail = "per ⌘V, kurz prüfen"

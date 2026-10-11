@@ -27,7 +27,7 @@
             let steps: [(DictationDisplay, String, Double)] = [
                 (.recording, "", 4), (.processing, "", 2.5), (.unconfirmed, "", 3), (.recording, "", 2),
                 (.processing, "", 1.5), (.manual, "", 5),
-                (.failure, "OpenAI ist gerade nicht erreichbar. Deine Aufnahme ist gesichert.", 6), (.ready, "", 2)
+                (.failure, "Der Dienst ist gerade nicht erreichbar. Deine Aufnahme ist gesichert.", 6), (.ready, "", 2)
             ]
             Task { @MainActor in
                 while true {
@@ -47,7 +47,7 @@
         private static func writeSnapshots(to folder: URL) {
             try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
             let reasons =
-                "OpenAI ist gerade nicht erreichbar. Prüfe die Internetverbindung. Deine Aufnahme ist gesichert."
+                "Der Dienst ist gerade nicht erreichbar. Prüfe die Internetverbindung. Deine Aufnahme ist gesichert."
             let cases: [(String, IndicatorPlacement, Bool)] = [
                 ("notch", .notch, true), ("menubar", .menuBar, true), ("floating", .floating, true),
                 ("fullscreen", .floating, false)

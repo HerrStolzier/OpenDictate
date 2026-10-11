@@ -899,7 +899,6 @@ extension AppDelegate: MenuBarControllerDelegate {
                 needsSetup: needsSetup, message: needsKey ? nil : Self.localServerReadyMessage)
             menuBar?.refresh()
             guard wasSettingUp, !needsSetup else { return }
-            menuBar?.showDaily()
             if !Config.settings.hasStoredTrigger, flow.state == .idle, let operation = lifecycle.beginOperation() {
                 defer { lifecycle.finish(operation) }
                 askForTrigger(operation: operation)

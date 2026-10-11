@@ -195,7 +195,6 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   abgeleitet: Bei einer frischen Installation ohne Schlüssel führt das
   Speichern eines lokalen Servers wie das Speichern eines Schlüssels weiter zur
   Kürzel-Abfrage und zur Bedienungshilfen-Freigabe.
-
 - Empfehlung je Tastatur: MacBook-Tastatur und Fremdtastatur am echten Gerät
   ungeprüft. Jedes HID-Gerät mit Tastatur-Schnittstelle oder einer
   Tastatur-Collection neben seiner Hauptfunktion zählt, auch Gaming-Mäuse mit
