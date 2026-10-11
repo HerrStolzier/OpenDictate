@@ -48,9 +48,10 @@ the provider side is shared; each client keeps its own code. Decided on
 ## Cases
 
 [cases.json](cases.json) lists each fixture with its status code and, per
-platform, a phrase the user-facing message must contain. Today only
-`mac_message_contains` exists; Linux and Windows add their own key when their
-tests read these files.
+platform, a phrase the user-facing message must contain:
+`mac_message_contains` and `linux_message_contains` (the Linux phrases are
+those for OpenAI as the server). Windows adds its own key when its tests read
+these files.
 
 | Fixture | Status | Meaning |
 | --- | --- | --- |
