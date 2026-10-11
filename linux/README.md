@@ -310,7 +310,9 @@ secrets; the HTTP tests only use a local stub.
 - `toggle` starts a recording without taking focus. While the microphone opens
   the state is `starting`; only then is the recording reported as started, and
   a microphone that fails or takes longer than 5 seconds ends the start with a
-  notification. The second call stops the recording and switches to
+  notification. `cancel` during `starting` ends the start, which is then not
+  reported as started; audio already captured is kept. The second
+  call stops the recording and switches to
   `processing`; further starts during `starting`, `processing` or `delivering`
   are refused.
 - Below 1 second, or without a 50 ms window above −45 dBFS, nothing is

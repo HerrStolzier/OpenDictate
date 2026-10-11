@@ -325,7 +325,9 @@ Quelle per Pipe (`trusted-secret-command | opendictate secrets set-api-key`).
 - `toggle` startet eine fokusneutrale Aufnahme. Solange das Mikrofon öffnet,
   ist der Zustand `starting`; erst danach gilt die Aufnahme als gestartet, und
   ein Mikrofon, das scheitert oder länger als 5 Sekunden braucht, beendet den
-  Start mit einer Benachrichtigung. Der zweite Aufruf beendet die Aufnahme und
+  Start mit einer Benachrichtigung. `cancel` während `starting` beendet den
+  Start, der dann nicht als gestartet gemeldet wird; schon aufgenommener Ton
+  bleibt erhalten. Der zweite Aufruf beendet die Aufnahme und
   wechselt auf `processing`; weitere Starts während `starting`, `processing`
   oder `delivering` werden abgelehnt.
 - Unter 1 Sekunde oder ohne 50-ms-Fenster oberhalb −45 dBFS erfolgt kein Upload.

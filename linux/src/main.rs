@@ -282,9 +282,18 @@ fn start_deadline() -> SystemTime {
 fn wait_for_recording(child: &mut Child, log: &Path, timeout: Duration) -> Result<(), String> {
     let socket = paths::socket_path().map_err(path_error)?;
     let state_path = paths::state_path().map_err(path_error)?;
+    let cancel_path = paths::cancel_path().map_err(path_error)?;
     let deadline = Instant::now() + timeout;
     while Instant::now() < deadline {
-        if state::read(&state_path, &socket) == state::State::Recording {
+        let current = state::read(&state_path, &socket);
+        // The worker clears the cancel request before it reports Starting, so
+        // one seen from then on was made during this start, which then ends.
+        if matches!(current, state::State::Starting | state::State::Recording)
+            && cancel_path.is_file()
+        {
+            return Err(tr!("Aufnahme abgebrochen.", "Recording cancelled."));
+        }
+        if current == state::State::Recording {
             return Ok(());
         }
         // A second worker that lost the socket to a running one exits too;
@@ -852,13 +861,17 @@ fn worker() -> Result<(), String> {
         notify::status(&error);
         return Err(error);
     }
-    state_guard
-        .set(state::State::Recording)
-        .map_err(path_error)?;
-    // Checked after publishing Recording: a cancel written while the state
-    // still said Starting is seen here, a later one stops via the socket.
-    if let Err(error) = ensure_not_cancelled(&state_guard) {
-        abort_start(handle, &path, "cancelled");
+    // A cancel written before this check ends the start here; a later one
+    // finds Recording and stops it via the socket, keeping the audio.
+    let published = ensure_not_cancelled(&state_guard)
+        .and_then(|()| state_guard.set(state::State::Recording).map_err(path_error));
+    if let Err(error) = published {
+        let reason = if state_guard.is_cancelled() {
+            "cancelled"
+        } else {
+            "state-failed"
+        };
+        abort_start(handle, &path, reason);
         return Err(error);
     }
     log_ops("recording-started");
