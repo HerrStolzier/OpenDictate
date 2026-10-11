@@ -146,9 +146,10 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   antwortete OpenAI in zwei Versuchen am 8. Oktober nach gut 3 s, bevor die
   Abfrage bestätigt war. Bekannte Grenze der Beta (Entscheidung Basti).
 - „Text ansehen“ und „Text kopieren“ wurden in Teil B nicht eigens geprüft.
-- Übersetzung und die Punkte vom 7. Oktober: noch kein echtes Diktat auf dem
-  Mac; das prüft der nächste Kandidat (Installation und ein Diktat mit
-  Übersetzung).
+- Übersetzung: Ein echtes Diktat mit Übersetzung nach Englisch wurde am
+  11. Oktober mit Build 10 eingefügt ([Nachweis](release-plans/evidence/2026-10-11-build10.md)).
+  Die Dateirechte `0600` der Originalaufnahme während einer Live-Aufnahme sind
+  damit nicht geprüft.
 - Der ⌘V-Pfad bindet kein Feld: Cursor- oder Fokuswechsel nach dem Stopp
   können den Einfügeort innerhalb der ursprünglichen App verändern; er hat
   keinen Zeilenumbruchfilter. Terminal-Tabs, Markierung, Secure Input, iTerm2

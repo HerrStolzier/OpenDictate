@@ -80,8 +80,9 @@ Schritte in der [ROADMAP](ROADMAP.md).
 
 - **macOS:** Native Menüleisten-App für macOS 14+, SwiftPM und Swift 6, zuerst
   für Apple Silicon. Aufnahme, Transkription, Zwischenablage und automatisches
-  Einfügen per ⌘V in die beim Start aktive App, eigenes Vokabular. Build 8 ist
-  notarisiert und als Paket geprüft; Installation und Übersetzung stehen aus.
+  Einfügen per ⌘V in die beim Start aktive App, eigenes Vokabular. Build 10 ist
+  notarisiert, als Update installiert und hat ein Diktat mit Übersetzung
+  bestanden ([Nachweis](docs/release-plans/evidence/2026-10-11-build10.md)).
   Einrichtung: [README](README.md).
 - **Linux:** Rust-CLI für Hyprland (Arch/omarchy) mit Aufnahme, Keyring,
   Transkription, Übersetzung, Zwischenablage, Auto-Einfügen in das beim Start

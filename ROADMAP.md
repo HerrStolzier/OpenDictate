@@ -78,17 +78,21 @@ Release-Draft `v0.1.0-beta.8` hinterlegt. Teil B am 8. Oktober: installiert,
 erster Start mit Quarantäne und ein Diktat mit automatischem Einfügen bestanden
 ([Nachweis](docs/release-plans/evidence/2026-10-08-plan2-teil-b.md)). Übersetzung und die kleinen Punkte vom 7. Oktober sind im Code und
 offline geprüft ([Stand](docs/remaining-acceptance.md#macos)); ein echtes
-Diktat damit fehlt. Die Stufenpläne unter
+Diktat mit Übersetzung ist mit Build 10 am 11. Oktober belegt
+([Nachweis](docs/release-plans/evidence/2026-10-11-build10.md)). Die Stufenpläne unter
 [docs/release-plans/](docs/release-plans/01-interne-produktabnahme.md) bleiben
 die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleinert.
 
 **Nächste Schritte:**
 
-1. Übersetzung und die kleinen Punkte vom 7. Oktober: umgesetzt und offline
-   geprüft. Offen ist nur der Live-Nachweis im nächsten Kandidaten: ein Diktat
-   mit Übersetzung nach Englisch und die Dateirechte `0600` der
-   Originalaufnahme während der Aufnahme.
-2. Neuen Kandidaten bauen, signieren, notarisieren und einfrieren (Stufe 4 im
+1. Übersetzung und die kleinen Punkte vom 7. Oktober: umgesetzt, offline
+   geprüft und mit Build 10 live belegt (ein Diktat mit Übersetzung nach
+   Englisch). Offen sind die Dateirechte `0600` der Originalaufnahme während
+   einer Live-Aufnahme.
+2. Stand 11. Oktober: Build 10 aus `a1903a9` ist notarisiert, sein Hash
+   festgehalten und als Update installiert; der Abgleich der Produkttexte steht
+   aus (die Website nennt noch Option+Shift+Leertaste).
+   Neuen Kandidaten bauen, signieren, notarisieren und einfrieren (Stufe 4 im
    verkleinerten Umfang: Hash, Installation und Update geprüft, Produkttexte in
    README, Website und App stimmen überein). Stufe 3 (Eigennutzung) schrumpft
    auf: Basti nutzt den Kandidaten so lange selbst, bis er ihm vertraut; der
