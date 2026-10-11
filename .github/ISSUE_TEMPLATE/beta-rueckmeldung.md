@@ -9,13 +9,15 @@ Dieses Issue ist öffentlich. Keine Namen, keine privaten Texte, niemals
 API-Schlüssel oder Audiodateien. Nur unverfängliche Testsätze.
 -->
 
-**Build:** <!-- z. B. 0.1.0 Build 9 (steht unter „Über OpenDictate …“) -->
+**Build:** <!-- z. B. 0.1.0 Build 10 (steht unter „Über OpenDictate …“) -->
 
 **macOS-Version:** <!-- Apple-Menü → Über diesen Mac, z. B. 15.4 -->
 
 **Mac-Modell:** <!-- z. B. MacBook Air M2 -->
 
 **Ziel-App und Feld:** <!-- z. B. Safari, Antwortfeld in einem Webmail -->
+
+**Kürzel:** <!-- z. B. Fn halten, rechte Wahltaste, ⌥⇧Leertaste -->
 
 **Übersetzung:** <!-- aus oder Zielsprache, z. B. Englisch -->
 
@@ -27,7 +29,7 @@ API-Schlüssel oder Audiodateien. Nur unverfängliche Testsätze.
 
 **Von selbst im Feld?** <!-- ja / nein, selbst eingefügt / gar nicht -->
 
-**Dauer:** <!-- Sekunden vom zweiten Tastendruck bis zum fertigen Text -->
+**Dauer:** <!-- Sekunden vom Stopp der Aufnahme bis zum fertigen Text -->
 
 **Fehlermeldung oder Auffälligkeit:**
 <!-- Wortlaut einer Meldung, unerwarteter Dialog, verlorener Text -->

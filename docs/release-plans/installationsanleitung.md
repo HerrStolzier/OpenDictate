@@ -38,9 +38,13 @@ Transkription läuft über dein OpenAI-Konto und kostet mit `gpt-transcribe`
 
 ## 4. Diktieren
 
-- Ins Zieltextfeld klicken, **⌥ Option + ⇧ Umschalt + Leertaste** drücken,
-  sprechen, dieselbe Kombination noch einmal drücken. Höchstens 90 Sekunden
-  pro Diktat.
+- Nach dem Speichern des Schlüssels fragt die App einmal, wie du die Aufnahme startest: **Fn halten**,
+  **rechte Wahltaste halten** oder **⌃ Control + ⌥ Option + D**; die passende
+  Taste für deine Tastatur ist vorausgewählt. Schließt du die Frage, bleibt
+  **⌥ Option + ⇧ Umschalt + Leertaste**.
+- Ins Zieltextfeld klicken, die gewählte Taste halten und sprechen; loslassen
+  beendet die Aufnahme. Eine Kombination drückst du einmal zum Start und noch
+  einmal zum Stopp. Höchstens 90 Sekunden pro Diktat.
 - Der Text erscheint im Feld und liegt zusätzlich in der Zwischenablage.
   Kam nichts an: **Text ansehen** oder **Text kopieren** im Panel. Das
   Kürzel lässt sich in den **Einstellungen** ändern.

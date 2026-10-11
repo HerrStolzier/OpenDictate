@@ -18,7 +18,7 @@ struct OpenAITranslator: Sendable {
             configuration.timeoutIntervalForResource = 60
             configuration.urlCache = nil
             configuration.httpCookieStorage = nil
-            self.session = URLSession(configuration: configuration)
+            self.session = RedirectBlocker.session(configuration)
         }
     }
 
@@ -37,10 +37,10 @@ struct OpenAITranslator: Sendable {
         guard Translation.isValidLanguageCode(target), Translation.isValidModel(options.translationModel) else {
             throw OpenDictateError.translationNotConfigured
         }
-        var request = URLRequest(url: URL(string: "https://api.openai.com/v1/chat/completions")!)
+        var request = URLRequest(url: options.endpoint.chatCompletionsURL)
         request.httpMethod = "POST"
         request.timeoutInterval = 15
-        request.setValue("Bearer \(options.apiKey)", forHTTPHeaderField: "Authorization")
+        options.authorize(&request)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         let body: [String: Any] = [
             "model": options.translationModel,

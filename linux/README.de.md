@@ -2,7 +2,8 @@
 
 [English](README.md) · Deutsch
 
-OpenDictate nimmt auf Tastendruck deine Stimme auf, lässt sie von OpenAI
+OpenDictate nimmt auf Tastendruck deine Stimme auf, lässt sie von OpenAI (oder
+deinem eigenen Server, siehe [Eigenen Server verwenden](#eigenen-server-verwenden))
 abschreiben, übersetzt sie auf Wunsch (zum Beispiel ins Englische) und fügt den
 Text in das Fenster ein, das beim Start vorne war. Es ist ein kleines
 Kommandozeilenprogramm ohne eigenes Fenster, gedacht für Hyprland.
@@ -46,7 +47,9 @@ Datei wird auch nicht automatisch gelöscht.
   (bei Omarchy schon dabei). Der API-Schlüssel liegt nur dort, nie in einer
   Datei.
 - Einen OpenAI-API-Schlüssel mit Guthaben
-  ([platform.openai.com](https://platform.openai.com/api-keys)).
+  ([platform.openai.com](https://platform.openai.com/api-keys)) oder einen
+  [eigenen Server](#eigenen-server-verwenden), der die OpenAI-Schnittstelle
+  spricht, zum Beispiel ein Modell auf deinem eigenen Rechner.
 
 ## Installieren
 
@@ -84,6 +87,28 @@ Schlüsselbund-Einträge entfernt
 `secret-tool clear service opendictate key recording-auth`.
 
 ## Einrichten
+
+**Am schnellsten:** `opendictate setup` im Terminal starten. Es fragt zwei
+Dinge:
+
+1. Wer abschreibt: OpenAI mit deinem API-Schlüssel (es fragt den Schlüssel
+   verdeckt ab und prüft ihn vor dem Speichern; nur ein Schlüssel, der die
+   Prüfung besteht, ersetzt einen gespeicherten), oder ein
+   [eigener Server](#eigenen-server-verwenden).
+2. Mit welchem Kürzel du ein Diktat startest und stoppst: Super+D, F9 oder,
+   bei US-Tastaturlayout, die rechte Alt-Taste allein. Es zeigt, welche Tasten
+   Hyprland schon belegt, und trägt die Zeile nach Rückfrage in deine
+   Hyprland-Konfiguration ein, mit einer Sicherung neben der Datei
+   (`….opendictate-backup-…`). Bei Omarchy ist das
+   `~/.config/hypr/bindings.lua`; eine reine Lua-Konfiguration bekommt nur die
+   Zeile zum Kopieren. Übernimmt Hyprland die neue Zeile nicht, stellt setup
+   die Datei wieder her, und das bisherige Kürzel gilt weiter.
+
+Danach sind die Schritte 3 bis 5 unten optional. `opendictate shortcut status`
+zeigt später das aktuelle Kürzel, `opendictate shortcut set f9` ändert es ohne
+Rückfragen.
+
+**Stattdessen von Hand:**
 
 **1. API-Schlüssel speichern.** Der Schlüssel wird nur über eine Pipe
 angenommen, nie als Argument oder Umgebungsvariable. Dieser Befehl fragt ihn
@@ -145,6 +170,54 @@ Text liegt danach immer auch in der Zwischenablage. `opendictate settings insert
 off` schaltet das automatische Einfügen ab. `opendictate cancel` bricht eine
 laufende Aufnahme ab; die Aufnahme bleibt für `retry` erhalten.
 
+## Eigenen Server verwenden
+
+Statt an OpenAI kann OpenDictate Aufnahmen an einen eigenen Server schicken,
+der die OpenAI-Schnittstelle spricht, zum Beispiel ein Sprachmodell auf diesem
+Rechner. Das kostet nichts pro Minute, und die Aufnahme verlässt den Rechner
+nicht.
+
+```bash
+opendictate settings server http://127.0.0.1:8080/v1
+opendictate settings model NAME              # Modellname, den dein Server erwartet
+opendictate settings translation-model NAME  # nur, wenn du übersetzt
+opendictate settings server off              # zurück zu OpenAI
+```
+
+- Die **Server-Adresse** ist die Basisadresse inklusive `/v1`. OpenDictate
+  hängt `/audio/transcriptions` für die Abschrift und `/chat/completions` für
+  die Übersetzung an; beides geht an dieselbe Adresse. Ein Server, der nur
+  abschreibt, funktioniert mit ausgeschalteter Übersetzung.
+- `https://` geht für jede Adresse, einfaches `http://` nur für diesen Rechner
+  (`localhost`, `127.0.0.1`, `[::1]`). Adressen mit Zugangsdaten, `?` oder `#`
+  werden abgelehnt.
+- **API-Schlüssel:** Eine Adresse auf diesem Rechner bekommt keinen Schlüssel
+  und braucht keinen. Jeder andere Server bekommt deinen gespeicherten
+  Schlüssel (praktisch für OpenAI-kompatible Anbieter); nutze nur Server, denen
+  du ihn anvertraust.
+- Mit eigenem Server sind Modellnamen frei, mit OpenAI gelten nur die bekannten
+  Transkriptionsmodelle. `settings server off` setzt ein Modell zurück, das
+  OpenAI nicht anbietet.
+- Alternativ setzt die Umgebungsvariable `OPENAI_BASE_URL` die Adresse; eine
+  gespeicherte Adresse hat Vorrang. Hyprland muss die Variable sehen, nicht
+  nur deine Shell.
+- Lokale Modelle auf dem Prozessor sind langsam, deshalb wartet OpenDictate
+  bei einem eigenen Server bis zu 2 Minuten (plus Upload-Zeit) statt
+  15 Sekunden.
+- Das Protokoll nennt nur den Host des Servers, nie Pfad oder Schlüssel.
+
+Beispiel mit [whisper.cpp](https://github.com/ggml-org/whisper.cpp) (nur
+Abschrift; es nutzt das Modell, mit dem es per `-m` gestartet wurde):
+
+```bash
+whisper-server -m models/ggml-base.bin --host 127.0.0.1 --port 8080 \
+  --inference-path /v1/audio/transcriptions
+opendictate settings server http://127.0.0.1:8080/v1
+```
+
+**Geprüft ist nur OpenAI.** Eigene Server sind neu in dieser Beta; ob ein
+bestimmter Server funktioniert, ist genau die Rückmeldung, die uns hilft.
+
 ## Wenn etwas nicht klappt
 
 - `opendictate status` zeigt, ob gerade aufgenommen oder verarbeitet wird.
@@ -168,19 +241,21 @@ meisten:
 - Abbruch oder Netzausfall genau während der Übersetzung.
 - Die Zeitlimits (Netzfehler nach etwa 20 Sekunden) sind nur offline geprüft.
 - Nur Hyprland, nur Arch-basierte Systeme. Kein Settings-Fenster, kein
-  Halten-zum-Sprechen, kein eigenes Vokabular, kein anderer Anbieter als
-  OpenAI.
+  Halten-zum-Sprechen, kein eigenes Vokabular. Geprüft ist nur OpenAI; eigene
+  Server sind ungetestet.
 - Höchstens 90 Sekunden pro Diktat.
 
 ## Datenschutz in Kürze
 
 Die Aufnahme geht per HTTPS an OpenAI zur Abschrift, mit eingeschalteter
-Übersetzung danach der Text an OpenAI zur Übersetzung. An niemanden sonst.
-Details: [PRIVACY.md](../PRIVACY.md#linux-cli).
+Übersetzung danach der Text an OpenAI zur Übersetzung. An niemanden sonst. Mit
+[eigenem Server](#eigenen-server-verwenden) geht beides stattdessen nur an
+diesen Server. Details: [PRIVACY.md](../PRIVACY.md#linux-cli).
 
 ## Alle Befehle
 
 ```bash
+opendictate setup                   # geführte Einrichtung: Schlüssel oder eigener Server, Kürzel
 opendictate toggle                  # Aufnahme starten oder stoppen
 opendictate status                  # idle / recording / processing / delivering
 opendictate bar                     # Status als JSON-Zeile für die Leiste (`waybar` gleichwertig)
@@ -194,6 +269,9 @@ opendictate settings target en      # Diktat ins Englische übersetzen; `off` au
 opendictate settings target toggle  # aus bzw. mit letzter Zielsprache (sonst en) an
 opendictate settings insert off     # nur Zwischenablage, kein Auto-Einfügen
 opendictate settings translation-model gpt-5.4-mini
+opendictate settings server http://127.0.0.1:8080/v1  # eigener Server; `off` für OpenAI
+opendictate shortcut status         # aktuelles Kürzel, welche Tasten frei sind
+opendictate shortcut set f9         # super-d, f9 oder right-alt in die Hyprland-Konfiguration
 opendictate secrets status
 ```
 
@@ -247,7 +325,7 @@ Quelle per Pipe (`trusted-secret-command | opendictate secrets set-api-key`).
   Erkannte Sprache erhält 0,25 Sekunden Rand; nur Einsparungen ab 0,35 Sekunden
   erzeugen eine zugeschnittene Upload-WAV. Das 90-Sekunden-Limit bleibt aktiv.
 - Mit gesetzter Zielsprache wird das Transkript danach über
-  `/v1/chat/completions` übersetzt und nur die Übersetzung ausgegeben. Scheitert
+  `/chat/completions` desselben Servers übersetzt und nur die Übersetzung ausgegeben. Scheitert
   die Übersetzung oder ist sie leer, bleibt die Aufnahme wie bei jedem anderen
   Fehler erhalten; `retry` übersetzt erneut. Am 05.10. auf omarchy live
   erprobt ([Plan mit Nachweis](../docs/linux-live-translation-plan.md)).
@@ -272,7 +350,9 @@ Quelle per Pipe (`trusted-secret-command | opendictate secrets set-api-key`).
   eingeschlossen: Transkription 15 Sekunden plus Upload-Zeit
   bei etwa 2 Mbit/s (bei 90 Sekunden Aufnahme mit 48 kHz rund 50 Sekunden),
   Übersetzung 15 Sekunden plus eine Sekunde je 100 Zeichen (höchstens 60
-  Sekunden). Der Verbindungsaufbau allein darf höchstens 10 Sekunden dauern. Fällt das Netz während eines
+  Sekunden). Mit eigenem Server ist die Grundzeit 2 Minuten statt 15 Sekunden
+  (Übersetzung höchstens 3 Minuten). Der Verbindungsaufbau allein darf
+  höchstens 10 Sekunden dauern. Fällt das Netz während eines
   kurzen Diktats weg, kommt die Meldung „Netzwerkfehler oder
   Zeitüberschreitung“ damit nach etwa 20 Sekunden statt nach bis zu zwei
   Minuten; reißt es mitten in einem langen Upload ab, kann es bis zum Doppelten

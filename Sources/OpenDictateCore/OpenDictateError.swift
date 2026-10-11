@@ -16,6 +16,7 @@ public enum OpenDictateError: LocalizedError {
     case recordingTooShort(actual: TimeInterval, minimum: TimeInterval)
     case emptyTranslation
     case translationNotConfigured
+    case invalidServerAddress
 
     public var isSkippedRecording: Bool {
         switch self {
@@ -30,7 +31,8 @@ public enum OpenDictateError: LocalizedError {
     public static func userMessage(for error: Error) -> String {
         if let error = error as? OpenDictateError { return error.errorDescription ?? "Bitte versuche es erneut." }
         if error is URLError {
-            return "OpenAI ist gerade nicht erreichbar. Prüfe die Internetverbindung und versuche es später erneut."
+            return
+                "Der Dienst ist gerade nicht erreichbar. Prüfe die Internetverbindung oder deinen eigenen Server und versuche es erneut."
         }
         return "Der Vorgang konnte nicht abgeschlossen werden. Versuche es erneut oder öffne die Hilfe."
     }
@@ -48,7 +50,8 @@ public enum OpenDictateError: LocalizedError {
         case .hotKeyRegistrationFailed:
             return "Das Tastenkürzel ist nicht verfügbar. Wähle in den Einstellungen ein anderes Kürzel."
         case .invalidResponse:
-            return "OpenAI hat keinen verwendbaren Text geliefert. Versuche die Aufnahme später erneut zu verarbeiten."
+            return
+                "Der Dienst hat keinen verwendbaren Text geliefert. Versuche die Aufnahme später erneut zu verarbeiten."
         case .keychainStatus:
             return "Der Schlüsselbund ist nicht zugänglich. Prüfe die Zugriffsabfrage von macOS und versuche es erneut."
         case .missingAPIKey:
@@ -63,7 +66,7 @@ public enum OpenDictateError: LocalizedError {
             return "Die Aufnahme konnte nicht gespeichert werden. Prüfe das Mikrofon und starte ein neues Diktat."
         case .noSpeechDetected:
             return
-                "Die Aufnahme war zu leise. Prüfe das Mikrofon und sprich etwas näher hinein. Es wurde nichts an OpenAI gesendet."
+                "Die Aufnahme war zu leise. Prüfe das Mikrofon und sprich etwas näher hinein. Es wurde nichts gesendet."
         case .recordingCouldNotStart:
             return
                 "Das Mikrofon konnte nicht gestartet werden. Prüfe den Anschluss und den Mikrofonzugriff in den Systemeinstellungen."
@@ -71,7 +74,10 @@ public enum OpenDictateError: LocalizedError {
             return
                 "Die Aufnahme war zu kurz (\(actual.formattedSeconds)). Sprich mindestens \(minimum.formattedSeconds) und beende dann die Aufnahme."
         case .emptyTranslation:
-            return "OpenAI hat keine Übersetzung geliefert. Der Originaltext wird nicht ersatzweise eingefügt."
+            return "Der Dienst hat keine Übersetzung geliefert. Der Originaltext wird nicht ersatzweise eingefügt."
+        case .invalidServerAddress:
+            return
+                "Die Server-Adresse ist ungültig. Trage sie unter Einstellungen → Erweitert → Eigener Server neu ein."
         case .translationNotConfigured:
             return "Zielsprache oder Übersetzungsmodell ist ungültig. Wähle die Übersetzung in den Einstellungen neu."
         }

@@ -53,11 +53,16 @@ Nachweise: [Live-Nachweise 5. bis 7. Oktober](docs/linux-live-2026-10-05-bis-07.
 
 1. Linux-Beta auf Englisch (Entscheidung 8. Oktober): Das Programm spricht die
    Systemsprache, Anleitung auf Englisch und Deutsch, eigene Issue-Vorlage.
-   Dann Pre-Release und Ankündigung in r/omarchy und r/hyprland. Go je
-   Veröffentlichung und Ankündigung.
+   Seit 11. Oktober zusätzlich gebaut, nur offline geprüft: eigener Server
+   (Stufe 1 für ein lokales Modell, gleiche Begriffe wie auf dem Mac) und die
+   geführte Einrichtung `opendictate setup` mit Kürzel-Abfrage (Super+D, F9,
+   rechte Alt nur bei US-Layout). Vor dem Pre-Release einmal auf omarchy
+   bauen und durchspielen. Dann Pre-Release und Ankündigung in r/omarchy und
+   r/hyprland. Go je Veröffentlichung und Ankündigung.
 2. Beta laufen lassen: Issues zeitnah beantworten, Rückmeldungen sammeln,
-   danach entscheiden, was gebaut wird (Kandidaten: konfigurierbarer Endpunkt,
-   Vokabular, Echtzeit-Übersetzung, Feinjustierung der Zeitlimits).
+   danach entscheiden, was gebaut wird (Kandidaten: Vokabular,
+   Echtzeit-Übersetzung, Feinjustierung der Zeitlimits, Stufe 2 mit Modell im
+   Programm).
 
 **Bekannte Grenzen, den Beta-Nutzern überlassen:** Einfügen in Chromium-,
 Electron- und Discord-Fenstern; gemischtes Deutsch/Englisch mit Übersetzung;
@@ -68,7 +73,7 @@ Compositor; nur Arch/omarchy.
 ## Track macOS
 
 **Ziel der Beta:** Mac-Nutzer (Apple Silicon, macOS 14+) laden das notarisierte
-Paket, richten ihren Schlüssel ein, diktieren mit Option+Shift+Leertaste,
+Paket, richten ihren Schlüssel ein, diktieren mit dem beim ersten Start gewählten Kürzel,
 wahlweise mit Übersetzung, und melden Probleme über GitHub Issues.
 
 **Stand:** Stufe 1 (interne Funktionsabnahme) am 24. September abgeschlossen.
@@ -77,21 +82,28 @@ Manifest geprüft (SHA-256 `2e994cd8…e335768`) und in der privaten
 Release-Draft `v0.1.0-beta.8` hinterlegt. Teil B am 8. Oktober: installiert,
 erster Start mit Quarantäne und ein Diktat mit automatischem Einfügen bestanden
 ([Nachweis](docs/release-plans/evidence/2026-10-08-plan2-teil-b.md)). Übersetzung und die kleinen Punkte vom 7. Oktober sind im Code und
-live in Build 9 geprüft: notarisiert, als Update per Finder installiert,
-Diktat mit Übersetzung nach Englisch, Originalaufnahme von Anfang an `0600`
-([Nachweis](docs/release-plans/evidence/2026-10-08-build9.md)). Die Stufenpläne unter
+offline geprüft ([Stand](docs/remaining-acceptance.md#macos)); ein echtes
+Diktat mit Übersetzung ist mit Build 10 am 11. Oktober belegt
+([Nachweis](docs/release-plans/evidence/2026-10-11-build10.md)). Die Stufenpläne unter
 [docs/release-plans/](docs/release-plans/01-interne-produktabnahme.md) bleiben
 die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleinert.
 
 **Nächste Schritte:**
 
-1. Eigennutzung von Build 9 (Stufe 3, verkleinert): Basti nutzt ihn, bis er
-   ihm vertraut; der Messbogen ist optional. Die vollständige UX- und
-   VoiceOver-Prüfung bleibt bekannte Grenze der Beta.
-2. Mac-Beta (bisher Stufen 5 und 6): Pre-Release, Website mit „Beta“,
+1. Übersetzung und die kleinen Punkte vom 7. Oktober: umgesetzt, offline
+   geprüft und live belegt: Build 9 mit Diktat, Übersetzung und `0600` der
+   Originalaufnahme ([Nachweis](docs/release-plans/evidence/2026-10-08-build9.md)),
+   Build 10 mit einem Diktat mit Übersetzung nach Englisch.
+2. Stand 11. Oktober: Build 10 aus `a1903a9` ist der Beta-Kandidat:
+   notarisiert, Hash festgehalten, als Update installiert. Basti hat am
+   11. Oktober „Beta los“ gesagt; der private Release-Entwurf
+   `v0.1.0-beta.10` und die Produkttexte (README, Website, Release-Hinweise)
+   sind auf Build 10 abgeglichen. Die vollständige UX- und VoiceOver-Prüfung
+   bleibt bekannte Grenze der Beta.
+3. Mac-Beta (bisher Stufen 5 und 6): Pre-Release, Website mit „Beta“,
    [Installationsanleitung](docs/release-plans/installationsanleitung.md),
    Ankündigung (Kandidaten: Show HN, r/macapps, Mastodon/X).
-3. Beta laufen lassen und antworten.
+4. Beta laufen lassen und antworten.
 
 **Bekannte Grenzen, den Beta-Nutzern überlassen:** Feldtypen und Programme
 jenseits der [Kompatibilitätsmatrix](docs/compatibility-matrix.md); gehörte
@@ -186,10 +198,10 @@ Mehrsprachigkeit ohne Umschalten, Datenschutz und schnellem Zugriff.
 | Punkt | Stand | Nächster Schritt |
 | --- | --- | --- |
 | Preismodell | Am 8. Oktober entschieden ([PROJECT](PROJECT.md#preismodell)): offener Code, CLI-Builds gratis, fertige App mit UI einmalig bezahlt; bis zur Firmengründung bleibt alles kostenlos. | Vor der ersten bezahlten Version: Firmengründung, Bezahlweg, Preis festlegen. Keine Beta hängt daran. |
-| Gaming | Ursprungs-Anwendungsfall ([PROJECT](PROJECT.md#anwendungsfälle)). Belegt: Textchat in World of Warcraft mit der Mac-App. Offen: Einfügen im exklusiven Vollbild, Zwei-Tasten-Kürzel auf jeder Plattform, Einzeltaste oder Halten-zum-Sprechen. | Im Windows-Track Schritt 2 prüfen. Vor einer Gaming-Botschaft per Blizzard-Ticket klären, dass externe Diktier-Software geduldet ist. Hold-to-talk und Einzeltaste sind auf macOS mit der Kürzel-Abfrage gebaut (nächster Kandidat nach Build 9); Windows folgt mit seinem Track. |
-| Kürzel-Abfrage beim ersten Start | Am 9. Oktober entschieden ([PROJECT](PROJECT.md#entscheidungen)) für die fertige (bezahlte) App: Nach der Installation fragt die App, wie die Aufnahme starten soll, und schlägt je Plattform zwei bis drei recherchierte Kürzel vor; die Empfehlung ist vorausgewählt, ein eigenes Kürzel bleibt möglich, ein Tastendruck prüft, dass es ankommt. Bestätigte Vorschläge (Recherche 9. Oktober, die erste Option ist jeweils vorausgewählt; außer macOS nicht gebaut): macOS Fn halten, rechte Wahltaste, ⌃⌥D (seit 10. Oktober ist die rechte Wahltaste vorausgewählt, wenn eine Apple-Tastatur mit Ziffernblock oder eine fremde Tastatur angeschlossen ist); Linux Super+D, F9 (Omarchys Diktiertaste), rechte Alt nur bei US-Layout; Windows Strg+Win halten, rechte Strg für Spiele, Maus-Seitentaste; iOS Aktionstaste, Auf Rückseite tippen, Steuerelement; Android Mikrofon-Taste der Tastatur, Schnelleinstellungs-Kachel, schwebende Blase. Die Mac-App hat schon eine Kürzelauswahl im Menü (drei Vorschläge, eigenes Kürzel); ihr Standard Option+Shift+Leertaste hat drei Tasten. Einzeltasten und Halten-zum-Sprechen brauchen auf macOS und Windows eine andere Technik als heute. macOS: Fn halten, rechte Wahltaste (beide mit Halten-zum-Sprechen) und die Abfrage sind gebaut, offline geprüft und am 9. Oktober live am Mac geprüft; einzelne Fälle sind noch offen ([Abnahme](docs/remaining-acceptance.md#macos)). Build 9 enthält sie nicht. | macOS kommt mit dem nächsten Kandidaten nach Build 9. Danach Linux als Schritt im Installer, Windows (gleiche Technik für Strg+Win und rechte Strg), iOS und Android mit ihrem Track. |
-| Konfigurierbarer Endpunkt | Am 2. Oktober für macOS spezifiziert ([Plan-4-Notiz](docs/plan4-aenderungen-2026-10-02.md)); seit dem 8. Oktober für alle Plattformen gewünscht, als Antwort auf den Wunsch nach lokaler Verarbeitung. | Mac mit dem nächsten Kandidaten; Linux und Windows nach ihrer ersten Beta. Nur die Adresse, `http://` nur für Loopback; eine Fremd-URL wird nicht abgenommen. |
-| Provider-Vertrag | Am 2. Oktober entschieden: gemeinsame Fixtures unter `fixtures/provider/` für Swift, Rust und C#. Nicht begonnen. | Mac-Teil mit dem nächsten Kandidaten; Linux `validate_model` wie Mac; Windows mit Schritt 1 seines Tracks. |
+| Gaming | Ursprungs-Anwendungsfall ([PROJECT](PROJECT.md#anwendungsfälle)). Belegt: Textchat in World of Warcraft mit der Mac-App. Offen: Einfügen im exklusiven Vollbild, Zwei-Tasten-Kürzel auf jeder Plattform, Einzeltaste oder Halten-zum-Sprechen. | Im Windows-Track Schritt 2 prüfen. Vor einer Gaming-Botschaft per Blizzard-Ticket klären, dass externe Diktier-Software geduldet ist. Hold-to-talk und Einzeltaste sind auf macOS mit der Kürzel-Abfrage gebaut (in Build 10, noch nicht veröffentlicht); Windows folgt mit seinem Track. |
+| Kürzel-Abfrage beim ersten Start | Am 9. Oktober entschieden ([PROJECT](PROJECT.md#entscheidungen)) für die fertige (bezahlte) App: Nach der Installation fragt die App, wie die Aufnahme starten soll, und schlägt je Plattform zwei bis drei recherchierte Kürzel vor; die Empfehlung ist vorausgewählt, ein eigenes Kürzel bleibt möglich, ein Tastendruck prüft, dass es ankommt. Bestätigte Vorschläge (Recherche 9. Oktober, die erste Option ist jeweils vorausgewählt; außer macOS nicht gebaut): macOS Fn halten, rechte Wahltaste, ⌃⌥D (seit 10. Oktober ist die rechte Wahltaste vorausgewählt, wenn eine Apple-Tastatur mit Ziffernblock oder eine fremde Tastatur angeschlossen ist); Linux Super+D, F9 (Omarchys Diktiertaste), rechte Alt nur bei US-Layout; Windows Strg+Win halten, rechte Strg für Spiele, Maus-Seitentaste; iOS Aktionstaste, Auf Rückseite tippen, Steuerelement; Android Mikrofon-Taste der Tastatur, Schnelleinstellungs-Kachel, schwebende Blase. Die Mac-App hat schon eine Kürzelauswahl im Menü (drei Vorschläge, eigenes Kürzel); ihr Standard Option+Shift+Leertaste hat drei Tasten. Einzeltasten und Halten-zum-Sprechen brauchen auf macOS und Windows eine andere Technik als heute. macOS: Fn halten, rechte Wahltaste (beide mit Halten-zum-Sprechen) und die Abfrage sind gebaut, offline geprüft und am 9. Oktober live am Mac geprüft; einzelne Fälle sind noch offen ([Abnahme](docs/remaining-acceptance.md#macos)). Build 9 enthält sie nicht; Build 10 (notarisiert, privat, 11. Oktober) enthält sie ([Nachweis](docs/release-plans/evidence/2026-10-11-build10.md)). | macOS: in Build 10 enthalten, noch nicht veröffentlicht. Linux: seit 11. Oktober `opendictate setup` (Hinweis nach der Paketinstallation; zeigt freie und belegte Tasten, trägt die Zeile mit Sicherung in die Hyprland-Konfiguration ein), offline geprüft, live auf omarchy offen. Danach Windows (gleiche Technik für Strg+Win und rechte Strg), iOS und Android mit ihrem Track. |
+| Konfigurierbarer Endpunkt | Am 2. Oktober für macOS spezifiziert ([Plan-4-Notiz](docs/plan4-aenderungen-2026-10-02.md)); seit dem 8. Oktober für alle Plattformen gewünscht, als Antwort auf den Wunsch nach lokaler Verarbeitung. | Mac: als „Eigener Server“ umgesetzt und offline geprüft (11. Oktober, inklusive echtem Testserver auf 127.0.0.1); ein lokaler Server bekommt keinen Schlüssel und braucht keinen, damit ist ein lokales Modell kostenlos nutzbar (Basti, 9. Oktober); ein mitgeliefertes Modell kommt erst später. Nicht in Build 10; kommt mit dem nächsten Mac-Kandidaten. Linux am 11. Oktober mit denselben Begriffen gebaut (`opendictate settings server`, Abschnitt „Custom server“ / „Eigenen Server verwenden“ in der Linux-Anleitung), offline geprüft, live offen. Windows nach seiner ersten Beta. Nur die Adresse, `http://` nur für Loopback; eine Fremd-URL wird nicht abgenommen. |
+| Provider-Vertrag | Am 2. Oktober entschieden: gemeinsame Fixtures unter `fixtures/provider/` für Swift, Rust und C#. Mac-Teil am 11. Oktober erledigt: [Vertrag](fixtures/provider/CONTRACT.md), Antwort- und Fehlerdateien, Swift-Tests lesen sie. | Linux: `validate_model` wie Mac und `transcribe.rs`-Tests gegen dieselben Dateien; Windows mit Schritt 1 seines Tracks. |
 | Markenidentität 1.1 | Langfristiges Ziel vom 29. September ([PROJECT](PROJECT.md#marken--und-gestaltungsrichtung)). Das Designsystem aus Claude Design (Pixel-Terminal, Blink, grünes Signal, drei Themes) liegt seit dem 9. Oktober als gemeinsame Quelle unter [`design/`](design/README.md); noch keine Oberfläche nutzt es. | Beginnt nach der ersten Beta (Linux oder Mac) und blockiert keine Beta. Richtung mit Basti anhand echter App-Zustände und eines Marketingbeispiels festlegen. |
 | Vokabular | Mac hat „Vokabular und Kontext“; Linux und Windows nicht. Laut Recherche häufiger Wunsch. | Nach der ersten Beta-Rückmeldung je Plattform nachziehen. |
 | Echtzeit-Übersetzung und Streaming | Weg C (`gpt-realtime-translate`) ist recherchiert, nicht gebaut ([Plan](docs/linux-live-translation-plan.md)). Streaming beim Diktieren ist seit dem 26. September gewünscht. Beides widerspricht der Regel, unbestätigte Teilergebnisse nicht ins Zielfeld zu schreiben, und braucht eigene Akzeptanzkriterien. | Erst nach Beta-Rückmeldung, dass die Wartezeit von Weg A stört. |

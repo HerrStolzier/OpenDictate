@@ -112,6 +112,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AppLog.write("Transcription model: \(Config.model.rawValue) (from \(Config.settings.modelSource))")
         AppLog.write(
             "Translation: \(Config.settings.translationTarget ?? "off") (model \(Config.settings.translationModel))")
+        AppLog.write("Service: \(Self.serviceDescription)")
         verifyHotKeyConstants()
         ApplicationMenu.install()
         latestExternalApplication = currentFrontmostApplication()
@@ -423,6 +424,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     ) async {
         defer { lifecycle.finish(operation) }
         guard lifecycle.isCurrent(operation), !Task.isCancelled, flow.state.canStart else { return }
+        guard hasUsableServer() else { return }
         guard hasAPIKey(for: operation) else { return }
         guard Config.model.isUsableForUpload else {
             warnAboutUnusableModelIfNeeded()
@@ -482,6 +484,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func retryLastRecording(filename: String, operation: AppLifecycle.Operation) async {
         defer { lifecycle.finish(operation) }
         guard lifecycle.isCurrent(operation), !Task.isCancelled, flow.state.canRetry else { return }
+        guard hasUsableServer() else { return }
         guard hasAPIKey(for: operation) else { return }
         let target = currentFrontmostApplication()
         let loaded = await recordingLibrary.load(filename: filename)
@@ -505,15 +508,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// Host only, never path or key.
+    private static var serviceDescription: String {
+        guard let endpoint = Config.settings.endpoint else { return "invalid custom address" }
+        if endpoint.isOpenAI { return endpoint.host }
+        return "custom \(endpoint.host)\(endpoint.isLoopback ? " (this Mac, no key)" : "")"
+    }
+
+    private static let localServerReadyMessage = "Dein Server auf diesem Mac braucht keinen Schlüssel."
+
+    /// Only a valid server outside this Mac needs a key; a local server never
+    /// waits for one, and an invalid address is reported on its own.
+    private static var needsAPIKey: Bool { Config.settings.endpoint?.isLoopback == false }
+
+    /// An invalid configured address stops before the key or microphone is
+    /// asked for; neither would help.
+    private func hasUsableServer() -> Bool {
+        guard Config.settings.endpoint == nil else { return true }
+        AppLog.write("Dictation did not start: invalid custom server address")
+        let message = OpenDictateError.invalidServerAddress.errorDescription ?? ""
+        updateStatus(message)
+        dictationPanel.updateFailure(message)
+        return false
+    }
+
     private func hasAPIKey(for operation: AppLifecycle.Operation) -> Bool {
         apiKeyPresenceTask?.cancel()
         apiKeyPresenceTask = nil
-        let available = Config.apiKey != nil
+        let available = !Self.needsAPIKey || Config.apiKey != nil
         guard lifecycle.isCurrent(operation) else { return false }
         if available {
             if apiKeyNeedsSetup { menuBar?.updateStatus("Bereit") }
             apiKeyNeedsSetup = false
-            dictationPanel.updateAPIKeySetup(needsSetup: false, message: "Der API-Schlüssel ist verfügbar.")
+            dictationPanel.updateAPIKeySetup(
+                needsSetup: false,
+                message: Self.needsAPIKey ? "Der API-Schlüssel ist verfügbar." : Self.localServerReadyMessage)
             menuBar?.refresh()
             return true
         }
@@ -528,9 +557,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func checkAPIKeySetupAtLaunch() {
+        let needsKey = Self.needsAPIKey
         apiKeyPresenceTask = Task { @MainActor [weak self] in
             let needsSetup = await Task.detached(priority: .utility) {
-                KeychainAPIKeyStore.needsSetup
+                needsKey && KeychainAPIKeyStore.needsSetup
             }.value
             guard let self, !Task.isCancelled, lifecycle.acceptsActions else { return }
             apiKeyPresenceTask = nil
@@ -767,6 +797,65 @@ extension AppDelegate: MenuBarControllerDelegate {
         }
         Config.settings.prompt = value
         updateStatus("Vokabular gespeichert")
+    }
+
+    func menuBarDidConfigureCustomServer() {
+        guard flow.state == .idle, let operation = lifecycle.beginOperation() else { return }
+        defer { lifecycle.finish(operation) }
+        let settings = Config.settings
+        let current = AlertPresenter.CustomServer(
+            address: settings.serverAddress ?? "",
+            transcriptionModel: settings.model == .default ? "" : settings.model.rawValue,
+            translationModel: settings.translationModel == Translation.defaultModel ? "" : settings.translationModel)
+        guard let value = AlertPresenter.promptForCustomServer(initialValue: current), lifecycle.isCurrent(operation)
+        else { return }
+        // Validate everything before saving anything, so a typo keeps the
+        // previous working configuration.
+        for model in [value.transcriptionModel, value.translationModel] where !model.isEmpty {
+            guard ModelName.isValid(model) else {
+                updateStatus("Eigener Server nicht gespeichert: ungültiger Modellname")
+                return
+            }
+        }
+        guard settings.setServerAddress(value.address) else {
+            updateStatus("Eigener Server nicht gespeichert: nur https:// oder http:// auf diesem Mac")
+            return
+        }
+        settings.model =
+            value.transcriptionModel.isEmpty ? .default : TranscriptionModel(rawValue: value.transcriptionModel)
+        settings.translationModel = value.translationModel
+        AppLog.write("Service changed to \(Self.serviceDescription); model \(settings.model.rawValue)")
+        warnAboutUnusableModelIfNeeded()
+        updateStatus(
+            settings.endpoint?.isOpenAI == true ? "OpenAI als Dienst gespeichert" : "Eigener Server gespeichert")
+        checkAPIKeyRequirement()
+    }
+
+    /// Re-evaluates the setup reminder after the server changed; the
+    /// Keychain presence check stays off the main thread. When this ends the
+    /// first-run key setup, onboarding continues as after saving a key.
+    private func checkAPIKeyRequirement() {
+        let needsKey = Self.needsAPIKey
+        let wasSettingUp = apiKeyNeedsSetup
+        apiKeyPresenceTask?.cancel()
+        apiKeyPresenceTask = Task { @MainActor [weak self] in
+            let needsSetup = await Task.detached(priority: .utility) {
+                needsKey && KeychainAPIKeyStore.needsSetup
+            }.value
+            guard let self, !Task.isCancelled, lifecycle.acceptsActions else { return }
+            apiKeyPresenceTask = nil
+            apiKeyNeedsSetup = needsSetup
+            dictationPanel.updateAPIKeySetup(
+                needsSetup: needsSetup, message: needsKey ? nil : Self.localServerReadyMessage)
+            menuBar?.refresh()
+            guard wasSettingUp, !needsSetup else { return }
+            menuBar?.showDaily()
+            if !Config.settings.hasStoredTrigger, flow.state == .idle, let operation = lifecycle.beginOperation() {
+                defer { lifecycle.finish(operation) }
+                askForTrigger(operation: operation)
+            }
+            requestAccessibilityPermissionIfNeeded()
+        }
     }
 
     func menuBarDidCancel(discard: Bool) {

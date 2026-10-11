@@ -2,7 +2,7 @@
 
 Auftrag: kleine deutsche Produktseite zu OpenDictate als lokale Entscheidungsgrundlage. Keine Veröffentlichung, Installation, API-Aufrufe oder Änderungen an der App.
 
-Umsetzung: eigenständige statische Seite ohne Abhängigkeiten. Die Demo ist illustrativ und nimmt kein Audio auf. Aussagen basieren auf README.md und PRIVACY.md des Projekts. Seit dem 8. Oktober 2026 verlinkt die Seite den Pre-Release `v0.1.0-beta.9`; sie ist noch nicht über GitHub Pages veröffentlicht.
+Umsetzung: eigenständige statische Seite ohne Abhängigkeiten. Die Demo ist illustrativ und nimmt kein Audio auf. Aussagen basieren auf README.md und PRIVACY.md des Projekts. Seit dem 11. Oktober 2026 verlinkt die Seite den Pre-Release `v0.1.0-beta.10`; sie ist noch nicht über GitHub Pages veröffentlicht.
 
 Vorschau aus diesem Ordner: `python3 -m http.server 4317 --bind 127.0.0.1`.
 
@@ -30,3 +30,9 @@ Schritten, Zeile „Übersetzung“ und Beta-Hinweis mit Links auf Pre-Release,
 Installationsanleitung und Issue-Vorlage. Headless Chrome: Desktop sowie 375
 und 320 Pixel Breite geprüft, kein horizontaler Überlauf. Zoom und Tastaturweg
 wurden für diesen Stand nicht erneut geprüft.
+
+Textstand 2026-10-11: Download-Link auf `v0.1.0-beta.10` (Build 10). Die
+Kürzel-Zeile zeigt Fn halten statt ⌥⇧Leertaste und nennt die Kürzel-Abfrage
+beim ersten Start; „Loslegen“ angepasst; der eigene Server ist „ab der
+nächsten Version“ erwähnt. Headless Chrome: Desktop sowie 375 und 320 Pixel
+Breite geprüft.
