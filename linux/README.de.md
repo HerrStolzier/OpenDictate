@@ -222,6 +222,10 @@ bestimmter Server funktioniert, ist genau die Rückmeldung, die uns hilft.
 
 - `opendictate status` zeigt, ob gerade aufgenommen oder verarbeitet wird.
 - `opendictate retry` schickt die letzte gesicherte Aufnahme erneut.
+- „Aufnahme konnte nicht starten“: Meist ist kein Mikrofon verfügbar. Mit
+  `wpctl status` prüfen, ob unter Audio → Sources eine Quelle steht und als
+  Standard (`*`) markiert ist; Mikrofon anstecken oder wählen und erneut
+  versuchen.
 - Das Protokoll `~/.local/state/opendictate/operations.log` enthält Abläufe und
   Zeiten, aber nie deinen Text, deinen Schlüssel oder Audio.
 - Fehler und Wünsche bitte als

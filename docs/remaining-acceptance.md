@@ -43,7 +43,10 @@ eine bekannte Grenze, die in der jeweiligen Anleitung stehen muss.
 **Offen / bekannte Grenzen:** Ein Start direkt nach der Neuinstallation
 scheiterte einmal mit „Recording could not start“ (Ursache unbekannt, der
 nächste Versuch klappte); seit PR #59 steht der Grund im Protokoll
-(`recording-start-failed`), und die leere Datei wird entfernt. Einfügen in Chromium-, Electron- und
+(`recording-start-failed`), und die leere Datei wird entfernt. Am 11. Oktober
+scheiterten auf omarchy alle Starts seit dem 9. Oktober, weil kein Mikrofon
+angeschlossen war (PipeWire ohne Quelle); die Meldung fragt seitdem nach dem
+Mikrofon. Einfügen in Chromium-, Electron- und
 Discord-Fenstern; gemischtes Deutsch/Englisch; Abbruch genau während der
 Übersetzung; andere Compositoren als Hyprland; andere Distributionen;
 Vokabular. Eigener Server und `opendictate setup` mit Kürzel-Abfrage

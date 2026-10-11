@@ -212,6 +212,9 @@ given server works is exactly the feedback we are looking for.
 
 - `opendictate status` shows whether it is recording or processing.
 - `opendictate retry` sends the last secured recording again.
+- "Recording could not start": usually no microphone is available. Check
+  with `wpctl status` that a source is listed under Audio → Sources and
+  marked as default (`*`); plug in or select the microphone and try again.
 - The log `~/.local/state/opendictate/operations.log` contains steps and
   timings, but never your text, your key or audio.
 - Please report bugs and wishes as a

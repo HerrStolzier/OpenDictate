@@ -247,8 +247,8 @@ fn open_stream(
 fn start_failed(step: &str, error: &dyn std::fmt::Display) -> String {
     eprintln!("recording-start-failed step={step} error={error}");
     crate::tr!(
-        "Aufnahme konnte nicht starten.",
-        "Recording could not start."
+        "Aufnahme konnte nicht starten. Ist ein Mikrofon angeschlossen und als Eingang gewählt?",
+        "Recording could not start. Is a microphone connected and selected as input?"
     )
 }
 
