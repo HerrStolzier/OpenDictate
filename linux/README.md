@@ -1,4 +1,4 @@
-# OpenDictate for Linux (beta preparation)
+# OpenDictate for Linux (beta)
 
 English · [Deutsch](README.de.md)
 
@@ -8,7 +8,9 @@ translates it if you want (for example into English) and inserts the text into
 the window that was in front when you started. It is a small command-line
 program without a window of its own, made for Hyprland.
 
-**Status:** Not released yet. Tested on a single machine (Omarchy 4 with
+**Status:** Public beta since 11 October 2026:
+[pre-release `linux-v0.1.0-beta.1`](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1).
+Tested on a single machine (Omarchy 4 with
 Hyprland 0.56, Arch Linux), in daily use there since 7 October 2026. Evidence
 (German): [live evidence](../docs/linux-live-2026-10-05-bis-07.md),
 [verified state](../docs/remaining-acceptance.md#linux). The
@@ -56,7 +58,7 @@ package `opendictate`:
 
 ```bash
 sudo pacman -S --needed base-devel git rust
-git clone https://github.com/HerrStolzier/OpenDictate.git
+git clone --branch linux-v0.1.0-beta.1 https://github.com/HerrStolzier/OpenDictate.git
 cd OpenDictate/linux/packaging/arch
 makepkg -si
 ```

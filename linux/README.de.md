@@ -1,4 +1,4 @@
-# OpenDictate für Linux (Beta-Vorbereitung)
+# OpenDictate für Linux (Beta)
 
 [English](README.md) · Deutsch
 
@@ -8,7 +8,9 @@ abschreiben, übersetzt sie auf Wunsch (zum Beispiel ins Englische) und fügt de
 Text in das Fenster ein, das beim Start vorne war. Es ist ein kleines
 Kommandozeilenprogramm ohne eigenes Fenster, gedacht für Hyprland.
 
-**Stand:** Noch nicht veröffentlicht. Erprobt auf einem einzigen Rechner
+**Stand:** Öffentliche Beta seit dem 11. Oktober 2026:
+[Pre-Release `linux-v0.1.0-beta.1`](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1).
+Erprobt auf einem einzigen Rechner
 (Omarchy 4 mit Hyprland 0.56, Arch Linux), dort seit dem 7. Oktober 2026 im
 Alltag. Nachweise: [Live-Nachweise](../docs/linux-live-2026-10-05-bis-07.md),
 [belegter Stand](../docs/remaining-acceptance.md#linux). Die
@@ -59,7 +61,7 @@ baut das Programm, führt die Tests aus und installiert es nach Rückfrage mit
 
 ```bash
 sudo pacman -S --needed base-devel git rust
-git clone https://github.com/HerrStolzier/OpenDictate.git
+git clone --branch linux-v0.1.0-beta.1 https://github.com/HerrStolzier/OpenDictate.git
 cd OpenDictate/linux/packaging/arch
 makepkg -si
 ```
