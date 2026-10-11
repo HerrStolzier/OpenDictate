@@ -1,0 +1,11 @@
+post_install() {
+  echo '==> OpenDictate: run `opendictate setup` as your user (not root) to store'
+  echo '    your key or a custom server and to pick the start shortcut.'
+  echo '    Einrichtung: `opendictate setup` als normaler Nutzer ausführen.'
+}
+
+post_upgrade() {
+  if [ "$(vercmp "$2" 0.1.0-1)" -le 0 ]; then
+    post_install
+  fi
+}

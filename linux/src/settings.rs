@@ -25,6 +25,10 @@ pub struct Settings {
     /// frontmost. Retry never pastes.
     #[serde(default = "default_auto_insert")]
     pub auto_insert: bool,
+    /// Custom server ("Eigener Server"): base URL including `/v1`. `None`
+    /// uses `OPENAI_BASE_URL` when set, otherwise OpenAI.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub server: Option<String>,
 }
 
 fn default_auto_insert() -> bool {
@@ -46,6 +50,7 @@ impl Default for Settings {
             translation_model: default_translation_model(),
             last_target_language: None,
             auto_insert: default_auto_insert(),
+            server: None,
         }
     }
 }
@@ -68,8 +73,18 @@ impl Settings {
     }
 
     fn validate(&self) -> Result<(), String> {
-        validate_model(&self.model)?;
+        // Which models a server offers is checked when it is used: a custom
+        // server names its models freely, OpenAI only takes the known ones.
+        validate_model_name(&self.model)?;
         validate_translation_model(&self.translation_model)?;
+        if let Some(server) = self.server.as_deref() {
+            crate::server::Server::parse(server).map_err(|error| {
+                crate::tr!(
+                    "{error} Gespeicherte Server-Adresse in ~/.config/opendictate/settings.json korrigieren oder die Zeile \"server\" löschen.",
+                    "{error} Fix the stored server address in ~/.config/opendictate/settings.json or delete the \"server\" line."
+                )
+            })?;
+        }
         for language in [
             &self.language,
             &self.target_language,
@@ -178,13 +193,37 @@ pub fn validate_model(model: &str) -> Result<(), String> {
     }
 }
 
-pub fn validate_translation_model(model: &str) -> Result<(), String> {
-    let valid = !model.is_empty()
-        && model.len() <= 64
+/// Checks a transcription model for the server that will receive it.
+pub fn validate_model_for(model: &str, server: &crate::server::Server) -> Result<(), String> {
+    if server.is_custom() {
+        validate_model_name(model)
+    } else {
+        validate_model(model)
+    }
+}
+
+/// Syntax of a model name as custom servers use them, e.g.
+/// `Systran/faster-whisper-small` or `llama3.1:8b`.
+fn is_model_name(model: &str) -> bool {
+    !model.is_empty()
+        && model.len() <= 128
+        && !model.starts_with(['.', '/'])
+        && !model.contains("..")
         && model.chars().all(|character| {
-            character.is_ascii_alphanumeric() || matches!(character, '-' | '.' | '_')
-        });
-    if valid {
+            character.is_ascii_alphanumeric() || matches!(character, '-' | '.' | '_' | ':' | '/')
+        })
+}
+
+pub fn validate_model_name(model: &str) -> Result<(), String> {
+    if is_model_name(model) {
+        Ok(())
+    } else {
+        Err(crate::tr!("Ungültiger Modellname.", "Invalid model name."))
+    }
+}
+
+pub fn validate_translation_model(model: &str) -> Result<(), String> {
+    if is_model_name(model) {
         Ok(())
     } else {
         Err(crate::tr!(
@@ -233,6 +272,7 @@ mod tests {
             translation_model: "test-model".to_string(),
             last_target_language: Some("en".to_string()),
             auto_insert: false,
+            server: Some("http://localhost:8080/v1".to_string()),
         };
         settings.save(&path).unwrap();
         assert_eq!(Settings::load(&path).unwrap(), settings);
@@ -262,6 +302,38 @@ mod tests {
         assert!(validate_translation_model("").is_err());
         assert!(validate_translation_model("model with space").is_err());
         assert!(validate_translation_model("../model").is_err());
+        assert!(validate_translation_model("/model").is_err());
+        assert!(validate_translation_model("llama3.1:8b").is_ok());
+        assert!(validate_translation_model("qwen/qwen3-4b").is_ok());
+    }
+
+    #[test]
+    fn custom_servers_take_free_model_names_openai_only_known_ones() {
+        let openai = crate::server::Server::openai();
+        let local = crate::server::Server::parse("http://localhost:8080/v1").unwrap();
+        assert!(validate_model_for("Systran/faster-whisper-small", &local).is_ok());
+        assert!(validate_model_for("Systran/faster-whisper-small", &openai).is_err());
+        assert!(validate_model_for("gpt-live-transcribe", &openai).is_err());
+        assert!(validate_model_for(DEFAULT_MODEL, &openai).is_ok());
+        assert!(validate_model_for("model with space", &local).is_err());
+    }
+
+    #[test]
+    fn an_invalid_stored_server_is_rejected_on_load() {
+        let dir = std::env::temp_dir().join(format!(
+            "opendictate-settings-server-{}",
+            std::process::id()
+        ));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("settings.json");
+        fs::write(
+            &path,
+            r#"{"model":"gpt-transcribe","language":"de","server":"http://192.168.1.5/v1"}"#,
+        )
+        .unwrap();
+        assert!(Settings::load(&path).is_err());
+        let _ = fs::remove_dir_all(&dir);
     }
 
     #[test]
