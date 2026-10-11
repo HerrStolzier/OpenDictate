@@ -109,7 +109,8 @@ die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleiner
 4. Beta laufen lassen und antworten.
 5. Neue Diktatanzeige im neuen Design (am 9. Oktober vorgezogen, seit
    11. Oktober im Code, offline und live am Mac Mini geprüft (Menüleiste,
-   schwebend, Vollbild); Notch, „Nochmal senden“ und „Aus“ sind live offen;
+   schwebend, Vollbild), Notch-Maße per Vorschau am MacBook Air bestätigt;
+   ein Diktat an der Notch, „Nochmal senden“ und „Aus“ sind live offen;
    parallel zur Beta): Statt des Fensters zeigt eine
    kleine Anzeige an der Notch mit Blink den Stand und schließt sich bei Erfolg
    von selbst. Macs ohne Notch zeigen sie schwebend unter der Menüleiste
