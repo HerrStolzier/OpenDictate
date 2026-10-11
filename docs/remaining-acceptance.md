@@ -251,9 +251,10 @@ veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
   [Build 10](release-plans/evidence/2026-10-11-build10.md)); Wiederholen,
   Fehlerfälle und Abbruch während der Übersetzung sind nur offline belegt.
 - Der ⌘V-Pfad bindet kein Feld: Cursor- oder Fokuswechsel nach dem Stopp
-  können den Einfügeort innerhalb der ursprünglichen App verändern; er hat
-  keinen Zeilenumbruchfilter. Terminal-Tabs, Markierung, Secure Input, iTerm2
-  und Terminals in Editoren sind ungeprüft.
+  können den Einfügeort innerhalb der ursprünglichen App verändern. Mehrzeiliger
+  Text wird in bekannte Terminals nicht automatisch eingefügt (seit 11. Oktober,
+  nur offline belegt); Terminal-Tabs, Markierung, Secure Input, iTerm2 und
+  Terminals in Editoren sind ungeprüft.
 - Gerätewechsel, abgezogenes Mikrofon, Berechtigungs- und Keychainfehler,
   unterbrochenes Beenden während der Verarbeitung sind nicht praktisch geprüft.
 - Gehörte VoiceOver-Ausgabe, frische Ersteinrichtung in einem neuen Konto,

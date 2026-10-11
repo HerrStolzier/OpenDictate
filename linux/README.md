@@ -45,6 +45,8 @@ the file is not deleted automatically either.
   Omarchy).
 - A keyring with Secret Service, for example `gnome-keyring` (included in
   Omarchy). The API key is stored only there, never in a file.
+- A normal desktop session that sets `XDG_RUNTIME_DIR` (systemd does). The
+  CLI keeps its state there and refuses to fall back to `/tmp`.
 - An OpenAI API key with credit
   ([platform.openai.com](https://platform.openai.com/api-keys)), or a
   [custom server](#custom-server) that speaks the OpenAI API, for example a
@@ -165,8 +167,11 @@ and `opendictate settings target off` turns it off again.
    clipboard and a notification says so.
 
 In known terminals (for example Alacritty, foot, kitty) OpenDictate pastes with
-Ctrl+Shift+V, elsewhere with Ctrl+V. The text is always in the clipboard
-afterwards too. `opendictate settings insert off` turns automatic inserting
+Ctrl+Shift+V, elsewhere with Ctrl+V. Text with line breaks is not pasted into a
+terminal, because a line break would run the dictated line as a command; it
+stays in the clipboard and a notification says so. Control characters in the
+transcript are removed before anything is copied. The text is always in the
+clipboard afterwards too. `opendictate settings insert off` turns automatic inserting
 off. `opendictate cancel` stops a running recording; the recording is kept for
 `retry`.
 
@@ -339,7 +344,8 @@ secrets; the HTTP tests only use a local stub.
   active Hyprland window is captured. After copying, the CLI checks that
   exactly this window is still in front and the clipboard still holds the
   text, then sends Ctrl+V (Ctrl+Shift+V in known terminals) to that window via
-  `hyprctl dispatch`. It first uses the Lua form `hl.dsp.send_shortcut`
+  `hyprctl dispatch`. Multi-line text is never sent to a known terminal; it
+  stays in the clipboard. It first uses the Lua form `hl.dsp.send_shortcut`
   (Hyprland with Lua config, for example 0.56), and the older `sendshortcut`
   only when Hyprland clearly rejects it. Otherwise the text stays in the
   clipboard with a notice. If the clipboard no longer holds exactly the text

@@ -36,8 +36,13 @@ struct PasteboardInserter {
 
     var access: Access = .live
 
+    /// Marks the transcript as transient for clipboard managers that follow
+    /// nspasteboard.org, so it is not kept in their history.
+    static let concealedType = NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType")
+
     func copy(_ text: String, to board: NSPasteboard = .general) -> Bool {
-        board.clearContents()
+        board.declareTypes([.string, Self.concealedType], owner: nil)
+        board.setString("", forType: Self.concealedType)
         return board.setString(text, forType: .string)
     }
 
@@ -47,6 +52,7 @@ struct PasteboardInserter {
         -> InsertionSubmission
     {
         guard !text.isEmpty, !Task.isCancelled, access.isTrusted(), let app, access.isRunning(app),
+            AutoPastePolicy.allowsPaste(of: text, intoBundleIdentifier: app.bundleIdentifier),
             board.string(forType: .string) == text
         else { return .notAttempted }
         access.activate(app)

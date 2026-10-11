@@ -1121,10 +1121,10 @@ fn log_ops(event: &str) {
     let _ = writeln!(file, "{event}");
 }
 
-fn path_error(_: io::Error) -> String {
+fn path_error(error: io::Error) -> String {
     tr!(
-        "OpenDictate-Verzeichnis nicht verfügbar.",
-        "OpenDictate folder unavailable."
+        "OpenDictate-Verzeichnis nicht verfügbar: {error}",
+        "OpenDictate folder unavailable: {error}"
     )
 }
 

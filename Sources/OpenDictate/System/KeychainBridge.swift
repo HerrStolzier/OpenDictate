@@ -2,7 +2,8 @@ import Foundation
 import Security
 
 /// Keeps the Keychain-facing code identity stable while the main app changes.
-/// The helper is copied once and never silently replaced on later launches.
+/// The helper is copied once and replaced on a later launch only when the
+/// installed copy no longer carries the app's own signing identity.
 enum KeychainBridge {
     enum Operation: String, Codable {
         case ping
@@ -94,15 +95,28 @@ enum KeychainBridge {
             guard try directory.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink != true else {
                 return nil
             }
-            if !manager.fileExists(atPath: installed.path) {
+            let present = manager.fileExists(atPath: installed.path)
+            if present {
+                guard try installed.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink != true else {
+                    return nil
+                }
+            }
+            if !present || !hasExpectedSignature(installed, certificate: appCertificate) {
                 let temporary = directory.appendingPathComponent(".KeychainHelper-\(UUID().uuidString)")
                 defer { try? manager.removeItem(at: temporary) }
                 try manager.copyItem(at: bundled, to: temporary)
                 try manager.setAttributes([.posixPermissions: 0o700], ofItemAtPath: temporary.path)
-                do {
-                    try manager.moveItem(at: temporary, to: installed)
-                } catch {
-                    guard manager.fileExists(atPath: installed.path) else { return nil }
+                if present {
+                    // A helper signed with an earlier certificate can no longer
+                    // prove its identity, so the current one takes its place.
+                    _ = try manager.replaceItemAt(installed, withItemAt: temporary)
+                    AppLog.write("Replaced the Keychain helper after a signing identity change")
+                } else {
+                    do {
+                        try manager.moveItem(at: temporary, to: installed)
+                    } catch {
+                        guard manager.fileExists(atPath: installed.path) else { return nil }
+                    }
                 }
             }
             guard try installed.resourceValues(forKeys: [.isSymbolicLinkKey]).isSymbolicLink != true,

@@ -62,18 +62,24 @@ script only directs users to the app dialog and performs no Keychain operation.
 ## Clipboard and automatic insertion
 
 The transcript is written as plain text to the macOS general clipboard. Any
-local application with clipboard access may be able to read it.
+local application with clipboard access may be able to read it. Control
+characters and invisible text-direction marks are removed from the provider's
+answer before it is copied; line breaks and tabs stay.
 
 OpenDictate leaves the transcript on the general clipboard until another write
-replaces it. Clipboard managers may retain their own copy; OpenDictate cannot
-remove that copy. For automatic insertion, OpenDictate remembers the application
+replaces it. The item carries the `org.nspasteboard.ConcealedType` marker, so
+clipboard managers that honour it keep no copy; other managers may retain their
+own copy, which OpenDictate cannot remove. For automatic insertion, OpenDictate remembers the application
 that was in front when dictation started, activates it after transcription and
 sends Command-V. It checks that Accessibility permission is available, that the
 application is then frontmost and that the clipboard still contains the full
 transcript. It does not inspect the destination's text or title. A different
 field or window in the original application may receive Paste after a focus
-change; the app cannot confirm that the target accepted the command. Paste in a
-terminal may insert line breaks or executable commands. OpenDictate does not
+change; the app cannot confirm that the target accepted the command. Text with
+a line break is not pasted automatically into known terminal applications
+(Terminal, iTerm2, Alacritty, kitty, Ghostty, Warp, Hyper, WezTerm, Tabby), because a
+line break would run the dictated line as a command; the text stays on the
+clipboard. A single line is pasted there as elsewhere. OpenDictate does not
 identify protected, read-only or password controls before Paste. Retries copy their text
 but do not automatically paste it.
 
@@ -163,7 +169,10 @@ returned text is written to the Wayland clipboard (`wl-copy`). Unless
 `settings insert off` is set, the CLI then reads the clipboard back
 (`wl-paste`, in memory only) and, if it still holds that text and the Hyprland
 window captured at recording start is still frontmost, sends that window a
-paste shortcut via `hyprctl`. Retry never pastes automatically. The optional
+paste shortcut via `hyprctl`. Control characters and invisible text-direction
+marks are removed from the returned text first. Text with a line break is not
+pasted into known terminals; it stays in the clipboard. Retry never pastes
+automatically. The optional
 bar module (Omarchy shell or Waybar) prints only the state and translation setting, never text.
 
 With a custom server (`settings server`, or `OPENAI_BASE_URL` when no address
@@ -235,9 +244,10 @@ Screen and in the Dynamic Island shows that a recording is running.
   works. It is not part of backups and never leaves the device except in the
   request header to the configured service.
 - **Clipboard:** the finished text (or its translation) is written to the
-  general clipboard. iOS may share it with your other devices through
-  Universal Clipboard, as with any copied text. The app does not read the
-  clipboard.
+  general clipboard marked "local only", so iOS does not share it with your
+  other devices through Universal Clipboard. Control characters and invisible
+  text-direction marks are removed from the service's answer first. The app
+  does not read the clipboard.
 - **Last text:** kept only in memory while the app runs, for "Copy again";
   it is gone when iOS ends the app.
 - **Failed recordings:** a recording whose text did not reach the clipboard

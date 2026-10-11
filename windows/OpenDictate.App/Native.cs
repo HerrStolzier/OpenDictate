@@ -61,6 +61,15 @@ internal static class Native
         { return null; }
     }
 
+    // The image name of a window's owner, without extension; null when the
+    // owner cannot be read, which PastePolicy treats as an ordinary program.
+    internal static string? ProcessName(int id)
+    {
+        try { using var process = Process.GetProcessById(id); return process.ProcessName; }
+        catch (Exception error) when (error is ArgumentException or InvalidOperationException or System.ComponentModel.Win32Exception)
+        { return null; }
+    }
+
     // Down and up of the unassigned mask key; see VirtualKey.StartMenuMask.
     internal static void MaskStartMenu() =>
         Send([Key(VirtualKey.StartMenuMask, false), Key(VirtualKey.StartMenuMask, true)]);

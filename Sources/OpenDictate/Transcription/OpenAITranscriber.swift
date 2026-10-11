@@ -140,6 +140,6 @@ struct OpenAITranscriber: Sendable {
         guard let result = try? JSONDecoder().decode(Response.self, from: data) else {
             throw OpenDictateError.invalidResponse
         }
-        return result.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return TranscriptText.sanitize(result.text)
     }
 }

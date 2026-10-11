@@ -37,14 +37,17 @@ enum KeychainAPIKeyStore {
 
     static func read(using operations: Operations = .live) -> String? {
         let result = operations.read(item)
-        let selectedResult: KeychainItem.ReadResult
-        if case .missing = result {
-            selectedResult = operations.read(legacyItem)
-        } else {
-            selectedResult = result
-        }
+        guard case .missing = result else { return key(from: result) }
+        guard let legacyKey = key(from: operations.read(legacyItem)) else { return nil }
+        // A legacy item may still trust /usr/bin/security. Move the key to the
+        // app's own item now; the legacy copy is removed only after that worked,
+        // and a failed move keeps the key usable from where it is.
+        _ = try? save(legacyKey, using: operations)
+        return legacyKey
+    }
 
-        guard case .data(let data) = selectedResult,
+    private static func key(from result: KeychainItem.ReadResult) -> String? {
+        guard case .data(let data) = result,
             let key = String(data: data, encoding: .utf8),
             !key.isEmpty
         else { return nil }

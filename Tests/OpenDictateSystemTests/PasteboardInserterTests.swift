@@ -41,6 +41,14 @@ struct PasteboardInserterTests {
         #expect(h.posted == 1)
     }
 
+    @Test func copiedTranscriptIsMarkedConcealedForClipboardManagers() {
+        let h = Harness()
+        defer { h.board.releaseGlobally() }
+        #expect(h.inserter.copy("text", to: h.board))
+        #expect(h.board.string(forType: .string) == "text")
+        #expect(h.board.types?.contains(PasteboardInserter.concealedType) == true)
+    }
+
     @Test func changedForegroundAppDoesNotReceivePasteCommand() async {
         let h = Harness()
         defer { h.board.releaseGlobally() }
