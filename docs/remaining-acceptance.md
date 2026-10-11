@@ -102,6 +102,11 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   Aufnahme im App-Log, Tests schreiben in eine temporäre Logdatei (Zeilenzahl
   des echten Logs vor und nach `swift test` gleich), „ca.“ beim Preis des
   Mini-Modells.
+- Build 9 aus `46103b0` (8. Oktober 2026, mit Bastis Go): notarisiert, per
+  Finder als Update über Build 8 installiert (Bedienungshilfen blieben
+  erhalten), Diktat mit Übersetzung nach Englisch in TextEdit eingefügt,
+  Originalaufnahme beim Anlegen bereits `0600`
+  ([Nachweis](release-plans/evidence/2026-10-08-build9.md)).
 - Einzeltasten und Kürzel-Abfrage (seit Build 10, [Nachweis](release-plans/evidence/2026-10-11-build10.md)):
   Fn/Globus halten und rechte Wahltaste über NSEvent-Monitore, Abfrage beim
   ersten Start nach dem API-Schlüssel mit Tastendruck-Test. Offline geprüft:
@@ -171,10 +176,10 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   antwortete OpenAI in zwei Versuchen am 8. Oktober nach gut 3 s, bevor die
   Abfrage bestätigt war. Bekannte Grenze der Beta (Entscheidung Basti).
 - „Text ansehen“ und „Text kopieren“ wurden in Teil B nicht eigens geprüft.
-- Übersetzung: Ein echtes Diktat mit Übersetzung nach Englisch wurde am
-  11. Oktober mit Build 10 eingefügt ([Nachweis](release-plans/evidence/2026-10-11-build10.md)).
-  Die Dateirechte `0600` der Originalaufnahme während einer Live-Aufnahme sind
-  damit nicht geprüft.
+- Übersetzung: Diktate mit Übersetzung nach Englisch wurden mit Build 9 und
+  Build 10 eingefügt ([Build 9](release-plans/evidence/2026-10-08-build9.md),
+  [Build 10](release-plans/evidence/2026-10-11-build10.md)); Wiederholen,
+  Fehlerfälle und Abbruch während der Übersetzung sind nur offline belegt.
 - Der ⌘V-Pfad bindet kein Feld: Cursor- oder Fokuswechsel nach dem Stopp
   können den Einfügeort innerhalb der ursprünglichen App verändern; er hat
   keinen Zeilenumbruchfilter. Terminal-Tabs, Markierung, Secure Input, iTerm2
