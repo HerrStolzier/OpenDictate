@@ -5,7 +5,8 @@ Linux CLI have different local storage and delivery paths; see their
 [Windows preparation notes](windows/RELEASE-PLAN.md) and
 [Linux behavior and retention rules](linux/README.md). The Windows prototype is
 not a public release; the Linux CLI is a public beta (pre-release) that has not
-completed product acceptance.
+completed product acceptance. The iPhone app is described in its own
+[section](#iphone-app); it is not released yet.
 
 OpenDictate records microphone audio only while a dictation is active. It does
 not include telemetry or analytics.
@@ -205,6 +206,41 @@ keys, transcript text, window titles or audio contents. Live Linux transcription
 and translation requests were exercised on one attended test system on
 5 October 2026; the Linux beta published on 11 October 2026 is not a finished
 product.
+
+## iPhone app
+
+The iPhone app in [ios/](ios/README.md) is written but not released yet. It
+records only between the start of a dictation (the shortcut "Dictate", for
+example from Back Tap or the Action button, or the button in the app) and its
+end (the shortcut again, the stop button of the Live Activity, a call or Siri
+taking the microphone, or the 90-second limit). iOS shows its orange
+microphone indicator during that time, and the Live Activity on the Lock
+Screen and in the Dynamic Island shows that a recording is running.
+
+- **Requests:** the same as on the Mac: the audio goes over HTTPS to OpenAI's
+  `/v1/audio/transcriptions` endpoint with the model, and with a translation
+  target the transcript goes to `/v1/chat/completions`. With a custom server
+  ("Eigener Server") the requests go to that address instead; only `https://`
+  is accepted, or `http://` for a server on the iPhone itself, which gets no
+  API key. Redirects are not followed.
+- **API key:** stored only in the iPhone's Keychain with "this device only"
+  and readable after the first unlock, so a dictation from the Lock Screen
+  works. It is not part of backups and never leaves the device except in the
+  request header to the configured service.
+- **Clipboard:** the finished text (or its translation) is written to the
+  general clipboard. iOS may share it with your other devices through
+  Universal Clipboard, as with any copied text. The app does not read the
+  clipboard.
+- **Last text:** kept only in memory while the app runs, for "Copy again";
+  it is gone when iOS ends the app.
+- **Failed recordings:** a recording whose text did not reach the clipboard
+  stays in the app's own container for "Send again", under the same rule as on
+  the Mac: at most the five newest, none older than 24 hours, checked whenever
+  the list is read. The folder is excluded from backups. A recording shorter
+  than one second is deleted at once. A recording cut off because iOS ended
+  the app during it cannot be played and is deleted at the next start.
+- **No log, no telemetry:** the iPhone app writes no log file and sends
+  nothing else anywhere.
 
 ## Support requests
 

@@ -31,6 +31,8 @@ Arbeitsschritte und Prüfkriterien.
   Go-Regel für Live-Tests in [AGENTS](AGENTS.md#required-verification) bleibt.
 - **Jede Veröffentlichung und jede Ankündigung braucht Bastis ausdrückliches
   Go.** Nichts in dieser Datei ist eine solche Freigabe.
+- **Reihenfolge der nächsten Betas (11. Oktober):** nach Linux und macOS
+  zuerst iOS, danach Windows. Beide Tracks laufen parallel weiter.
 - **Erledigtes wandert ins [Log](#erledigt) am Ende**, mit Datum und Link,
   statt in den Tracks stehen zu bleiben.
 
@@ -157,18 +159,20 @@ Deinstallationsweg; Verhalten mit anderen Spracheingaben wie Voice Access.
 ## Track iOS
 
 **Ziel der Beta:** iPhone-Nutzer starten die Aufnahme in der Ziel-App über
-Aktionstaste, Rückseite oder Kontrollzentrum, ohne dass OpenDictate aufgeht,
+die Aktionstaste oder „Auf Rückseite tippen“, ohne dass OpenDictate aufgeht,
 bekommen den (wahlweise übersetzten) Text in die Zwischenablage und fügen ihn
-selbst ein. Verteilung über TestFlight.
+selbst ein. Verteilung über TestFlight. Nächste Beta nach Linux und macOS,
+vor Windows (11. Oktober).
 
-**Stand:** Der Tastatur-Prototyp besteht den synthetischen Safari-Textpfad auf
-Simulator und iPhone 15 (29./30. September, [Nachweis](docs/ios-device-2026-09-30.md));
-echte Aufnahme und Transkription sind nicht belegt. Draft-PR #40 bleibt
-erhalten. Die Einschätzung vom 2. Oktober gilt weiter: Tastatur-Erweiterungen
-dürfen nicht aufnehmen, eine Vollzugriff-Tastatur mit Netzwerk und Schlüssel
-ist ein Review- und Vertrauensrisiko; die Nutzerrecherche vom 8. Oktober
-bestätigt beides und zeigt den Zwischenablage-Weg als gangbar
-([Richtung](docs/ios-direction.md), [Neuordnung](docs/roadmap-neuordnung-2026-10-08.md)).
+**Stand:** Die Beta-App ist seit dem 11. Oktober unter [ios/](ios/README.md)
+geschrieben: Kurzbefehl „Diktieren“ als Aufnahme-Kurzbefehl mit
+Live-Aktivität und Stopp-Taste, Erkennung über OpenAI mit eigenem Schlüssel
+oder einen eigenen Server, Übersetzung, Zwischenablage, „Nochmal senden“ nach
+einem Fehler, Texte englisch und deutsch. Sie ist noch nicht auf dem iPhone
+gebaut und geprüft. Vorgaben für die erste Beta (11. Oktober): Apples Erkennung
+auf dem Gerät (SpeechAnalyzer) und das Kontrollzentrum folgen später; der
+Tastatur-Prototyp bleibt als Nachweis im Repository, Draft-PR #40 ist
+geschlossen ([Richtung](docs/ios-direction.md)).
 
 **Nächste Schritte:**
 
@@ -176,11 +180,14 @@ bestätigt beides und zeigt den Zwischenablage-Weg als gangbar
    ([Konzept](docs/ios-konzept.md)): Aufnahme im Hintergrund über einen
    Kurzbefehl mit Live-Aktivität, Ergebnis in die Zwischenablage, keine
    Vollzugriff-Tastatur, Übersetzung als Merkmal.
-2. Erster Prüfpunkt auf dem iPhone 15 mit Bastis Go: Startet die Aufnahme per
-   „Auf Rückseite tippen“ im Hintergrund, ohne dass die App aufgeht? Danach
-   echte Transkription und die Abnahme aus dem Konzept.
-3. TestFlight-Beta. Abhängigkeit: Apple-Developer-Mitgliedschaft (vorhanden,
-   Verlängerung September 2027) und Xcode auf dem Mac.
+2. Am Mac bauen, dann der erste Prüfpunkt auf dem iPhone 15 mit Bastis Go:
+   Startet die Aufnahme per „Auf Rückseite tippen“ im Hintergrund, ohne dass
+   die App aufgeht, und landet der Text in der Zwischenablage? Danach die
+   Abnahme aus dem Konzept.
+3. TestFlight-Beta. Hochladen und Tester einladen erst mit Bastis Go.
+   Abhängigkeiten: Apple-Developer-Mitgliedschaft (vorhanden, Verlängerung
+   September 2027), ein Zertifikat „Apple Distribution“ (am Mac noch nicht
+   vorhanden) und der App-Eintrag in App Store Connect.
 
 **Bekannte Grenzen, den Beta-Nutzern überlassen:** Einfügen in einzelne Apps,
 Hintergrundverhalten, Datenschutz-Dialoge in iOS-Versionen, die nicht

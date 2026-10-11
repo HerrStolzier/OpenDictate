@@ -235,6 +235,23 @@ The Windows workflow uses `windows-2025`, selects the SDK from
 `windows/global.json`, and runs only `windows/scripts/check.ps1`. It does not
 run the interactive Credential Manager checks.
 
+## iOS app
+
+The beta app in `ios/OpenDictate.xcodeproj` is not yet part of CI. On the Mac,
+run its formatter check and an unsigned simulator build from the repository
+root:
+
+```bash
+swift format lint --strict --configuration .swift-format --recursive ios/App ios/Shared ios/Widgets
+xcodebuild -project ios/OpenDictate.xcodeproj -scheme OpenDictateiOS \
+  -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+```
+
+The build proves neither a background start nor a clipboard write. The device
+check with Basti's Go follows the acceptance list in
+[docs/ios-konzept.md](docs/ios-konzept.md); uploading to TestFlight is a
+publication and needs Basti's explicit Go.
+
 ## iOS prototype
 
 When the optional iOS project is present, run the same formatter and unsigned
