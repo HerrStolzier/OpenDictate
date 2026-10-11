@@ -217,9 +217,9 @@ and check scope. On Windows, from the repository root:
 ./windows/scripts/check.ps1
 ```
 
-This runs 40 core, flow and provider checks (the provider checks read
-`fixtures/provider/`) and builds the app, browser host and Windows protection
-checker. It does not execute the 13 protection checks. After
+This runs 60 core, flow, provider and shortcut checks (the provider checks read
+`fixtures/provider/`) and builds the beta app, the prototype, the browser host
+and the Windows protection checker. It does not execute the 13 protection checks. After
 specific authorization for synthetic files and an isolated dummy Credential
 Manager entry, run those from a separate test copy in the signed-in Windows
 desktop with normal user privileges:
@@ -232,13 +232,19 @@ Verify deletion of the dummy credential and owned test files afterwards.
 SSH Session 0 is not equivalent to an interactive desktop credential test.
 Neither command proves live dictation, installation or public release readiness.
 
-Without a Windows computer, the same 40 checks and the builds run on Linux
+Without a Windows computer, the same 60 checks and the builds run on Linux
 with .NET SDK 10.0.401:
 
 ```bash
 dotnet run --project windows/OpenDictate.Checks -c Release
+dotnet build windows/OpenDictate.App -c Release -p:EnableWindowsTargeting=true
 dotnet build windows/OpenDictate.Prototype -c Release -p:EnableWindowsTargeting=true
 ```
+
+After a change to `design/tokens.json`, `scripts/design-tokens.py` also
+regenerates `windows/OpenDictate.Core/DesignTokens.cs`; after a change to the
+Blink logos or the app icon, `python3 windows/scripts/make-icon.py` rebuilds
+the Windows icon.
 
 The Windows workflow uses `windows-2025`, selects the SDK from
 `windows/global.json`, and runs only `windows/scripts/check.ps1`. It does not
@@ -318,7 +324,7 @@ The rationale for the retained and removed isolated tests is recorded in
 [`docs/test-signal-audit.md`](docs/test-signal-audit.md).
 
 - `swift test -Xswiftc -warnings-as-errors`: offline logic, lifecycle, HTTP stubs, recovery, logging and synthetic audio-file tests, with compiler warnings treated as failures. Optional benchmark and live API test are skipped by default.
-- `python3 -m unittest discover ...`: offline regression tests for the transcript evaluator and process sampler, including output-file preservation, and for the design-token generator (generated files under `design/generated/` must match `design/tokens.json`), and for `scripts/website-worker.py` (the website Worker's file hashes must match its pinned commit). CI clones only two commits, so it skips that pin check; run `python3 scripts/website-worker.py --check` locally before deploying the Worker; a change to `website/worker.js` alone counts as documentation-only and skips the Python tests in CI entirely.
+- `python3 -m unittest discover ...`: offline regression tests for the transcript evaluator and process sampler, including output-file preservation, and for the design-token generator (generated files under `design/generated/` and the Swift and C# copies must match `design/tokens.json`), and for `scripts/website-worker.py` (the website Worker's file hashes must match its pinned commit). CI clones only two commits, so it skips that pin check; run `python3 scripts/website-worker.py --check` locally before deploying the Worker; a change to `website/worker.js` alone counts as documentation-only and skips the Python tests in CI entirely.
 - `swift format lint --strict --configuration .swift-format --recursive Sources Tests Package.swift`: project formatting; lint warnings cause a failed check.
 - `./scripts/build-app.sh`: release bundle, Plist, signature and Hardened Runtime verification. Does not launch/install it.
 - `git diff --check` and `bash -n` for all scripts listed above before handoff.

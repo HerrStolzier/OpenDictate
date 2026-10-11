@@ -33,6 +33,8 @@ internal sealed partial class PrototypeWindow : Window
     private readonly DispatcherTimer clock = new() { Interval = TimeSpan.FromMilliseconds(100) };
     private readonly Stopwatch elapsed = new();
     private AudioSession? audio;
+    private static readonly string RecordingRoot = System.IO.Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "OpenDictatePrototype", "Recordings");
     private HwndSource? source;
     private nint handle;
     private long focusEpoch;
@@ -78,8 +80,8 @@ internal sealed partial class PrototypeWindow : Window
         var folder = new Button { Content = "Aufnahmeordner öffnen", Margin = new Thickness(0, 0, 8, 8), Padding = new Thickness(10, 6, 10, 6) };
         folder.Click += (_, _) =>
         {
-            if (Directory.Exists(AudioSession.RecordingRoot))
-                Process.Start(new ProcessStartInfo(AudioSession.RecordingRoot) { UseShellExecute = true });
+            if (Directory.Exists(RecordingRoot))
+                Process.Start(new ProcessStartInfo(RecordingRoot) { UseShellExecute = true });
             else SetStatus("Noch keine Aufnahme gespeichert.");
         };
         controls.Children.Add(folder);
@@ -192,7 +194,7 @@ internal sealed partial class PrototypeWindow : Window
         long ticket = gate.Begin(AttemptKind.Recording);
         try
         {
-            audio = new AudioSession();
+            audio = new AudioSession(RecordingRoot);
             audio.Start();
             elapsed.Restart(); clock.Start();
             record.Content = "Aufnahme stoppen";
@@ -284,7 +286,7 @@ internal sealed partial class PrototypeWindow : Window
                     string file = journal.ExportWave();
                     return (await Task.Run(() => ProtectedJournal.Seal(journal, store))).Wave;
                 }
-                var current = new AudioSession();
+                var current = new AudioSession(RecordingRoot);
                 audio = current;
                 try
                 {

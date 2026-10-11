@@ -12,6 +12,5 @@
     <ProjectReference Include="../OpenDictate.Core/OpenDictate.Core.csproj" />
     <ProjectReference Include="../OpenDictate.Provider/OpenDictate.Provider.csproj" />
     <ProjectReference Include="../OpenDictate.Windows/OpenDictate.Windows.csproj" />
-    <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />
   </ItemGroup>
 </Project>

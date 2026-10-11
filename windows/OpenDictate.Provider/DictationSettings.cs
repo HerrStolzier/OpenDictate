@@ -28,6 +28,15 @@ public sealed record DictationSettings
     // set, otherwise OpenAI.
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Server { get; init; }
+    // Windows dictation shortcut: "ctrl-win" (hold) or "right-ctrl".
+    public string Shortcut { get; init; } = ShortcutGesture.SettingsName(ShortcutKey.CtrlWin);
+    // Set once the first start has shown the shortcut and the user confirmed it.
+    public bool ShortcutConfirmed { get; init; }
+    // False keeps every transcript on the clipboard without sending Ctrl+V.
+    public bool AutoInsert { get; init; } = true;
+
+    [JsonIgnore]
+    public ShortcutKey ShortcutKey => ShortcutGesture.Parse(Shortcut) ?? ShortcutKey.CtrlWin;
 
     public ProviderServer ResolveServer() =>
         ProviderServer.Resolve(Server, Environment.GetEnvironmentVariable(ProviderServer.BaseUrlVariable));
@@ -49,6 +58,8 @@ public sealed record DictationSettings
         if (!IsModelName(TranslationModel))
             throw new UserFacingException(UiText.T("Ungültiges Übersetzungsmodell.", "Invalid translation model."));
         if (Server is not null) ProviderServer.Parse(Server);
+        if (ShortcutGesture.Parse(Shortcut) is null)
+            throw new UserFacingException(UiText.T("Unbekanntes Tastenkürzel.", "Unknown shortcut."));
         foreach (var language in new[] { Language, TargetLanguage, LastTargetLanguage })
             if (language is not null) ValidateLanguage(language);
     }
