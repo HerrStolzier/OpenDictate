@@ -263,12 +263,20 @@ bestanden am 28. September 2026 auf dem Windows-PC
 vom 12. September bestand Cursor-, Auswahl- und Abbruchfälle mit künstlichem
 Text in Editor und Chrome-Testprofil ([Windows-Plan](windows-plan.md)).
 
-**Offen / bekannte Grenzen:** Kein echtes Diktat, keine Provideranfrage;
-Modell fest `gpt-transcribe`, keine Sprache, kein Prompt, keine Übersetzung;
-keine reproduzierbare Paketierung, keine Signatur, kein Installer; Update- und
+Seit 11. Oktober 2026 nimmt der Prototyp Modell, gesprochene Sprache,
+Übersetzung nach dem Sprechen (`gpt-5.4-mini`) und eigenen Server aus
+`%APPDATA%\OpenDictate\settings.json`; ein Server auf diesem Computer bekommt
+keinen Schlüssel. 40 Kern-, Ablauf- und Provider-Prüfungen (Provider gegen
+`fixtures/provider/`) und die Builds bestanden offline auf Linux mit .NET SDK
+10.0.401; die 13 Schutzprüfungen wurden dabei nicht ausgeführt.
+
+**Offen / bekannte Grenzen:** Kein echtes Diktat, keine Provideranfrage, auch
+nicht gegen ein lokales Modell; kein Prompt (Vokabular); keine Beta-App-Hülle
+(Infobereich, Kürzel nach Wahl, Einfügen per Zwischenablage); keine
+reproduzierbare Paketierung, keine Signatur, kein Installer; Update- und
 Deinstallationsweg; Pflichtprogramme nicht festgelegt.
 
-**Letzter Nachweis:** 28. September 2026.
+**Letzter Nachweis:** 11. Oktober 2026 (offline).
 
 ## iOS
 
