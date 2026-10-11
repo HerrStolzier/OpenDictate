@@ -190,9 +190,9 @@ operated by the developer. It stores the e-mail address, the optional name,
 subject, message, chosen topic, processing state, replies and internal notes
 in a Cloudflare D1 database restricted to the EU jurisdiction. The support
 service does not store attachments. Mail to the support address passes through
-Cloudflare Email Routing, and a copy, attachments included, is forwarded to the
-developer's mailbox at an e-mail provider; replies are written and sent from
-there.
+Cloudflare Email Routing, and replies are sent from the support service through
+Cloudflare Email Service. Requests are not copied to another mailbox; the
+developer only gets a notice with the ticket number, without its content.
 
 Against spam, the form uses a hidden field, an origin check and daily limits.
 For the per-sender limit the IP address is kept only as a hash combined with
