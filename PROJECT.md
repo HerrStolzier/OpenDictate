@@ -135,10 +135,10 @@ der ersten Beta und blockiert keine ([ROADMAP](ROADMAP.md#plattformübergreifend
 - Keine Nachbearbeitung: OpenDictate glättet, formatiert oder kürzt nicht.
   Nutzer, die das erwarten, finden es bei anderen Apps; die Website soll das
   erklären.
-- Streaming und Echtzeit-Übersetzung sind gewünscht und nicht implementiert.
-  Hold-to-talk und Einzeltaste sind seit dem 9. Oktober beschlossen und auf
-  macOS gebaut, aber in keinem veröffentlichten Build; bis dahin sind alle
-  vier kein Teil des Funktionsumfangs. Stand in der
+- Streaming und Echtzeit-Übersetzung sind gewünscht, nicht implementiert und
+  kein Teil des Funktionsumfangs. Hold-to-talk und Einzeltaste sind auf macOS
+  seit Build 10 Teil der Beta (veröffentlicht am 11. Oktober 2026); auf den
+  anderen Plattformen noch nicht. Stand in der
   [ROADMAP](ROADMAP.md#plattformübergreifend).
 - Die Betas sind keine öffentlichen Releases mit Supportzusage. Jede
   Veröffentlichung braucht Bastis ausdrückliches Go.
@@ -163,6 +163,7 @@ Preismodells und der Gaming-Ursprung verloren.
 | 11. Oktober 2026 | Auf Macs ohne Notch ist die schwebende Pille unter der Menüleiste der Standard; die flache Pille in der Menüleiste und „Aus“ bleiben Einstellungen. Ersetzt den Standard aus der Zeile zu den parallelen Design-Punkten. Anlass: Basti hat beide Varianten live ausprobiert und „schwebend“ gewählt. | [docs/remaining-acceptance.md](docs/remaining-acceptance.md); Projektchat 11. Oktober |
 | 11. Oktober 2026 | Name, Wortmarke, Blink und App-Icons sind von der MIT-Lizenz ausgenommen; der Quellcode bleibt MIT. Berichte, Links und unveränderte Kopien sind erlaubt, veränderte Versionen brauchen einen eigenen Namen und ein eigenes Icon. Anlass: Schutz der bezahlten, signierten App vor Nachbauten unter gleichem Namen. Keine eingetragene Marke; das wäre ein eigener späterer Schritt. | [TRADEMARKS.md](TRADEMARKS.md); Karte im privaten Projektchat |
 | 11. Oktober 2026 | Die offenen Design-Punkte laufen parallel statt nacheinander: Mac-Diktatanzeige, Linux-Leiste mit englischen Markentexten und die Website auf Basis der Beta-Website. Für Macs ohne Notch ist die Anzeige mittig in der Menüleiste der Standard, weil sie dort nichts verdeckt; eine schwebende Anzeige unter der Menüleiste und „Aus“ sind Einstellungen. Im Live-Test am 11. Oktober hat Basti die Anzeige in der Menüleiste bestätigt („schön klein, aber groß genug, dass man sie sieht“); sie bleibt Standard. (Standard am selben Tag ersetzt, siehe die neuere Zeile zur schwebenden Pille.) Anlass: Bastis Sorge, eine schwebende Anzeige verdecke die Browserleiste. Build 9 und die Betas bleiben unverändert. | [ROADMAP](ROADMAP.md#track-macos); Gespräch im privaten Projektchat |
+| 11. Oktober 2026 | Mac-Beta startet („Beta los“). Beta-Kandidat ist Build 10 aus `a1903a9` (Einzeltasten und Kürzel-Abfrage, Übersetzung), nicht mehr Build 9; der eigene Server folgt mit der nächsten Version. Jede Veröffentlichung und Ankündigung bekommt weiter ein eigenes Go; der Pre-Release `v0.1.0-beta.10` ist am 11. Oktober mit Bastis Go veröffentlicht. | [Build-10-Nachweis](docs/release-plans/evidence/2026-10-11-build10.md); Gespräch im privaten Projektchat |
 | 11. Oktober 2026 | Der Support-Agent schreibt seine Antwortentwürfe weiter mit OpenAI. Cloudflare Workers AI wurde als Alternative recherchiert (kein zweiter Auftragsverarbeiter, günstiger) und nicht gewählt. Der Agent bleibt aus, bis der Auftragsverarbeitungsvertrag mit OpenAI abgeschlossen ist; Basti versendet jede Antwort weiterhin selbst. | [ROADMAP](ROADMAP.md#plattformübergreifend); Karte im privaten Projektchat |
 | 11. Oktober 2026 | Basti liest und mergt keine PRs mehr. Fertige, von critic geprüfte PRs mit grüner CI mergt der Workflow „Auto-Merge“ selbst; PRs, die Workflow-Dateien ändern, mergt Claude. Als Entwurf bleibt ein PR nur, wenn er auf ein Ereignis wartet (Release, Livegang). | [CLAUDE.md](CLAUDE.md); Karte im privaten Projektchat |
 | 11. Oktober 2026 | Die Linux-Beta bekommt vor ihrem Pre-Release zwei offene Punkte: eigener Server als Stufe 1 für ein lokales Modell (kostenlos, gleiche Begriffe und Regeln wie auf dem Mac) und die geführte Einrichtung `opendictate setup` mit Kürzel-Abfrage (Super+D, F9, rechte Alt nur bei US-Layout). Anlass: Bastis Auftrag „Mach alle offenen To-Dos parallel fertig“; die Abfrage aus der Entscheidung vom 9. Oktober kommt damit für Linux in das kostenlose CLI. Pre-Release und Ankündigungen warten weiter auf Bastis eigenes Go. | [ROADMAP](ROADMAP.md#track-linux); Projektchat 11. Oktober |
