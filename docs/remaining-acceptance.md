@@ -27,7 +27,8 @@ eine bekannte Grenze, die in der jeweiligen Anleitung stehen muss.
   geprüft.
 - Physischer Hotkey Super+D; Leistenanzeige in der Omarchy-Leiste mit
   Klick-Umschalter der Zielsprache. Seit dem 11. Oktober zeigt die Leiste Blink
-  (`▮`) statt Mikrofon und Sanduhr; diese neue Darstellung, der Tooltip und das
+  (`▮`) statt Mikrofon und Sanduhr, noch nicht im Pre-Release
+  `linux-v0.1.0-beta.1`; diese neue Darstellung, der Tooltip und das
   Waybar-Beispiel sind nur offline geprüft, noch nicht live gesehen.
 - Auto-Einfügen in das beim Start erfasste Fenster (Editor, Terminal), mit
   Fokus- und Zwischenablage-Prüfung; Fensterwechsel wird korrekt übersprungen.

@@ -289,7 +289,9 @@ Aufnahme, `…` während er schreibt, und die aktive Zielsprache (z. B.
 Während der Aufnahme trägt die Zeile die Klasse `active`. Ein Klick soll
 `settings target toggle` aufrufen. Die Ausgabe enthält nur Zustand und
 Einstellungen, nie Text. Eine Nerd Font ist nicht nötig. Die Beispieldateien liegen nach der Installation auch unter
-`/usr/share/doc/opendictate/`.
+`/usr/share/doc/opendictate/`. Das Pre-Release `linux-v0.1.0-beta.1` zeigt noch
+Mikrofon und Sanduhr aus der Nerd Font; Blink kommt mit dem nächsten
+Linux-Release.
 
 - Omarchy 4 (Omarchy-Shell-Leiste): Befehlsmodul nach
   [omarchy-bar.example.json](omarchy-bar.example.json) in

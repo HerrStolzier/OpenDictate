@@ -281,7 +281,9 @@ tooltip names the state: Ready, Listening or Writing. While recording the line
 carries the class `active`. A click should call `settings target toggle`. The
 output contains only state and settings, never text. No Nerd
 Font is needed. After installing, the example files are also in
-`/usr/share/doc/opendictate/`.
+`/usr/share/doc/opendictate/`. The pre-release `linux-v0.1.0-beta.1` still shows
+the Nerd Font microphone and hourglass; Blink arrives with the next Linux
+release.
 
 - Omarchy 4 (Omarchy shell bar): add a command module like
   [omarchy-bar.example.json](omarchy-bar.example.json) to
