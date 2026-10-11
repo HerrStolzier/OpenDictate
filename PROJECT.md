@@ -89,7 +89,8 @@ Schritte in der [ROADMAP](ROADMAP.md).
   Transkription, Übersetzung, Zwischenablage, Auto-Einfügen in das beim Start
   erfasste Fenster, Leistenanzeige und Hotkey; seit 11. Oktober auch eigener
   Server und geführte Einrichtung (`opendictate setup`, offline geprüft). Seit
-  dem 7. Oktober 2026 im Alltag genutzt. Einrichtung: [linux/README.de.md](linux/README.de.md).
+  dem 7. Oktober 2026 im Alltag genutzt, seit 11. Oktober als Pre-Release
+  [`linux-v0.1.0-beta.1`](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1) veröffentlicht. Einrichtung: [linux/README.de.md](linux/README.de.md).
 - **Windows:** Versionierter Prototyp unter [windows/](windows/README.md),
   nur offline geprüft; kein echtes Diktat, keine Paketierung.
 - **iOS:** Synthetischer Textpfad eines Tastatur-Prototyps belegt; echte
@@ -160,6 +161,7 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
+| 11. Oktober 2026 | Linux-Beta veröffentlicht: Pre-Release `linux-v0.1.0-beta.1` auf Commit `afa3506` nach Bastis „go release“, ohne vorherigen Durchlauf von `opendictate setup` auf omarchy (als bekannte Grenze im Release-Text). Angekündigt wird vorerst nirgends; Reddit-Posts erst, wenn Basti das Thema wieder aufmacht. | [Release](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1); Projektchat 11. Oktober |
 | 11. Oktober 2026 | Mac-Beta startet („Beta los“). Beta-Kandidat ist Build 10 aus `a1903a9` (Einzeltasten und Kürzel-Abfrage, Übersetzung), nicht mehr Build 9; der eigene Server folgt mit der nächsten Version. Jede Veröffentlichung und Ankündigung bekommt weiter ein eigenes Go; der Pre-Release `v0.1.0-beta.10` ist am 11. Oktober mit Bastis Go veröffentlicht. | [Build-10-Nachweis](docs/release-plans/evidence/2026-10-11-build10.md); Gespräch im privaten Projektchat |
 | 11. Oktober 2026 | Der Support-Agent schreibt seine Antwortentwürfe weiter mit OpenAI. Cloudflare Workers AI wurde als Alternative recherchiert (kein zweiter Auftragsverarbeiter, günstiger) und nicht gewählt. Der Agent bleibt aus, bis der Auftragsverarbeitungsvertrag mit OpenAI abgeschlossen ist; Basti versendet jede Antwort weiterhin selbst. | [ROADMAP](ROADMAP.md#plattformübergreifend); Karte im privaten Projektchat |
 | 11. Oktober 2026 | Basti liest und mergt keine PRs mehr. Fertige, von critic geprüfte PRs mit grüner CI mergt der Workflow „Auto-Merge“ selbst; PRs, die Workflow-Dateien ändern, mergt Claude. Als Entwurf bleibt ein PR nur, wenn er auf ein Ereignis wartet (Release, Livegang). | [CLAUDE.md](CLAUDE.md); Karte im privaten Projektchat |
