@@ -95,7 +95,7 @@ die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleiner
 
 **Nächste Schritte:**
 
-1. Ankündigung, Go je Ort: zuerst r/macapps (nach Moderator-Hinweisen von 2026
+1. Ankündigung: vorerst keine (Basti, 11. Oktober). Wenn sie kommt, Go je Ort: zuerst r/macapps (nach Moderator-Hinweisen von 2026
    vermutlich im monatlichen „App Pile“-Sammelthread; Regeln vor dem Posten
    prüfen), Show HN erst
    nach den ersten Rückmeldungen, Mastodon/X über Bastis Account.
