@@ -362,6 +362,8 @@
     mover.innerHTML = blink('bereit', 100, true);
     function measure() {
       queued = false;
+      // Reduced motion keeps the runner still at the start of the track.
+      if (reduce) return;
       var docEl = document.scrollingElement || document.documentElement;
       var vh = window.innerHeight, scrollTop = window.pageYOffset || docEl.scrollTop || 0;
       var maxScroll = Math.max(0, docEl.scrollHeight - vh);
@@ -373,7 +375,6 @@
       var dir = x < lastX ? -1 : 1;
       lastX = x;
       mover.style.transform = 'translateX(' + x + 'px) scaleX(' + dir + ')';
-      if (reduce) return;
       if (!running) { running = true; mover.innerHTML = blink('schreibt', 100, true); }
       clearTimeout(timer);
       timer = setTimeout(function () { running = false; mover.innerHTML = blink('bereit', 100, true); }, 200);
