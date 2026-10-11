@@ -1032,7 +1032,8 @@ fn retry() -> Result<(), String> {
     Ok(())
 }
 
-/// Ends a start that is not used. A recording without audio is removed;
+/// Ends a start that is not used. A recording without audio and without a
+/// capture error is removed;
 /// one that already holds audio is secured for `retry` like any kept one,
 /// and stays where it is if that fails.
 fn abort_start(handle: record::RecordingHandle, path: &Path, reason: &str) {
