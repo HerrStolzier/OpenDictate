@@ -164,11 +164,15 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   Zwei Versuche davor waren zu leise (Spitze −45 dB, Basti zu weit vom
   Mikrofon); die Fehlerkarte zeigte Grund, „Schließen“ und „Nochmal senden“.
   Basti wählte danach „schwebend“ als Standard.
+  Vollbild: Basti diktierte in World of Warcraft im Vollbild und bestätigte,
+  dass es funktioniert; laut App-Log ein Diktat mit 2,2 s vom Stopp bis zum
+  Ergebnis (davor ein zu leiser Versuch, der als Fehler endete). Was die
+  Anzeige dabei im Einzelnen zeigte, ist nur von Basti beobachtet, nicht
+  aufgezeichnet.
 
 **Offen / bekannte Grenzen:**
 
-- Diktatanzeige live noch offen: „Nochmal senden“ mit Rückfrage; aus und
-  Vollbild; andere Ziel-Apps als TextEdit; echte Maße an einem MacBook
+- Diktatanzeige live noch offen: „Nochmal senden“ mit Rückfrage; „Aus“; andere Ziel-Apps als TextEdit; echte Maße an einem MacBook
   mit Notch. Die Notch-Werte sind ein
   erster Vorschlag. Im Vollbild gilt eine App als Vollbild, wenn ihr vorderstes
   Fenster den ganzen Bildschirm bedeckt. Mit der Einstellung „In der Menüleiste“
