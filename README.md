@@ -8,9 +8,10 @@ Alternatively, a [server of your own](#using-your-own-server) can do the work,
 including a free local model on this Mac that needs no key.
 
 The Windows development snapshot and its separate acceptance limits are in
-[windows/README.md](windows/README.md). The [Linux CLI](linux/README.md) is also
-an unfinished platform implementation. Neither is a public product release;
-the instructions below describe the macOS app.
+[windows/README.md](windows/README.md); it is not a public release. The
+[Linux CLI](linux/README.md) is a public beta (pre-release
+`linux-v0.1.0-beta.1`) with its own guide. The instructions below describe the
+macOS app.
 
 ## First dictation
 

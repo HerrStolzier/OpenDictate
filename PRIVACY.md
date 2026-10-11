@@ -3,8 +3,9 @@
 This document describes the macOS app. The separate Windows prototype and
 Linux CLI have different local storage and delivery paths; see their
 [Windows preparation notes](windows/RELEASE-PLAN.md) and
-[Linux behavior and retention rules](linux/README.md). They have not completed
-product acceptance and are not public releases.
+[Linux behavior and retention rules](linux/README.md). The Windows prototype is
+not a public release; the Linux CLI is a public beta (pre-release) that has not
+completed product acceptance.
 
 OpenDictate records microphone audio only while a dictation is active. It does
 not include telemetry or analytics.
@@ -142,8 +143,8 @@ The most recent non-empty transcript is also held in memory until replaced, clea
 
 ## Linux CLI
 
-The Linux CLI is being prepared for a beta and can be installed as an Arch
-package built from source; it is not yet published.
+The Linux CLI is a public beta since 11 October 2026 (pre-release
+`linux-v0.1.0-beta.1`) and is installed as an Arch package built from source.
 On an explicit toggle it records the default PipeWire/Pulse input as an
 owner-only WAV. Recordings below one second or without a 50-ms window above
 −45 dBFS are not uploaded. Other recordings are sent over HTTPS to OpenAI's
@@ -196,7 +197,8 @@ bounded events, durations, the captured window class and, with a custom server,
 that server's host name (never its path). It must not contain API
 keys, transcript text, window titles or audio contents. Live Linux transcription
 and translation requests were exercised on one attended test system on
-5 October 2026; this is not a published Linux product.
+5 October 2026; the Linux beta published on 11 October 2026 is not a finished
+product.
 
 ## Support requests
 
