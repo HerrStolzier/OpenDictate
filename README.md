@@ -218,8 +218,10 @@ VoiceScribe attribution and license notice.
 
 ## License
 
-OpenDictate is available under the [MIT License](LICENSE). Third-party notices
-remain in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+OpenDictate is available under the [MIT License](LICENSE). The name, the logos,
+the figure Blink and the app icons are not covered by it; see
+[TRADEMARKS.md](TRADEMARKS.md). Third-party notices remain in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 The local self-signed development build is not a signed and notarized public
 binary. See [docs/accessibility-signing.md](docs/accessibility-signing.md) before

@@ -16,7 +16,7 @@ den Markenentwürfen“ vom 2. Oktober 2026.
 | [`brand.md`](brand.md) | Markenhandbuch: Stimme, Farben, Schrift, Pixelraster, Blink, Bewegung, Zugänglichkeit |
 | [`tokens.json`](tokens.json) | Alle Werte: Farben in drei Themes (Nacht, Bernstein, Papier), Schriftstile, Abstände, Radien, Pixelmaße |
 | [`fonts/`](fonts/) | Geist, Geist Mono und Geist Pixel (SIL Open Font License, [`fonts/OFL.txt`](fonts/OFL.txt)) |
-| [`assets/logos/`](assets/logos/) | Wortmarke und Blink als SVG |
+| [`assets/logos/`](assets/logos/) | Wortmarke und Blink als SVG; wie App-Icons nicht unter der MIT-Lizenz ([TRADEMARKS.md](../TRADEMARKS.md)) |
 | [`assets/app-icon/`](assets/app-icon/) | App-Icon in 1024, 512 und 256 px |
 | [`assets/symbols/`](assets/symbols/) | Pixelsymbole im 12 × 12-Raster |
 | [`components/`](components/) | Richtlinien je Komponente; `components/web/` ist die Web-Umsetzung aus Claude Design und Vorlage für die Pixelbilder von Blink auf anderen Plattformen |
