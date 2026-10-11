@@ -146,6 +146,10 @@ class GitHub:
                 payload = json.loads(raw) if raw else None
             except ValueError:
                 payload = {"message": raw.decode(errors="replace")}
+            if e.code in (403, 429) and e.headers.get("x-ratelimit-remaining") == "0":
+                # Erschöpftes Kontingent ist nur am Kopf sicher erkennbar, die Meldung ist nicht garantiert
+                message = payload.get("message", "") if isinstance(payload, dict) else ""
+                payload = {"message": f"API rate limit exceeded (x-ratelimit-remaining: 0) {message}".strip()}
             return e.code, payload, ""
 
     def get(self, path):
