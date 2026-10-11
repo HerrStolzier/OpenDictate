@@ -28,11 +28,13 @@ Transkription läuft über dein OpenAI-Konto und kostet mit `gpt-transcribe`
    **Schlüssel eingeben** wählen, Schlüssel einfügen, **Speichern**. Er liegt
    danach im macOS-Schlüsselbund und wird nur an OpenAI geschickt.
 2. Beim ersten Diktat fragt macOS nach dem **Mikrofon**: erlauben.
-3. Für automatisches Einfügen braucht die App **Bedienungshilfen**
+3. Für automatisches Einfügen und für Einzeltasten wie Fn halten braucht die
+   App **Bedienungshilfen**
    (Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen →
    OpenDictate einschalten; unter macOS 27 heißt der Bereich „Gerätesteuerung
    und Datenzugriff“). Ohne diese Freigabe landet der Text nur in der
-   Zwischenablage, und du fügst ihn mit ⌘V selbst ein. Hattest du vorher eine
+   Zwischenablage, und du fügst ihn mit ⌘V selbst ein; als Kürzel funktioniert
+   dann nur eine Tastenkombination wie ⌃⌥D oder ⌥⇧Leertaste. Hattest du vorher eine
    selbst gebaute OpenDictate-Version: den alten Eintrag mit „–“ entfernen,
    die App mit „+“ neu hinzufügen und OpenDictate neu starten.
 
