@@ -22,6 +22,30 @@ im [Windows-Releaseplan](RELEASE-PLAN.md); Herkunft und Prüfsummen stehen in
   installierbare Browserprobe beschränkt Seitenzugriff auf `127.0.0.1`; sie
   begründet keine allgemeine Browserunterstützung.
 
+## Einstellungen, Übersetzung und eigener Server (11. Oktober 2026)
+
+- `OpenDictate.Provider` (`net10.0`, ohne Windows-Abhängigkeit) baut die
+  Anfragen nach dem [Provider-Vertrag](../fixtures/provider/CONTRACT.md):
+  Transkription mit Modell und gesprochener Sprache aus den Einstellungen,
+  danach wahlweise Übersetzung über `/chat/completions` (Standard
+  `gpt-5.4-mini`), beides an OpenAI oder an einen eigenen Server.
+- Einstellungen liegen ohne Geheimnis in `%APPDATA%\OpenDictate\settings.json`.
+  Eine beschädigte Datei wird abgelehnt und nicht überschrieben. Die
+  Server-Adresse ist die Basis-URL mit `/v1`; leer heißt OpenAI, sonst gilt
+  `OPENAI_BASE_URL`, der gespeicherte Wert gewinnt. `http://` geht nur für
+  diesen Computer, und dorthin geht kein Schlüssel. Ein eigener Server nimmt
+  freie Modellnamen, OpenAI nur die bekannten.
+- Meldungen erscheinen auf Deutsch oder Englisch nach der Anzeigesprache von
+  Windows und enthalten nie die Antwort des Servers; eine Netzwerkmeldung zum
+  eigenen Server nennt nur dessen Host.
+- Im Prüffenster stehen die Felder im Bereich „Sprache, Übersetzung und
+  eigener Server“. Die Provider-Prüfungen laufen jetzt mit
+  `OpenDictate.Checks` (auch auf Linux und im Windows-Job der CI);
+  `OpenDictate.WindowsChecks` enthält nur noch die 13 Schutzprüfungen.
+- Geprüft am 11. Oktober nur offline auf Linux mit .NET SDK 10.0.401:
+  40 von 40 Prüfungen, App, Browser-Host und Schutzprüfer bauen ohne Warnung.
+  Kein echtes Diktat, keine Anfrage an OpenAI oder an ein lokales Modell.
+
 ## Heutige Offline-Prüfung, 28. September 2026
 
 - **41 bestehende Offline-Checks bestanden:** 14 Kern-/Bridge- und neun
@@ -53,14 +77,14 @@ beliebiger Editoren, Browser oder Webseiten.
 
 Das vorhandene Skript:
 
-1. zeigt die SDK-Version an und führt `OpenDictate.Checks` aus (14 Kern-/Bridge-
-   plus neun Ablaufchecks),
+1. zeigt die SDK-Version an und führt `OpenDictate.Checks` aus (14 Kern-/Bridge-,
+   neun Ablauf- und 17 Providerchecks),
 2. baut `OpenDictate.Prototype`,
 3. baut `OpenDictate.BrowserHost`,
 4. baut `OpenDictate.WindowsChecks`.
 
 Es **führt `OpenDictate.WindowsChecks` nicht aus**. Ein erfolgreicher Skript-
-lauf würde daher die 18 Credential-Manager-/Recovery-Prüfungen nicht belegen.
+lauf würde daher die 13 Credential-Manager-/Recovery-Prüfungen nicht belegen.
 Das Skript startet und installiert die App nicht; echte Aufnahme und
 Provideraufruf gehören nicht zu seinen Prüfungen. Das Bauen kann NuGet-Restore
 benötigen, falls die Abhängigkeit lokal noch nicht vorhanden ist. Das Skript

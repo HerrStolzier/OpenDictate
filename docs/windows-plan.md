@@ -13,6 +13,29 @@ Die [ROADMAP](../ROADMAP.md) ist die zentrale Plattform-To-do-Liste. Dieses
 Dokument bewahrt Windows-Planungsdetails und trennt neue Entscheidungen
 vom klar begrenzten historischen Prüfstand.
 
+## Weg zur Windows-Beta (Stand 11. Oktober 2026)
+
+Basti hat am 11. Oktober entschieden: Windows läuft ab jetzt parallel weiter,
+die nächste Beta ist iOS, danach Windows ([Log](../PROJECT.md#entscheidungen)).
+Alles, was ohne Windows-Gerät geht, wird jetzt gebaut und auf Linux sowie im
+Windows-Job der CI offline geprüft; die Live-Abnahme kommt am Ende.
+
+| Schritt | Ohne Windows-Gerät | Stand |
+| --- | --- | --- |
+| 1. Modell, Sprache, Übersetzung und eigener Server aus den Einstellungen, Tests gegen `fixtures/provider/` | ja | Gebaut am 11. Oktober, offline geprüft (Projekt `OpenDictate.Provider`, 17 Provider-Prüfungen) |
+| 2. Beta-App statt Prüffenster: Symbol im Infobereich, Einstellungsfenster (Schlüssel, Sprache, Übersetzung, eigener Server, Kürzel), Texte Deutsch oder Englisch nach Systemsprache, kleine Diktatanzeige im Designsystem | ja (Bau und Offline-Prüfung) | offen |
+| 3. Kürzel: Strg+Win halten (Halten zum Sprechen), rechte Strg für Spiele, Abfrage beim ersten Start; Wechsel transaktional | ja (Logik), live nein | offen |
+| 4. Einfügen über Zwischenablage und Strg+V in das beim Start erfasste Fenster, nur wenn es noch vorne ist und die Zwischenablage noch den Text hält; sonst bleibt der Text in der Zwischenablage. Der heutige Weg über Editor-Felder und Browser-Erweiterung reicht für Spielchat und beliebige Programme nicht | ja (Logik), live nein | offen |
+| 5. Paket: `dotnet publish` für win-x64 mit mitgelieferter Laufzeit, Installation ohne Adminrechte, Updates zum Beispiel mit Velopack | ja; ein CI-Job, der das Paket baut, braucht Bastis Wort | offen |
+| 6. Signatur: ohne Signatur warnt SmartScreen jeden Nutzer. Empfehlung nach Recherche vom 11. Oktober: Microsoft Store mit MSIX (für Einzelentwickler kostenlos, Microsoft signiert); Azure Artifact Signing erst nach einer Firmengründung (Einzelpersonen nur USA/Kanada) | Konto und Wahl: Basti | offen |
+| 7. Live-Abnahme: Installation, ein echtes Diktat in den Editor und in den Spielchat im Vollbild, Kürzel | nein, braucht einen Windows-PC | offen |
+| 8. Beta: Pre-Release oder Store-Testgruppe, Issue-Vorlage | Veröffentlichen nur mit Bastis Go | offen |
+
+Für Schritt 7 fehlt ein erreichbarer Windows-PC mit angeschlossenem Mikrofon.
+Am 28. September war der Windows-PC `xmg` per SSH erreichbar
+([Geräteprüfung](platform-audit-2026-09-28.md)); ob er noch zur Verfügung
+steht, ist offen.
+
 ## Aktuelle Fortsetzung vom 28. September
 
 Basti hat **Ziel B – öffentliche Verteilung vorbereiten** gewählt.

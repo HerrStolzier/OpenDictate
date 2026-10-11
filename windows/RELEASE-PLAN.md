@@ -57,6 +57,11 @@ Skript wurde nicht ausgeführt und bleibt außerhalb des Releasepfads.
    PCM-/WAV-Originale nach `%LOCALAPPDATA%\OpenDictatePrototype\Recordings`;
    Recovery liegt separat unter `%LOCALAPPDATA%\OpenDictatePrototype\Recovery`.
    Synthetische Abläufe verwenden `SyntheticChecks` und `SyntheticRecovery`.
+   Einstellungen (Modell, Sprache, Übersetzung, Server-Adresse) liegen ohne
+   Geheimnis in `%APPDATA%\OpenDictate\settings.json`. Die Aufnahme geht an
+   OpenAI oder an den eingetragenen eigenen Server; ist eine Übersetzung
+   eingestellt, geht danach das Transkript an denselben Server. Ein Server auf
+   diesem Computer bekommt keinen Schlüssel.
    Die öffentliche Aufbewahrungsregel für lokale Originale ist offen. Im
    verbundenen Ablauf wird eine geschützte
    Recoverykopie mit DPAPI erstellt, gelesen und bytegenau bestätigt; erst danach

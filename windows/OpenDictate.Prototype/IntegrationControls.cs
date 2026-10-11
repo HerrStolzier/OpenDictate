@@ -11,7 +11,7 @@ namespace OpenDictate.Prototype;
 
 internal sealed partial class PrototypeWindow
 {
-    private readonly CheckBox liveFlow = new() { Content = "OpenAI-Transkription aktivieren (Audio-Upload, kostenpflichtig)" };
+    private readonly CheckBox liveFlow = new() { Content = "Echte Transkription aktivieren (Audio-Upload an OpenAI, kostenpflichtig, oder an den eigenen Server)" };
     private readonly CheckBox simulateFailure = new() { Content = "Lokalen Anbieterfehler simulieren (ohne Upload)", IsEnabled = false };
     private readonly PasswordBox apiKey = new() { MaxLength = 2048, MinWidth = 250, Margin = new Thickness(0, 4, 8, 4) };
     private readonly Button saveKey = new() { Content = "Schlüssel speichern" };
@@ -33,11 +33,12 @@ internal sealed partial class PrototypeWindow
         settings.Children.Add(apiKey);
         var buttons = new WrapPanel(); buttons.Children.Add(saveKey); buttons.Children.Add(deleteKey); settings.Children.Add(buttons);
         panel.Children.Add(new Expander { Header = "API-Schlüssel verwalten", Content = settings, Margin = new Thickness(0, 8, 0, 8) });
+        AddDictationSettings(panel);
         var recoveryPanel = new StackPanel();
         recoveryPanel.Children.Add(recoveryStatus); recoveryPanel.Children.Add(recoveries);
         AutomationProperties.SetName(recoveries, "Geschützte Aufnahmen");
         recoveryPanel.Children.Add(refreshRecovery); recoveryPanel.Children.Add(retry);
-        AddText(recoveryPanel, "Lokaler Testmodus zeigt nur künstliche Testkopien. OpenAI-Modus zeigt echte geschützte Aufnahmen. Wiederholen startet keine neue Aufnahme und fügt niemals automatisch ein. Ungültige oder abgelaufene Dateien sind nicht auswählbar.");
+        AddText(recoveryPanel, "Lokaler Testmodus zeigt nur künstliche Testkopien. Der Modus mit echter Transkription zeigt echte geschützte Aufnahmen. Wiederholen startet keine neue Aufnahme und fügt niemals automatisch ein. Ungültige oder abgelaufene Dateien sind nicht auswählbar.");
         panel.Children.Add(new Expander { Header = "Geschützte Wiederherstellung", Content = recoveryPanel, IsExpanded = true });
         offlineFlow.Checked += async (_, _) => { liveFlow.IsChecked = false; simulateFailure.IsEnabled = true; await RefreshRecoveryAsync(); };
         offlineFlow.Unchecked += async (_, _) => { simulateFailure.IsChecked = false; simulateFailure.IsEnabled = false; await RefreshRecoveryAsync(); };
@@ -101,7 +102,7 @@ internal sealed partial class PrototypeWindow
 
     private void SetIntegrationBusy(bool busy)
     {
-        offlineFlow.IsEnabled = liveFlow.IsEnabled = apiKey.IsEnabled = saveKey.IsEnabled = deleteKey.IsEnabled = !busy;
+        offlineFlow.IsEnabled = liveFlow.IsEnabled = apiKey.IsEnabled = saveKey.IsEnabled = deleteKey.IsEnabled = saveSettings.IsEnabled = !busy;
         simulateFailure.IsEnabled = !busy && offlineFlow.IsChecked == true;
         recoveries.IsEnabled = refreshRecovery.IsEnabled = !busy;
         retry.IsEnabled = !busy && recoveries.SelectedItem is RecoveryChoice;
