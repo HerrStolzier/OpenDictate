@@ -33,7 +33,7 @@ python3 scripts/design-tokens.py --check  # prüfen, ob sie aktuell sind
 | --- | --- |
 | `generated/tokens.css` | Website und Web-Oberflächen: CSS-Variablen mit denselben Namen wie in Claude Design (`--bg`, `--signal`, `--font-pixel`, `--space-6` …); Theme per `data-theme` |
 | `generated/gtk-colors.css` | Linux: `@define-color`-Einträge für Waybar und GTK, z. B. `@od_signal_nacht` |
-| `generated/DesignTokens.swift` | macOS und später iOS: Farben je Theme, Maße und Schriftstile |
+| [`Sources/OpenDictateCore/DesignTokens.swift`](../Sources/OpenDictateCore/DesignTokens.swift) | macOS und später iOS: Farben je Theme, Maße und Schriftstile; wird direkt in den App-Kern erzeugt |
 
 Die Python-Tests unter `scripts/tests/` schlagen fehl, wenn `tokens.json`
 geändert wurde, ohne die Dateien neu zu erzeugen.
@@ -49,7 +49,7 @@ Linux-Pre-Release) bleiben in ihrer Fassung; die Markenarbeit blockiert keine Be
 | Oberfläche | Wie sie das Designsystem übernimmt |
 | --- | --- |
 | Website (`website/`) | `tokens.css`, Schriften und SVGs in den Seitenordner kopieren; Entwurf der Startseite liegt in Claude Design |
-| macOS-App | `DesignTokens.swift` nach `OpenDictateCore`, Schriften im App-Bundle registrieren, `.icns` aus `app-icon-1024.png`, neue Diktatanzeige an der Notch mit Blink statt des heutigen Fensters, Blink in der Menüleiste (`blink-16.svg`); ohne Notch mittig in der Menüleiste; im Bau seit 11. Oktober, bauen und prüfen nur auf dem Mac |
+| macOS-App | Im Code (Live-Test steht aus): `DesignTokens.swift` liegt in `OpenDictateCore`, die Schriften liegen im App-Bundle unter `Resources/Fonts` (mit `OFL.txt`), Blink ist aus `components/web/bundle.js` nach Swift übertragen (`BlinkFigure`, ein Test vergleicht beide). Neue Diktatanzeige an der Notch, ohne Notch mittig in der Menüleiste, Blink-Silhouette als Menüleisten-Symbol, Menü mit Wortmarke. Offen: `.icns` aus `app-icon-1024.png`. Bauen und prüfen nur auf dem Mac |
 | Linux | Leistenanzeige mit Blink (`▮`), „REC“ und den Zustandswörtern im Tooltip, Farben aus `gtk-colors.css` im Waybar-Beispiel; ein Test prüft, dass sie zu den Tokens passen. Bekannte Abweichung: Beim Schreiben zeigt die Leiste aus Platzgründen nur `▮ …`, das Wort „Schreibt“ steht im Tooltip |
 | Support-Formular und Dashboard | `tokens.css` und Schriften übernehmen, sobald der Support live geht (privates Repo `support-desk`) |
 | iOS | dieselbe Swift-Datei wie macOS |

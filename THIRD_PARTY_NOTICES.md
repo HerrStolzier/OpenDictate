@@ -30,3 +30,5 @@ The Geist, Geist Mono and Geist Pixel fonts in `design/fonts/` are
 Copyright 2024 The Geist Project Authors
 (https://github.com/vercel/geist-font) and licensed under the SIL Open Font
 License 1.1; the full license is in [`design/fonts/OFL.txt`](design/fonts/OFL.txt).
+The macOS app bundle ships these font files unchanged with that license in
+`Contents/Resources/Fonts/`.

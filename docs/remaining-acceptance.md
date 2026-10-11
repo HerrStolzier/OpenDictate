@@ -123,8 +123,27 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   gelesen: ein Magic Keyboard mit Ziffernblock (`004C:026C`) ergibt die rechte
   Wahltaste, das Fenster wurde gerendert und angesehen.
 
+- Neue Diktatanzeige und Menü der Menüleiste (nach Build 9, noch in keinem
+  Kandidaten, Entwurf in Claude Design vom 9. Oktober): kleine schwarze Anzeige
+  oben am Bildschirm mit Blink, Zustandswort und Zeile; an der Notch, ohne
+  Notch mittig in der Menüleiste (Standard), schwebend oder aus; Menü mit
+  „OpenDictate beenden“. Offline geprüft: Zuordnung der Fensterzustände,
+  Wahl der Variante je Bildschirm, Aufnahmezeile mit Countdown, Menüreihenfolge,
+  Anzeige ohne Fokus (`DictationIndicatorTests`), Blink Pixel für Pixel gegen
+  die Web-Komponente des Designsystems (`BlinkConformanceTests`). Alle Varianten
+  und Zustände wurden als Bilder gerendert (`--indicator-snapshots`) und
+  angesehen.
+
 **Offen / bekannte Grenzen:**
 
+- Diktatanzeige live: ⌘V landet bei sichtbarer Anzeige in der Ziel-App, ohne
+  dass OpenDictate aktiv wird; „Nochmal senden“ mit Rückfrage; schwebend, aus
+  und Vollbild; echte Maße an einem MacBook mit Notch. Die Notch-Werte sind ein
+  erster Vorschlag. Im Vollbild gilt eine App als Vollbild, wenn ihr vorderstes
+  Fenster den ganzen Bildschirm bedeckt; bei „Menüleiste immer ausblenden“ liegt
+  die Pille in der Menüleiste über dem Fensterinhalt. In Apps mit sehr vielen
+  Menüs kann die Pille in der Mitte einen Menütitel verdecken, solange sie
+  sichtbar ist. Gehörte VoiceOver-Ansagen der Anzeige sind ungeprüft.
 - Empfehlung je Tastatur: MacBook-Tastatur und Fremdtastatur am echten Gerät
   ungeprüft. Jedes HID-Gerät mit Tastatur-Schnittstelle oder einer
   Tastatur-Collection neben seiner Hauptfunktion zählt, auch Gaming-Mäuse mit
@@ -147,7 +166,8 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
 - Beenden der App während der Transkription: nur ohne Netz geprüft. Live
   antwortete OpenAI in zwei Versuchen am 8. Oktober nach gut 3 s, bevor die
   Abfrage bestätigt war. Bekannte Grenze der Beta (Entscheidung Basti).
-- „Text ansehen“ und „Text kopieren“ wurden in Teil B nicht eigens geprüft.
+- „Text ansehen“ und „Text kopieren“ wurden in Teil B nicht eigens geprüft;
+  seit der neuen Anzeige öffnet „Letzten Text ansehen“ im Menü dieses Fenster.
 - Übersetzung und die Punkte vom 7. Oktober: noch kein echtes Diktat auf dem
   Mac; das prüft der nächste Kandidat (Installation und ein Diktat mit
   Übersetzung).

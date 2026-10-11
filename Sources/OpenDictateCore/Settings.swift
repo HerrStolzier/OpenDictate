@@ -26,6 +26,7 @@ public final class Settings: Sendable {
         public static let vocabularyPrompt = "vocabularyPrompt"
         public static let translationTarget = "translationTarget"
         public static let translationModel = "translationModel"
+        public static let indicatorStyle = "indicatorStyle"
     }
 
     /// Stored value for "transcribe in whatever language you hear".
@@ -178,6 +179,16 @@ public final class Settings: Sendable {
         return Translation.defaultModel
     }
 
+    // MARK: - Indicator
+
+    /// How the indicator appears on screens without a notch.
+    public var indicatorStyle: IndicatorStyle {
+        get {
+            (store.object(forKey: Key.indicatorStyle) as? String).flatMap(IndicatorStyle.init(rawValue:)) ?? .default
+        }
+        set { store.set(newValue.rawValue, forKey: Key.indicatorStyle) }
+    }
+
     /// Drops every stored choice, so the environment variables take over again.
     public func resetToEnvironment() {
         store.removeObject(forKey: Key.model)
@@ -190,5 +201,6 @@ public final class Settings: Sendable {
         store.removeObject(forKey: Key.vocabularyPrompt)
         store.removeObject(forKey: Key.translationTarget)
         store.removeObject(forKey: Key.translationModel)
+        store.removeObject(forKey: Key.indicatorStyle)
     }
 }

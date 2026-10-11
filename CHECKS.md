@@ -389,6 +389,35 @@ fixtures, not microphone-to-target acceptance. Historical fixture evidence is in
 [the September 13 report](docs/live-acceptance-2026-09-13.md); it does not establish
 acceptance of the integrated candidate.
 
+## Dictation indicator
+
+Offline, `swift test` covers the mapping from window states to indicator
+words, the choice of variant per screen (notch, menu bar, floating, off, full
+screen), the recording line and countdown, the daily menu order, and, on a Mac
+with a screen, that the shown indicator window cannot become key or main. That
+test briefly orders a real window above the menu bar; without a screen it is
+skipped. `BlinkConformanceTests` runs the design
+system's own web component (`design/components/web/bundle.js`) in
+JavaScriptCore and compares every pixel run of Blink with the Swift port.
+
+Two debug-only modes need no hotkey, microphone, Keychain or provider:
+
+```bash
+swift build
+.build/debug/OpenDictate --indicator-snapshots /tmp/indicator   # one PNG per variant and state
+.build/debug/OpenDictate --indicator-preview [--style menuBar|floating|off] [--simulate-notch]
+```
+
+Run them from the checkout so the brand fonts in `design/fonts` are found; a
+built bundle loads them from `Contents/Resources/Fonts`. The preview cycles the
+real indicator through every state on the current screen. Snapshots and the
+preview are visual checks only. The deciding live test is a real dictation
+into another application with the indicator visible: the text must arrive by
+Command-V in that application, and OpenDictate must not become the active app
+while the indicator appears, changes or closes. Repeat it with the floating
+style, with "Aus", over a full-screen app, and on a MacBook with a notch to fix
+the final notch sizes in `IndicatorMetrics`.
+
 ## Compact settings acceptance
 
 Inspect the actual installed settings at compact and larger window sizes. The
@@ -396,7 +425,8 @@ four main options must be visible without a large leading blank area. Navigate
 with Tab/Shift+Tab and activate “Erweitert”, “Aufnahmen” and “Hilfe” with Space.
 Inspect menus/dialog entry points without changing preferences or sending a
 recording. Confirm that cancellation, discard, copy and clear remain accessible
-from the recording panel's “Weitere Aktionen”. Compare preference and recovery
+from the dictation window's “Weitere Aktionen” (open it with “Letzten Text
+ansehen” in the menu). Compare preference and recovery
 file integrity before/after; do not delete recordings created by the user.
 
 ## Repräsentative Kompatibilitätsabnahme

@@ -99,7 +99,8 @@ die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleiner
    Ankündigung (Kandidaten: Show HN, r/macapps, Mastodon/X).
 4. Beta laufen lassen und antworten.
 5. Neue Diktatanzeige im neuen Design (am 9. Oktober vorgezogen, seit
-   11. Oktober im Bau, parallel zur Beta): Statt des Fensters zeigt eine
+   11. Oktober im Code und offline geprüft, Live-Test mit Basti steht aus,
+   parallel zur Beta): Statt des Fensters zeigt eine
    kleine Anzeige an der Notch mit Blink den Stand und schließt sich bei Erfolg
    von selbst. Macs ohne Notch zeigen sie mittig in der Menüleiste; eine
    schwebende Anzeige oder „Aus“ lassen sich einstellen. „Beenden“ steht im

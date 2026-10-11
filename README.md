@@ -22,8 +22,8 @@ for later testing. To build from source, use Swift 6 on macOS:
 open .build/OpenDictate.app
 ```
 
-1. Open the menu bar panel. If a key is missing, choose **Schlüssel eingeben**
-   to open the Keychain-backed dialog directly. Saving a key does not start a
+1. Click the menu bar symbol (Blink). If a key is missing, choose
+   **API-Schlüssel einrichten …** to open the Keychain-backed dialog directly. Saving a key does not start a
    recording or make a paid request.
 2. Choose your microphone and language in **Einstellungen**. Allow microphone
    access when recording. Automatic insertion additionally needs macOS
@@ -38,8 +38,8 @@ open .build/OpenDictate.app
 4. Select the destination text field. Press your shortcut to record, speak,
    then press it again to stop; with a held key, release it to stop. Each
    dictation is limited to 90 seconds, a deliberate product limit for short texts.
-5. Check the destination. The complete transcript also remains available in the
-   panel and on the clipboard. If input was interrupted, part may already be in
+5. Check the destination. The complete transcript also remains available on
+   the clipboard and under **Letzten Text ansehen** in the menu. If input was interrupted, part may already be in
    the destination: inspect it before pasting the full transcript manually.
 
 The API key is stored in the macOS Keychain. Never put it in a command, environment
@@ -59,21 +59,41 @@ See [privacy and retention](PRIVACY.md) and the
 
 ## Daily use
 
-The menu bar button opens the dictation panel. Settings, saved recordings and
-Help use a separate compact window. **Weitere Aktionen** contains cancel, copy,
-clear and quit actions. Closing either window hides it; **Beenden** exits the app.
-Recording, processing, results, setup reminders and errors never open the panel
-automatically. The menu bar continues to show recording time and status. Open
-the panel explicitly when you want to inspect a result or change settings;
-closing it keeps it hidden through the rest of the dictation. Version and build
+While you dictate, a small black indicator at the top of the screen shows one
+word and a short line: **Hört zu** with the recording time, **Schreibt** while
+OpenAI transcribes or translates, **Eingefügt** after the Paste command
+(the app cannot confirm the result, so the line says to check it), **Kopiert**
+when the text is only on the clipboard, and **Hoppla** with the reason after an
+error. It never activates OpenDictate or takes the focus, so Paste reaches the
+application you started in. It closes by itself about two seconds after
+**Eingefügt** and four seconds after **Kopiert**; **Hoppla** stays until you
+choose **Schließen**, or **Nochmal senden** when the failed recording was kept.
+Sending again asks for confirmation first, because it can cost again.
+
+On a MacBook with a notch the indicator grows out of the notch. Without a notch
+it sits as a flat pill in the middle of the menu bar and covers nothing; an
+error drops a small card below it. **Ohne Notch** in Settings switches to a
+pill floating just below the menu bar or turns the indicator off (then only
+"REC" appears next to the menu bar symbol; an error still shows its card with
+the reason). Over a full-screen app without menu bar, the floating pill appears
+only while recording, writing or after an error; with the indicator off, only
+the error card appears there.
+With **Reduce motion** enabled, Blink and the indicator stand still.
+
+The menu bar symbol opens a menu: **Neues Diktat** (with your shortcut),
+**Letzten Text ansehen**, **Aufbewahrte Aufnahmen**, **Automatisch einfügen**,
+**Übersetzen**, **Einstellungen …** (⌘,), **Hilfe** and
+**OpenDictate beenden** (⌘Q). While recording, the first entry stops the
+dictation; while processing, it cancels and keeps the recording. Settings,
+saved recordings and Help use a separate compact window. Version and build
 are shown in Settings; **Hilfe** and **Über OpenDictate …** also show the source
 revision when embedded in that build. Older bundles without that information
 show it as unknown.
 
 Choose the target application before starting. Its identity is captured at the
-start action, before a Keychain dialog, permission wait or panel focus change.
-An explicit panel recording action can return focus to the most recently used
-application. At delivery, automatic Paste activates the captured application.
+start action, before a Keychain dialog, permission wait or window focus change.
+An explicit recording action in the dictation window can return focus to the
+most recently used application. At delivery, automatic Paste activates the captured application.
 It uses whichever control is then focused there.
 
 Automatic input is always reported as unconfirmed. A rejected preflight, an
@@ -86,7 +106,7 @@ asks for confirmation and copies the result without automatically inserting it.
 
 ## Settings
 
-The panel’s Settings window groups the four everyday options first. Advanced
+The Settings window groups the everyday options first. Advanced
 options are collapsed initially; saved recordings and Help open secondary pages.
 Changes apply to the next dictation, no restart needed.
 
@@ -115,15 +135,17 @@ Changes apply to the next dictation, no restart needed.
   only the translation is copied and pasted. If the translation fails or comes
   back empty, nothing is pasted, the original text is not used as a fallback and
   the recording is kept for retry; a retry translates again.
+- **Ohne Notch** — how the indicator appears on screens without a notch:
+  in the menu bar (default), floating below the menu bar, or off.
 - **Vokabular und Kontext** — local prompt setting (up to 2,000 characters in the editor), sent with each dictation. A stored value overrides the legacy environment variable.
 - **Automatisch einfügen** — disable for clipboard-only delivery. At delivery,
   the app captured when dictation began is brought forward if it is still
   running. Paste uses whichever field is then focused there. If that app cannot
   be verified as frontmost, the transcript remains on the clipboard.
-- **Letzten Text erneut kopieren** — recovers the last transcript without another API request. It is kept in RAM only and can be cleared.
+- **Letzten Text ansehen** (menu) — shows the last transcript with a copy action, without another API request. It is kept in RAM only and can be cleared.
 - Saved recordings can be retried or deleted individually. Retry is disabled during recording and processing.
 
-The menu bar shows recording time and a countdown in the last ten seconds.
+The indicator shows recording time and a countdown in the last ten seconds.
 Cancellation before a non-empty transcript reaches the clipboard keeps the audio.
 Once the full transcript is copied, it remains available even if insertion is
 cancelled, and the audio can be removed. The separate discard action removes an
@@ -207,8 +229,9 @@ longer inspects whether the focused control is protected or read-only. The trans
 manual recovery. Candidate-specific acceptance is tracked in
 [remaining acceptance](docs/remaining-acceptance.md).
 
-The recording panel shows elapsed time, the input level and the final countdown
-to its automatic stop. The custom shortcut dialog supports Tab/Shift+Tab,
+The indicator shows the elapsed time and counts down the last ten seconds
+before the automatic stop; VoiceOver announces each state and the countdown at
+ten and five seconds. The custom shortcut dialog supports Tab/Shift+Tab,
 Escape and Return without requiring macOS full keyboard access.
 
 See [PRIVACY.md](PRIVACY.md) for the complete data flow and retention behavior,

@@ -122,6 +122,18 @@ struct SettingsTests {
         #expect(settings(stored: ["translationModel": "gpt-test-1"]).translationModel == "gpt-test-1")
     }
 
+    // MARK: - Indicator
+
+    @Test("Screens without a notch show the indicator in the menu bar until the user picks another style")
+    func indicatorStyle() {
+        let s = settings()
+        #expect(s.indicatorStyle == .menuBar)
+        s.indicatorStyle = .floating
+        #expect(s.indicatorStyle == .floating)
+        #expect(settings(stored: ["indicatorStyle": "off"]).indicatorStyle == .off)
+        #expect(settings(stored: ["indicatorStyle": "bubble"]).indicatorStyle == .menuBar)
+    }
+
     // MARK: - Reset
 
     @Test("Resetting clears every stored preference and hands control back to the environment")
@@ -138,6 +150,7 @@ struct SettingsTests {
         s.autoPaste = false
         s.prompt = "stored prompt"
         s.translationTarget = "fr"
+        s.indicatorStyle = .off
         s.resetToEnvironment()
         #expect(s.model == .whisper1)
         #expect(s.language == "de")
@@ -146,6 +159,7 @@ struct SettingsTests {
         #expect(s.autoPaste)
         #expect(s.prompt == "environment prompt")
         #expect(s.translationTarget == nil)
+        #expect(s.indicatorStyle == .menuBar)
     }
 
 }

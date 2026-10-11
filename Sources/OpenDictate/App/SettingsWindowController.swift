@@ -85,6 +85,7 @@ final class SettingsWindowController: NSWindowController {
             addRow("Tastenkürzel", id: "shortcut", to: stack)
             addRow("Sprache", id: "language", to: stack)
             addRow("Übersetzen", id: "translation", to: stack)
+            addRow("Ohne Notch", id: "indicatorStyle", to: stack)
             if let item = item("autoPaste") { addControl(item, to: stack) }
             let disclosure = addButton(
                 expanded ? "▾ Erweitert" : "▸ Erweitert", id: "advanced",
@@ -124,7 +125,10 @@ final class SettingsWindowController: NSWindowController {
                 "OpenDictate arbeitet in der Menüleiste. Wähle ein Textfeld und starte die Aufnahme mit deinem Tastenkürzel. Nach spätestens 90 Sekunden endet die Aufnahme automatisch.",
                 to: stack)
             addText(
-                "Aufnahme, Ergebnis und Fehler öffnen das Bedienfenster nicht automatisch. Das Menüleistensymbol öffnet es bei Bedarf. Der rote Schließknopf blendet nur das Fenster aus; OpenDictate und das Tastenkürzel bleiben aktiv.",
+                "Während des Diktats zeigt eine kleine Anzeige oben am Bildschirm, was passiert: Hört zu, Schreibt, Eingefügt, Kopiert oder Hoppla. Sie nimmt nie den Fokus und geht bei Erfolg von selbst zu. Auf Macs ohne Notch sitzt sie mittig in der Menüleiste; unter „Ohne Notch“ kannst du sie schwebend zeigen oder ausschalten; Fehler zeigen ihre Karte trotzdem. Im Vollbild ohne Menüleiste erscheint sie nur bei Aufnahme, Verarbeitung und Fehlern.",
+                to: stack)
+            addText(
+                "Das Menüleistensymbol öffnet das Menü mit „Neues Diktat“, deinem letzten Text, den aufbewahrten Aufnahmen und „OpenDictate beenden“.",
                 to: stack)
             addText(AppVersionInfo().summary, to: stack)
             for id in ["about", "accessibility", "microphone", "log", "quit"] {
@@ -200,7 +204,8 @@ final class SettingsWindowController: NSWindowController {
     }
 
     private func valueTitle(_ item: NSMenuItem) -> String {
-        if ["microphone", "shortcut", "language", "translation", "model"].contains(item.identifier?.rawValue ?? ""),
+        if ["microphone", "shortcut", "language", "translation", "model", "indicatorStyle"].contains(
+            item.identifier?.rawValue ?? ""),
             page == .settings, let colon = item.title.firstIndex(of: ":")
         {
             return String(item.title[item.title.index(after: colon)...]).trimmingCharacters(in: .whitespaces)
