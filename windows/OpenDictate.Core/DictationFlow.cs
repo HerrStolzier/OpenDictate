@@ -3,7 +3,12 @@ namespace OpenDictate.Core;
 public enum DictationPhase { Idle, Recording, Transcribing, Cancelling, Delivering }
 public enum DictationOutcome { Delivered, ManualDelivery, DeliveryUncertain, Cancelled, EmptyResponse, Failed }
 public enum TextDelivery { Rejected, Completed, Uncertain }
-public sealed record DictationResult(DictationOutcome Outcome, string? Text = null);
+// Message is set only for a failure whose text may be shown as is.
+public sealed record DictationResult(DictationOutcome Outcome, string? Text = null, string? Message = null);
+
+// A failure whose message is written for the user: it never carries a
+// provider body, key, transcript or audio.
+public class UserFacingException(string message) : Exception(message);
 
 // One lease spans recording, preparation, transcription and delivery. A cancelled
 // provider retains the lease until it actually settles, even if it ignores its
@@ -77,7 +82,11 @@ public sealed class DictationFlow
             };
         }
         catch (OperationCanceledException) { return dispatchStarted ? new(DictationOutcome.DeliveryUncertain, recognized) : new(DictationOutcome.Cancelled); }
-        catch (Exception) { return dispatchStarted ? new(DictationOutcome.DeliveryUncertain, recognized) : new(DictationOutcome.Failed); }
+        catch (Exception error)
+        {
+            return dispatchStarted ? new(DictationOutcome.DeliveryUncertain, recognized)
+                : new(DictationOutcome.Failed, Message: (error as UserFacingException)?.Message);
+        }
         finally
         {
             lock (sync) { active = null; phase = DictationPhase.Idle; }

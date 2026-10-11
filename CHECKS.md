@@ -217,8 +217,9 @@ and check scope. On Windows, from the repository root:
 ./windows/scripts/check.ps1
 ```
 
-This runs 23 core/flow checks and builds the app, browser host and Windows
-protection checker. It does not execute the 18 protection checks. After
+This runs 40 core, flow and provider checks (the provider checks read
+`fixtures/provider/`) and builds the app, browser host and Windows protection
+checker. It does not execute the 13 protection checks. After
 specific authorization for synthetic files and an isolated dummy Credential
 Manager entry, run those from a separate test copy in the signed-in Windows
 desktop with normal user privileges:
@@ -230,6 +231,14 @@ dotnet run --no-restore --project windows/OpenDictate.WindowsChecks -c Release
 Verify deletion of the dummy credential and owned test files afterwards.
 SSH Session 0 is not equivalent to an interactive desktop credential test.
 Neither command proves live dictation, installation or public release readiness.
+
+Without a Windows computer, the same 40 checks and the builds run on Linux
+with .NET SDK 10.0.401:
+
+```bash
+dotnet run --project windows/OpenDictate.Checks -c Release
+dotnet build windows/OpenDictate.Prototype -c Release -p:EnableWindowsTargeting=true
+```
 
 The Windows workflow uses `windows-2025`, selects the SDK from
 `windows/global.json`, and runs only `windows/scripts/check.ps1`. It does not
@@ -316,8 +325,9 @@ manifests, with at most three open update pull requests.
 and error responses and `cases.json` with the expected message per platform.
 The Swift tests `TranscriptionRequestTests` and `TranscriptionTransportTests`
 read these files, and so do the Linux tests in `transcribe.rs`
-(`tests::contract`); change the fixtures and the contract together. Windows
-tests are meant to read the same files once its provider tests move to them.
+(`tests::contract`), and the Windows provider checks in
+`windows/OpenDictate.Checks/ProviderChecks.cs`; change the fixtures and the
+contract together.
 
 ## Meaning of checks
 

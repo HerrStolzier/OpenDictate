@@ -10,8 +10,8 @@ the provider side is shared; each client keeps its own code. Decided on
 - `POST <base>/audio/transcriptions`. The base address defaults to
   `https://api.openai.com/v1`; a custom server replaces only the base.
 - `Authorization: Bearer <key>` for OpenAI and other `https://` servers. A
-  server on the same computer (loopback) gets no header. macOS and Linux
-  implement this; Windows follows with the same rule.
+  server on the same computer (loopback) gets no header. macOS, Linux and
+  Windows implement this.
 - `Content-Type: multipart/form-data` with these fields in this order:
   1. `model`
   2. `response_format` = `json`
@@ -31,27 +31,26 @@ the provider side is shared; each client keeps its own code. Decided on
   instead limits a recording to 90 s of WAV (2,880,044 bytes).
 - Timeouts: macOS 30 s without data and 120 s overall; Linux 10 s to connect,
   then a 15 s response budget (120 s for a custom server) plus upload time at about 2 Mbit/s; Windows 60 s
-  overall.
+  overall (180 s for a custom server).
 
 ## Response
 
 - `2xx` with a JSON object containing `text`
-  ([response-ok.json](response-ok.json)). macOS and Linux trim surrounding
-  whitespace; Windows passes `text` unchanged and rejects a whitespace-only
-  result. An empty result keeps the recording for retry.
+  ([response-ok.json](response-ok.json)). All clients trim surrounding
+  whitespace. An empty result keeps the recording for retry.
 - Any other status is an error. Every client shows its own message and never
   the provider's raw text. On macOS, the OpenAI error `code` (or `type` when
   `code` is missing) selects a more specific message; Linux and Windows map by
-  status code, Linux also by whether the server is OpenAI, a custom server or
-  one on this computer.
+  status code and by whether the server is OpenAI, a custom server or one on
+  this computer.
 
 ## Cases
 
 [cases.json](cases.json) lists each fixture with its status code and, per
 platform, a phrase the user-facing message must contain:
-`mac_message_contains` and `linux_message_contains` (the Linux phrases are
-those for OpenAI as the server). Windows adds its own key when its tests read
-these files.
+`mac_message_contains`, `linux_message_contains` and `windows_message_contains`
+(the Linux and Windows phrases are those for OpenAI as the server, with a
+German display language).
 
 | Fixture | Status | Meaning |
 | --- | --- | --- |
