@@ -73,6 +73,8 @@ fixture or one successful dictation into a general speech-quality claim.
 - `README.md`: current product behavior and setup (macOS); `linux/README.md`
   (English) and `linux/README.de.md` (German) for Linux; change both together.
   Linux CLI messages exist in German and English (`tr!` in `linux/src/i18n.rs`).
+- `ios/README.md`: structure, flow and build of the iPhone app; its user-facing
+  text exists in English and German (`L10n.pick` in `ios/Shared/L10n.swift`).
 - `PRIVACY.md`: complete current data flow and retention behavior.
 - `design/`: copy of the OpenDictate design system from Claude Design (brand
   book, tokens, fonts, logos). Claude Design stays the original; update the

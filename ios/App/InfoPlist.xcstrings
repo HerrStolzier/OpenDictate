@@ -1,0 +1,40 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSLocalNetworkUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenDictate schickt deine Aufnahmen an den eingetragenen eigenen Server, wenn er in deinem lokalen Netzwerk läuft."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenDictate sends your recordings to the custom server you entered if it runs in your local network."
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenDictate nimmt deine Stimme nur während eines Diktats auf und schickt sie an den gewählten Dienst, der daraus Text macht."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OpenDictate records your voice only while you dictate and sends it to the service you chose, which turns it into text."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

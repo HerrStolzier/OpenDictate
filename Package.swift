@@ -5,11 +5,14 @@ import PackageDescription
 let package = Package(
     name: "OpenDictate",
     platforms: [
-        .macOS(.v14)
+        .macOS(.v14),
+        // Only OpenDictateCore builds for iOS, for the app in ios/.
+        .iOS(.v18)
     ],
     products: [
         .executable(name: "OpenDictate", targets: ["OpenDictate"]),
-        .executable(name: "OpenDictateKeychainHelper", targets: ["OpenDictateKeychainHelper"])
+        .executable(name: "OpenDictateKeychainHelper", targets: ["OpenDictateKeychainHelper"]),
+        .library(name: "OpenDictateCore", targets: ["OpenDictateCore"])
     ],
     targets: [
         // Pure logic: no AppKit, no AVFoundation, no network, no globals.
