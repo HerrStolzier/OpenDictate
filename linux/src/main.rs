@@ -25,7 +25,7 @@ use std::fs::{self, OpenOptions};
 use std::io::{self, IsTerminal, Read, Write};
 use std::os::unix::process::CommandExt;
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant};
 
 use ipc::Event;
@@ -202,26 +202,38 @@ fn start_worker() -> Result<(), String> {
         .env_remove("OPENAI_API_KEY")
         .env_remove("OPENDICTATE_API_KEY");
     command.process_group(0);
-    command.spawn().map_err(|_| {
+    let mut child = command.spawn().map_err(|_| {
         tr!(
             "Aufnahmeprozess konnte nicht starten.",
             "Recording process could not start."
         )
     })?;
-    wait_for_socket(Duration::from_secs(2))?;
+    // Includes opening the microphone, which can take a moment on first use.
+    wait_for_recording(&mut child, &log, Duration::from_secs(5))?;
     let started = i18n::t("Aufnahme läuft", "Recording started");
     notify::status(started);
     println!("{started}");
     Ok(())
 }
 
-fn wait_for_socket(timeout: Duration) -> Result<(), String> {
+/// Waits until the detached worker reports a running recording. A worker that
+/// exits first has written its reason to the log (its stderr).
+fn wait_for_recording(child: &mut Child, log: &Path, timeout: Duration) -> Result<(), String> {
     let socket = paths::socket_path().map_err(path_error)?;
     let state_path = paths::state_path().map_err(path_error)?;
     let deadline = Instant::now() + timeout;
     while Instant::now() < deadline {
         if state::read(&state_path, &socket) == state::State::Recording {
             return Ok(());
+        }
+        // A second worker that lost the socket to a running one exits too;
+        // only an exit that left no socket behind means the start failed.
+        if matches!(child.try_wait(), Ok(Some(_))) && !socket.exists() {
+            let log = log.display();
+            return Err(tr!(
+                "Aufnahme konnte nicht starten. Der Grund steht in {log}.",
+                "Recording could not start. The reason is in {log}."
+            ));
         }
         std::thread::sleep(Duration::from_millis(20));
     }
@@ -748,19 +760,22 @@ fn worker() -> Result<(), String> {
     let _guard = SocketGuard {
         path: socket.clone(),
     };
-    let state_guard = state::StateGuard::begin(
-        paths::state_path().map_err(path_error)?,
-        paths::cancel_path().map_err(path_error)?,
-        state::State::Recording,
-    )
-    .map_err(path_error)?;
     let target = window::active_window();
     if let Some(target) = &target {
         log_ops(&format!("window-captured class={}", target.class));
     }
     let path = paths::next_pending_path().map_err(path_error)?;
     restrict_file_parent(&path)?;
-    let handle = record::start(&path)?;
+    // `toggle` reports a started recording once the state says so, and this
+    // process runs detached, so the state is only set once the microphone
+    // runs and a failed start is shown as a notification.
+    let handle = record::start(&path).inspect_err(|error| notify::status(error))?;
+    let state_guard = state::StateGuard::begin(
+        paths::state_path().map_err(path_error)?,
+        paths::cancel_path().map_err(path_error)?,
+        state::State::Recording,
+    )
+    .map_err(path_error)?;
     log_ops("recording-started");
     let event =
         ipc::wait_for_stop(&listener, Instant::now() + record::MAX_RECORDING).map_err(|_| {

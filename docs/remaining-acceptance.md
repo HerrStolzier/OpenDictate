@@ -45,8 +45,11 @@ scheiterte einmal mit „Recording could not start“ (Ursache unbekannt, der
 nächste Versuch klappte); seit PR #59 steht der Grund im Protokoll
 (`recording-start-failed`), und die leere Datei wird entfernt. Am 11. Oktober
 scheiterten auf omarchy alle Starts seit dem 9. Oktober, weil kein Mikrofon
-angeschlossen war (PipeWire ohne Quelle); die Meldung fragt seitdem nach dem
-Mikrofon. Einfügen in Chromium-, Electron- und
+angeschlossen war (PipeWire ohne Quelle). Bis dahin meldete `toggle` trotzdem
+„Aufnahme läuft“ und der Grund stand nur im Protokoll; seitdem erscheint ein
+gescheiterter Start als Benachrichtigung, die nach dem Mikrofon fragt, und
+`toggle` meldet ihn mit Verweis auf das Protokoll (in der Sandbox ohne
+Audiogerät geprüft, auf omarchy noch nicht). Einfügen in Chromium-, Electron- und
 Discord-Fenstern; gemischtes Deutsch/Englisch; Abbruch genau während der
 Übersetzung; andere Compositoren als Hyprland; andere Distributionen;
 Vokabular. Eigener Server und `opendictate setup` mit Kürzel-Abfrage
