@@ -24,6 +24,7 @@ internal sealed partial class PrototypeWindow
     private readonly TextBox translationModel = new() { MinWidth = 250, MaxLength = 128, Margin = new Thickness(0, 4, 0, 8) };
     private readonly Button saveSettings = new() { Content = "Einstellungen speichern" };
     private DictationSettings storedSettings = DictationSettings.Default;
+    private bool settingsReadable = true;
 
     private void AddDictationSettings(Panel panel)
     {
@@ -34,15 +35,25 @@ internal sealed partial class PrototypeWindow
         var fields = new StackPanel();
         AddField(fields, "Gesprochene Sprache", spokenLanguage);
         AddField(fields, "Übersetzung nach dem Sprechen", translationTarget);
-        AddField(fields, "Server-Adresse (leer = OpenAI; z. B. http://127.0.0.1:8080/v1)", serverAddress);
+        AddField(fields, $"Server-Adresse, z. B. http://127.0.0.1:8080/v1 (leer = OpenAI, oder {ProviderServer.BaseUrlVariable}, wenn gesetzt)", serverAddress);
         AddField(fields, "Transkriptionsmodell", transcriptionModel);
         AddField(fields, "Übersetzungsmodell", translationModel);
         fields.Children.Add(saveSettings);
         panel.Children.Add(new Expander { Header = "Sprache, Übersetzung und eigener Server", Content = fields, Margin = new Thickness(0, 0, 0, 8) });
         saveSettings.Click += (_, _) => SaveDictationSettings();
         try { storedSettings = SettingsFile.Load(SettingsFile.DefaultPath); }
-        catch (UserFacingException error) { SetStatus(error.Message + " Gespeicherte Datei bleibt unverändert."); saveSettings.IsEnabled = false; }
+        catch (UserFacingException error) { SetStatus(error.Message + " Gespeicherte Datei bleibt unverändert."); settingsReadable = false; saveSettings.IsEnabled = false; }
         ShowDictationSettings(storedSettings);
+        // Name where dictations go when the address comes from the environment.
+        if (settingsReadable && storedSettings.Server is null)
+        {
+            try
+            {
+                if (storedSettings.ResolveServer() is { IsCustom: true } server)
+                    SetStatus($"{ProviderServer.BaseUrlVariable} ist gesetzt: Diktate gehen an {ServerName(server)}.");
+            }
+            catch (UserFacingException error) { SetStatus(error.Message); }
+        }
     }
 
     private static void AddField(Panel panel, string label, Control field)

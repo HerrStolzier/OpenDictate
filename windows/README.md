@@ -31,8 +31,9 @@ im [Windows-Releaseplan](RELEASE-PLAN.md); Herkunft und Prüfsummen stehen in
   `gpt-5.4-mini`), beides an OpenAI oder an einen eigenen Server.
 - Einstellungen liegen ohne Geheimnis in `%APPDATA%\OpenDictate\settings.json`.
   Eine beschädigte Datei wird abgelehnt und nicht überschrieben. Die
-  Server-Adresse ist die Basis-URL mit `/v1`; leer heißt OpenAI, sonst gilt
-  `OPENAI_BASE_URL`, der gespeicherte Wert gewinnt. `http://` geht nur für
+  Server-Adresse ist die Basis-URL mit `/v1`. Ohne Eintrag gilt
+  `OPENAI_BASE_URL`, wenn gesetzt (das Prüffenster nennt dann das Ziel), sonst
+  OpenAI; ein gespeicherter Eintrag gewinnt. `http://` geht nur für
   diesen Computer, und dorthin geht kein Schlüssel. Ein eigener Server nimmt
   freie Modellnamen, OpenAI nur die bekannten.
 - Meldungen erscheinen auf Deutsch oder Englisch nach der Anzeigesprache von

@@ -71,15 +71,15 @@ public sealed record DictationSettings
             throw new UserFacingException(UiText.T("Ungültiger Sprachcode.", "Invalid language code."));
     }
 
-    private static void ValidateModelName(string model)
+    private static void ValidateModelName(string? model)
     {
         if (!IsModelName(model)) throw new UserFacingException(UiText.T("Ungültiger Modellname.", "Invalid model name."));
     }
 
     // Model names as custom servers use them, e.g. Systran/faster-whisper-small
-    // or llama3.1:8b.
-    private static bool IsModelName(string model) =>
-        model.Length is > 0 and <= 128 && model[0] is not ('.' or '/') && !model.Contains("..") &&
+    // or llama3.1:8b. A hand-edited file can carry null despite the type.
+    private static bool IsModelName(string? model) =>
+        model is { Length: > 0 and <= 128 } && model[0] is not ('.' or '/') && !model.Contains("..") &&
         model.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '.' or '_' or ':' or '/');
 }
 

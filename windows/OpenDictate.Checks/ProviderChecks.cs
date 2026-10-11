@@ -151,7 +151,8 @@ internal static class ProviderChecks
                 Check(!File.ReadAllText(path).Contains("\"server\""));
                 File.WriteAllText(path, "{\"model\":\"gpt-transcribe\"}");
                 Check(SettingsFile.Load(path).Language is null);
-                foreach (string damaged in new[] { "{", "null", "{\"model\":\"../x\"}", "{\"server\":\"http://example.org/v1\"}", "{\"language\":\"de de\"}" })
+                foreach (string damaged in new[] { "{", "null", "{\"model\":\"../x\"}", "{\"server\":\"http://example.org/v1\"}", "{\"language\":\"de de\"}",
+                    "{\"model\":null}", "{\"translation_model\":null}" })
                 {
                     File.WriteAllText(path, damaged);
                     var refusal = Refused<UserFacingException>(() => { SettingsFile.Load(path); return Task.CompletedTask; }).GetAwaiter().GetResult();

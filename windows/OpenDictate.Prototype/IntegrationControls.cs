@@ -102,7 +102,9 @@ internal sealed partial class PrototypeWindow
 
     private void SetIntegrationBusy(bool busy)
     {
-        offlineFlow.IsEnabled = liveFlow.IsEnabled = apiKey.IsEnabled = saveKey.IsEnabled = deleteKey.IsEnabled = saveSettings.IsEnabled = !busy;
+        offlineFlow.IsEnabled = liveFlow.IsEnabled = apiKey.IsEnabled = saveKey.IsEnabled = deleteKey.IsEnabled = !busy;
+        // A damaged settings file stays untouched until it is fixed by hand.
+        saveSettings.IsEnabled = !busy && settingsReadable;
         simulateFailure.IsEnabled = !busy && offlineFlow.IsChecked == true;
         recoveries.IsEnabled = refreshRecovery.IsEnabled = !busy;
         retry.IsEnabled = !busy && recoveries.SelectedItem is RecoveryChoice;
