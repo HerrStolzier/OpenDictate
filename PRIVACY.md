@@ -234,11 +234,14 @@ Screen and in the Dynamic Island shows that a recording is running.
 - **Last text:** kept only in memory while the app runs, for "Copy again";
   it is gone when iOS ends the app.
 - **Failed recordings:** a recording whose text did not reach the clipboard
-  stays in the app's own container for "Send again", under the same rule as on
-  the Mac: at most the five newest, none older than 24 hours, checked whenever
-  the list is read. The folder is excluded from backups. A recording shorter
-  than one second is deleted at once. A recording cut off because iOS ended
-  the app during it is moved to the kept recordings at the next start and
+  stays in the app's own container, under the same rule as on the Mac: at most
+  the five newest, none older than 24 hours, checked whenever the list is
+  read. The folder is excluded from backups. As on the Mac, each kept
+  recording gets an authentication tag (HMAC-SHA256 with a key in the
+  Keychain); "Send again" offers only recordings with a valid tag and uploads
+  exactly the bytes it checked. A recording shorter than one second is kept
+  the same way. A recording cut off because iOS ended the app during it is
+  kept at the next start without a tag, so it is never sent again, and
   expires under the same rule.
 - **No log, no telemetry:** the iPhone app writes no log file and sends
   nothing else anywhere.

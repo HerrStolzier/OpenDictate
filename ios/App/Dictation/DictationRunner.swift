@@ -1,5 +1,5 @@
 import AVFoundation
-// `Activity` is not Sendable in the SDK; this runner calls it only on the main actor.
+// `Activity` is not Sendable in the SDK; this runner calls it only from the main actor.
 @preconcurrency import ActivityKit
 import Foundation
 import Observation
@@ -112,13 +112,12 @@ final class DictationRunner {
         guard let recording = recorder.stop() else { return "" }
         self.configuration = nil
         phase = .writing
-        guard recording.duration >= Self.minimumDuration else {
-            store.remove(recording.url)
-            throw await fail(.tooShort)
-        }
+        // Even a too short recording is the only copy of what was said.
         let kept = store.keep(recording.url)
+        guard recording.duration >= Self.minimumDuration else { throw await fail(.tooShort) }
         await updateActivity(.writing)
-        return try await deliver(audioAt: kept, configuration: configuration)
+        guard let audio = try? Data(contentsOf: kept) else { throw await fail(.recordingUnreadable) }
+        return try await deliver(audio, keptAt: kept, configuration: configuration)
     }
 
     /// The Live Activity's stop button: returns once the recording stopped,
@@ -135,8 +134,11 @@ final class DictationRunner {
         defer { background.end() }
         do {
             let configuration = try DictationConfiguration.current()
+            guard let audio = store.authenticatedAudio(at: entry.url) else {
+                throw DictationFailure.recordingUnreadable
+            }
             phase = .writing
-            try await deliver(audioAt: entry.url, configuration: configuration)
+            try await deliver(audio, keptAt: entry.url, configuration: configuration)
         } catch {
             phase = .oops(DictationFailure(error).message)
         }
@@ -153,9 +155,10 @@ final class DictationRunner {
     /// The caller holds a `BackgroundActivity`, so the requests finish even
     /// when the app is in the background.
     @discardableResult
-    private func deliver(audioAt url: URL, configuration: DictationConfiguration) async throws -> String {
+    private func deliver(_ audio: Data, keptAt url: URL, configuration: DictationConfiguration) async throws
+        -> String
+    {
         do {
-            guard let audio = try? Data(contentsOf: url) else { throw DictationFailure.recordingUnreadable }
             var text = try await client.transcribe(audio, configuration: configuration)
             guard !text.isEmpty else { throw DictationFailure.nothingRecognized }
             if let target = configuration.translationTarget {
