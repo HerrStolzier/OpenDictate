@@ -54,15 +54,23 @@ final class DictationIndicator {
     init() {
         let center = NotificationCenter.default
         let workspace = NSWorkspace.shared.notificationCenter
+        // The variant depends on the screen and on whether the frontmost app
+        // covers it, so place it again whenever either changes, for example
+        // when Paste brings a full-screen game forward.
         let replace: @Sendable (Notification) -> Void = { [weak self] _ in
-            MainActor.assumeIsolated { self?.present(animated: false) }
+            MainActor.assumeIsolated {
+                guard let self, self.phase != .closed else { return }
+                self.present(animated: false)
+            }
         }
         observers = [
             center.addObserver(
                 forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main,
                 using: replace),
             workspace.addObserver(
-                forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main, using: replace)
+                forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main, using: replace),
+            workspace.addObserver(
+                forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main, using: replace)
         ]
     }
 

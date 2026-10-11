@@ -152,6 +152,11 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   „Nochmal senden“. Ein selbstsignierter Testbuild bekommt den API-Schlüssel
   nicht, weil der installierte Schlüsselbund-Helfer die Developer-ID verlangt;
   die Anzeige meldete das als „Hoppla“ mit dem Hinweis auf die Einrichtung.
+  Zweites Diktat neben einem Spiel: Als das Einfügen das Vollbild-Spiel nach
+  vorne holte, blieb die Menüleisten-Pille bis zum nächsten Zustandswechsel über
+  der Leiste des Spiels und sprang erst dann in die schwebende Pille. Seitdem
+  platziert sich die Anzeige auch beim Wechsel der vorderen App neu; das ist
+  offline geprüft, live noch nicht wiederholt.
 
 **Offen / bekannte Grenzen:**
 
