@@ -56,14 +56,15 @@ def guarded(path):
     return path.startswith(".github/workflows/") or path == ".github/scripts/auto_merge.py"
 
 
-def evaluate(pr, owner, default_branch, commits, files, check_runs, status, waited, runs=()):
+def evaluate(pr, owner, default_branch, commits, files, check_runs, status, waited, runs=(), has_ci=False):
     """Entscheidung für einen PR. Gibt (Ergebnis, Begründung) zurück.
 
     Ergebnis: "skip" (nicht unser Fall), "block" (Claude muss etwas tun, Kommentar), "red" (CI rot),
     "wait" (noch nicht entscheidbar) oder "merge".
     commits: [{"sha", "message", "parents", "files"}], files: Dateinamen des PRs,
     status: kombinierter Commit-Status {"state", "total_count"}, waited: Sekunden seit Start dieses Laufs,
-    runs: andere Workflow-Läufe auf diesem Stand (fängt Jobs ab, deren Prüfung noch nicht angelegt ist).
+    runs: andere Workflow-Läufe auf diesem Stand (fängt Jobs ab, deren Prüfung noch nicht angelegt ist),
+    has_ci: Das Repo hat eigene CI. Dann wird ohne jede sichtbare Prüfung nie gemergt, nur gewartet.
     """
     if pr.get("state") != "open" or pr.get("merged"):
         return "skip", "nicht offen"
@@ -99,7 +100,7 @@ def evaluate(pr, owner, default_branch, commits, files, check_runs, status, wait
     pending += [r.get("name") or "Workflow" for r in runs if r.get("status") != "completed"]
     if pending or (status.get("total_count") and status.get("state") == "pending"):
         return "wait", "läuft: " + ", ".join(pending or ["Commit-Status"])
-    if not checks and not status.get("total_count") and waited < GRACE_SECONDS:
+    if not checks and not runs and not status.get("total_count") and (has_ci or waited < GRACE_SECONDS):
         return "wait", "noch keine Prüfungen angelegt"
     if pr.get("mergeable") is None:
         return "wait", "GitHub prüft noch auf Konflikte"
@@ -158,6 +159,8 @@ class GitHub:
             if not m:
                 break
             url = m.group(1)
+        else:  # Mehr Seiten als erlaubt: lieber abbrechen, als mit unvollständigen Daten zu mergen.
+            raise RuntimeError(f"GET {path}: mehr als {limit} Seiten")
         return out
 
 
@@ -183,6 +186,11 @@ def comment_once(gh, number, sha, kind, text):
     gh.call("POST", f"/repos/{gh.repo}/issues/{number}/comments", {"body": f"{text}\n\n{marker}"})
 
 
+def paths(files):
+    """Alle betroffenen Pfade, bei Umbenennungen auch der alte Name."""
+    return [p for f in files for p in (f.get("filename"), f.get("previous_filename")) if p]
+
+
 def pr_facts(gh, number, cache):
     r = gh.repo
     pr = gh.get(f"/repos/{r}/pulls/{number}")
@@ -190,10 +198,10 @@ def pr_facts(gh, number, cache):
     if cache.get(number, {}).get("sha") != sha:
         commits = []
         for c in gh.pages(f"/repos/{r}/pulls/{number}/commits", limit=3):
-            files = [f["filename"] for f in gh.get(f"/repos/{r}/commits/{c['sha']}").get("files") or []]
+            files = paths(gh.pages(f"/repos/{r}/commits/{c['sha']}", key="files", limit=30))
             commits.append({"sha": c["sha"], "message": c["commit"]["message"],
                             "parents": c.get("parents") or [], "files": files})
-        files = [f["filename"] for f in gh.pages(f"/repos/{r}/pulls/{number}/files", limit=30)]
+        files = paths(gh.pages(f"/repos/{r}/pulls/{number}/files", limit=30))
         cache[number] = {"sha": sha, "commits": commits, "files": files}
     checks = gh.pages(f"/repos/{r}/commits/{sha}/check-runs", key="check_runs")
     status = gh.get(f"/repos/{r}/commits/{sha}/status")
@@ -211,7 +219,7 @@ def wait_minutes(event_name, private, has_ci):
     return 45
 
 
-def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotonic):
+def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotonic, has_ci=False):
     info = gh.get(f"/repos/{gh.repo}")
     owner, default_branch = info["owner"]["login"], info["default_branch"]
     method = "squash" if info.get("allow_squash_merge", True) else "merge"
@@ -223,7 +231,8 @@ def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotoni
         waited = clock() - started
         for number in list(open_prs):
             pr, commits, files, checks, status, runs = pr_facts(gh, number, cache)
-            result, why = evaluate(pr, owner, default_branch, commits, files, checks, status, waited, runs)
+            result, why = evaluate(pr, owner, default_branch, commits, files, checks, status, waited, runs,
+                                   has_ci)
             print(f"#{number}: {result} ({why})")
             if result == "wait":
                 continue
@@ -265,7 +274,7 @@ def main():
         event = json.load(fh)
     private = bool((event.get("repository") or {}).get("private", True))
     has_ci = os.environ.get("AUTO_MERGE_HAS_CI") == "1"
-    run(gh, event_name, event, wait_minutes(event_name, private, has_ci) * 60)
+    run(gh, event_name, event, wait_minutes(event_name, private, has_ci) * 60, has_ci=has_ci)
     return 0
 
 
