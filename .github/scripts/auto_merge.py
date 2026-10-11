@@ -28,7 +28,9 @@ TEXT_SUFFIXES = (".md", ".markdown", ".txt", ".rst")
 OK_CONCLUSIONS = {"success", "neutral", "skipped"}
 SELF_CHECK = "Auto-Merge"  # Name des eigenen Jobs; seine Prüfung zählt nicht mit.
 GRACE_SECONDS = 90  # So lange bekommen andere Workflows Zeit, ihre Prüfungen anzulegen.
-POLL_SECONDS = 30
+POLL_SECONDS = 30  # Abstand der Abfragen bei kurzer Wartezeit
+LONG_POLL_SECONDS = 120  # bei langer Wartezeit: GITHUB_TOKEN hat nur 1000 Abfragen je Stunde und Repo
+SHORT_WAIT_MINUTES = 3
 FILE_CAP = 3000  # Obergrenze der Dateilisten von GitHub (Commit und PR)
 
 
@@ -120,6 +122,10 @@ COMMENTS = {
 }
 
 
+class RateLimited(RuntimeError):
+    """GitHub lehnt weitere Abfragen ab, bis das Stunden-Kontingent sich erneuert."""
+
+
 class GitHub:
     def __init__(self, token, repo, api="https://api.github.com"):
         self.token, self.repo, self.api = token, repo, api.rstrip("/")
@@ -140,12 +146,16 @@ class GitHub:
                 payload = json.loads(raw) if raw else None
             except ValueError:
                 payload = {"message": raw.decode(errors="replace")}
+            if e.code in (403, 429) and e.headers.get("x-ratelimit-remaining") == "0":
+                # Erschöpftes Kontingent ist nur am Kopf sicher erkennbar, die Meldung ist nicht garantiert
+                message = payload.get("message", "") if isinstance(payload, dict) else ""
+                payload = {"message": f"API rate limit exceeded (x-ratelimit-remaining: 0) {message}".strip()}
             return e.code, payload, ""
 
     def get(self, path):
         code, data, _ = self.call("GET", path)
         if code != 200:
-            raise RuntimeError(f"GET {path}: {code} {data}")
+            fail(path, code, data)
         return data
 
     def pages(self, path, key=None, limit=10):
@@ -154,7 +164,7 @@ class GitHub:
         for _ in range(limit):
             code, data, link = self.call("GET", url)
             if code != 200:
-                raise RuntimeError(f"GET {url}: {code} {data}")
+                fail(url, code, data)
             out += data[key] if key else data
             m = re.search(r'<([^>]+)>;\s*rel="next"', link or "")
             if not m:
@@ -163,6 +173,17 @@ class GitHub:
         else:  # Mehr Seiten als erlaubt: lieber abbrechen, als mit unvollständigen Daten zu mergen.
             raise RuntimeError(f"GET {path}: mehr als {limit} Seiten")
         return out
+
+
+def rate_limited(code, data):
+    message = data.get("message", "") if isinstance(data, dict) else ""
+    return code in (403, 429) and "rate limit" in str(message).lower()
+
+
+def fail(path, code, data):
+    if rate_limited(code, data):
+        raise RateLimited(f"GET {path}: {code} Abfrage-Kontingent erschöpft")
+    raise RuntimeError(f"GET {path}: {code} {data}")
 
 
 def candidates(gh, event_name, event):
@@ -215,11 +236,18 @@ def pr_facts(gh, number, cache):
 
 
 def wait_minutes(event_name, private, has_ci):
-    """Wie lange ein Lauf auf laufende Prüfungen wartet. Öffentliche Repos haben freie Minuten und warten lange.
-    In privaten Repos mit CI wartet ein Lauf nur kurz: Jeder fertige CI-Lauf startet Auto-Merge ohnehin neu."""
-    if event_name in ("schedule", "workflow_dispatch") or (private and has_ci):
-        return 3
+    """Wie lange ein Lauf auf laufende Prüfungen wartet. Ein Lauf zu einem fertigen CI-Workflow wartet nur kurz:
+    Jeder fertige CI-Workflow startet einen eigenen Lauf, der letzte sieht alles grün. Warteten diese Läufe
+    lange, fragten je PR mehrere gleichzeitig bei GitHub nach und erschöpften das Abfrage-Kontingent.
+    Lange wartet nur der Lauf zum Push in öffentlichen Repos (freie Minuten); er fängt Prüfungen ab,
+    die keinen Lauf auslösen (etwa CodeQL). In privaten Repos mit CI wartet auch er nur kurz."""
+    if event_name in ("schedule", "workflow_dispatch", "workflow_run") or (private and has_ci):
+        return SHORT_WAIT_MINUTES
     return 45
+
+
+def poll_seconds(wait_limit):
+    return POLL_SECONDS if wait_limit <= SHORT_WAIT_MINUTES * 60 else LONG_POLL_SECONDS
 
 
 def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotonic, has_ci=False):
@@ -230,38 +258,46 @@ def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotoni
     open_prs = candidates(gh, event_name, event)
     print(f"Prüfe PRs: {open_prs or 'keine'}")
 
-    while open_prs:
-        waited = clock() - started
-        for number in list(open_prs):
-            pr, commits, files, checks, status, runs = pr_facts(gh, number, cache)
-            result, why = evaluate(pr, owner, default_branch, commits, files, checks, status, waited, runs,
-                                   has_ci)
-            print(f"#{number}: {result} ({why})")
-            if result == "wait":
-                continue
-            open_prs.remove(number)
-            if result == "block":
-                kind, _, detail = why.partition(":")
-                comment_once(gh, number, pr["head"]["sha"], kind,
-                             COMMENTS[kind].format(detail=detail, base=default_branch))
-            elif result == "merge":
-                code, data, _ = gh.call("PUT", f"/repos/{gh.repo}/pulls/{number}/merge", {
-                    "merge_method": method, "sha": pr["head"]["sha"],
-                    "commit_title": f"{pr['title']} (#{number})"})
-                msg = (data or {}).get("message", "")
-                print(f"#{number}: Merge {code} {msg}")
-                if code == 200:
-                    merged.append(number)
-                elif code in (405, 409) and retries.get(number, 0) < 3:  # Stand geändert oder GitHub noch nicht so weit
-                    retries[number] = retries.get(number, 0) + 1
-                    open_prs.append(number)
-                elif "workflow" in msg.lower():
-                    comment_once(gh, number, pr["head"]["sha"], "workflow", COMMENTS["workflow"])
-                else:
-                    failed.append(f"#{number}: {code} {msg}")
-        if not open_prs or clock() - started >= wait_limit:
-            break
-        sleep(POLL_SECONDS)
+    try:
+        while open_prs:
+            waited = clock() - started
+            for number in list(open_prs):
+                pr, commits, files, checks, status, runs = pr_facts(gh, number, cache)
+                result, why = evaluate(pr, owner, default_branch, commits, files, checks, status, waited, runs,
+                                       has_ci)
+                print(f"#{number}: {result} ({why})")
+                if result == "wait":
+                    continue
+                open_prs.remove(number)
+                if result == "block":
+                    kind, _, detail = why.partition(":")
+                    comment_once(gh, number, pr["head"]["sha"], kind,
+                                 COMMENTS[kind].format(detail=detail, base=default_branch))
+                elif result == "merge":
+                    code, data, _ = gh.call("PUT", f"/repos/{gh.repo}/pulls/{number}/merge", {
+                        "merge_method": method, "sha": pr["head"]["sha"],
+                        "commit_title": f"{pr['title']} (#{number})"})
+                    msg = (data or {}).get("message", "")
+                    print(f"#{number}: Merge {code} {msg}")
+                    if code == 200:
+                        merged.append(number)
+                    elif rate_limited(code, data):
+                        raise RateLimited(f"Merge #{number}: {code} Abfrage-Kontingent erschöpft")
+                    elif code in (405, 409) and retries.get(number, 0) < 3:  # Stand geändert oder GitHub noch nicht so weit
+                        retries[number] = retries.get(number, 0) + 1
+                        open_prs.append(number)
+                    elif "workflow" in msg.lower():
+                        comment_once(gh, number, pr["head"]["sha"], "workflow", COMMENTS["workflow"])
+                    else:
+                        failed.append(f"#{number}: {code} {msg}")
+            if not open_prs or clock() - started >= wait_limit:
+                break
+            sleep(poll_seconds(wait_limit))
+    except RateLimited as e:
+        if failed:  # ein echter Merge-Fehler davor bleibt rot
+            print(f"{e}. Der nächste Lauf prüft erneut.")
+            raise RuntimeError("Merge fehlgeschlagen: " + "; ".join(failed)) from None
+        raise
     if open_prs:
         print(f"Zeitlimit erreicht, noch offen: {open_prs}. Der nächste Lauf prüft erneut.")
     if failed:  # roter Lauf: Der Thread, der den PR beobachtet, sieht das und kümmert sich
@@ -277,7 +313,10 @@ def main():
         event = json.load(fh)
     private = bool((event.get("repository") or {}).get("private", True))
     has_ci = os.environ.get("AUTO_MERGE_HAS_CI") == "1"
-    run(gh, event_name, event, wait_minutes(event_name, private, has_ci) * 60, has_ci=has_ci)
+    try:
+        run(gh, event_name, event, wait_minutes(event_name, private, has_ci) * 60, has_ci=has_ci)
+    except RateLimited as e:  # kein Fehler des PRs: ein späterer Lauf prüft erneut
+        print(f"{e}. Der nächste Lauf prüft erneut.")
     return 0
 
 
