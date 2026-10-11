@@ -70,6 +70,6 @@ struct OpenAITranslator: Sendable {
         guard let result = try? JSONDecoder().decode(Response.self, from: data) else {
             throw OpenDictateError.invalidResponse
         }
-        return (result.choices.first?.message.content ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return TranscriptText.sanitize(result.choices.first?.message.content ?? "")
     }
 }

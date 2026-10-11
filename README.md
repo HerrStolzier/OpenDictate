@@ -261,7 +261,11 @@ dictation can cause the transcript to paste into a different control in the
 original application. OpenDictate checks that the original application is
 frontmost and that the clipboard still holds the transcript before sending the
 shortcut, but cannot confirm which control accepted it or whether Paste changed
-visible text. In Terminal, Paste may include line breaks or shell commands;
+visible text. Control characters from the provider's answer are removed before
+the text is copied. In known terminals (Terminal, iTerm2, Alacritty, kitty,
+Ghostty, Warp, Hyper, WezTerm, Tabby) text with a line break is not pasted
+automatically, because the line break would run the dictated line as a command;
+it stays on the clipboard. A single line is pasted there as elsewhere, and
 OpenDictate does not send a separate Return. Use clipboard-only mode for targets
 where automatic Paste is unwanted, especially password fields. OpenDictate no
 longer inspects whether the focused control is protected or read-only. The transcript remains on the clipboard for

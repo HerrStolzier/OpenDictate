@@ -41,6 +41,19 @@ var tests = new (string Name, Action Run)[]
         Throws<InvalidOperationException>(() => gate.Begin(AttemptKind.Recording));
         Check(gate.Complete(ticket)); gate.Begin(AttemptKind.Recording);
     }),
+    ("Transcript loses control characters and direction marks but keeps line breaks", () =>
+    {
+        Check(TranscriptText.Sanitize(" a\u001bb\u0007c\u0000\u0085d\u202ee\u200f ") == "abcde");
+        Check(TranscriptText.Sanitize("eins\r\nzwei\rdrei\tvier") == "eins\nzwei\ndrei\tvier");
+        Check(TranscriptText.Sanitize("Grüße 🧪") == "Grüße 🧪");
+        Check(TranscriptText.IsMultiline("a\nb") && !TranscriptText.IsMultiline("a b"));
+    }),
+    ("Multi-line text stays on the clipboard for consoles", () =>
+    {
+        Check(!PastePolicy.MayPasteText("ls\nrm -rf x", "WindowsTerminal") && !PastePolicy.MayPasteText("a\nb", "pwsh"));
+        Check(PastePolicy.MayPasteText("one line", "WindowsTerminal") && PastePolicy.MayPasteText("a\nb", "notepad"));
+        Check(PastePolicy.MayPasteText("a\nb", null) && PastePolicy.IsConsole("conhost") && !PastePolicy.IsConsole("Code"));
+    }),
     ("Bridge Unicode frame survives fragmented reads", () =>
     {
         using var output = new MemoryStream();

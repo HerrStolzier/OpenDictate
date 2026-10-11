@@ -4,10 +4,19 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+/// Socket and state live in the session's private runtime directory. There
+/// is no fallback to the shared `/tmp`, where another user could prepare the
+/// path first.
 pub fn runtime_dir() -> io::Result<PathBuf> {
     let base = env::var_os("XDG_RUNTIME_DIR")
+        .filter(|value| !value.is_empty())
         .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("/tmp").join(format!("opendictate-{}", usersafe_uid())));
+        .ok_or_else(|| {
+            io::Error::other(crate::tr!(
+                "XDG_RUNTIME_DIR ist nicht gesetzt; bitte in einer Hyprland-Sitzung mit systemd-logind starten.",
+                "XDG_RUNTIME_DIR is not set; please start inside a Hyprland session with systemd-logind."
+            ))
+        })?;
     let dir = base.join("opendictate");
     ensure_owner_directory(&dir)?;
     Ok(dir)
@@ -74,18 +83,6 @@ fn home_dir() -> PathBuf {
         .unwrap_or_else(|| PathBuf::from("/tmp"))
 }
 
-fn usersafe_uid() -> u32 {
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::MetadataExt;
-        fs::metadata("/proc/self").map(|m| m.uid()).unwrap_or(0)
-    }
-    #[cfg(not(unix))]
-    {
-        0
-    }
-}
-
 fn unix_timestamp_millis() -> u128 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -129,6 +126,17 @@ mod tests {
         let path = socket_path().unwrap();
         assert_eq!(path, tmp.join("opendictate/opendictate.sock"));
         let _ = fs::remove_dir_all(&tmp);
+        env::remove_var("XDG_RUNTIME_DIR");
+    }
+
+    #[test]
+    fn runtime_dir_refuses_to_fall_back_to_tmp() {
+        let _guard = ENV_LOCK.lock().unwrap();
+        env::remove_var("XDG_RUNTIME_DIR");
+        let error = runtime_dir().unwrap_err();
+        assert!(error.to_string().contains("XDG_RUNTIME_DIR"), "{error}");
+        env::set_var("XDG_RUNTIME_DIR", "");
+        assert!(runtime_dir().is_err());
         env::remove_var("XDG_RUNTIME_DIR");
     }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
@@ -19,8 +20,9 @@ internal static class ClipboardPaste
     // Runs on the UI thread, which owns the clipboard (STA).
     internal static async Task<Result> DeliverAsync(string text, WindowTarget? captured, bool autoInsert)
     {
-        if (!await RetryAsync(() => { Clipboard.SetDataObject(text, copy: true); return true; })) return Result.ClipboardUnavailable;
+        if (!await RetryAsync(() => { Clipboard.SetDataObject(Private(text), copy: true); return true; })) return Result.ClipboardUnavailable;
         if (!autoInsert || captured is null) return Result.ClipboardOnly;
+        if (!PastePolicy.MayPasteText(text, Native.ProcessName(captured.ProcessId))) return Result.ClipboardOnly;
         // The shortcut may still be held after a tap; Ctrl+V must not merge
         // with it into another shortcut.
         var waited = Stopwatch.StartNew();
@@ -33,7 +35,23 @@ internal static class ClipboardPaste
     }
 
     internal static async Task<bool> CopyAsync(string text) =>
-        await RetryAsync(() => { Clipboard.SetDataObject(text, copy: true); return true; });
+        await RetryAsync(() => { Clipboard.SetDataObject(Private(text), copy: true); return true; });
+
+    // The transcript is meant for one paste. These formats ask Windows to keep
+    // it out of the clipboard history, the cloud clipboard and clipboard
+    // monitors; a program that already holds the clipboard open is unaffected.
+    private static readonly string[] PrivateFormats =
+    [
+        "ExcludeClipboardContentFromMonitorProcessing", "CanIncludeInClipboardHistory", "CanUploadToCloudClipboard",
+    ];
+
+    private static DataObject Private(string text)
+    {
+        var data = new DataObject();
+        data.SetData(DataFormats.UnicodeText, text);
+        foreach (string format in PrivateFormats) data.SetData(format, new MemoryStream(new byte[4]));
+        return data;
+    }
 
     private static async Task<string?> ReadAsync()
     {

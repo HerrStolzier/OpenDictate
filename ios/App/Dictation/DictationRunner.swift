@@ -5,6 +5,7 @@ import Foundation
 import Observation
 import OpenDictateCore
 import UIKit
+import UniformTypeIdentifiers
 
 /// One dictation at a time, whether it comes from the shortcut, the Live
 /// Activity or the app. `phase` is the single source of truth: no second
@@ -238,9 +239,10 @@ final class DictationRunner {
 
     /// The setter reports nothing; an unchanged count means iOS refused the
     /// write. Reading the count, unlike the contents, shows no paste prompt.
+    /// "Local only" keeps the text off Universal Clipboard and other devices.
     private static func copy(_ text: String) throws {
         let before = UIPasteboard.general.changeCount
-        UIPasteboard.general.string = text
+        UIPasteboard.general.setItems([[UTType.utf8PlainText.identifier: text]], options: [.localOnly: true])
         guard UIPasteboard.general.changeCount != before else { throw DictationFailure.clipboardFailed }
     }
 

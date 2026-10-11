@@ -199,7 +199,7 @@ fn decode_response(
         text: String,
     }
     let parsed: Response = serde_json::from_slice(&data).map_err(|_| invalid_response())?;
-    Ok(parsed.text.trim().to_string())
+    Ok(crate::policy::sanitize_transcript(&parsed.text))
 }
 
 fn invalid_response() -> String {

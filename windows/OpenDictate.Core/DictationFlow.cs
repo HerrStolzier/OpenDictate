@@ -60,7 +60,7 @@ public sealed class DictationFlow
                 token.ThrowIfCancellationRequested();
                 phase = DictationPhase.Transcribing;
             }
-            string text = await transcribe(audio, token);
+            string text = TranscriptText.Sanitize(await transcribe(audio, token));
             token.ThrowIfCancellationRequested();
             if (string.IsNullOrWhiteSpace(text)) return new(DictationOutcome.EmptyResponse);
             if (text.Length > 16000) return new(DictationOutcome.Failed);

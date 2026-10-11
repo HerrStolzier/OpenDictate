@@ -225,7 +225,7 @@ fn decode_response(
         .next()
         .and_then(|choice| choice.message.content)
         .unwrap_or_default();
-    Ok(text.trim().to_string())
+    Ok(crate::policy::sanitize_transcript(&text))
 }
 
 #[cfg(test)]

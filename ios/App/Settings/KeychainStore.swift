@@ -28,11 +28,17 @@ enum KeychainStore {
         return (status == errSecSuccess ? result as? Data : nil, status)
     }
 
+    /// Updates in place, so a refused write leaves the stored value intact
+    /// instead of deleting it first.
     private static func write(_ data: Data, to account: String) -> Bool {
-        SecItemDelete(query(account) as CFDictionary)
+        let attributes: [String: Any] = [
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        ]
+        let updated = SecItemUpdate(query(account) as CFDictionary, attributes as CFDictionary)
+        guard updated == errSecItemNotFound else { return updated == errSecSuccess }
         var item = query(account)
-        item[kSecValueData as String] = data
-        item[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        item.merge(attributes) { _, new in new }
         return SecItemAdd(item as CFDictionary, nil) == errSecSuccess
     }
 

@@ -35,7 +35,7 @@ struct ServiceClient: Sendable {
         guard let body = try? JSONDecoder().decode(Body.self, from: data) else {
             throw DictationFailure.invalidResponse
         }
-        return body.text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return TranscriptText.sanitize(body.text)
     }
 
     func translate(_ text: String, into target: String, configuration: DictationConfiguration) async throws -> String {
@@ -53,7 +53,7 @@ struct ServiceClient: Sendable {
         guard let body = try? JSONDecoder().decode(Body.self, from: data) else {
             throw DictationFailure.invalidResponse
         }
-        return (body.choices.first?.message.content ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return TranscriptText.sanitize(body.choices.first?.message.content ?? "")
     }
 
     static func transcriptionRequest(audio: Data, configuration: DictationConfiguration) throws -> URLRequest {

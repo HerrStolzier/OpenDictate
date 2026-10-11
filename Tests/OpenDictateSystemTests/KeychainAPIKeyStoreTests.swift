@@ -77,7 +77,11 @@ struct KeychainAPIKeyStoreTests {
     @Test func onlyConfirmedCanonicalAbsenceAllowsTheLegacyRead() {
         let store = FakeKeychain(items: [legacy: previous])
         #expect(KeychainAPIKeyStore.read(using: store.operations) == String(data: previous, encoding: .utf8))
-        #expect(store.events == ["read:\(canonical)", "read:\(legacy)"])
+        #expect(
+            store.events == [
+                "read:\(canonical)", "read:\(legacy)", "update:\(canonical)", "add:\(canonical)", "delete:\(legacy)"
+            ])
+        #expect(store.items == [canonical: previous])
 
         for status in [errSecAuthFailed, errSecInteractionNotAllowed, errSecNotAvailable, errSecDecode] {
             store.events = []
@@ -85,6 +89,14 @@ struct KeychainAPIKeyStoreTests {
             #expect(KeychainAPIKeyStore.read(using: store.operations) == nil)
             #expect(store.events == ["read:\(canonical)"])
         }
+    }
+
+    @Test func aLegacyReadSurvivesAFailedMigration() {
+        let store = FakeKeychain(items: [legacy: previous])
+        store.addFailure = errSecAuthFailed
+        #expect(KeychainAPIKeyStore.read(using: store.operations) == String(data: previous, encoding: .utf8))
+        #expect(store.items == [legacy: previous])
+        #expect(store.events == ["read:\(canonical)", "read:\(legacy)", "update:\(canonical)", "add:\(canonical)"])
     }
 
     @Test func emptyOrMalformedCanonicalDataDoesNotUseAnOlderCredential() {
