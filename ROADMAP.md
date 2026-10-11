@@ -143,9 +143,10 @@ Deinstallationsweg; Verhalten mit anderen Spracheingaben wie Voice Access.
 
 ## Track iOS
 
-**Ziel der Beta:** iPhone-Nutzer starten die Aufnahme über die Aktionstaste
-oder die App, bekommen den (wahlweise übersetzten) Text in die Zwischenablage
-und fügen ihn in der Ziel-App ein. Verteilung über TestFlight.
+**Ziel der Beta:** iPhone-Nutzer starten die Aufnahme in der Ziel-App über
+Aktionstaste, Rückseite oder Kontrollzentrum, ohne dass OpenDictate aufgeht,
+bekommen den (wahlweise übersetzten) Text in die Zwischenablage und fügen ihn
+selbst ein. Verteilung über TestFlight.
 
 **Stand:** Der Tastatur-Prototyp besteht den synthetischen Safari-Textpfad auf
 Simulator und iPhone 15 (29./30. September, [Nachweis](docs/ios-device-2026-09-30.md));
@@ -158,11 +159,13 @@ bestätigt beides und zeigt den Zwischenablage-Weg als gangbar
 
 **Nächste Schritte:**
 
-1. Produktkonzept auf einer Seite festlegen: Host-App mit Aufnahme, Start über
-   Aktionstaste oder Kurzbefehl, Ergebnis in die Zwischenablage, Hinweis per
-   Live-Aktivität; keine Vollzugriff-Tastatur. Übersetzung als Merkmal.
-2. Echte Aufnahme und Transkription in der Host-App auf dem iPhone 15 mit
-   Bastis Go.
+1. ~~Produktkonzept auf einer Seite festlegen.~~ Erledigt am 11. Oktober
+   ([Konzept](docs/ios-konzept.md)): Aufnahme im Hintergrund über einen
+   Kurzbefehl mit Live-Aktivität, Ergebnis in die Zwischenablage, keine
+   Vollzugriff-Tastatur, Übersetzung als Merkmal.
+2. Erster Prüfpunkt auf dem iPhone 15 mit Bastis Go: Startet die Aufnahme per
+   „Auf Rückseite tippen“ im Hintergrund, ohne dass die App aufgeht? Danach
+   echte Transkription und die Abnahme aus dem Konzept.
 3. TestFlight-Beta. Abhängigkeit: Apple-Developer-Mitgliedschaft (vorhanden,
    Verlängerung September 2027) und Xcode auf dem Mac.
 
