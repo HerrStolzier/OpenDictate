@@ -78,7 +78,13 @@ but do not automatically paste it.
 
 The recording panel opens only through an explicit user action. Recording,
 results, errors and setup reminders update the menu bar and existing panel
-contents without showing a hidden window or activating OpenDictate.
+contents without showing a hidden panel or activating OpenDictate.
+The small dictation indicator (at the notch, floating below the menu bar or in
+the menu bar, or off) appears without taking focus or activating OpenDictate.
+It shows only the state word, the recording time and an error reason, never
+the transcript. To choose the screen, the app reads the window list of other
+applications (process, window layer and frame) on the Mac; nothing from it is
+stored or sent.
 The original application is captured before Keychain access, permission waits
 or an explicit panel action's focus return.
 

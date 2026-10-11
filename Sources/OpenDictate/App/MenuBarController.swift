@@ -26,21 +26,27 @@ protocol MenuBarControllerDelegate: AnyObject {
     func menuBarDidSelect(model: TranscriptionModel)
     func menuBarDidSelect(language: String?)
     func menuBarDidSelect(translationTarget: String?)
+    func menuBarDidSelect(indicatorStyle: IndicatorStyle)
+    func menuBarDidShowLastText()
 
+    var menuBarIndicatorStyle: IndicatorStyle { get }
+    /// The state word for the menu's head ("Bereit", "Hört zu", …).
+    var menuBarStateWord: String { get }
     var menuBarTrigger: RecordingTrigger { get }
     var menuBarModel: TranscriptionModel { get }
     var menuBarLanguage: String? { get }
     var menuBarTranslationTarget: String? { get }
 }
 
-/// Owns the status bar item and its menu. Knows nothing about recording or
-/// transcription; it asks the delegate for current state and reports what the
-/// user picked.
+/// Owns the status bar item, its daily menu and the settings model. Knows
+/// nothing about recording or transcription; it asks the delegate for current
+/// state and reports what the user picked.
 @MainActor
 final class MenuBarController: NSObject, NSMenuDelegate {
-    var onShowDaily: ((NSRect?) -> Void)?
     var onShowSettings: (() -> Void)?
+    /// Backs the settings window; the status item opens `dailyMenu` instead.
     private var settingsMenu: NSMenu?
+    let dailyMenu = NSMenu()
     private lazy var settingsWindow = SettingsWindowController(
         needsAPIKeySetup: { [weak self] in self?.delegate?.menuBarNeedsAPIKeySetup ?? false })
     /// The models offered in the menu. Everything else still works through
@@ -73,6 +79,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private var modelMenuItem: NSMenuItem?
     private var languageMenuItem: NSMenuItem?
     private var translationMenuItem: NSMenuItem?
+    private var indicatorStyleMenuItem: NSMenuItem?
     /// Stored value of the "Aus" entry in the translation submenu.
     private static let translationOff = "off"
 
@@ -84,8 +91,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     func install() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = item.button {
-            button.image = Self.makeStatusBarImage()
-            button.imagePosition = .imageOnly
+            button.image = BlinkRenderer.statusBarImage()
+            button.imagePosition = .imageLeading
             button.toolTip = "OpenDictate: Bereit"
         }
 
@@ -123,6 +130,11 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         translationItem.identifier = NSUserInterfaceItemIdentifier("translation")
         menu.addItem(translationItem)
         self.translationMenuItem = translationItem
+        let styleItem = NSMenuItem(title: "Anzeige ohne Notch", action: nil, keyEquivalent: "")
+        styleItem.submenu = makeIndicatorStyleSubmenu()
+        styleItem.identifier = NSUserInterfaceItemIdentifier("indicatorStyle")
+        menu.addItem(styleItem)
+        indicatorStyleMenuItem = styleItem
         let vocabulary = makeActionItem("Vokabular und Kontext …", action: #selector(configureVocabulary))
         vocabulary.identifier = NSUserInterfaceItemIdentifier("vocabulary")
         menu.addItem(vocabulary)
@@ -202,8 +214,9 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
         menu.delegate = self
         settingsMenu = menu
-        item.button?.target = self
-        item.button?.action = #selector(showDaily)
+        dailyMenu.autoenablesItems = false
+        dailyMenu.delegate = self
+        item.menu = dailyMenu
         self.statusMenuItem = statusMenuItem
         refresh()
         statusItem = item
@@ -211,12 +224,105 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     var hasVisibleSettings: Bool { settingsWindow.window?.isVisible == true }
 
-    @objc func showDaily() {
-        settingsWindow.window?.orderOut(nil)
-        let anchor = statusItem?.button.flatMap { button in
-            button.window?.convertToScreen(button.convert(button.bounds, to: nil))
+    /// The menu behind the menu bar symbol, rebuilt each time it opens.
+    private func rebuildDailyMenu() {
+        dailyMenu.removeAllItems()
+        guard let delegate else { return }
+        let state = delegate.menuBarState
+        let head = NSMenuItem()
+        head.view = MenuHeadView(state: delegate.menuBarStateWord)
+        dailyMenu.addItem(head)
+        dailyMenu.addItem(.separator())
+        if delegate.menuBarNeedsAPIKeySetup {
+            let setup = makeActionItem("API-Schlüssel einrichten …", action: #selector(setAPIKey))
+            setup.isEnabled = state == .idle
+            dailyMenu.addItem(setup)
         }
-        onShowDaily?(anchor)
+        let dictation: NSMenuItem
+        switch state {
+        case .idle, .recording:
+            dictation = makeActionItem(
+                state == .idle ? "Neues Diktat" : "Diktat beenden", action: #selector(toggleRecording))
+            dictation.attributedTitle = Self.title(dictation.title, detail: delegate.menuBarTrigger.displayName)
+        case .processing, .delivering:
+            dictation = makeActionItem("Abbrechen, Aufnahme behalten", action: #selector(cancelOperation))
+        }
+        dictation.identifier = NSUserInterfaceItemIdentifier("dictation")
+        dailyMenu.addItem(dictation)
+        let lastText = makeActionItem("Letzten Text ansehen", action: #selector(showLastText))
+        lastText.isEnabled = state == .idle && delegate.menuBarHasTranscript
+        dailyMenu.addItem(lastText)
+        let recordings = makeActionItem("Aufbewahrte Aufnahmen", action: #selector(openRecordings))
+        recordings.attributedTitle = Self.title(recordings.title, detail: "\(delegate.menuBarRecordings.count)")
+        dailyMenu.addItem(recordings)
+        dailyMenu.addItem(.separator())
+        let autoPaste = makeActionItem("Automatisch einfügen", action: #selector(toggleAutoPaste))
+        autoPaste.state = delegate.menuBarAutoPaste ? .on : .off
+        autoPaste.isEnabled = state == .idle
+        dailyMenu.addItem(autoPaste)
+        let target = delegate.menuBarTranslationTarget
+        let translation = NSMenuItem(
+            title: "Übersetzen: " + (target.map { Translation.language(code: $0)?.title ?? $0 } ?? "Aus"), action: nil,
+            keyEquivalent: "")
+        translation.submenu = makeTranslationSubmenu()
+        for item in translation.submenu?.items ?? [] {
+            item.state = (item.representedObject as? String) == (target ?? Self.translationOff) ? .on : .off
+            item.isEnabled = state == .idle
+        }
+        dailyMenu.addItem(translation)
+        dailyMenu.addItem(.separator())
+        let settings = makeActionItem("Einstellungen …", action: #selector(openSettings))
+        settings.keyEquivalent = ","
+        dailyMenu.addItem(settings)
+        dailyMenu.addItem(makeActionItem("Hilfe", action: #selector(openHelp)))
+        dailyMenu.addItem(.separator())
+        let quit = NSMenuItem(
+            title: "OpenDictate beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        quit.identifier = NSUserInterfaceItemIdentifier("dailyQuit")
+        dailyMenu.addItem(quit)
+    }
+
+    /// Menu title with a quiet value on the right, as on the design board.
+    private static func title(_ title: String, detail: String) -> NSAttributedString {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.tabStops = [NSTextTab(textAlignment: .right, location: 260)]
+        let result = NSMutableAttributedString(
+            string: title, attributes: [.font: NSFont.menuFont(ofSize: 0), .paragraphStyle: paragraph])
+        result.append(
+            NSAttributedString(
+                string: "\t" + detail,
+                attributes: [
+                    .font: BrandFonts.mono(12), .foregroundColor: NSColor.secondaryLabelColor,
+                    .paragraphStyle: paragraph
+                ]))
+        return result
+    }
+
+    /// Text next to the menu bar symbol while the indicator asks for it.
+    func setIndicatorTitle(_ title: String?, alert: Bool) {
+        guard let button = statusItem?.button else { return }
+        guard let title else {
+            button.attributedTitle = NSAttributedString(string: "")
+            button.imagePosition = .imageOnly
+            return
+        }
+        let theme = DesignTheme.matching(button.effectiveAppearance)
+        button.imagePosition = .imageLeading
+        button.attributedTitle = NSAttributedString(
+            string: " " + title,
+            attributes: [
+                .font: BrandFonts.mono(11, semibold: true),
+                .foregroundColor: alert || title.hasPrefix("REC")
+                    ? NSColor(design: .rec, theme: theme) : NSColor.labelColor
+            ])
+    }
+
+    @objc private func showLastText() { delegate?.menuBarDidShowLastText() }
+    @objc private func openSettings() { showSettings() }
+    @objc private func openHelp() {
+        onShowSettings?()
+        refresh()
+        if let settingsMenu { settingsWindow.show(menu: settingsMenu, page: .help) }
     }
 
     func showSettings() {
@@ -272,24 +378,14 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         statusItem?.button?.setAccessibilityLabel("OpenDictate: \(value)")
     }
 
+    /// The symbol stays Blink; the indicator shows the state and sets any text
+    /// next to it through `setIndicatorTitle`.
     func updateState(_ state: DictationState, elapsed: Double = 0, level: Float = -160) {
         if renderedState != state {
-            let symbol: String
-            switch state {
-            case .idle: symbol = "mic"
-            case .recording: symbol = "record.circle.fill"
-            case .processing: symbol = "ellipsis.circle"
-            case .delivering: symbol = "doc.on.clipboard"
-            }
-            statusItem?.button?.image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil)
-            statusItem?.button?.image?.isTemplate = true
-            statusItem?.button?.imagePosition = .imageLeading
             renderedState = state
             refreshActions()
             if let settingsMenu { settingsWindow.refresh(menu: settingsMenu) }
         }
-        let title = state == .recording ? " \(Int(elapsed)) s" : ""
-        if statusItem?.button?.title != title { statusItem?.button?.title = title }
         if state == .recording {
             let remaining = max(0, Int(Config.maximumRecordingDuration - elapsed))
             let warning = remaining <= 10 ? " – noch \(remaining) s" : ""
@@ -467,19 +563,24 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         for item in translationMenuItem?.submenu?.items ?? [] {
             item.state = (item.representedObject as? String) == (target ?? Self.translationOff) ? .on : .off
         }
+
+        let style = delegate.menuBarIndicatorStyle
+        indicatorStyleMenuItem?.title = "Anzeige ohne Notch: \(style.title)"
+        for item in indicatorStyleMenuItem?.submenu?.items ?? [] {
+            item.state = (item.representedObject as? String) == style.rawValue ? .on : .off
+        }
     }
 
-    private static func makeStatusBarImage() -> NSImage? {
-        let image: NSImage?
-        if let url = Bundle.main.url(forResource: "OpenDictateIcon", withExtension: "png") {
-            image = NSImage(contentsOf: url)
-        } else {
-            image = NSImage(systemSymbolName: "mic.fill", accessibilityDescription: "OpenDictate")
-            image?.isTemplate = true
+    private func makeIndicatorStyleSubmenu() -> NSMenu {
+        let submenu = NSMenu()
+        submenu.delegate = self
+        submenu.autoenablesItems = false
+        for style in IndicatorStyle.allCases {
+            let item = makeActionItem(style.title, action: #selector(selectIndicatorStyle(_:)))
+            item.representedObject = style.rawValue
+            submenu.addItem(item)
         }
-
-        image?.size = NSSize(width: 18, height: 18)
-        return image
+        return submenu
     }
 
     private func makeActionItem(
@@ -503,6 +604,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         // A popup owns a snapshot. Rebuilding its parent while it opens would
         // remove the focused control; refresh after closing instead.
         if menu === settingsMenu { refresh() }
+        if menu === dailyMenu { rebuildDailyMenu() }
     }
 
     // MARK: - Actions
@@ -573,10 +675,53 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         if settingsWindow.window?.isVisible == true { showSettings() }
     }
 
+    @objc private func selectIndicatorStyle(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String, let style = IndicatorStyle(rawValue: raw) else { return }
+        delegate?.menuBarDidSelect(indicatorStyle: style)
+        refreshSelections()
+        if settingsWindow.window?.isVisible == true { showSettings() }
+    }
+
     @objc private func selectTranslation(_ sender: NSMenuItem) {
         guard let raw = sender.representedObject as? String else { return }
         delegate?.menuBarDidSelect(translationTarget: raw == Self.translationOff ? nil : raw)
         refreshSelections()
         if settingsWindow.window?.isVisible == true { showSettings() }
+    }
+}
+
+/// Head of the daily menu: the word mark with Blink and the current state.
+@MainActor
+private final class MenuHeadView: NSView {
+    private let state: String
+
+    init(state: String) {
+        self.state = state
+        super.init(frame: NSRect(x: 0, y: 0, width: 280, height: 34))
+        autoresizingMask = [.width]
+        setAccessibilityElement(true)
+        setAccessibilityRole(.staticText)
+        setAccessibilityLabel("OpenDictate: \(state)")
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    override var isFlipped: Bool { true }
+
+    override func draw(_ dirtyRect: NSRect) {
+        let theme = DesignTheme.matching(effectiveAppearance)
+        let mark = NSAttributedString(
+            string: "opendictate",
+            attributes: [.font: BrandFonts.pixel(16), .foregroundColor: NSColor(design: .ink, theme: theme)])
+        let markSize = mark.size()
+        mark.draw(at: NSPoint(x: 14, y: (bounds.height - markSize.height) / 2))
+        BlinkRenderer.draw(
+            BlinkFigure.small(.bereit), at: CGPoint(x: (16 + markSize.width).rounded(), y: 8), cell: 1, time: 0,
+            animated: false, theme: theme)
+        let word = NSAttributedString(
+            string: state,
+            attributes: [.font: BrandFonts.mono(12), .foregroundColor: NSColor(design: .inkMuted, theme: theme)])
+        let wordSize = word.size()
+        word.draw(at: NSPoint(x: bounds.width - 14 - wordSize.width, y: (bounds.height - wordSize.height) / 2))
     }
 }

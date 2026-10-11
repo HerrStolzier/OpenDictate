@@ -122,6 +122,18 @@ struct SettingsTests {
         #expect(settings(stored: ["translationModel": "gpt-test-1"]).translationModel == "gpt-test-1")
     }
 
+    // MARK: - Indicator
+
+    @Test("Screens without a notch show the floating indicator until the user picks another style")
+    func indicatorStyle() {
+        let s = settings()
+        #expect(s.indicatorStyle == .floating)
+        s.indicatorStyle = .menuBar
+        #expect(s.indicatorStyle == .menuBar)
+        #expect(settings(stored: ["indicatorStyle": "off"]).indicatorStyle == .off)
+        #expect(settings(stored: ["indicatorStyle": "bubble"]).indicatorStyle == .floating)
+    }
+
     // MARK: - Server
 
     @Test("Without an address dictations go to OpenAI")
@@ -178,6 +190,7 @@ struct SettingsTests {
         s.autoPaste = false
         s.prompt = "stored prompt"
         s.translationTarget = "fr"
+        s.indicatorStyle = .off
         s.setServerAddress("http://127.0.0.1:8080/v1")
         s.resetToEnvironment()
         #expect(s.model == .whisper1)
@@ -187,6 +200,7 @@ struct SettingsTests {
         #expect(s.autoPaste)
         #expect(s.prompt == "environment prompt")
         #expect(s.translationTarget == nil)
+        #expect(s.indicatorStyle == .floating)
         #expect(s.endpoint == .openAI)
     }
 
