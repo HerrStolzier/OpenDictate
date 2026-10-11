@@ -227,6 +227,10 @@ bestimmter Server funktioniert, ist genau die Rückmeldung, die uns hilft.
 
 - `opendictate status` zeigt, ob gerade aufgenommen oder verarbeitet wird.
 - `opendictate retry` schickt die letzte gesicherte Aufnahme erneut.
+- „Aufnahme konnte nicht starten“: Meist ist kein Mikrofon verfügbar. Mit
+  `wpctl status` prüfen, ob unter Audio → Sources eine Quelle steht und als
+  Standard (`*`) markiert ist; Mikrofon anstecken oder wählen und erneut
+  versuchen.
 - Das Protokoll `~/.local/state/opendictate/operations.log` enthält Abläufe und
   Zeiten, aber nie deinen Text, deinen Schlüssel oder Audio.
 - Fehler und Wünsche bitte als
@@ -262,7 +266,7 @@ diesen Server. Details: [PRIVACY.md](../PRIVACY.md#linux-cli).
 ```bash
 opendictate setup                   # geführte Einrichtung: Schlüssel oder eigener Server, Kürzel
 opendictate toggle                  # Aufnahme starten oder stoppen
-opendictate status                  # idle / recording / processing / delivering
+opendictate status                  # idle / starting / recording / processing / delivering
 opendictate bar                     # Status als JSON-Zeile für die Leiste (`waybar` gleichwertig)
 opendictate cancel                  # Aufnahme/Verarbeitung sicher abbrechen
 opendictate retry                   # neueste authentifizierte Aufnahme erneut senden
@@ -284,8 +288,9 @@ opendictate secrets status
 
 `opendictate bar` gibt jede Abfrage eine JSON-Zeile im Waybar-Format aus. Der
 Text ist Blink, der Block-Cursor von OpenDictate `▮`, dahinter `REC` während der
-Aufnahme, `…` während er schreibt, und die aktive Zielsprache (z. B.
-`▮ REC EN`). Der Tooltip nennt den Zustand: Bereit, Hört zu oder Schreibt.
+Aufnahme, `…` während das Mikrofon startet oder er schreibt, und die aktive
+Zielsprache (z. B. `▮ REC EN`). Der Tooltip nennt den Zustand: Bereit, Hört zu
+oder Schreibt, kurz auch „Mikrofon startet“.
 Während der Aufnahme trägt die Zeile die Klasse `active`. Ein Klick soll
 `settings target toggle` aufrufen. Die Ausgabe enthält nur Zustand und
 Einstellungen, nie Text. Eine Nerd Font ist nicht nötig. Die Beispieldateien liegen nach der Installation auch unter
@@ -326,9 +331,14 @@ Quelle per Pipe (`trusted-secret-command | opendictate secrets set-api-key`).
 
 ### Ablauf und Schutzregeln
 
-- `toggle` startet eine fokusneutrale Aufnahme. Der zweite Aufruf beendet sie
-  und wechselt auf `processing`; weitere Starts während `processing` oder
-  `delivering` werden abgelehnt.
+- `toggle` startet eine fokusneutrale Aufnahme. Solange das Mikrofon öffnet,
+  ist der Zustand `starting`; erst danach gilt die Aufnahme als gestartet, und
+  ein Mikrofon, das scheitert oder länger als 5 Sekunden braucht, beendet den
+  Start mit einer Benachrichtigung. `cancel` während `starting` beendet den
+  Start, der dann nicht als gestartet gemeldet wird; schon aufgenommener Ton
+  bleibt erhalten. Der zweite Aufruf beendet die Aufnahme und
+  wechselt auf `processing`; weitere Starts während `starting`, `processing`
+  oder `delivering` werden abgelehnt.
 - Unter 1 Sekunde oder ohne 50-ms-Fenster oberhalb −45 dBFS erfolgt kein Upload.
   Erkannte Sprache erhält 0,25 Sekunden Rand; nur Einsparungen ab 0,35 Sekunden
   erzeugen eine zugeschnittene Upload-WAV. Das 90-Sekunden-Limit bleibt aktiv.

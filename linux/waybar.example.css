@@ -15,6 +15,7 @@
   animation: od-sole 0.8s steps(1) infinite;
 }
 
+#custom-opendictate.starting,
 #custom-opendictate.processing,
 #custom-opendictate.delivering {
   color: @od_signal;

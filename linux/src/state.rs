@@ -6,6 +6,8 @@ use std::path::{Path, PathBuf};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum State {
     Idle,
+    /// The worker holds the socket and is opening the microphone.
+    Starting,
     Recording,
     Processing,
     Delivering,
@@ -15,6 +17,7 @@ impl State {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Idle => "idle",
+            Self::Starting => "starting",
             Self::Recording => "recording",
             Self::Processing => "processing",
             Self::Delivering => "delivering",
@@ -23,6 +26,7 @@ impl State {
 
     fn parse(value: &str) -> Self {
         match value.trim() {
+            "starting" => Self::Starting,
             "recording" => Self::Recording,
             "processing" => Self::Processing,
             "delivering" => Self::Delivering,
@@ -107,6 +111,26 @@ mod tests {
         let socket = dir.join("socket");
         write(&state, State::Processing).unwrap();
         assert_eq!(read(&state, &socket), State::Idle);
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn every_state_survives_the_state_file() {
+        let dir = std::env::temp_dir().join(format!("opendictate-states-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        let state = dir.join("state");
+        let socket = dir.join("socket");
+        fs::write(&socket, b"").unwrap();
+        for value in [
+            State::Starting,
+            State::Recording,
+            State::Processing,
+            State::Delivering,
+        ] {
+            write(&state, value).unwrap();
+            assert_eq!(read(&state, &socket), value);
+        }
         let _ = fs::remove_dir_all(&dir);
     }
 

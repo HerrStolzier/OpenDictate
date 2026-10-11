@@ -110,7 +110,7 @@ Diese Karte beschreibt den eingeführten Codepfad, keine Live-Abnahme:
 |---|---|
 | `linux/src/main.rs` | CLI: Toggle, Status, Cancel, Retry, Settings, Secrets und Worker-Ablauf |
 | `linux/src/record.rs` | cpal-Aufnahme, 1/90-s-Grenzen, −45-dB-Analyse, Padding und WAV-Trim |
-| `linux/src/ipc.rs`, `state.rs` | Exklusiver Unix-Socket, vier Zustände und Abbruchmarker |
+| `linux/src/ipc.rs`, `state.rs` | Exklusiver Unix-Socket, fünf Zustände und Abbruchmarker |
 | `linux/src/keyring.rs` | `secret-tool`; Secret-Service-Zugriff für API-Key und Recording-Auth |
 | `linux/src/clipboard.rs` | Wayland-Clipboard über `wl-copy`; Fehler ohne `WAYLAND_DISPLAY` |
 | `linux/src/transcribe.rs` | HTTPS-Multipart-Upload und begrenzte Fehlerdekodierung; Offline-Stubtests |
@@ -134,7 +134,7 @@ bewusste Produktentscheidung, keinen stillen Skip.
 | Silence | −45 dB, Padding 0,25 s |
 | Audio nach Fehler | Original behalten, wenn die authentifizierte Recovery-Kopie scheitert |
 | Retry | nur HMAC-authentifizierte Bytes; Ablauf beim Zugriff; nie Heuristik-Skip automatisch hochladen |
-| State | `idle` / `recording` / `processing` / `delivering`; kein zweiter Start während `busy` |
+| State | `idle` / `starting` / `recording` / `processing` / `delivering`; kein zweiter Start während `starting`, `processing` oder `delivering` (`toggle` hält dafür eine exklusive Sperre); `starting` endet nach 5 s ohne Mikrofon, ein Abbruch darin wird nie als Start gemeldet |
 | Löschen nach Erfolg | nur nach erfolgreichem Clipboard-Copy (`TranscriptDelivery.canRemoveRecoveryAudio`) |
 | Delivery | Clipboard immer; Retry kopiert nur (`allowPaste: false`) |
 | Hotkey | Bind nur transaktional ersetzen; bei Fehler alte Bindung und Preference behalten |
