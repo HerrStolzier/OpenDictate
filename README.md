@@ -211,8 +211,10 @@ OpenAI. The address is the base URL including `/v1`; OpenDictate appends
 - If an address taken from `OPENAI_BASE_URL` is not allowed, dictation stops
   with a message instead of falling back to OpenAI.
 
-Only OpenAI is tested by the project. Other servers are a known limit of the
-beta; recordings that fail there stay available for retry as usual.
+Only OpenAI is tested by the project; other servers are a known limit.
+Recordings that fail there stay available for retry as usual. The custom server
+is not part of Build 9, the current beta candidate; it arrives with the next
+Mac version.
 
 ## Permissions
 

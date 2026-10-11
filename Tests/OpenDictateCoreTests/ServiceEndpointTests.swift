@@ -12,7 +12,9 @@ struct ServiceEndpointTests {
             ("http://localhost:1234/v1", true),
             ("http://[::1]:8000/v1", true),
             ("https://127.0.0.1:8443/v1", true),
-            ("HTTP://LOCALHOST:8000/v1", true)
+            ("HTTP://LOCALHOST:8000/v1", true),
+            ("https://xn--bcher-kva.example/v1", false),
+            ("https://my_host.internal:8443/v1", false)
         ])
     func acceptsAllowedAddresses(address: String, loopback: Bool) throws {
         let endpoint = try #require(ServiceEndpoint(address))
@@ -27,7 +29,8 @@ struct ServiceEndpointTests {
             "https://user:secret@example.com/v1", "https://example.com/v1?key=1", "https://example.com/v1#x",
             "", "127.0.0.1:8080", "not a url", "http://127.0.0.1.example.com/v1",
             "https://example.com:99999/v1", "http://127.0.0.1:0/v1",
-            "https://example.com:99999999999999999999999/v1"
+            "https://example.com:99999999999999999999999/v1", "https://evil%0Ahost/v1", "https://a%20b/v1",
+            "https://a%2Fb/v1"
         ])
     func rejectsUnsafeAddresses(address: String) {
         #expect(ServiceEndpoint(address) == nil)

@@ -20,7 +20,7 @@ public struct ServiceEndpoint: Sendable, Equatable {
         while trimmed.hasSuffix("/") { trimmed.removeLast() }
         guard trimmed.count <= 2_048, let components = URLComponents(string: trimmed),
             let scheme = components.scheme?.lowercased(), let host = components.host?.lowercased(),
-            !host.isEmpty, components.user == nil, components.password == nil,
+            Self.isPlainHost(host), components.user == nil, components.password == nil,
             components.query == nil, components.fragment == nil,
             Self.hasValidPort(components),
             let url = components.url
@@ -31,6 +31,13 @@ public struct ServiceEndpoint: Sendable, Equatable {
         default: return nil
         }
         self.init(validated: url)
+    }
+
+    /// Letters, digits, dots, hyphens, underscores and the colons and
+    /// brackets of an IPv6 address. A percent-escaped control character, space or separator
+    /// would make the address unusable and could forge a log line.
+    private static func isPlainHost(_ host: String) -> Bool {
+        !host.isEmpty && host.allSatisfy { $0.isLetter || $0.isNumber || "-._:[]".contains($0) }
     }
 
     /// A written port must parse and be a usable TCP port; an overflowing
