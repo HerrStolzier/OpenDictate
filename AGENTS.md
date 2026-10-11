@@ -83,8 +83,8 @@ fixture or one successful dictation into a general speech-quality claim.
 - `docs/compatibility-matrix.md`: current product-wide text-field and focus
   acceptance plan; programs are representative examples, not blanket support claims.
 - `docs/linux-build-plan.md`, `docs/linux-live-translation-plan.md`,
-  `docs/windows-plan.md`, `docs/ios-direction.md`: platform-specific
-  implementation and acceptance detail linked from the roadmap.
+  `docs/windows-plan.md`, `docs/ios-direction.md`, `docs/ios-konzept.md`:
+  platform-specific implementation and acceptance detail linked from the roadmap.
 - `docs/release-plans/`: detailed acceptance criteria for the Mac stages; their
   scope was reduced on 8 October 2026 as stated in the roadmap. Dated evidence
   applies only to its recorded candidate.

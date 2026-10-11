@@ -213,8 +213,8 @@ Einfügen in beide Safari-Felder, Systemtastatur im Passwortfeld,
 [Gerätenachweis](ios-device-2026-09-30.md)). Test-App deinstalliert; Draft-PR
 #40 bleibt erhalten.
 
-**Offen / bekannte Grenzen:** Echte Aufnahme und Transkription, Produktkonzept
-(Aktionstaste, Host-App, Zwischenablage statt Vollzugriff-Tastatur),
+**Offen / bekannte Grenzen:** Echte Aufnahme und Transkription, Aufnahmestart
+im Hintergrund nach dem [Konzept](ios-konzept.md) vom 11. Oktober,
 Abbruch-/Unterbrechungsfälle, Dateischutz am Gerät, Verteilung über TestFlight,
 Barrierefreiheit. Die ferngesteuerte Device-Hub-Steuerung bleibt blockiert;
 Basti bedient das Gerät selbst.
