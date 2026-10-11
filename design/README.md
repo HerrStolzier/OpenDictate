@@ -40,17 +40,42 @@ geändert wurde, ohne die Dateien neu zu erzeugen.
 
 ## Stand je Oberfläche
 
-Noch keine Oberfläche nutzt diesen Ordner. Umgestellt wird in der Reihenfolge
-der Tabelle unten: die Website zuerst, danach die Mac-App (Entscheidungen vom
-9. Oktober 2026 im [Entscheidungs-Log](../PROJECT.md#entscheidungen)). Die laufenden Betas erscheinen in
-der heutigen Optik; die Markenarbeit blockiert keine Beta
+Die Linux-Leiste nutzt diesen Ordner als erste Oberfläche; Website und Mac-App
+sind in Arbeit. Seit dem 11. Oktober 2026 laufen die Umstellungen parallel statt
+in der Reihenfolge der Tabelle unten ([Entscheidungs-Log](../PROJECT.md#entscheidungen)). Die veröffentlichten Betas (Mac Build 9,
+Linux-Pre-Release) bleiben in ihrer Fassung; die Markenarbeit blockiert keine Beta
 ([PROJECT](../PROJECT.md#marken--und-gestaltungsrichtung)).
 
 | Oberfläche | Wie sie das Designsystem übernimmt |
 | --- | --- |
 | Website (`website/`) | `tokens.css`, Schriften und SVGs in den Seitenordner kopieren; Entwurf der Startseite liegt in Claude Design |
 | macOS-App | `DesignTokens.swift` nach `OpenDictateCore`, Schriften im App-Bundle registrieren, `.icns` aus `app-icon-1024.png`, neue Diktatanzeige an der Notch mit Blink statt des heutigen Fensters, Blink in der Menüleiste (`blink-16.svg`); ohne Notch mittig in der Menüleiste; im Bau seit 11. Oktober, bauen und prüfen nur auf dem Mac |
-| Linux | `gtk-colors.css` im Waybar-Beispiel, Blink als Symbol der Leistenanzeige |
+| Linux | Leistenanzeige mit Blink (`▮`), „REC“ und den Zustandswörtern im Tooltip, Farben aus `gtk-colors.css` im Waybar-Beispiel; ein Test prüft, dass sie zu den Tokens passen. Bekannte Abweichung: Beim Schreiben zeigt die Leiste aus Platzgründen nur `▮ …`, das Wort „Schreibt“ steht im Tooltip |
 | Support-Formular und Dashboard | `tokens.css` und Schriften übernehmen, sobald der Support live geht (privates Repo `support-desk`) |
 | iOS | dieselbe Swift-Datei wie macOS |
 | Windows | Der WPF-Prototyp braucht ein XAML-ResourceDictionary; dafür bekommt der Generator eine weitere Ausgabe |
+
+## Englische Markentexte (Vorschlag)
+
+Das Markenhandbuch [`brand.md`](brand.md) ist deutsch. Für die Linux-Beta,
+englische Programmtexte und englischsprachige Ankündigungen gilt bis zur
+Übernahme ins Original in Claude Design dieser Vorschlag. Danach wandert er nach
+`brand.md` und dieser Abschnitt entfällt.
+
+- Englisch per „you“, kurze Sätze, Verben zuerst: „Send again“, „View on GitHub“.
+  Satzanfang groß, sonst klein, auch in Knöpfen und Menüs.
+- Zustände: **Ready** (Bereit), **Listening** (Hört zu), **Writing** (Schreibt),
+  **Inserted** (Eingefügt), **Copied** (Kopiert, Text nur in der
+  Zwischenablage), **Oops** (Hoppla). „Inserted“ statt „Pasted“, weil die
+  Linux-App ihre Einstellung „auto-insert“ nennt.
+- Fehler beginnen mit „Oops.“ und sagen sofort, was sicher ist: „Oops. No
+  connection. Your recording is safe.“
+- Nur sagen, was die App wirklich tut: „your own OpenAI API key“, unter Linux im
+  Secret Service gespeichert, kein Tracking, Quellcode unter MIT-Lizenz. Keine
+  Versprechen zu fehlerfreier Erkennung, Geschwindigkeit oder Preis.
+- Keine Emoji, keine Ausrufezeichen, keine Superlative, kein „simply“ oder
+  „just“. „REC“ bleibt in beiden Sprachen gleich.
+
+Die Linux-Leiste nutzt die Zustandswörter schon (Tooltip von `opendictate bar`).
+Benachrichtigungen und Meldungen der Linux-App folgen nach dem Linux-Beta-Release,
+damit die Beta in der heutigen Fassung bleibt.

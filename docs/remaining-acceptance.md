@@ -26,7 +26,9 @@ eine bekannte Grenze, die in der jeweiligen Anleitung stehen muss.
   `retry` liefert. Die seitdem kürzeren Zeitlimits (PR #51) sind nur offline
   geprüft.
 - Physischer Hotkey Super+D; Leistenanzeige in der Omarchy-Leiste mit
-  Klick-Umschalter der Zielsprache.
+  Klick-Umschalter der Zielsprache. Seit dem 11. Oktober zeigt die Leiste Blink
+  (`▮`) statt Mikrofon und Sanduhr; diese neue Darstellung, der Tooltip und das
+  Waybar-Beispiel sind nur offline geprüft, noch nicht live gesehen.
 - Auto-Einfügen in das beim Start erfasste Fenster (Editor, Terminal), mit
   Fokus- und Zwischenablage-Prüfung; Fensterwechsel wird korrekt übersprungen.
 - Offline: `scripts/ci/check-linux.sh` (Formatierung, Tests, Clippy,

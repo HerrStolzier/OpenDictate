@@ -113,8 +113,9 @@ bind = SUPER, D, exec, opendictate toggle
 
 Hyprland reloads the change when you save.
 
-**3. Bar indicator (optional).** An icon in the bar shows recording, processing
-and the selected target language; a click toggles translation. Setup under
+**3. Bar indicator (optional).** Blink, the OpenDictate cursor, shows in the bar
+whether OpenDictate is listening or writing, and the selected target language; a
+click toggles translation. Setup under
 [Bar indicator](#bar-indicator).
 
 **4. Language.** Messages and help follow your system language: German when
@@ -196,20 +197,22 @@ opendictate secrets status
 
 ## Bar indicator
 
-`opendictate bar` prints one JSON line in Waybar format per call: a microphone
-icon, an hourglass while processing and the active target language (for example
-`EN`). While recording it carries the class `active`. A click should call
-`settings target toggle`. The output contains only state and settings, never
-text. The icons need a Nerd Font, as Omarchy ships. After installing, the
-example files are also in `/usr/share/doc/opendictate/`.
+`opendictate bar` prints one JSON line in Waybar format per call. The text is
+Blink, the OpenDictate block cursor `▮`, followed by `REC` while recording, `…`
+while writing and the active target language (for example `▮ REC EN`). The
+tooltip names the state: Ready, Listening or Writing. While recording the line
+carries the class `active`. A click should call `settings target toggle`. The
+output contains only state and settings, never text. No Nerd
+Font is needed. After installing, the example files are also in
+`/usr/share/doc/opendictate/`.
 
 - Omarchy 4 (Omarchy shell bar): add a command module like
   [omarchy-bar.example.json](omarchy-bar.example.json) to
   `~/.config/omarchy/shell.json` under `bar.layout`. The bar highlights the
   module while recording.
 - Waybar: [waybar.example.jsonc](waybar.example.jsonc) and
-  [waybar.example.css](waybar.example.css); there the icon turns red while
-  recording.
+  [waybar.example.css](waybar.example.css) in the OpenDictate colours; there
+  Blink turns red and blinks while recording and turns green while writing.
 
 ## Technical details
 
