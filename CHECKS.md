@@ -423,8 +423,8 @@ real indicator through every state on the current screen. Snapshots and the
 preview are visual checks only. The deciding live test is a real dictation
 into another application with the indicator visible: the text must arrive by
 Command-V in that application, and OpenDictate must not become the active app
-while the indicator appears, changes or closes. Repeat it with the menu bar style ("In der Menüleiste"), with "Aus", over a full-screen app, and on a MacBook with a notch to fix
-the final notch sizes in `IndicatorMetrics`.
+while the indicator appears, changes or closes. Repeat it with the menu bar style ("In der Menüleiste"), with "Aus", over a full-screen app, and on a MacBook with a notch (its sizes in
+`IndicatorMetrics` were confirmed with the preview on a 15-inch MacBook Air).
 
 ## Compact settings acceptance
 

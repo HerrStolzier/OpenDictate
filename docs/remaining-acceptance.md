@@ -169,6 +169,12 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   Ergebnis (davor ein zu leiser Versuch, der als Fehler endete). Was die
   Anzeige dabei im Einzelnen zeigte, ist nur von Basti beobachtet, nicht
   aufgezeichnet.
+  Notch: Auf Bastis MacBook Air 15" (M3, macOS 27.0.1) lief die Debug-Vorschau
+  (`--indicator-preview`) an der echten Notch, ohne Diktat und ohne Schlüssel.
+  Laut Bastis Screenshots ist die Anzeige offen etwa 355 × 90 Punkte groß,
+  bei „Hoppla“ etwa 115 Punkte hoch; Wort und Zeile sitzen unter der Kamera.
+  Basti bestätigte die Maße („passt“). Die Vorschau wurde danach beendet und
+  vom MacBook gelöscht.
 - Eigener Server (11. Oktober, noch in keinem Kandidaten): Adresse unter
   Einstellungen → Erweitert, `https://` beliebig, `http://` nur auf diesem Mac.
   Offline geprüft: Adressregeln, Vorrang vor `OPENAI_BASE_URL`, kein Rückfall
@@ -183,9 +189,9 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
 
 **Offen / bekannte Grenzen:**
 
-- Diktatanzeige live noch offen: „Nochmal senden“ mit Rückfrage; „Aus“; andere Ziel-Apps als TextEdit; echte Maße an einem MacBook
-  mit Notch. Die Notch-Werte sind ein
-  erster Vorschlag. Im Vollbild gilt eine App als Vollbild, wenn ihr vorderstes
+- Diktatanzeige live noch offen: „Nochmal senden“ mit Rückfrage; „Aus“;
+  andere Ziel-Apps als TextEdit; ein echtes Diktat an einem MacBook mit Notch
+  (die Maße sind nur mit der Vorschau bestätigt). Im Vollbild gilt eine App als Vollbild, wenn ihr vorderstes
   Fenster den ganzen Bildschirm bedeckt. Mit der Einstellung „In der Menüleiste“
   liegt die Pille bei „Menüleiste immer ausblenden“ über dem Fensterinhalt, und
   in Apps mit sehr vielen Menüs kann sie in der Mitte einen Menütitel verdecken, solange sie

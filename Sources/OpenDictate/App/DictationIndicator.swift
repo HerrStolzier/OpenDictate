@@ -1,14 +1,14 @@
 import AppKit
 import OpenDictateCore
 
-/// Sizes in points. The notch values are a first guess from the design board;
-/// the final ones are set together with Basti at a real screen.
+/// Sizes in points. The notch values were checked with the debug preview at
+/// the notch of a 15-inch MacBook Air.
 enum IndicatorMetrics {
     /// The open notch display is about twice as wide as the notch.
     static let notchWidthFactor: CGFloat = 2
     static let notchMinimumWidth: CGFloat = 360
     static let notchOopsMinimumWidth: CGFloat = 440
-    /// Height below the camera housing; about 80 pt in total on current MacBooks.
+    /// Height below the camera housing; about 90 pt in total on a 15-inch MacBook Air.
     static let notchContentHeight: CGFloat = 48
     static let notchCorner: CGFloat = 20
     static let notchShoulder: CGFloat = 8
