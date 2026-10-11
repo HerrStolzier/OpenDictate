@@ -92,7 +92,7 @@ final class SettingsWindowController: NSWindowController {
             disclosure.setAccessibilityValue(expanded ? "Geöffnet" : "Geschlossen")
             if expanded {
                 addRow("Modell", id: "model", to: stack)
-                for id in ["apiKey", "vocabulary"] {
+                for id in ["apiKey", "vocabulary", "customServer"] {
                     if id == "apiKey", needsSetup { continue }
                     if let item = item(id) { addControl(item, to: stack) }
                 }
@@ -109,7 +109,7 @@ final class SettingsWindowController: NSWindowController {
             addText(
                 "Bis zu fünf gespeicherte Aufnahmen. Gültige Aufnahmen sind bis zu 24 Stunden wiederholbar. "
                     + "Bereinigt wird, während die App geöffnet ist. "
-                    + "Erneutes Verarbeiten sendet die gewählte Aufnahme an OpenAI und fragt vorher nach.",
+                    + "Erneutes Verarbeiten sendet die gewählte Aufnahme an den eingestellten Dienst und fragt vorher nach.",
                 to: stack)
             if let recordings = item("recordings")?.submenu, !recordings.items.isEmpty {
                 for recording in recordings.items { addControl(recording, to: stack) }

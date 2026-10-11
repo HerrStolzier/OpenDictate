@@ -9,7 +9,7 @@ product acceptance and are not public releases.
 OpenDictate records microphone audio only while a dictation is active. It does
 not include telemetry or analytics.
 
-## Data sent to OpenAI
+## Data sent to OpenAI or your own server
 
 For each non-empty dictation, OpenDictate sends the prepared audio over HTTPS to
 OpenAI's `/v1/audio/transcriptions` endpoint. The request also contains the
@@ -19,6 +19,16 @@ set, the transcript text is then sent over HTTPS to OpenAI's
 `/v1/chat/completions` endpoint together with the target language and the
 translation model, and only the translation is copied and pasted. OpenAI's own
 data handling terms apply to these transfers.
+
+With **Eigener Server** (or `OPENAI_BASE_URL`), the same requests go to the
+configured address instead of OpenAI, and that server's own terms apply. A
+server on this Mac (loopback address) receives no API key, and OpenDictate sends
+audio and text only to this Mac; what that local server does with them is up to
+its own configuration. Any other server must use HTTPS and receives the saved
+API key. HTTP redirects are not followed, so requests go only to the configured address.
+An address that is not allowed stops the dictation; it never falls back to
+OpenAI. The log records only the server's host name, never the path or
+key.
 
 The OpenAI API key is stored as a generic password in the macOS Keychain under
 service `OpenDictate` and account `OPENAI_API_KEY_APP`. OpenDictate does not support
