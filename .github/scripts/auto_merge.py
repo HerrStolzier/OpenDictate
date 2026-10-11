@@ -254,40 +254,46 @@ def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotoni
     open_prs = candidates(gh, event_name, event)
     print(f"Prüfe PRs: {open_prs or 'keine'}")
 
-    while open_prs:
-        waited = clock() - started
-        for number in list(open_prs):
-            pr, commits, files, checks, status, runs = pr_facts(gh, number, cache)
-            result, why = evaluate(pr, owner, default_branch, commits, files, checks, status, waited, runs,
-                                   has_ci)
-            print(f"#{number}: {result} ({why})")
-            if result == "wait":
-                continue
-            open_prs.remove(number)
-            if result == "block":
-                kind, _, detail = why.partition(":")
-                comment_once(gh, number, pr["head"]["sha"], kind,
-                             COMMENTS[kind].format(detail=detail, base=default_branch))
-            elif result == "merge":
-                code, data, _ = gh.call("PUT", f"/repos/{gh.repo}/pulls/{number}/merge", {
-                    "merge_method": method, "sha": pr["head"]["sha"],
-                    "commit_title": f"{pr['title']} (#{number})"})
-                msg = (data or {}).get("message", "")
-                print(f"#{number}: Merge {code} {msg}")
-                if code == 200:
-                    merged.append(number)
-                elif rate_limited(code, data):
-                    raise RateLimited(f"Merge #{number}: {code} Abfrage-Kontingent erschöpft")
-                elif code in (405, 409) and retries.get(number, 0) < 3:  # Stand geändert oder GitHub noch nicht so weit
-                    retries[number] = retries.get(number, 0) + 1
-                    open_prs.append(number)
-                elif "workflow" in msg.lower():
-                    comment_once(gh, number, pr["head"]["sha"], "workflow", COMMENTS["workflow"])
-                else:
-                    failed.append(f"#{number}: {code} {msg}")
-        if not open_prs or clock() - started >= wait_limit:
-            break
-        sleep(poll_seconds(wait_limit))
+    try:
+        while open_prs:
+            waited = clock() - started
+            for number in list(open_prs):
+                pr, commits, files, checks, status, runs = pr_facts(gh, number, cache)
+                result, why = evaluate(pr, owner, default_branch, commits, files, checks, status, waited, runs,
+                                       has_ci)
+                print(f"#{number}: {result} ({why})")
+                if result == "wait":
+                    continue
+                open_prs.remove(number)
+                if result == "block":
+                    kind, _, detail = why.partition(":")
+                    comment_once(gh, number, pr["head"]["sha"], kind,
+                                 COMMENTS[kind].format(detail=detail, base=default_branch))
+                elif result == "merge":
+                    code, data, _ = gh.call("PUT", f"/repos/{gh.repo}/pulls/{number}/merge", {
+                        "merge_method": method, "sha": pr["head"]["sha"],
+                        "commit_title": f"{pr['title']} (#{number})"})
+                    msg = (data or {}).get("message", "")
+                    print(f"#{number}: Merge {code} {msg}")
+                    if code == 200:
+                        merged.append(number)
+                    elif rate_limited(code, data):
+                        raise RateLimited(f"Merge #{number}: {code} Abfrage-Kontingent erschöpft")
+                    elif code in (405, 409) and retries.get(number, 0) < 3:  # Stand geändert oder GitHub noch nicht so weit
+                        retries[number] = retries.get(number, 0) + 1
+                        open_prs.append(number)
+                    elif "workflow" in msg.lower():
+                        comment_once(gh, number, pr["head"]["sha"], "workflow", COMMENTS["workflow"])
+                    else:
+                        failed.append(f"#{number}: {code} {msg}")
+            if not open_prs or clock() - started >= wait_limit:
+                break
+            sleep(poll_seconds(wait_limit))
+    except RateLimited as e:
+        if failed:  # ein echter Merge-Fehler davor bleibt rot
+            print(f"{e}. Der nächste Lauf prüft erneut.")
+            raise RuntimeError("Merge fehlgeschlagen: " + "; ".join(failed)) from None
+        raise
     if open_prs:
         print(f"Zeitlimit erreicht, noch offen: {open_prs}. Der nächste Lauf prüft erneut.")
     if failed:  # roter Lauf: Der Thread, der den PR beobachtet, sieht das und kümmert sich
