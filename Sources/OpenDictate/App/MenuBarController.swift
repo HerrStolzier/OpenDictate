@@ -21,12 +21,12 @@ protocol MenuBarControllerDelegate: AnyObject {
     func menuBarDidTriggerRetry()
     func menuBarDidTriggerDeleteSavedRecordings()
     func menuBarDidTriggerSetAPIKey()
-    func menuBarDidSelect(shortcut: HotKeyShortcut)
+    func menuBarDidSelect(trigger: RecordingTrigger)
     func menuBarDidSelect(model: TranscriptionModel)
     func menuBarDidSelect(language: String?)
     func menuBarDidSelect(translationTarget: String?)
 
-    var menuBarShortcut: HotKeyShortcut { get }
+    var menuBarTrigger: RecordingTrigger { get }
     var menuBarModel: TranscriptionModel { get }
     var menuBarLanguage: String? { get }
     var menuBarTranslationTarget: String? { get }
@@ -364,9 +364,10 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         let submenu = NSMenu()
         submenu.delegate = self
         submenu.autoenablesItems = false
-        for preset in HotKeyShortcut.presets {
-            let item = makeActionItem(preset.displayName, action: #selector(selectShortcut(_:)))
-            item.representedObject = preset.displayName
+        for (index, trigger) in RecordingTrigger.menuChoices.enumerated() {
+            if index == ModifierKey.allCases.count { submenu.addItem(.separator()) }
+            let item = makeActionItem(trigger.displayName, action: #selector(selectShortcut(_:)))
+            item.representedObject = index
             submenu.addItem(item)
         }
         return submenu
@@ -434,10 +435,11 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private func refreshSelections() {
         guard let delegate else { return }
 
-        let shortcut = delegate.menuBarShortcut
-        shortcutMenuItem?.title = "Tastenkombination: \(shortcut.displayName)"
+        let trigger = delegate.menuBarTrigger
+        shortcutMenuItem?.title = "Tastenkombination: \(trigger.displayName)"
         for item in shortcutMenuItem?.submenu?.items ?? [] {
-            item.state = (item.representedObject as? String) == shortcut.displayName ? .on : .off
+            let index = item.representedObject as? Int
+            item.state = index.map { RecordingTrigger.menuChoices[$0] == trigger } == true ? .on : .off
         }
 
         let model = delegate.menuBarModel
@@ -544,11 +546,9 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     }
 
     @objc private func selectShortcut(_ sender: NSMenuItem) {
-        guard
-            let name = sender.representedObject as? String,
-            let preset = HotKeyShortcut.presets.first(where: { $0.displayName == name })
+        guard let index = sender.representedObject as? Int, RecordingTrigger.menuChoices.indices.contains(index)
         else { return }
-        delegate?.menuBarDidSelect(shortcut: preset)
+        delegate?.menuBarDidSelect(trigger: RecordingTrigger.menuChoices[index])
         refreshSelections()
         if settingsWindow.window?.isVisible == true { showSettings() }
     }

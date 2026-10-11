@@ -51,8 +51,10 @@ Nachweise: [Live-Nachweise 5. bis 7. Oktober](docs/linux-live-2026-10-05-bis-07.
 
 **Nächste Schritte:**
 
-1. Linux-Beta: Pre-Release, Issue-Vorlage, Ankündigung (Kandidaten: r/omarchy,
-   r/hyprland). Go je Veröffentlichung und Ankündigung.
+1. Linux-Beta auf Englisch (Entscheidung 8. Oktober): Das Programm spricht die
+   Systemsprache, Anleitung auf Englisch und Deutsch, eigene Issue-Vorlage.
+   Dann Pre-Release und Ankündigung in r/omarchy und r/hyprland. Go je
+   Veröffentlichung und Ankündigung.
 2. Beta laufen lassen: Issues zeitnah beantworten, Rückmeldungen sammeln,
    danach entscheiden, was gebaut wird (Kandidaten: konfigurierbarer Endpunkt,
    Vokabular, Echtzeit-Übersetzung, Feinjustierung der Zeitlimits).
@@ -130,9 +132,10 @@ Deinstallationsweg; Verhalten mit anderen Spracheingaben wie Voice Access.
 
 ## Track iOS
 
-**Ziel der Beta:** iPhone-Nutzer starten die Aufnahme über die Aktionstaste
-oder die App, bekommen den (wahlweise übersetzten) Text in die Zwischenablage
-und fügen ihn in der Ziel-App ein. Verteilung über TestFlight.
+**Ziel der Beta:** iPhone-Nutzer starten die Aufnahme in der Ziel-App über
+Aktionstaste, Rückseite oder Kontrollzentrum, ohne dass OpenDictate aufgeht,
+bekommen den (wahlweise übersetzten) Text in die Zwischenablage und fügen ihn
+selbst ein. Verteilung über TestFlight.
 
 **Stand:** Der Tastatur-Prototyp besteht den synthetischen Safari-Textpfad auf
 Simulator und iPhone 15 (29./30. September, [Nachweis](docs/ios-device-2026-09-30.md));
@@ -145,11 +148,13 @@ bestätigt beides und zeigt den Zwischenablage-Weg als gangbar
 
 **Nächste Schritte:**
 
-1. Produktkonzept auf einer Seite festlegen: Host-App mit Aufnahme, Start über
-   Aktionstaste oder Kurzbefehl, Ergebnis in die Zwischenablage, Hinweis per
-   Live-Aktivität; keine Vollzugriff-Tastatur. Übersetzung als Merkmal.
-2. Echte Aufnahme und Transkription in der Host-App auf dem iPhone 15 mit
-   Bastis Go.
+1. ~~Produktkonzept auf einer Seite festlegen.~~ Erledigt am 11. Oktober
+   ([Konzept](docs/ios-konzept.md)): Aufnahme im Hintergrund über einen
+   Kurzbefehl mit Live-Aktivität, Ergebnis in die Zwischenablage, keine
+   Vollzugriff-Tastatur, Übersetzung als Merkmal.
+2. Erster Prüfpunkt auf dem iPhone 15 mit Bastis Go: Startet die Aufnahme per
+   „Auf Rückseite tippen“ im Hintergrund, ohne dass die App aufgeht? Danach
+   echte Transkription und die Abnahme aus dem Konzept.
 3. TestFlight-Beta. Abhängigkeit: Apple-Developer-Mitgliedschaft (vorhanden,
    Verlängerung September 2027) und Xcode auf dem Mac.
 
@@ -181,10 +186,11 @@ Mehrsprachigkeit ohne Umschalten, Datenschutz und schnellem Zugriff.
 | Punkt | Stand | Nächster Schritt |
 | --- | --- | --- |
 | Preismodell | Am 8. Oktober entschieden ([PROJECT](PROJECT.md#preismodell)): offener Code, CLI-Builds gratis, fertige App mit UI einmalig bezahlt; bis zur Firmengründung bleibt alles kostenlos. | Vor der ersten bezahlten Version: Firmengründung, Bezahlweg, Preis festlegen. Keine Beta hängt daran. |
-| Gaming | Ursprungs-Anwendungsfall ([PROJECT](PROJECT.md#anwendungsfälle)). Belegt: Textchat in World of Warcraft mit der Mac-App. Offen: Einfügen im exklusiven Vollbild, Zwei-Tasten-Kürzel auf jeder Plattform, Einzeltaste oder Halten-zum-Sprechen. | Im Windows-Track Schritt 2 prüfen. Vor einer Gaming-Botschaft per Blizzard-Ticket klären, dass externe Diktier-Software geduldet ist. Hold-to-talk und Einzeltaste nach Beta-Rückmeldung bauen. |
+| Gaming | Ursprungs-Anwendungsfall ([PROJECT](PROJECT.md#anwendungsfälle)). Belegt: Textchat in World of Warcraft mit der Mac-App. Offen: Einfügen im exklusiven Vollbild, Zwei-Tasten-Kürzel auf jeder Plattform, Einzeltaste oder Halten-zum-Sprechen. | Im Windows-Track Schritt 2 prüfen. Vor einer Gaming-Botschaft per Blizzard-Ticket klären, dass externe Diktier-Software geduldet ist. Hold-to-talk und Einzeltaste sind auf macOS mit der Kürzel-Abfrage gebaut (nächster Kandidat nach Build 9); Windows folgt mit seinem Track. |
+| Kürzel-Abfrage beim ersten Start | Am 9. Oktober entschieden ([PROJECT](PROJECT.md#entscheidungen)) für die fertige (bezahlte) App: Nach der Installation fragt die App, wie die Aufnahme starten soll, und schlägt je Plattform zwei bis drei recherchierte Kürzel vor; die Empfehlung ist vorausgewählt, ein eigenes Kürzel bleibt möglich, ein Tastendruck prüft, dass es ankommt. Bestätigte Vorschläge (Recherche 9. Oktober, die erste Option ist jeweils vorausgewählt; außer macOS nicht gebaut): macOS Fn halten, rechte Wahltaste, ⌃⌥D (seit 10. Oktober ist die rechte Wahltaste vorausgewählt, wenn eine Apple-Tastatur mit Ziffernblock oder eine fremde Tastatur angeschlossen ist); Linux Super+D, F9 (Omarchys Diktiertaste), rechte Alt nur bei US-Layout; Windows Strg+Win halten, rechte Strg für Spiele, Maus-Seitentaste; iOS Aktionstaste, Auf Rückseite tippen, Steuerelement; Android Mikrofon-Taste der Tastatur, Schnelleinstellungs-Kachel, schwebende Blase. Die Mac-App hat schon eine Kürzelauswahl im Menü (drei Vorschläge, eigenes Kürzel); ihr Standard Option+Shift+Leertaste hat drei Tasten. Einzeltasten und Halten-zum-Sprechen brauchen auf macOS und Windows eine andere Technik als heute. macOS: Fn halten, rechte Wahltaste (beide mit Halten-zum-Sprechen) und die Abfrage sind gebaut, offline geprüft und am 9. Oktober live am Mac geprüft; einzelne Fälle sind noch offen ([Abnahme](docs/remaining-acceptance.md#macos)). Build 9 enthält sie nicht. | macOS kommt mit dem nächsten Kandidaten nach Build 9. Danach Linux als Schritt im Installer, Windows (gleiche Technik für Strg+Win und rechte Strg), iOS und Android mit ihrem Track. |
 | Konfigurierbarer Endpunkt | Am 2. Oktober für macOS spezifiziert ([Plan-4-Notiz](docs/plan4-aenderungen-2026-10-02.md)); seit dem 8. Oktober für alle Plattformen gewünscht, als Antwort auf den Wunsch nach lokaler Verarbeitung. | Mac mit dem nächsten Kandidaten; Linux und Windows nach ihrer ersten Beta. Nur die Adresse, `http://` nur für Loopback; eine Fremd-URL wird nicht abgenommen. |
 | Provider-Vertrag | Am 2. Oktober entschieden: gemeinsame Fixtures unter `fixtures/provider/` für Swift, Rust und C#. Nicht begonnen. | Mac-Teil mit dem nächsten Kandidaten; Linux `validate_model` wie Mac; Windows mit Schritt 1 seines Tracks. |
-| Markenidentität 1.1 | Langfristiges Ziel vom 29. September ([PROJECT](PROJECT.md#marken--und-gestaltungsrichtung)). | Beginnt nach der ersten Beta (Linux oder Mac) und blockiert keine Beta. Richtung mit Basti anhand echter App-Zustände und eines Marketingbeispiels festlegen. |
+| Markenidentität 1.1 | Langfristiges Ziel vom 29. September ([PROJECT](PROJECT.md#marken--und-gestaltungsrichtung)). Das Designsystem aus Claude Design (Pixel-Terminal, Blink, grünes Signal, drei Themes) liegt seit dem 9. Oktober als gemeinsame Quelle unter [`design/`](design/README.md); noch keine Oberfläche nutzt es. | Beginnt nach der ersten Beta (Linux oder Mac) und blockiert keine Beta. Richtung mit Basti anhand echter App-Zustände und eines Marketingbeispiels festlegen. |
 | Vokabular | Mac hat „Vokabular und Kontext“; Linux und Windows nicht. Laut Recherche häufiger Wunsch. | Nach der ersten Beta-Rückmeldung je Plattform nachziehen. |
 | Echtzeit-Übersetzung und Streaming | Weg C (`gpt-realtime-translate`) ist recherchiert, nicht gebaut ([Plan](docs/linux-live-translation-plan.md)). Streaming beim Diktieren ist seit dem 26. September gewünscht. Beides widerspricht der Regel, unbestätigte Teilergebnisse nicht ins Zielfeld zu schreiben, und braucht eigene Akzeptanzkriterien. | Erst nach Beta-Rückmeldung, dass die Wartezeit von Weg A stört. |
 | Zielsprache je Anwendung | Idee aus der Recherche, nicht beauftragt. | Keiner. |

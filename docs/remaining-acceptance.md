@@ -36,16 +36,23 @@ eine bekannte Grenze, die in der jeweiligen Anleitung stehen muss.
   omarchy gebaut (46 Tests grün), von Basti mit `pacman -U` installiert, Super+D
   und Leiste darauf umgestellt, ein Diktat mit Übersetzung in einen Editor
   eingefügt.
+- Zweisprachiges Paket aus PR #59 (`0a04ed5`) am 8. Oktober auf omarchy gebaut
+  (49 Tests grün) und installiert; omarchy steht auf `en_US`, Hilfe auf
+  Englisch; ein Diktat mit Übersetzung in die Claude-App eingefügt.
 
-**Offen / bekannte Grenzen:** Einfügen in Chromium-, Electron- und
+**Offen / bekannte Grenzen:** Ein Start direkt nach der Neuinstallation
+scheiterte einmal mit „Recording could not start“ (Ursache unbekannt, der
+nächste Versuch klappte); seit PR #59 steht der Grund im Protokoll
+(`recording-start-failed`), und die leere Datei wird entfernt. Einfügen in Chromium-, Electron- und
 Discord-Fenstern; gemischtes Deutsch/Englisch; Abbruch genau während der
 Übersetzung; andere Compositoren als Hyprland; andere Distributionen;
 Vokabular; konfigurierbarer Endpunkt. Für das Arch-Paket ungeprüft: `namcap`, Bau mit pacman-Rust und `makepkg -si`,
 frische Ersteinrichtung des Schlüssels.
 Eine alte Testaufnahme vom 7. Oktober liegt noch im Recovery-Ordner auf
-omarchy; Löschen nur mit Bastis Go.
+omarchy; Löschen nur mit Bastis Go. Die leere Datei vom gescheiterten Start
+wurde am 8. Oktober mit Bastis Go gelöscht.
 
-**Letzter Nachweis:** 8. Oktober 2026, Arch-Paket aus `ca1f041`
+**Letzter Nachweis:** 8. Oktober 2026, Arch-Paket aus `0a04ed5` (PR #59)
 ([Live-Nachweise](linux-live-2026-10-05-bis-07.md)).
 
 ## macOS
@@ -93,8 +100,52 @@ omarchy; Löschen nur mit Bastis Go.
   erhalten), Diktat mit Übersetzung nach Englisch in TextEdit eingefügt,
   Originalaufnahme beim Anlegen bereits `0600`
   ([Nachweis](release-plans/evidence/2026-10-08-build9.md)).
+- Einzeltasten und Kürzel-Abfrage (nach Build 9, noch in keinem Kandidaten):
+  Fn/Globus halten und rechte Wahltaste über NSEvent-Monitore, Abfrage beim
+  ersten Start nach dem API-Schlüssel mit Tastendruck-Test. Offline geprüft:
+  Erkennung von Antippen, Halten, fremder Taste und Mindestdauer in
+  `ModifierKeyGestureTests`, Speicherung und Vorrang alter Kürzel in
+  `SettingsTests`; die Fenster der Abfrage wurden mit einem lokalen,
+  nicht eingecheckten Testlauf gerendert und angesehen.
+- Live am 9. Oktober 2026 mit einem lokalen Testbuild aus `22ce2a9`
+  (Developer-ID-signiert, nicht notarisiert, gleiche Signaturanforderung wie
+  Build 9), separate Apple-Tastatur: Ohne gespeichertes Kürzel erschien die
+  Abfrage beim Start. Diktat per rechter Wahltaste und, nach Wechsel im Menü,
+  per Fn halten wurde jeweils in eine andere App eingefügt (laut App-Log 1,9 s
+  und 1,3 s nach dem Stopp). Die Bedienungshilfen-Freigabe von Build 9 galt
+  ohne neue Abfrage. ⌥L mit der rechten Wahltaste als Kürzel ist live nicht
+  separat geprüft: Der ⌥L-Test lief laut App-Log mit Fn als Kürzel. Abgedeckt
+  ist der Fall offline in `ModifierKeyGestureTests` (fremde Taste während des
+  Haltens).
+
+- Empfehlung je Tastatur (nach PR #63): Die Abfrage wählt Fn bei eingebauter
+  oder kompakter Apple-Tastatur vor, sonst die rechte Wahltaste. Grundlage sind
+  Hersteller- und Produkt-ID aus der I/O Registry (Ziffernblock-Modelle laut
+  Linux `hid-ids.h`), nicht der umbenennbare Name. Offline in
+  `ModifierKeyRecommendationTests`; lokal am 10. Oktober auf Bastis Mac
+  gelesen: ein Magic Keyboard mit Ziffernblock (`004C:026C`) ergibt die rechte
+  Wahltaste, das Fenster wurde gerendert und angesehen.
 
 **Offen / bekannte Grenzen:**
+
+- Empfehlung je Tastatur: MacBook-Tastatur und Fremdtastatur am echten Gerät
+  ungeprüft. Jedes HID-Gerät mit Tastatur-Schnittstelle oder einer
+  Tastatur-Collection neben seiner Hauptfunktion zählt, auch Gaming-Mäuse mit
+  Makrotasten,
+  Funkempfänger von Mäusen, YubiKeys oder virtuelle Tastaturen; dann wird die
+  rechte Wahltaste vorgeschlagen, obwohl Fn passen würde.
+- Einzeltasten live noch offen: ⌥L mit der rechten Wahltaste als Kürzel,
+  Abfrage ohne Bedienungshilfen-Freigabe und
+  Wirkung einer neu erteilten Freigabe ohne Neustart, rechte Wahltaste länger
+  als 0,3 s halten und dann eine Taste drücken (Aufnahme wird abgebrochen und
+  aufbewahrt), MacBook-Tastatur. Die Fn-Taste wird nur beobachtet: Ohne
+  „🌐 drücken für: Nichts“ öffnet macOS zusätzlich Emoji oder Diktat. Auf der
+  separaten Apple-Tastatur mit Ziffernblock liegt Fn weit rechts; Basti nutzt
+  dort die rechte Wahltaste.
+- Preset F5: Auf MacBooks seit 2021 trägt F5 Apples Diktat-Symbol. Ob die Taste
+  ohne „F1, F2 usw. als Standard-Funktionstasten verwenden“ oder gedrückte Fn
+  als F5 bei OpenDictate ankommt, ist nicht belegt; ungeprüft und nicht
+  umgebaut.
 
 - Beenden der App während der Transkription: nur ohne Netz geprüft. Live
   antwortete OpenAI in zwei Versuchen am 8. Oktober nach gut 3 s, bevor die
@@ -145,8 +196,8 @@ Einfügen in beide Safari-Felder, Systemtastatur im Passwortfeld,
 [Gerätenachweis](ios-device-2026-09-30.md)). Test-App deinstalliert; Draft-PR
 #40 bleibt erhalten.
 
-**Offen / bekannte Grenzen:** Echte Aufnahme und Transkription, Produktkonzept
-(Aktionstaste, Host-App, Zwischenablage statt Vollzugriff-Tastatur),
+**Offen / bekannte Grenzen:** Echte Aufnahme und Transkription, Aufnahmestart
+im Hintergrund nach dem [Konzept](ios-konzept.md) vom 11. Oktober,
 Abbruch-/Unterbrechungsfälle, Dateischutz am Gerät, Verteilung über TestFlight,
 Barrierefreiheit. Die ferngesteuerte Device-Hub-Steuerung bleibt blockiert;
 Basti bedient das Gerät selbst.

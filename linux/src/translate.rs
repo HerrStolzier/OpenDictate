@@ -46,11 +46,14 @@ impl Translator {
         api_key: &str,
     ) -> Result<String, String> {
         if api_key.is_empty() {
-            return Err("API-Schlüssel fehlt.".to_string());
+            return Err(crate::tr!("API-Schlüssel fehlt.", "API key is missing."));
         }
         let chars = text.chars().count();
         if chars == 0 || chars > MAX_INPUT_CHARS {
-            return Err("Text hat eine ungültige Länge für die Übersetzung.".to_string());
+            return Err(crate::tr!(
+                "Text hat eine ungültige Länge für die Übersetzung.",
+                "Text has an invalid length for translation."
+            ));
         }
         let body = json!({
             "model": model,
@@ -59,8 +62,12 @@ impl Translator {
                 {"role": "user", "content": text},
             ],
         });
-        let body = serde_json::to_vec(&body)
-            .map_err(|_| "Übersetzung konnte nicht vorbereitet werden.".to_string())?;
+        let body = serde_json::to_vec(&body).map_err(|_| {
+            crate::tr!(
+                "Übersetzung konnte nicht vorbereitet werden.",
+                "Translation could not be prepared."
+            )
+        })?;
         let response = self
             .agent
             .post(&self.endpoint)
@@ -125,14 +132,23 @@ fn decode_response(response: Result<ureq::Response, ureq::Error>) -> Result<Stri
                 .take(16 * 1_024)
                 .read_to_end(&mut ignored);
             return Err(match status {
-                401 => "API-Schlüssel ist ungültig.".to_string(),
-                404 => "Übersetzungsmodell ist nicht verfügbar.".to_string(),
-                429 => "OpenAI-Limit erreicht. Bitte später erneut versuchen.".to_string(),
-                _ => "Übersetzung fehlgeschlagen.".to_string(),
+                401 => crate::tr!("API-Schlüssel ist ungültig.", "API key is invalid."),
+                404 => crate::tr!(
+                    "Übersetzungsmodell ist nicht verfügbar.",
+                    "Translation model is not available."
+                ),
+                429 => crate::tr!(
+                    "OpenAI-Limit erreicht. Bitte später erneut versuchen.",
+                    "OpenAI limit reached. Please try again later."
+                ),
+                _ => crate::tr!("Übersetzung fehlgeschlagen.", "Translation failed."),
             });
         }
         Err(ureq::Error::Transport(_)) => {
-            return Err("Netzwerkfehler oder Zeitüberschreitung bei der Übersetzung.".to_string())
+            return Err(crate::tr!(
+                "Netzwerkfehler oder Zeitüberschreitung bei der Übersetzung.",
+                "Network error or timeout during translation."
+            ))
         }
     };
     let mut data = Vec::new();
@@ -140,7 +156,12 @@ fn decode_response(response: Result<ureq::Response, ureq::Error>) -> Result<Stri
         .into_reader()
         .take(1_024 * 1_024)
         .read_to_end(&mut data)
-        .map_err(|_| "Ungültige Antwort bei der Übersetzung.".to_string())?;
+        .map_err(|_| {
+            crate::tr!(
+                "Ungültige Antwort bei der Übersetzung.",
+                "Invalid response during translation."
+            )
+        })?;
     #[derive(Deserialize)]
     struct Response {
         choices: Vec<Choice>,
@@ -153,8 +174,12 @@ fn decode_response(response: Result<ureq::Response, ureq::Error>) -> Result<Stri
     struct Message {
         content: Option<String>,
     }
-    let parsed: Response = serde_json::from_slice(&data)
-        .map_err(|_| "Ungültige Antwort bei der Übersetzung.".to_string())?;
+    let parsed: Response = serde_json::from_slice(&data).map_err(|_| {
+        crate::tr!(
+            "Ungültige Antwort bei der Übersetzung.",
+            "Invalid response during translation."
+        )
+    })?;
     let text = parsed
         .choices
         .into_iter()

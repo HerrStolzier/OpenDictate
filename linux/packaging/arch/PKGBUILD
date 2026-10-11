@@ -51,12 +51,15 @@ check() {
 package() {
   install -Dm0755 "$srcdir/target/release/opendictate" "$pkgdir/usr/bin/opendictate"
   install -Dm0644 "$_repo/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
-  # Repository-relative links in the installed README point to GitHub instead.
+  # Repository-relative links in the installed guides point to GitHub instead.
   install -dm0755 "$pkgdir/usr/share/doc/$pkgname"
-  sed -e 's#](\.\./#](https://github.com/HerrStolzier/OpenDictate/blob/main/#g' \
-    -e 's#](packaging/#](https://github.com/HerrStolzier/OpenDictate/blob/main/linux/packaging/#g' \
-    "$_repo/linux/README.md" > "$pkgdir/usr/share/doc/$pkgname/README.md"
-  chmod 0644 "$pkgdir/usr/share/doc/$pkgname/README.md"
+  local _guide
+  for _guide in README.md README.de.md; do
+    sed -e 's#](\.\./#](https://github.com/HerrStolzier/OpenDictate/blob/main/#g' \
+      -e 's#](packaging/#](https://github.com/HerrStolzier/OpenDictate/blob/main/linux/packaging/#g' \
+      "$_repo/linux/$_guide" > "$pkgdir/usr/share/doc/$pkgname/$_guide"
+    chmod 0644 "$pkgdir/usr/share/doc/$pkgname/$_guide"
+  done
   install -Dm0644 -t "$pkgdir/usr/share/doc/$pkgname/" \
     "$_repo/linux/hyprland.conf.example" \
     "$_repo/linux/omarchy-bar.example.json" \

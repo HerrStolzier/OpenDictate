@@ -86,11 +86,13 @@ Schritte in der [ROADMAP](ROADMAP.md).
 - **Linux:** Rust-CLI für Hyprland (Arch/omarchy) mit Aufnahme, Keyring,
   Transkription, Übersetzung, Zwischenablage, Auto-Einfügen in das beim Start
   erfasste Fenster, Leistenanzeige und Hotkey. Seit dem 7. Oktober 2026 im
-  Alltag genutzt. Einrichtung: [linux/README.md](linux/README.md).
+  Alltag genutzt. Einrichtung: [linux/README.de.md](linux/README.de.md).
 - **Windows:** Versionierter Prototyp unter [windows/](windows/README.md),
   nur offline geprüft; kein echtes Diktat, keine Paketierung.
 - **iOS:** Synthetischer Textpfad eines Tastatur-Prototyps belegt; echte
-  Aufnahme und Produktkonzept offen ([Richtung](docs/ios-direction.md)).
+  Aufnahme offen. Produktkonzept seit dem 11. Oktober 2026: Aufnahme im
+  Hintergrund, Ergebnis in die Zwischenablage, keine eigene Tastatur
+  ([Konzept](docs/ios-konzept.md)).
 - **Android:** Kein Code.
 - MIT-lizenzierter Quellcode. Nach erfolgreichen CI-Prüfungen sind zeitlich
   begrenzte, ad-hoc signierte [Entwicklungsarchive](docs/development.md#ci-development-archives)
@@ -130,8 +132,10 @@ der ersten Beta und blockiert keine ([ROADMAP](ROADMAP.md#plattformübergreifend
 - Keine Nachbearbeitung: OpenDictate glättet, formatiert oder kürzt nicht.
   Nutzer, die das erwarten, finden es bei anderen Apps; die Website soll das
   erklären.
-- Streaming, Echtzeit-Übersetzung, Hold-to-talk und Einzeltaste sind gewünscht,
-  nicht implementiert und kein Teil des Funktionsumfangs; Stand in der
+- Streaming und Echtzeit-Übersetzung sind gewünscht und nicht implementiert.
+  Hold-to-talk und Einzeltaste sind seit dem 9. Oktober beschlossen und auf
+  macOS gebaut, aber in keinem veröffentlichten Build; bis dahin sind alle
+  vier kein Teil des Funktionsumfangs. Stand in der
   [ROADMAP](ROADMAP.md#plattformübergreifend).
 - Die Betas sind keine öffentlichen Releases mit Supportzusage. Jede
   Veröffentlichung braucht Bastis ausdrückliches Go.
@@ -153,6 +157,11 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
+| 11. Oktober 2026 | Diktier-Ablauf der iOS-App für die erste Beta: Auslösen per Aktionstaste, Rückseite oder Kontrollzentrum nimmt im Hintergrund auf, das Ergebnis kommt in die Zwischenablage, der Nutzer fügt selbst ein. Keine eigene Tastatur mit Vollzugriff und kein Diktieren nur in der App. Löst den Wunsch vom 29. September 2026 ab, direkt in das Feld anderer Apps einzufügen. | [iOS-Konzept](docs/ios-konzept.md); Karte im privaten Projektchat |
+| 10. Oktober 2026 | Die Empfehlung in der Mac-Kürzel-Abfrage hängt von der Tastatur ab: Fn halten bei MacBook- oder kompakter Apple-Tastatur, rechte Wahltaste bei Apple-Tastatur mit Ziffernblock (Fn liegt dort weit rechts) oder Tastatur eines anderen Herstellers. Anlass: Bastis Live-Test mit der großen Apple-Tastatur. | [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |
+| 9. Oktober 2026 | Das Designsystem „OpenDictate“ aus Claude Design wird die gemeinsame Quelle für das Aussehen aller Oberflächen (Kopie und Generator unter `design/`). Reihenfolge der Umstellung: Website (nach dem Merge der Beta-Website), Linux-Leiste, Support-Formular und Dashboard beim Livegang, Mac-App nach dem Start der Mac-Beta, iOS mit seinem Track, Windows zuletzt. Die Betas bleiben in der heutigen Optik. | [design/README.md](design/README.md); Karte im privaten Projektchat |
+| 9. Oktober 2026 | Kürzel-Abfrage nach der Installation wird Funktion der fertigen, bezahlten App: zwei bis drei recherchierte Vorschläge je Plattform, die Empfehlung vorausgewählt, eigenes Kürzel möglich. Alle empfohlenen Vorschläge übernommen (macOS Fn halten, Linux Super+D, Windows Strg+Win halten, iOS Aktionstaste, Android Mikrofon-Taste der Tastatur; Liste in der ROADMAP). Die dafür nötige Technik für Einzeltasten und Halten-zum-Sprechen wird gebaut, zuerst auf macOS. Die laufenden Betas bleiben unverändert. | [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |
+| 8. Oktober 2026 | Die Linux-Beta erscheint auf Englisch: Das Programm spricht die Systemsprache (Deutsch oder Englisch), die Anleitung gibt es auf Englisch und Deutsch, angekündigt wird in englischsprachigen Communities (r/omarchy, r/hyprland). Veröffentlichung und Ankündigung nur nach Bastis Go. | [Linux-Anleitung](linux/README.md); Gespräch im privaten Projektchat |
 | 8. Oktober 2026 | Reihenfolge der Betas: Linux und macOS werden jetzt zur Beta gebracht, iOS danach. Linux beginnt mit Anleitung und installierbarem Arch-Paket. | [ROADMAP](ROADMAP.md#track-linux); Gespräch im privaten Projektchat |
 | 8. Oktober 2026 | Der Livegang des Supports wartet auf die neue Marke: Domain und Supportadresse kommen von dort. Bis dahin wird nichts eingerichtet oder veröffentlicht; die erste Version bleibt ein Entwurf. | [PR #56](https://github.com/HerrStolzier/OpenDictate/pull/56), [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |
 | 8. Oktober 2026 | Support: eigenes kleines Backend statt fertiger Ticketsoftware. Kontaktformular und Supportadresse werden Tickets, Dashboard nur für Basti, ein Agent sortiert und schreibt nur Entwürfe, Basti entscheidet und versendet; KI-Chatbot später als weiterer Eingang. Produktneutral für spätere Apps, eigenes privates Repository; die Website bleibt statisch, das Formular schickt nur an das Backend. Grundlage: Support-Richtung seit dem 12. September (E-Mail zuerst, später gemeinsamer KI-Support). | [ROADMAP](ROADMAP.md#plattformübergreifend); Notizen nur lokal bei Basti |

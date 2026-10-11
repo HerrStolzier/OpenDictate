@@ -62,6 +62,17 @@ final class HotKeyManager {
         if let previous { unregister(previous) }
     }
 
+    /// Drops the current registration, for example when a single modifier key
+    /// takes over. Bumping the id ignores a press already queued for it.
+    func unregisterCurrent() {
+        guard let hotKeyRef else { return }
+        unregister(hotKeyRef)
+        self.hotKeyRef = nil
+        registeredShortcut = nil
+        activeID &+= 1
+        action = nil
+    }
+
     private func registerNative(_ shortcut: HotKeyShortcut, id: UInt32) throws -> EventHotKeyRef {
         let hotKeyID = EventHotKeyID(signature: fourCharCode("ODCT"), id: id)
         var candidate: EventHotKeyRef?

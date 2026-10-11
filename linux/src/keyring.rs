@@ -15,9 +15,10 @@ pub fn probe() -> Result<(), String> {
     let _ = clear(PROBE_KEY);
     match stored {
         Ok(value) if value == token => Ok(()),
-        Ok(_) => {
-            Err("Keyring-Antwort stimmte nicht mit dem gespeicherten Wert überein.".to_string())
-        }
+        Ok(_) => Err(crate::tr!(
+            "Keyring-Antwort stimmte nicht mit dem gespeicherten Wert überein.",
+            "Keyring response did not match the stored value."
+        )),
         Err(error) => Err(error),
     }
 }
@@ -36,7 +37,7 @@ pub fn store_api_key(value: &str) -> Result<(), String> {
 pub fn api_key() -> Result<String, String> {
     require_secret_tool()?;
     if !exists(API_KEY)? {
-        return Err("API-Schlüssel fehlt.".to_string());
+        return Err(crate::tr!("API-Schlüssel fehlt.", "API key is missing."));
     }
     let value = lookup(API_KEY)?;
     validate_api_key(&value)?;
@@ -46,12 +47,19 @@ pub fn api_key() -> Result<String, String> {
 pub fn recording_auth() -> Result<Vec<u8>, String> {
     require_secret_tool()?;
     if !exists(RECORDING_AUTH)? {
-        return Err("Recording-Auth fehlt.".to_string());
+        return Err(crate::tr!(
+            "Recording-Auth fehlt.",
+            "Recording auth is missing."
+        ));
     }
     let encoded = lookup(RECORDING_AUTH)?;
-    let key = hex::decode(encoded).map_err(|_| "Recording-Auth ist ungültig.".to_string())?;
+    let key = hex::decode(encoded)
+        .map_err(|_| crate::tr!("Recording-Auth ist ungültig.", "Recording auth is invalid."))?;
     if key.len() != 32 {
-        return Err("Recording-Auth ist ungültig.".to_string());
+        return Err(crate::tr!(
+            "Recording-Auth ist ungültig.",
+            "Recording auth is invalid."
+        ));
     }
     Ok(key)
 }
@@ -64,9 +72,15 @@ fn validate_api_key(value: &str) -> Result<(), String> {
     if valid {
         Ok(())
     } else if value.is_empty() {
-        Err("API-Schlüssel fehlt (stdin war leer).".to_string())
+        Err(crate::tr!(
+            "API-Schlüssel fehlt (stdin war leer).",
+            "API key is missing (stdin was empty)."
+        ))
     } else {
-        Err("API-Schlüssel hat ein ungültiges Format.".to_string())
+        Err(crate::tr!(
+            "API-Schlüssel hat ein ungültiges Format.",
+            "API key has an invalid format."
+        ))
     }
 }
 
@@ -87,7 +101,10 @@ fn require_secret_tool() -> Result<(), String> {
     if which("secret-tool") {
         Ok(())
     } else {
-        Err("Keyring nicht verfügbar (secret-tool fehlt).".to_string())
+        Err(crate::tr!(
+            "Keyring nicht verfügbar (secret-tool fehlt).",
+            "Keyring unavailable (secret-tool is missing)."
+        ))
     }
 }
 
@@ -122,8 +139,12 @@ fn lookup(key: &str) -> Result<String, String> {
         .output()
         .map_err(secret_service_missing)?;
     if output.status.success() {
-        String::from_utf8(output.stdout)
-            .map_err(|_| "Keyring-Antwort war nicht lesbar.".to_string())
+        String::from_utf8(output.stdout).map_err(|_| {
+            crate::tr!(
+                "Keyring-Antwort war nicht lesbar.",
+                "Keyring response was unreadable."
+            )
+        })
     } else {
         Err(classify_secret_error(&output.stderr))
     }
@@ -168,7 +189,12 @@ fn random_hex(bytes: usize) -> Result<String, String> {
     let mut buf = vec![0u8; bytes];
     std::fs::File::open("/dev/urandom")
         .and_then(|mut file| file.read_exact(&mut buf))
-        .map_err(|_| "Zufallsquelle nicht verfügbar.".to_string())?;
+        .map_err(|_| {
+            crate::tr!(
+                "Zufallsquelle nicht verfügbar.",
+                "Random source unavailable."
+            )
+        })?;
     Ok(buf.iter().map(|byte| format!("{byte:02x}")).collect())
 }
 
@@ -188,7 +214,7 @@ fn secret_service_missing(_: std::io::Error) -> String {
 }
 
 fn secret_service_unavailable() -> String {
-    "Keyring nicht verfügbar.".to_string()
+    crate::tr!("Keyring nicht verfügbar.", "Keyring unavailable.")
 }
 
 fn classify_secret_error(stderr: &[u8]) -> String {
@@ -196,7 +222,7 @@ fn classify_secret_error(stderr: &[u8]) -> String {
     if is_missing_service(&message) {
         secret_service_unavailable()
     } else {
-        "Keyring nicht verfügbar.".to_string()
+        crate::tr!("Keyring nicht verfügbar.", "Keyring unavailable.")
     }
 }
 
