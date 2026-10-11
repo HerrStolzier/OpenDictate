@@ -90,7 +90,9 @@ Schritte in der [ROADMAP](ROADMAP.md).
 - **Windows:** Versionierter Prototyp unter [windows/](windows/README.md),
   nur offline geprüft; kein echtes Diktat, keine Paketierung.
 - **iOS:** Synthetischer Textpfad eines Tastatur-Prototyps belegt; echte
-  Aufnahme und Produktkonzept offen ([Richtung](docs/ios-direction.md)).
+  Aufnahme offen. Produktkonzept seit dem 11. Oktober 2026: Aufnahme im
+  Hintergrund, Ergebnis in die Zwischenablage, keine eigene Tastatur
+  ([Konzept](docs/ios-konzept.md)).
 - **Android:** Kein Code.
 - MIT-lizenzierter Quellcode. Nach erfolgreichen CI-Prüfungen sind zeitlich
   begrenzte, ad-hoc signierte [Entwicklungsarchive](docs/development.md#ci-development-archives)
@@ -155,6 +157,7 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
+| 11. Oktober 2026 | Diktier-Ablauf der iOS-App für die erste Beta: Auslösen per Aktionstaste, Rückseite oder Kontrollzentrum nimmt im Hintergrund auf, das Ergebnis kommt in die Zwischenablage, der Nutzer fügt selbst ein. Keine eigene Tastatur mit Vollzugriff und kein Diktieren nur in der App. Löst den Wunsch vom 29. September 2026 ab, direkt in das Feld anderer Apps einzufügen. | [iOS-Konzept](docs/ios-konzept.md); Karte im privaten Projektchat |
 | 11. Oktober 2026 | Die Domain für Website und Support wird opendictate.app (bei Cloudflare, wo Worker und Email Routing liegen); opendictate.com ist anderweitig registriert. | [PR #66](https://github.com/HerrStolzier/OpenDictate/pull/66); Gespräch im privaten Projektchat |
 | 10. Oktober 2026 | Die Empfehlung in der Mac-Kürzel-Abfrage hängt von der Tastatur ab: Fn halten bei MacBook- oder kompakter Apple-Tastatur, rechte Wahltaste bei Apple-Tastatur mit Ziffernblock (Fn liegt dort weit rechts) oder Tastatur eines anderen Herstellers. Anlass: Bastis Live-Test mit der großen Apple-Tastatur. | [ROADMAP](ROADMAP.md#plattformübergreifend); Gespräch im privaten Projektchat |
 | 9. Oktober 2026 | Das Designsystem „OpenDictate“ aus Claude Design wird die gemeinsame Quelle für das Aussehen aller Oberflächen (Kopie und Generator unter `design/`). Reihenfolge der Umstellung: Website (nach dem Merge der Beta-Website), Linux-Leiste, Support-Formular und Dashboard beim Livegang, Mac-App nach dem Start der Mac-Beta, iOS mit seinem Track, Windows zuletzt. Die Betas bleiben in der heutigen Optik. | [design/README.md](design/README.md); Karte im privaten Projektchat |
