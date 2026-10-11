@@ -9,7 +9,7 @@ product acceptance and are not public releases.
 OpenDictate records microphone audio only while a dictation is active. It does
 not include telemetry or analytics.
 
-## Data sent to OpenAI
+## Data sent to OpenAI or your own server
 
 For each non-empty dictation, OpenDictate sends the prepared audio over HTTPS to
 OpenAI's `/v1/audio/transcriptions` endpoint. The request also contains the
@@ -19,6 +19,16 @@ set, the transcript text is then sent over HTTPS to OpenAI's
 `/v1/chat/completions` endpoint together with the target language and the
 translation model, and only the translation is copied and pasted. OpenAI's own
 data handling terms apply to these transfers.
+
+With **Eigener Server** (or `OPENAI_BASE_URL`), the same requests go to the
+configured address instead of OpenAI, and that server's own terms apply. A
+server on this Mac (loopback address) receives no API key, and OpenDictate sends
+audio and text only to this Mac; what that local server does with them is up to
+its own configuration. Any other server must use HTTPS and receives the saved
+API key. HTTP redirects are not followed, so requests go only to the configured address.
+An address that is not allowed stops the dictation; it never falls back to
+OpenAI. The log records only the server's host name, never the path or
+key.
 
 The OpenAI API key is stored as a generic password in the macOS Keychain under
 service `OpenDictate` and account `OPENAI_API_KEY_APP`. OpenDictate does not support
@@ -148,11 +158,26 @@ window captured at recording start is still frontmost, sends that window a
 paste shortcut via `hyprctl`. Retry never pastes automatically. The optional
 bar module (Omarchy shell or Waybar) prints only the state and translation setting, never text.
 
+With a custom server (`settings server`, or `OPENAI_BASE_URL` when no address
+is stored), the recording and, with translation on, the transcript go to that
+server's `/audio/transcriptions` and `/chat/completions` instead of OpenAI;
+nothing goes to OpenAI then. Plain `http://` is accepted only for loopback
+addresses (`localhost`, `127.0.0.1`, `[::1]`), which never receive the API key.
+Any other custom server is reached over HTTPS and receives the stored API key
+as a bearer token. Addresses with credentials, a query or a fragment are
+rejected. `opendictate setup` checks a key or server once by requesting the
+server's model list (`/models`), which sends no audio or text.
+
+`opendictate setup` and `opendictate shortcut set` can add one bind line for
+`opendictate toggle` to the user's Hyprland config after a backup copy of the
+file; nothing else in the config is read for other purposes or changed.
+
 Secret Service items use attributes `service=opendictate` and `key=api-key` or
 `recording-auth`. The API key is accepted only on stdin. A probe item can be
 written, read and deleted to test the service. There is no file, environment or
 argument fallback. Settings contain only transcription model, language, optional and last target
-language, translation model and the auto-insert switch and are stored under
+language, translation model, the auto-insert switch and an optional custom
+server address, and are stored under
 `$XDG_CONFIG_HOME/opendictate/`.
 
 Pending and recovery audio live under `$XDG_STATE_HOME/opendictate/` (typically
@@ -167,7 +192,8 @@ auto-insert on, audio is kept for retry if the clipboard no longer holds
 exactly that text before the paste.
 
 The operations log under `$XDG_STATE_HOME/opendictate/operations.log` records
-bounded events, durations and the captured window class. It must not contain API
+bounded events, durations, the captured window class and, with a custom server,
+that server's host name (never its path). It must not contain API
 keys, transcript text, window titles or audio contents. Live Linux transcription
 and translation requests were exercised on one attended test system on
 5 October 2026; this is not a published Linux product.

@@ -1,7 +1,7 @@
 # OpenDictate Roadmap
 
-Stand: 8. Oktober 2026. Geprüfter Ausgangspunkt: `main`
-`cdd4b7f` (7. Oktober). Begründung dieser Ordnung:
+Stand: 11. Oktober 2026 (macOS-Beta veröffentlicht); Ordnung vom 8. Oktober,
+damals geprüft auf `main` `cdd4b7f`. Begründung dieser Ordnung:
 [Neuordnung vom 8. Oktober](docs/roadmap-neuordnung-2026-10-08.md).
 
 Diese Datei ist die **einzige laufende Feature- und Plattform-To-do-Liste**.
@@ -53,11 +53,16 @@ Nachweise: [Live-Nachweise 5. bis 7. Oktober](docs/linux-live-2026-10-05-bis-07.
 
 1. Linux-Beta auf Englisch (Entscheidung 8. Oktober): Das Programm spricht die
    Systemsprache, Anleitung auf Englisch und Deutsch, eigene Issue-Vorlage.
-   Dann Pre-Release und Ankündigung in r/omarchy und r/hyprland. Go je
-   Veröffentlichung und Ankündigung.
+   Seit 11. Oktober zusätzlich gebaut, nur offline geprüft: eigener Server
+   (Stufe 1 für ein lokales Modell, gleiche Begriffe wie auf dem Mac) und die
+   geführte Einrichtung `opendictate setup` mit Kürzel-Abfrage (Super+D, F9,
+   rechte Alt nur bei US-Layout). Vor dem Pre-Release einmal auf omarchy
+   bauen und durchspielen. Dann Pre-Release und Ankündigung in r/omarchy und
+   r/hyprland. Go je Veröffentlichung und Ankündigung.
 2. Beta laufen lassen: Issues zeitnah beantworten, Rückmeldungen sammeln,
-   danach entscheiden, was gebaut wird (Kandidaten: konfigurierbarer Endpunkt,
-   Vokabular, Echtzeit-Übersetzung, Feinjustierung der Zeitlimits).
+   danach entscheiden, was gebaut wird (Kandidaten: Vokabular,
+   Echtzeit-Übersetzung, Feinjustierung der Zeitlimits, Stufe 2 mit Modell im
+   Programm).
 
 **Bekannte Grenzen, den Beta-Nutzern überlassen:** Einfügen in Chromium-,
 Electron- und Discord-Fenstern; gemischtes Deutsch/Englisch mit Übersetzung;
@@ -68,7 +73,7 @@ Compositor; nur Arch/omarchy.
 ## Track macOS
 
 **Ziel der Beta:** Mac-Nutzer (Apple Silicon, macOS 14+) laden das notarisierte
-Paket, richten ihren Schlüssel ein, diktieren mit Option+Shift+Leertaste,
+Paket, richten ihren Schlüssel ein, diktieren mit dem beim ersten Start gewählten Kürzel,
 wahlweise mit Übersetzung, und melden Probleme über GitHub Issues.
 
 **Stand:** Stufe 1 (interne Funktionsabnahme) am 24. September abgeschlossen.
@@ -78,26 +83,26 @@ Release-Draft `v0.1.0-beta.8` hinterlegt. Teil B am 8. Oktober: installiert,
 erster Start mit Quarantäne und ein Diktat mit automatischem Einfügen bestanden
 ([Nachweis](docs/release-plans/evidence/2026-10-08-plan2-teil-b.md)). Übersetzung und die kleinen Punkte vom 7. Oktober sind im Code und
 offline geprüft ([Stand](docs/remaining-acceptance.md#macos)); ein echtes
-Diktat damit fehlt. Die Stufenpläne unter
+Diktat mit Übersetzung ist mit Build 9 und Build 10 belegt
+([Build 9](docs/release-plans/evidence/2026-10-08-build9.md),
+[Build 10](docs/release-plans/evidence/2026-10-11-build10.md)). **Die Mac-Beta
+ist seit dem 11. Oktober öffentlich:** Pre-Release
+[`v0.1.0-beta.10`](https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.10)
+mit Build 10 aus `a1903a9`, Download ohne Login von außen geprüft (Hash,
+Notarisierung, Gatekeeper; [Nachweis](docs/release-plans/evidence/2026-10-11-build10.md#veröffentlichung-als-beta-11-oktober-2026)). Die Stufenpläne unter
 [docs/release-plans/](docs/release-plans/01-interne-produktabnahme.md) bleiben
 die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleinert.
 
 **Nächste Schritte:**
 
-1. Übersetzung und die kleinen Punkte vom 7. Oktober: umgesetzt und offline
-   geprüft. Offen ist nur der Live-Nachweis im nächsten Kandidaten: ein Diktat
-   mit Übersetzung nach Englisch und die Dateirechte `0600` der
-   Originalaufnahme während der Aufnahme.
-2. Neuen Kandidaten bauen, signieren, notarisieren und einfrieren (Stufe 4 im
-   verkleinerten Umfang: Hash, Installation und Update geprüft, Produkttexte in
-   README, Website und App stimmen überein). Stufe 3 (Eigennutzung) schrumpft
-   auf: Basti nutzt den Kandidaten so lange selbst, bis er ihm vertraut; der
-   Messbogen ist optional. Die vollständige UX- und VoiceOver-Prüfung wird zur
-   bekannten Grenze der Beta.
-3. Mac-Beta (bisher Stufen 5 und 6): Pre-Release, Website mit „Beta“,
-   [Installationsanleitung](docs/release-plans/installationsanleitung.md),
-   Ankündigung (Kandidaten: Show HN, r/macapps, Mastodon/X).
-4. Beta laufen lassen und antworten.
+1. Ankündigung: vorerst keine (Basti, 11. Oktober). Wenn sie kommt, Go je Ort: zuerst r/macapps (nach Moderator-Hinweisen von 2026
+   vermutlich im monatlichen „App Pile“-Sammelthread; Regeln vor dem Posten
+   prüfen), Show HN erst
+   nach den ersten Rückmeldungen, Mastodon/X über Bastis Account.
+2. Beta laufen lassen: Issues beantworten, Rückmeldungen sammeln.
+3. Nächster Kandidat mit dem eigenen Server aus PR #70 (lokales Modell ohne
+   Schlüssel), dabei ein Live-Diktat gegen einen lokalen Modellserver. Die
+   vollständige UX- und VoiceOver-Prüfung bleibt bekannte Grenze der Beta.
 
 **Bekannte Grenzen, den Beta-Nutzern überlassen:** Feldtypen und Programme
 jenseits der [Kompatibilitätsmatrix](docs/compatibility-matrix.md); gehörte
@@ -192,22 +197,24 @@ Mehrsprachigkeit ohne Umschalten, Datenschutz und schnellem Zugriff.
 | Punkt | Stand | Nächster Schritt |
 | --- | --- | --- |
 | Preismodell | Am 8. Oktober entschieden ([PROJECT](PROJECT.md#preismodell)): offener Code, CLI-Builds gratis, fertige App mit UI einmalig bezahlt; bis zur Firmengründung bleibt alles kostenlos. | Vor der ersten bezahlten Version: Firmengründung, Bezahlweg, Preis festlegen. Keine Beta hängt daran. |
-| Gaming | Ursprungs-Anwendungsfall ([PROJECT](PROJECT.md#anwendungsfälle)). Belegt: Textchat in World of Warcraft mit der Mac-App. Offen: Einfügen im exklusiven Vollbild, Zwei-Tasten-Kürzel auf jeder Plattform, Einzeltaste oder Halten-zum-Sprechen. | Im Windows-Track Schritt 2 prüfen. Vor einer Gaming-Botschaft per Blizzard-Ticket klären, dass externe Diktier-Software geduldet ist. Hold-to-talk und Einzeltaste sind auf macOS mit der Kürzel-Abfrage gebaut (nächster Kandidat nach Build 9); Windows folgt mit seinem Track. |
-| Kürzel-Abfrage beim ersten Start | Am 9. Oktober entschieden ([PROJECT](PROJECT.md#entscheidungen)) für die fertige (bezahlte) App: Nach der Installation fragt die App, wie die Aufnahme starten soll, und schlägt je Plattform zwei bis drei recherchierte Kürzel vor; die Empfehlung ist vorausgewählt, ein eigenes Kürzel bleibt möglich, ein Tastendruck prüft, dass es ankommt. Bestätigte Vorschläge (Recherche 9. Oktober, die erste Option ist jeweils vorausgewählt; außer macOS nicht gebaut): macOS Fn halten, rechte Wahltaste, ⌃⌥D (seit 10. Oktober ist die rechte Wahltaste vorausgewählt, wenn eine Apple-Tastatur mit Ziffernblock oder eine fremde Tastatur angeschlossen ist); Linux Super+D, F9 (Omarchys Diktiertaste), rechte Alt nur bei US-Layout; Windows Strg+Win halten, rechte Strg für Spiele, Maus-Seitentaste; iOS Aktionstaste, Auf Rückseite tippen, Steuerelement; Android Mikrofon-Taste der Tastatur, Schnelleinstellungs-Kachel, schwebende Blase. Die Mac-App hat schon eine Kürzelauswahl im Menü (drei Vorschläge, eigenes Kürzel); ihr Standard Option+Shift+Leertaste hat drei Tasten. Einzeltasten und Halten-zum-Sprechen brauchen auf macOS und Windows eine andere Technik als heute. macOS: Fn halten, rechte Wahltaste (beide mit Halten-zum-Sprechen) und die Abfrage sind gebaut, offline geprüft und am 9. Oktober live am Mac geprüft; einzelne Fälle sind noch offen ([Abnahme](docs/remaining-acceptance.md#macos)). Build 9 enthält sie nicht. | macOS kommt mit dem nächsten Kandidaten nach Build 9. Danach Linux als Schritt im Installer, Windows (gleiche Technik für Strg+Win und rechte Strg), iOS und Android mit ihrem Track. |
-| Konfigurierbarer Endpunkt | Am 2. Oktober für macOS spezifiziert ([Plan-4-Notiz](docs/plan4-aenderungen-2026-10-02.md)); seit dem 8. Oktober für alle Plattformen gewünscht, als Antwort auf den Wunsch nach lokaler Verarbeitung. | Mac mit dem nächsten Kandidaten; Linux und Windows nach ihrer ersten Beta. Nur die Adresse, `http://` nur für Loopback; eine Fremd-URL wird nicht abgenommen. |
-| Provider-Vertrag | Am 2. Oktober entschieden: gemeinsame Fixtures unter `fixtures/provider/` für Swift, Rust und C#. Nicht begonnen. | Mac-Teil mit dem nächsten Kandidaten; Linux `validate_model` wie Mac; Windows mit Schritt 1 seines Tracks. |
+| Gaming | Ursprungs-Anwendungsfall ([PROJECT](PROJECT.md#anwendungsfälle)). Belegt: Textchat in World of Warcraft mit der Mac-App. Offen: Einfügen im exklusiven Vollbild, Zwei-Tasten-Kürzel auf jeder Plattform, Einzeltaste oder Halten-zum-Sprechen. | Im Windows-Track Schritt 2 prüfen. Vor einer Gaming-Botschaft per Blizzard-Ticket klären, dass externe Diktier-Software geduldet ist. Hold-to-talk und Einzeltaste sind auf macOS mit der Kürzel-Abfrage gebaut (seit 11. Oktober in der veröffentlichten Beta `v0.1.0-beta.10`); Windows folgt mit seinem Track. |
+| Kürzel-Abfrage beim ersten Start | Am 9. Oktober entschieden ([PROJECT](PROJECT.md#entscheidungen)) für die fertige (bezahlte) App: Nach der Installation fragt die App, wie die Aufnahme starten soll, und schlägt je Plattform zwei bis drei recherchierte Kürzel vor; die Empfehlung ist vorausgewählt, ein eigenes Kürzel bleibt möglich, ein Tastendruck prüft, dass es ankommt. Bestätigte Vorschläge (Recherche 9. Oktober, die erste Option ist jeweils vorausgewählt; außer macOS nicht gebaut): macOS Fn halten, rechte Wahltaste, ⌃⌥D (seit 10. Oktober ist die rechte Wahltaste vorausgewählt, wenn eine Apple-Tastatur mit Ziffernblock oder eine fremde Tastatur angeschlossen ist); Linux Super+D, F9 (Omarchys Diktiertaste), rechte Alt nur bei US-Layout; Windows Strg+Win halten, rechte Strg für Spiele, Maus-Seitentaste; iOS Aktionstaste, Auf Rückseite tippen, Steuerelement; Android Mikrofon-Taste der Tastatur, Schnelleinstellungs-Kachel, schwebende Blase. Die Mac-App hat schon eine Kürzelauswahl im Menü (drei Vorschläge, eigenes Kürzel); ihr Standard Option+Shift+Leertaste hat drei Tasten. Einzeltasten und Halten-zum-Sprechen brauchen auf macOS und Windows eine andere Technik als heute. macOS: Fn halten, rechte Wahltaste (beide mit Halten-zum-Sprechen) und die Abfrage sind gebaut, offline geprüft und am 9. Oktober live am Mac geprüft; einzelne Fälle sind noch offen ([Abnahme](docs/remaining-acceptance.md#macos)). Build 9 enthält sie nicht; Build 10 enthält sie und ist seit dem 11. Oktober als Beta `v0.1.0-beta.10` veröffentlicht ([Nachweis](docs/release-plans/evidence/2026-10-11-build10.md)). | macOS: in der veröffentlichten Beta `v0.1.0-beta.10` (Build 10). Linux: seit 11. Oktober `opendictate setup` (Hinweis nach der Paketinstallation; zeigt freie und belegte Tasten, trägt die Zeile mit Sicherung in die Hyprland-Konfiguration ein), offline geprüft, live auf omarchy offen. Danach Windows (gleiche Technik für Strg+Win und rechte Strg), iOS und Android mit ihrem Track. |
+| Konfigurierbarer Endpunkt | Am 2. Oktober für macOS spezifiziert ([Plan-4-Notiz](docs/plan4-aenderungen-2026-10-02.md)); seit dem 8. Oktober für alle Plattformen gewünscht, als Antwort auf den Wunsch nach lokaler Verarbeitung. | Mac: als „Eigener Server“ umgesetzt und offline geprüft (11. Oktober, inklusive echtem Testserver auf 127.0.0.1); ein lokaler Server bekommt keinen Schlüssel und braucht keinen, damit ist ein lokales Modell kostenlos nutzbar (Basti, 9. Oktober); ein mitgeliefertes Modell kommt erst später. Nicht in Build 10; kommt mit dem nächsten Mac-Kandidaten. Linux am 11. Oktober mit denselben Begriffen gebaut (`opendictate settings server`, Abschnitt „Custom server“ / „Eigenen Server verwenden“ in der Linux-Anleitung), offline geprüft, live offen. Windows nach seiner ersten Beta. Nur die Adresse, `http://` nur für Loopback; eine Fremd-URL wird nicht abgenommen. |
+| Provider-Vertrag | Am 2. Oktober entschieden: gemeinsame Fixtures unter `fixtures/provider/` für Swift, Rust und C#. Mac-Teil am 11. Oktober erledigt: [Vertrag](fixtures/provider/CONTRACT.md), Antwort- und Fehlerdateien, Swift-Tests lesen sie. | Linux: `validate_model` wie Mac und `transcribe.rs`-Tests gegen dieselben Dateien; Windows mit Schritt 1 seines Tracks. |
 | Markenidentität 1.1 | Langfristiges Ziel vom 29. September ([PROJECT](PROJECT.md#marken--und-gestaltungsrichtung)). Das Designsystem aus Claude Design (Pixel-Terminal, Blink, grünes Signal, drei Themes) liegt seit dem 9. Oktober als gemeinsame Quelle unter [`design/`](design/README.md); noch keine Oberfläche nutzt es. | Beginnt nach der ersten Beta (Linux oder Mac) und blockiert keine Beta. Richtung mit Basti anhand echter App-Zustände und eines Marketingbeispiels festlegen. |
 | Vokabular | Mac hat „Vokabular und Kontext“; Linux und Windows nicht. Laut Recherche häufiger Wunsch. | Nach der ersten Beta-Rückmeldung je Plattform nachziehen. |
 | Echtzeit-Übersetzung und Streaming | Weg C (`gpt-realtime-translate`) ist recherchiert, nicht gebaut ([Plan](docs/linux-live-translation-plan.md)). Streaming beim Diktieren ist seit dem 26. September gewünscht. Beides widerspricht der Regel, unbestätigte Teilergebnisse nicht ins Zielfeld zu schreiben, und braucht eigene Akzeptanzkriterien. | Erst nach Beta-Rückmeldung, dass die Wartezeit von Weg A stört. |
 | Zielsprache je Anwendung | Idee aus der Recherche, nicht beauftragt. | Keiner. |
 | Verbrauchsanzeige in der App | Wunsch von Basti vom 8. Oktober: Nutzer sollen ihren Verbrauch (zum Beispiel pro Tag) direkt in der App sehen, ohne sich im Dashboard des Anbieters anzumelden, ähnlich den Verbrauchsmodulen anderer Plattformen. Nicht beauftragt. Zwei Wege sind denkbar: lokal mitzählen (Audiosekunden je Diktat mal Listenpreis des gewählten Modells, Übersetzungs-Tokens aus der `usage`-Antwort) oder die Verbrauchs- und Kostenschnittstelle des Anbieters abfragen, die nach aktuellem Stand einen Admin-Schlüssel statt des normalen API-Schlüssels verlangt. | Nach der ersten Beta je Plattform entscheiden; lokales Mitzählen ist der wahrscheinlichere Weg, weil es mit dem vorhandenen Schlüssel auskommt. Preise als änderbare Tabelle, Zähler lokal und ohne Transkripte; Datenfluss in `PRIVACY.md` nachziehen. |
-| Support-Backend | Am 8. Oktober entschieden ([PROJECT](PROJECT.md#entscheidungen)): eigenes kleines Backend statt fertiger Ticketsoftware. Die erste Version ist als Entwurf in einem eigenen privaten Repository gebaut und offline getestet; der Livegang wartet auf die neue Marke. Kontaktformular und Supportadresse werden Tickets, ein Dashboard nur für Basti, ein Agent sortiert und schreibt nur Entwürfe, Basti entscheidet und versendet. Die Website bleibt statisch; das Formular schickt nur an das Backend. | Vor dem Livegang fehlen Domain und Supportadresse, Impressum und Datenschutzerklärung auf der Website, Auftragsverarbeitung mit dem KI-Anbieter und ein Abschnitt zum Supportweg in `PRIVACY.md`. KI-Chatbot später als weiterer Eingang. |
+| Support-Backend | Am 8. Oktober entschieden ([PROJECT](PROJECT.md#entscheidungen)): eigenes kleines Backend statt fertiger Ticketsoftware. Die erste Version ist als Entwurf in einem eigenen privaten Repository gebaut und offline getestet; der Livegang wartet auf die neue Marke. Kontaktformular und Supportadresse werden Tickets, ein Dashboard nur für Basti, ein Agent sortiert und schreibt nur Entwürfe, Basti entscheidet und versendet. Die Website bleibt statisch; das Formular schickt nur an das Backend. | Vor dem Livegang fehlen Domain und Supportadresse, Impressum und Datenschutzerklärung auf der Website, Auftragsverarbeitung mit OpenAI als KI-Anbieter des Agenten (Entscheidung 11. Oktober) und ein Abschnitt zum Supportweg in `PRIVACY.md`. KI-Chatbot später als weiterer Eingang. |
 | Alte verwaiste Audiooriginale nach Absturz | Sichere Zuordnung und Wiederherstellung historischer temporärer Dateien sind offen. Regel: die einzige überlebende Aufnahme nie blind löschen. | Eigentum, Erkennung, Ablauf und Wiederherstellung festlegen, bevor Bereinigung automatisiert wird; mit Verlust- und Manipulationsfällen abnehmen. |
 
 ## Erledigt
 
 | Datum | Ergebnis | Nachweis |
 | --- | --- | --- |
+| 11. Oktober 2026 | macOS-Beta veröffentlicht: Pre-Release `v0.1.0-beta.10` mit Build 10 (`a1903a9`), Download von außen geprüft; Website, README und Anleitung auf Build 10 (PR #60). | [Release](https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.10), [Build-10-Nachweis](docs/release-plans/evidence/2026-10-11-build10.md) |
+| 8. Oktober 2026 | macOS Build 9 aus `46103b0`: notarisiert, als Update per Finder installiert, Diktat mit Übersetzung nach Englisch, Originalaufnahme von Anfang an `0600` (PR #58). | [Nachweis](docs/release-plans/evidence/2026-10-08-build9.md) |
 | 8. Oktober 2026 | macOS Stufe 2 Teil B: Build 8 installiert, erster Start mit Quarantäne, Diktat mit Einfügen. Beenden während der Transkription als bekannte Grenze eingetragen. | [Nachweis](docs/release-plans/evidence/2026-10-08-plan2-teil-b.md) |
 | 8. Oktober 2026 | Linux: Beta-Anleitung in `linux/README.md` und Arch-Paket ([PKGBUILD](linux/packaging/arch/PKGBUILD)); von Basti auf omarchy installiert, Diktat mit Übersetzung über das Paket (PR #57). | [Live-Nachweise](docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026) |
 | 7. Oktober 2026 | Linux: Abbruch und Netzausfall während der Transkription behalten die Aufnahme; Zeitlimits auf Sekunden statt zwei Minuten (PR #51). | [Live-Nachweise](docs/linux-live-2026-10-05-bis-07.md) |

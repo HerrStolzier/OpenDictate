@@ -2,8 +2,10 @@
 
 Native dictation for Apple Silicon Macs with macOS 14 and newer: press a
 shortcut, speak, then work with text in your chosen application. This is the
-scope of the planned first public Mac release. OpenDictate uses your own OpenAI API key.
-Audio is sent to OpenAI over HTTPS; transcription incurs separate API charges.
+scope of the first public Mac beta. OpenDictate uses your own OpenAI API key,
+and audio is sent to OpenAI over HTTPS; transcription incurs separate API charges.
+Alternatively, a [server of your own](#using-your-own-server) can do the work,
+including a free local model on this Mac that needs no key.
 
 The Windows development snapshot and its separate acceptance limits are in
 [windows/README.md](windows/README.md). The [Linux CLI](linux/README.md) is also
@@ -12,8 +14,13 @@ the instructions below describe the macOS app.
 
 ## First dictation
 
-You need a Mac, internet access and an OpenAI API key. A public signed and
-notarized download is not available yet. GitHub CI also retains explicitly
+You need a Mac and either an OpenAI API key with internet access, or (from the
+version after the current beta) a transcription server running on this Mac (see
+[Using your own server](#using-your-own-server)). With a local server no key is
+needed; in step 1, enter its address under **Einstellungen → Erweitert →
+Eigener Server** instead. The signed and notarized beta is
+a [pre-release on GitHub](https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.10);
+the [install guide](docs/release-plans/installationsanleitung.md) walks through it. GitHub CI also retains explicitly
 labelled [development archives](docs/development.md#ci-development-archives)
 for later testing. To build from source, use Swift 6 on macOS:
 
@@ -28,7 +35,7 @@ open .build/OpenDictate.app
 2. Choose your microphone and language in **Einstellungen**. Allow microphone
    access when recording. Automatic insertion additionally needs macOS
    Accessibility access; clipboard-only use does not need that permission.
-3. After the key is set up, the app asks once how you want to start recording
+3. After the key (or a local server) is set up, the app asks once how you want to start recording
    (also once after an update, if no shortcut was ever chosen):
    hold **Fn/Globe**, the **right Option key**, or **Control+Option+D**, or a
    custom shortcut. On a MacBook or a compact Apple keyboard, Fn/Globe is
@@ -115,6 +122,9 @@ Changes apply to the next dictation, no restart needed.
   only the translation is copied and pasted. If the translation fails or comes
   back empty, nothing is pasted, the original text is not used as a fallback and
   the recording is kept for retry; a retry translates again.
+- **Eigener Server** (Advanced) — use any server that speaks the OpenAI request
+  format instead of OpenAI, including a local model on this Mac. See
+  [Using your own server](#using-your-own-server).
 - **Vokabular und Kontext** — local prompt setting (up to 2,000 characters in the editor), sent with each dictation. A stored value overrides the legacy environment variable.
 - **Automatisch einfügen** — disable for clipboard-only delivery. At delivery,
   the app captured when dictation began is brought forward if it is still
@@ -179,6 +189,33 @@ menu is not silently ignored for anyone who exports them:
 - `OPENAI_TRANSCRIBE_MODEL`, default `gpt-transcribe`. Set `gpt-4o-mini-transcribe` (approx. $0.003/min, billed by tokens) to trade accuracy for cost. Setting `gpt-live-transcribe` is caught at launch with a warning: it targets the realtime endpoint, not this upload flow.
 - `OPENAI_TRANSCRIBE_LANGUAGE`, for example `de`
 - `OPENAI_TRANSCRIBE_PROMPT`, for vocabulary hints. The in-app vocabulary setting overrides this value.
+- `OPENAI_BASE_URL`, the server address as in the OpenAI SDKs, for example
+  `http://127.0.0.1:8080/v1`. A value saved under **Eigener Server** wins.
+
+## Using your own server
+
+**Einstellungen → Erweitert → Eigener Server** takes a server address and,
+optionally, the model names that server uses. Leave the address empty for
+OpenAI. The address is the base URL including `/v1`; OpenDictate appends
+`/audio/transcriptions` for dictation and `/chat/completions` for translation.
+
+- **A local model is free.** A server on this Mac (`http://127.0.0.1`,
+  `http://localhost` or `http://[::1]`) receives no API key, and none is
+  required. OpenDictate sends audio and text only to this Mac. Examples are whisper.cpp's server
+  or Speaches for transcription and LM Studio or Ollama for translation, each
+  with its own model names.
+- **Other servers need `https://`** and receive your saved API key, for
+  example a Groq key. Plain `http://` to another computer is rejected, so audio
+  and keys never travel unencrypted over a network.
+- Redirects are not followed, so audio and text go only to the address you
+  entered, never on to another host.
+- If an address taken from `OPENAI_BASE_URL` is not allowed, dictation stops
+  with a message instead of falling back to OpenAI.
+
+Only OpenAI is tested by the project; other servers are a known limit.
+Recordings that fail there stay available for retry as usual. The custom server
+is not part of Build 10, the current beta candidate; it arrives with the next
+Mac version.
 
 ## Permissions
 

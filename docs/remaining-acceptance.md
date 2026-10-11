@@ -46,7 +46,14 @@ nächste Versuch klappte); seit PR #59 steht der Grund im Protokoll
 (`recording-start-failed`), und die leere Datei wird entfernt. Einfügen in Chromium-, Electron- und
 Discord-Fenstern; gemischtes Deutsch/Englisch; Abbruch genau während der
 Übersetzung; andere Compositoren als Hyprland; andere Distributionen;
-Vokabular; konfigurierbarer Endpunkt. Für das Arch-Paket ungeprüft: `namcap`, Bau mit pacman-Rust und `makepkg -si`,
+Vokabular. Eigener Server und `opendictate setup` mit Kürzel-Abfrage
+(11. Oktober) sind nur offline geprüft: Tests mit lokalem HTTP-Stub (kein
+Schlüssel an Loopback, Schlüssel an Fremdserver) und ein Durchlauf im
+Test-Terminal mit Attrappen für `hyprctl` und `secret-tool`. Ebenso nur mit
+einer `hyprctl`-Attrappe geprüft: Übernimmt Hyprland ein neues Kürzel nicht,
+stellt `setup` die Konfiguration wieder her (seit dem Folge-PR zu #67). Live offen:
+Durchlauf auf omarchy, die Lua-Zeilen für F9 und rechte Alt, ein echter
+lokaler Server. Für das Arch-Paket ungeprüft: `namcap`, Bau mit pacman-Rust und `makepkg -si`,
 frische Ersteinrichtung des Schlüssels.
 Eine alte Testaufnahme vom 7. Oktober liegt noch im Recovery-Ordner auf
 omarchy; Löschen nur mit Bastis Go. Die leere Datei vom gescheiterten Start
@@ -95,7 +102,12 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   Aufnahme im App-Log, Tests schreiben in eine temporäre Logdatei (Zeilenzahl
   des echten Logs vor und nach `swift test` gleich), „ca.“ beim Preis des
   Mini-Modells.
-- Einzeltasten und Kürzel-Abfrage (nach Build 9, noch in keinem Kandidaten):
+- Build 9 aus `46103b0` (8. Oktober 2026, mit Bastis Go): notarisiert, per
+  Finder als Update über Build 8 installiert (Bedienungshilfen blieben
+  erhalten), Diktat mit Übersetzung nach Englisch in TextEdit eingefügt,
+  Originalaufnahme beim Anlegen bereits `0600`
+  ([Nachweis](release-plans/evidence/2026-10-08-build9.md)).
+- Einzeltasten und Kürzel-Abfrage (seit Build 10, [Nachweis](release-plans/evidence/2026-10-11-build10.md)):
   Fn/Globus halten und rechte Wahltaste über NSEvent-Monitore, Abfrage beim
   ersten Start nach dem API-Schlüssel mit Tastendruck-Test. Offline geprüft:
   Erkennung von Antippen, Halten, fremder Taste und Mindestdauer in
@@ -121,7 +133,25 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   gelesen: ein Magic Keyboard mit Ziffernblock (`004C:026C`) ergibt die rechte
   Wahltaste, das Fenster wurde gerendert und angesehen.
 
+- Eigener Server (11. Oktober, noch in keinem Kandidaten): Adresse unter
+  Einstellungen → Erweitert, `https://` beliebig, `http://` nur auf diesem Mac.
+  Offline geprüft: Adressregeln, Vorrang vor `OPENAI_BASE_URL`, kein Rückfall
+  auf OpenAI bei ungültiger Adresse, Schlüssel nur an Server außerhalb dieses
+  Macs, und ein echter Testserver auf 127.0.0.1 empfängt Transkription und
+  Übersetzung ohne Schlüssel (`LocalServerTransportTests`). Eine
+  http-Verbindung zu `127.0.0.1` und `localhost` blockiert macOS auch ohne
+  Ausnahme im App-Paket nicht (Probe-App am 11. Oktober; `http://example.com`
+  wurde blockiert); `[::1]` ist nicht geprobt. Dass bei lokalem Server kein
+  Schlüssel gelesen und keine Einrichtung verlangt wird, ist aus dem Code
+  abgeleitet, nicht getestet.
+
 **Offen / bekannte Grenzen:**
+
+- Eigener Server: kein Live-Diktat gegen einen echten lokalen Modellserver;
+  andere Server als OpenAI werden nicht abgenommen. Ebenfalls nur aus dem Code
+  abgeleitet: Bei einer frischen Installation ohne Schlüssel führt das
+  Speichern eines lokalen Servers wie das Speichern eines Schlüssels weiter zur
+  Kürzel-Abfrage und zur Bedienungshilfen-Freigabe.
 
 - Empfehlung je Tastatur: MacBook-Tastatur und Fremdtastatur am echten Gerät
   ungeprüft. Jedes HID-Gerät mit Tastatur-Schnittstelle oder einer
@@ -146,9 +176,10 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   antwortete OpenAI in zwei Versuchen am 8. Oktober nach gut 3 s, bevor die
   Abfrage bestätigt war. Bekannte Grenze der Beta (Entscheidung Basti).
 - „Text ansehen“ und „Text kopieren“ wurden in Teil B nicht eigens geprüft.
-- Übersetzung und die Punkte vom 7. Oktober: noch kein echtes Diktat auf dem
-  Mac; das prüft der nächste Kandidat (Installation und ein Diktat mit
-  Übersetzung).
+- Übersetzung: Diktate mit Übersetzung nach Englisch wurden mit Build 9 und
+  Build 10 eingefügt ([Build 9](release-plans/evidence/2026-10-08-build9.md),
+  [Build 10](release-plans/evidence/2026-10-11-build10.md)); Wiederholen,
+  Fehlerfälle und Abbruch während der Übersetzung sind nur offline belegt.
 - Der ⌘V-Pfad bindet kein Feld: Cursor- oder Fokuswechsel nach dem Stopp
   können den Einfügeort innerhalb der ursprünglichen App verändern; er hat
   keinen Zeilenumbruchfilter. Terminal-Tabs, Markierung, Secure Input, iTerm2
@@ -161,7 +192,7 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
   `OPENAI_API_KEY` mit Build-Hashes in der Zugriffsliste; er wird nur durch die
   App-Migration entfernt, nicht manuell.
 
-**Letzter Nachweis:** 8. Oktober 2026 (Teil B, Build 8).
+**Letzter Nachweis:** 11. Oktober 2026 (Build 10 notarisiert, als Update installiert, ein Diktat mit Übersetzung; [Nachweis](release-plans/evidence/2026-10-11-build10.md)).
 
 ## Windows
 

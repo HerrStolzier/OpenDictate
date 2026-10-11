@@ -4,7 +4,8 @@ use std::time::Duration;
 use serde::Deserialize;
 use serde_json::json;
 
-const DEFAULT_ENDPOINT: &str = "https://api.openai.com/v1/chat/completions";
+use crate::server::Server;
+
 const MAX_INPUT_CHARS: usize = 20_000;
 /// Waiting time for a short translation. A request that stalls because the
 /// network is gone ends after this budget plus a share for longer texts,
@@ -12,27 +13,35 @@ const MAX_INPUT_CHARS: usize = 20_000;
 const RESPONSE_BUDGET: Duration = Duration::from_secs(15);
 const CHARS_PER_EXTRA_SECOND: usize = 100;
 const MAX_REQUEST_TIMEOUT: Duration = Duration::from_secs(60);
+/// A local language model on the CPU answers far slower than OpenAI.
+const CUSTOM_RESPONSE_BUDGET: Duration = Duration::from_secs(120);
+const CUSTOM_MAX_REQUEST_TIMEOUT: Duration = Duration::from_secs(180);
 
 pub struct Translator {
-    endpoint: String,
+    server: Server,
+    url: String,
     agent: ureq::Agent,
     response_budget: Duration,
+    max_timeout: Duration,
 }
 
 impl Translator {
-    pub fn new() -> Self {
-        Self::with_endpoint(DEFAULT_ENDPOINT)
-    }
-
-    fn with_endpoint(endpoint: &str) -> Self {
+    pub fn new(server: &Server) -> Self {
         let agent = ureq::AgentBuilder::new()
             .timeout_connect(Duration::from_secs(10))
             .redirects(0)
             .build();
+        let (response_budget, max_timeout) = if server.is_custom() {
+            (CUSTOM_RESPONSE_BUDGET, CUSTOM_MAX_REQUEST_TIMEOUT)
+        } else {
+            (RESPONSE_BUDGET, MAX_REQUEST_TIMEOUT)
+        };
         Self {
-            endpoint: endpoint.to_string(),
+            server: server.clone(),
+            url: server.chat_url(),
             agent,
-            response_budget: RESPONSE_BUDGET,
+            response_budget,
+            max_timeout,
         }
     }
 
@@ -43,11 +52,14 @@ impl Translator {
         text: &str,
         target_language: &str,
         model: &str,
-        api_key: &str,
+        api_key: Option<&str>,
     ) -> Result<String, String> {
-        if api_key.is_empty() {
-            return Err(crate::tr!("API-Schlüssel fehlt.", "API key is missing."));
-        }
+        // Never sent to an address on this computer, required elsewhere.
+        let api_key = match api_key {
+            _ if !self.server.sends_api_key() => None,
+            Some(api_key) if !api_key.is_empty() => Some(api_key),
+            _ => return Err(crate::tr!("API-Schlüssel fehlt.", "API key is missing.")),
+        };
         let chars = text.chars().count();
         if chars == 0 || chars > MAX_INPUT_CHARS {
             return Err(crate::tr!(
@@ -68,22 +80,27 @@ impl Translator {
                 "Translation could not be prepared."
             )
         })?;
-        let response = self
+        let mut request = self
             .agent
-            .post(&self.endpoint)
-            .timeout(request_timeout(self.response_budget, chars))
-            .set("Authorization", &format!("Bearer {api_key}"))
-            .set("Content-Type", "application/json")
-            .send_bytes(&body);
-        decode_response(response)
+            .post(&self.url)
+            .timeout(request_timeout(
+                self.response_budget,
+                chars,
+                self.max_timeout,
+            ))
+            .set("Content-Type", "application/json");
+        if let Some(api_key) = api_key {
+            request = request.set("Authorization", &format!("Bearer {api_key}"));
+        }
+        decode_response(request.send_bytes(&body), &self.server)
     }
 }
 
 /// Overall limit for one request, counted from its start and including
 /// connection setup; longer texts take longer to translate.
-fn request_timeout(response_budget: Duration, chars: usize) -> Duration {
+fn request_timeout(response_budget: Duration, chars: usize, max_timeout: Duration) -> Duration {
     let limit = response_budget + Duration::from_secs((chars / CHARS_PER_EXTRA_SECOND) as u64);
-    limit.min(MAX_REQUEST_TIMEOUT)
+    limit.min(max_timeout)
 }
 
 fn instructions(target_language: &str) -> String {
@@ -122,7 +139,10 @@ fn language_name(code: &str) -> String {
     }
 }
 
-fn decode_response(response: Result<ureq::Response, ureq::Error>) -> Result<String, String> {
+fn decode_response(
+    response: Result<ureq::Response, ureq::Error>,
+    server: &Server,
+) -> Result<String, String> {
     let response = match response {
         Ok(response) => response,
         Err(ureq::Error::Status(status, response)) => {
@@ -132,10 +152,22 @@ fn decode_response(response: Result<ureq::Response, ureq::Error>) -> Result<Stri
                 .take(16 * 1_024)
                 .read_to_end(&mut ignored);
             return Err(match status {
+                401 | 403 if !server.sends_api_key() => crate::tr!(
+                    "Der Server verlangt eine Anmeldung; an Adressen auf diesem Rechner sendet OpenDictate keinen API-Schlüssel.",
+                    "The server asks for a login; OpenDictate sends no API key to addresses on this computer."
+                ),
                 401 => crate::tr!("API-Schlüssel ist ungültig.", "API key is invalid."),
+                404 if server.is_custom() => crate::tr!(
+                    "Übersetzungsmodell ist auf dem Server nicht verfügbar. Server-Adresse (mit /v1) und Modellnamen prüfen.",
+                    "Translation model is not available on the server. Check the server address (with /v1) and the model name."
+                ),
                 404 => crate::tr!(
                     "Übersetzungsmodell ist nicht verfügbar.",
                     "Translation model is not available."
+                ),
+                429 if server.is_custom() => crate::tr!(
+                    "Der Server ist ausgelastet. Bitte später erneut versuchen.",
+                    "The server is busy. Please try again later."
                 ),
                 429 => crate::tr!(
                     "OpenAI-Limit erreicht. Bitte später erneut versuchen.",
@@ -143,6 +175,13 @@ fn decode_response(response: Result<ureq::Response, ureq::Error>) -> Result<Stri
                 ),
                 _ => crate::tr!("Übersetzung fehlgeschlagen.", "Translation failed."),
             });
+        }
+        Err(ureq::Error::Transport(_)) if server.is_custom() => {
+            return Err(crate::tr!(
+                "Netzwerkfehler: Eigener Server ({}) nicht erreichbar oder zu langsam.",
+                "Network error: custom server ({}) unreachable or too slow.",
+                server.log_host()
+            ))
         }
         Err(ureq::Error::Transport(_)) => {
             return Err(crate::tr!(
@@ -194,14 +233,21 @@ mod tests {
     use super::*;
     use crate::test_http::{serve, serve_without_answer};
 
+    /// OpenAI's rules, but talking to the local stub.
+    fn openai_stub(endpoint: &str) -> Translator {
+        let mut translator = Translator::new(&Server::openai());
+        translator.url = endpoint.to_string();
+        translator
+    }
+
     #[test]
     fn stub_receives_transcript_as_data_and_returns_trimmed_translation() {
         let (endpoint, server) = serve(
             "200 OK",
             r#"{"choices":[{"message":{"role":"assistant","content":"  Hello Linux.  "}}]}"#,
         );
-        let text = Translator::with_endpoint(&endpoint)
-            .translate("Hallo Linux.", "en", "test-model", "test-key")
+        let text = openai_stub(&endpoint)
+            .translate("Hallo Linux.", "en", "test-model", Some("test-key"))
             .unwrap();
         assert_eq!(text, "Hello Linux.");
         let request = server.join().unwrap();
@@ -222,8 +268,8 @@ mod tests {
     #[test]
     fn stub_error_does_not_expose_provider_body() {
         let (endpoint, server) = serve("404 Not Found", r#"{"error":"private detail"}"#);
-        let error = Translator::with_endpoint(&endpoint)
-            .translate("Hallo", "en", "missing-model", "test-key")
+        let error = openai_stub(&endpoint)
+            .translate("Hallo", "en", "missing-model", Some("test-key"))
             .unwrap_err();
         assert!(error.contains("nicht verfügbar"));
         assert!(!error.contains("private"));
@@ -233,8 +279,8 @@ mod tests {
     #[test]
     fn missing_content_yields_empty_text() {
         let (endpoint, server) = serve("200 OK", r#"{"choices":[]}"#);
-        let text = Translator::with_endpoint(&endpoint)
-            .translate("Hallo", "en", "test-model", "test-key")
+        let text = openai_stub(&endpoint)
+            .translate("Hallo", "en", "test-model", Some("test-key"))
             .unwrap();
         assert!(text.is_empty());
         server.join().unwrap();
@@ -249,11 +295,11 @@ mod tests {
     #[test]
     fn request_timeout_grows_with_the_text() {
         assert_eq!(
-            request_timeout(RESPONSE_BUDGET, 250),
+            request_timeout(RESPONSE_BUDGET, 250, MAX_REQUEST_TIMEOUT),
             RESPONSE_BUDGET + Duration::from_secs(2)
         );
         assert_eq!(
-            request_timeout(RESPONSE_BUDGET, MAX_INPUT_CHARS),
+            request_timeout(RESPONSE_BUDGET, MAX_INPUT_CHARS, MAX_REQUEST_TIMEOUT),
             MAX_REQUEST_TIMEOUT
         );
     }
@@ -261,14 +307,52 @@ mod tests {
     #[test]
     fn stalled_request_ends_at_the_deadline() {
         let (endpoint, server) = serve_without_answer();
-        let mut translator = Translator::with_endpoint(&endpoint);
+        let mut translator = openai_stub(&endpoint);
         translator.response_budget = Duration::from_millis(300);
         let started = std::time::Instant::now();
         let error = translator
-            .translate("Hallo", "en", "test-model", "test-key")
+            .translate("Hallo", "en", "test-model", Some("test-key"))
             .unwrap_err();
         assert!(error.contains("Netzwerkfehler"));
         assert!(started.elapsed() < Duration::from_secs(5));
         server.join().unwrap();
+    }
+
+    #[test]
+    fn local_server_gets_no_key_on_the_chat_path() {
+        let (endpoint, server) = serve(
+            "200 OK",
+            r#"{"choices":[{"message":{"role":"assistant","content":"Hello."}}]}"#,
+        );
+        let local = Server::parse(&format!("{endpoint}/v1")).unwrap();
+        let text = Translator::new(&local)
+            .translate("Hallo.", "en", "llama3.1:8b", Some("test-key"))
+            .unwrap();
+        assert_eq!(text, "Hello.");
+        let request = server.join().unwrap();
+        let request = String::from_utf8_lossy(&request);
+        assert!(request.starts_with("POST /v1/chat/completions "));
+        assert!(!request.to_ascii_lowercase().contains("authorization"));
+        assert!(!request.contains("test-key"));
+    }
+
+    #[test]
+    fn remote_custom_server_gets_the_key() {
+        let mut translator = Translator::new(&Server::parse("https://api.example.com/v1").unwrap());
+        assert_eq!(translator.response_budget, CUSTOM_RESPONSE_BUDGET);
+        let error = translator
+            .translate("Hallo", "en", "test-model", None)
+            .unwrap_err();
+        assert!(error.contains("fehlt"));
+        let (endpoint, server) = serve(
+            "200 OK",
+            r#"{"choices":[{"message":{"role":"assistant","content":"Hello"}}]}"#,
+        );
+        translator.url = endpoint;
+        translator
+            .translate("Hallo", "en", "test-model", Some("test-key"))
+            .unwrap();
+        let request = server.join().unwrap();
+        assert!(String::from_utf8_lossy(&request).contains("Authorization: Bearer test-key"));
     }
 }

@@ -17,7 +17,12 @@ private final class StubProtocol: URLProtocol, @unchecked Sendable {
             url: request.url!, statusCode: Self.responseCode, httpVersion: nil,
             headerFields: ["Content-Type": "application/json"])!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        client?.urlProtocol(self, didLoad: Data(#"{"text":"transport result"}"#.utf8))
+        // A missing fixture fails here instead of surfacing as invalidResponse.
+        guard let body = try? ProviderFixtures.data(ProviderFixtures.cases().success.file) else {
+            client?.urlProtocol(self, didFailWithError: URLError(.fileDoesNotExist))
+            return
+        }
+        client?.urlProtocol(self, didLoad: body)
         client?.urlProtocolDidFinishLoading(self)
     }
     override func stopLoading() {}
@@ -33,7 +38,8 @@ struct TranscriptionTransportTests {
         let transcriber = OpenAITranscriber(session: session)
         let options = TranscriptionOptions(apiKey: "fixture-only", model: .gptTranscribe, language: nil, prompt: nil)
         StubProtocol.failure = nil
-        #expect(try await transcriber.transcribe(audioData: Data([1]), options: options) == "transport result")
+        let expected = try ProviderFixtures.cases().success.text
+        #expect(try await transcriber.transcribe(audioData: Data([1]), options: options) == expected)
         for failure in [URLError.Code.notConnectedToInternet, .timedOut, .cancelled] {
             StubProtocol.failure = failure
             do {
