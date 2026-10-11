@@ -352,6 +352,14 @@ fn cancel() -> Result<(), String> {
         std::thread::sleep(Duration::from_millis(20));
         current = state::read(&state_path, &socket);
     }
+    // The marker stays, so the worker ends the start once the microphone
+    // answers; until then nothing has been cancelled yet.
+    if current == state::State::Starting {
+        return Err(tr!(
+            "Das Mikrofon startet noch; die Aufnahme wird abgebrochen, sobald es antwortet.",
+            "The microphone is still starting; the recording is cancelled once it responds."
+        ));
+    }
     // A worker that saw the cancel itself ends without answering; that is
     // the requested outcome, not a failure.
     if current == state::State::Recording

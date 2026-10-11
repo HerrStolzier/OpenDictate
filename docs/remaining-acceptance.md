@@ -53,7 +53,8 @@ Audiogerät geprüft, auf omarchy noch nicht). Während das Mikrofon öffnet,
 heißt der Zustand `starting`; ein weiteres `toggle` wird dann abgelehnt, und
 braucht das Mikrofon länger als 5 Sekunden, bricht der Start ab. Bekannte
 Grenze: Hängt das Öffnen des Mikrofons ganz, bleibt `starting` stehen, bis der
-Aufnahmeprozess beendet wird; geprüft ist das nur mit einer nachgestellten
+Aufnahmeprozess beendet wird, und `cancel` meldet dann, dass der Abbruch erst
+greift, sobald das Mikrofon antwortet; geprüft ist das nur mit einer nachgestellten
 Zustandsdatei, nicht mit einem langsamen Mikrofon. Einfügen in Chromium-, Electron- und
 Discord-Fenstern; gemischtes Deutsch/Englisch; Abbruch genau während der
 Übersetzung; andere Compositoren als Hyprland; andere Distributionen;
