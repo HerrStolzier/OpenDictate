@@ -71,8 +71,9 @@ vorgesehen.
 ## Plattformen und belegter Umfang
 
 Alle Plattformen folgen denselben Regeln: Schlüssel nur im Schlüsselspeicher
-des Systems, Audio geht zur Transkription an OpenAI, nie an Dritte darüber
-hinaus; fehlgeschlagene Aufnahmen bleiben begrenzt und authentifiziert
+des Systems, Audio geht zur Transkription an OpenAI oder an einen selbst
+eingetragenen Server (auch ein lokales Modell auf demselben Rechner), nie an
+Dritte darüber hinaus; fehlgeschlagene Aufnahmen bleiben begrenzt und authentifiziert
 erhalten ([PRIVACY](PRIVACY.md)); Logs enthalten nie Schlüssel, Text oder Audio.
 Der belegte Stand je Plattform mit Nachweisen steht in
 [docs/remaining-acceptance.md](docs/remaining-acceptance.md); die nächsten

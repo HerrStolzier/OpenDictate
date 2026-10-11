@@ -9,7 +9,7 @@ product acceptance and are not public releases.
 OpenDictate records microphone audio only while a dictation is active. It does
 not include telemetry or analytics.
 
-## Data sent to OpenAI
+## Data sent to OpenAI or your own server
 
 For each non-empty dictation, OpenDictate sends the prepared audio over HTTPS to
 OpenAI's `/v1/audio/transcriptions` endpoint. The request also contains the

@@ -832,9 +832,11 @@ extension AppDelegate: MenuBarControllerDelegate {
     }
 
     /// Re-evaluates the setup reminder after the server changed; the
-    /// Keychain presence check stays off the main thread.
+    /// Keychain presence check stays off the main thread. When this ends the
+    /// first-run key setup, onboarding continues as after saving a key.
     private func checkAPIKeyRequirement() {
         let needsKey = Self.needsAPIKey
+        let wasSettingUp = apiKeyNeedsSetup
         apiKeyPresenceTask?.cancel()
         apiKeyPresenceTask = Task { @MainActor [weak self] in
             let needsSetup = await Task.detached(priority: .utility) {
@@ -846,6 +848,13 @@ extension AppDelegate: MenuBarControllerDelegate {
             dictationPanel.updateAPIKeySetup(
                 needsSetup: needsSetup, message: needsKey ? nil : Self.localServerReadyMessage)
             menuBar?.refresh()
+            guard wasSettingUp, !needsSetup else { return }
+            menuBar?.showDaily()
+            if !Config.settings.hasStoredTrigger, flow.state == .idle, let operation = lifecycle.beginOperation() {
+                defer { lifecycle.finish(operation) }
+                askForTrigger(operation: operation)
+            }
+            requestAccessibilityPermissionIfNeeded()
         }
     }
 

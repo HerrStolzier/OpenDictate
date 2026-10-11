@@ -143,7 +143,10 @@ wurde am 8. Oktober mit Bastis Go gelöscht.
 **Offen / bekannte Grenzen:**
 
 - Eigener Server: kein Live-Diktat gegen einen echten lokalen Modellserver;
-  andere Server als OpenAI werden nicht abgenommen.
+  andere Server als OpenAI werden nicht abgenommen. Ebenfalls nur aus dem Code
+  abgeleitet: Bei einer frischen Installation ohne Schlüssel führt das
+  Speichern eines lokalen Servers wie das Speichern eines Schlüssels weiter zur
+  Kürzel-Abfrage und zur Bedienungshilfen-Freigabe.
 
 - Empfehlung je Tastatur: MacBook-Tastatur und Fremdtastatur am echten Gerät
   ungeprüft. Jedes HID-Gerät mit Tastatur-Schnittstelle oder einer
