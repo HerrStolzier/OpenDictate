@@ -1,7 +1,8 @@
 # OpenDictate
 
-Hold a key, say what you want to write, let go. A moment later the text is in
-the app you were typing in, translated if you like (say, German into English).
+Open-source dictation for Mac and Linux. Hold a key, say what you want to
+write, let go. A moment later the text is in the app you were typing in,
+translated if you like (say, German into English).
 
 No subscription: with a model running on your own computer, dictation costs
 nothing. With OpenAI it costs about a tenth of a cent per dictation, paid
