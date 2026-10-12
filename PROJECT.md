@@ -87,10 +87,11 @@ Schritte in der [ROADMAP](ROADMAP.md).
   für Apple Silicon. Aufnahme, Transkription, Zwischenablage und automatisches
   Einfügen per ⌘V in die beim Start aktive App, eigenes Vokabular. Build 10 ist
   als Beta `v0.1.0-beta.10` veröffentlicht
-  ([Nachweis](docs/release-plans/evidence/2026-10-11-build10.md)). Build 11 mit
-  eigenem Server und neuer Diktatanzeige ist notarisiert, als Update installiert
-  und hat ein Diktat mit Übersetzung bestanden, ist aber nicht veröffentlicht
-  ([Nachweis](docs/release-plans/evidence/2026-10-11-build11.md)).
+  ([Nachweis](docs/release-plans/evidence/2026-10-11-build10.md)). Build 12 mit
+  eigenem Server (auch lokales Modell ohne Schlüssel) und neuer Diktatanzeige ist
+  notarisiert, als Update installiert und hat ein Diktat über einen lokalen
+  whisper.cpp-Server bestanden, ist aber nicht veröffentlicht
+  ([Nachweis](docs/release-plans/evidence/2026-10-12-build12.md)).
   Einrichtung: [README](README.md).
 - **Linux:** Rust-CLI für Hyprland (Arch/omarchy) mit Aufnahme, Keyring,
   Transkription, Übersetzung, Zwischenablage, Auto-Einfügen in das beim Start
