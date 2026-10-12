@@ -132,3 +132,12 @@ liefert dafür auch PNG und XML aus. Der Link „So geht's“ funktioniert erst,
 Mac-Release ändern sich der Hinweis an der 0-€-Karte, die Download-Links und
 die Version im JSON-LD; sobald die App etwas kostet, auch `offers` und
 `isAccessibleForFree`.
+
+Stand 2026-10-12, Fußzeile: Blink rennt nur noch, solange die ganze Laufbahn im
+Fenster ist (Bastis Meldung, am Desktop wurde er beim Hochscrollen unten
+abgeschnitten). Ist die Laufbahn teilweise verdeckt, bleibt er stehen; ist sie
+ganz weg, springt er ungesehen an seinen Platz. Er läuft dem Scrollen mit
+höchstens einer Bahnbreite in 0,6 Sekunden hinterher, statt zu springen.
+Headless Chromium bei 1440 und 390 Pixel: beim schnellen Hoch- und
+Runterscrollen höchstens ein Bild mit Bewegung am Fensterrand (Messverzug),
+keine Konsolenfehler.
