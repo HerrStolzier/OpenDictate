@@ -6,6 +6,7 @@ import Testing
 private final class StubProtocol: URLProtocol, @unchecked Sendable {
     nonisolated(unsafe) static var responseCode = 200
     nonisolated(unsafe) static var failure: URLError.Code?
+    nonisolated(unsafe) static var body: Data?
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
     override func startLoading() {
@@ -18,7 +19,7 @@ private final class StubProtocol: URLProtocol, @unchecked Sendable {
             headerFields: ["Content-Type": "application/json"])!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         // A missing fixture fails here instead of surfacing as invalidResponse.
-        guard let body = try? ProviderFixtures.data(ProviderFixtures.cases().success.file) else {
+        guard let body = Self.body ?? (try? ProviderFixtures.data(ProviderFixtures.cases().success.file)) else {
             client?.urlProtocol(self, didFailWithError: URLError(.fileDoesNotExist))
             return
         }
@@ -48,5 +49,20 @@ struct TranscriptionTransportTests {
             } catch { #expect((error as? URLError)?.code == failure) }
         }
         StubProtocol.failure = nil
+    }
+
+    @Test("OpenAI text keeps its line breaks; only a server of your own gets segments joined")
+    func openAILineBreaksStay() async throws {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [StubProtocol.self]
+        let session = URLSession(configuration: configuration)
+        defer {
+            session.invalidateAndCancel()
+            StubProtocol.body = nil
+        }
+        StubProtocol.body = Data(#"{"text":"Zeile eins\nZeile zwei"}"#.utf8)
+        let options = TranscriptionOptions(apiKey: "fixture-only", model: .gptTranscribe, language: nil, prompt: nil)
+        let text = try await OpenAITranscriber(session: session).transcribe(audioData: Data([1]), options: options)
+        #expect(text == "Zeile eins\nZeile zwei")
     }
 }

@@ -217,8 +217,14 @@ veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
   liegt die Pille bei „Menüleiste immer ausblenden“ über dem Fensterinhalt, und
   in Apps mit sehr vielen Menüs kann sie in der Mitte einen Menütitel verdecken, solange sie
   sichtbar ist. Gehörte VoiceOver-Ansagen der Anzeige sind ungeprüft.
-- Eigener Server: kein Live-Diktat gegen einen echten lokalen Modellserver;
-  andere Server als OpenAI werden nicht abgenommen. Ebenfalls nur aus dem Code
+- Eigener Server: Live am 11. Oktober mit Build 11 gegen whisper.cpp 1.9.5
+  (Modell large-v3-turbo, nur auf diesem Mac): vier Diktate eingefügt, laut
+  App- und Server-Log ohne Anfrage an OpenAI, rund 2,4 s vom Stopp bis zum
+  Text. Dabei fiel auf, dass whisper.cpp an Sprechpausen Zeilenumbrüche setzt;
+  seit diesem Stand werden sie bei einem eigenen Server zu Leerzeichen (offline
+  geprüft, noch in keinem Kandidaten). Andere Server werden nicht abgenommen,
+  Übersetzung über einen eigenen Server ist live nicht geprüft
+  ([Nachweis](release-plans/evidence/2026-10-11-build11.md#eigener-server-mit-lokalem-modell)). Ebenfalls nur aus dem Code
   abgeleitet: Bei einer frischen Installation ohne Schlüssel führt das
   Speichern eines lokalen Servers wie das Speichern eines Schlüssels weiter zur
   Kürzel-Abfrage und zur Bedienungshilfen-Freigabe.

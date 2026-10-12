@@ -96,7 +96,8 @@ struct OpenAITranscriber: Sendable {
         defer { timing.finish() }
         let (data, response) = try await session.data(for: request)
         guard let response = response as? HTTPURLResponse else { throw OpenDictateError.invalidResponse }
-        return try Self.decode(data: data, statusCode: response.statusCode)
+        return try Self.decode(
+            data: data, statusCode: response.statusCode, joinSegments: options.endpoint != .openAI)
     }
 
     static func request(audioData: Data, options: TranscriptionOptions) throws -> URLRequest {
@@ -131,7 +132,9 @@ struct OpenAITranscriber: Sendable {
         return request
     }
 
-    static func decode(data: Data, statusCode: Int) throws -> String {
+    /// `joinSegments` is set for a server of the user's own, whose segment line
+    /// breaks would otherwise reach the target as paragraphs.
+    static func decode(data: Data, statusCode: Int, joinSegments: Bool = false) throws -> String {
         guard 200..<300 ~= statusCode else {
             throw OpenDictateError.apiError(
                 OpenAIAPIErrorMessage.humanReadableMessage(from: data, statusCode: statusCode))
@@ -140,6 +143,7 @@ struct OpenAITranscriber: Sendable {
         guard let result = try? JSONDecoder().decode(Response.self, from: data) else {
             throw OpenDictateError.invalidResponse
         }
-        return TranscriptText.sanitize(result.text)
+        let text = TranscriptText.sanitize(result.text)
+        return joinSegments ? TranscriptText.joiningSegments(text) : text
     }
 }
