@@ -17,6 +17,16 @@ struct TranscriptTextTests {
         #expect(!TranscriptText.isMultiline("a b"))
     }
 
+    @Test("Segment line breaks from a local server become spaces; tabs and emoji stay")
+    func segmentBreaksBecomeSpaces() {
+        let whisper = " Das habe ich alles mit dem lokalen Modell?\n Diktiert.\n Das ist ja der Oberhammer.\n"
+        #expect(
+            TranscriptText.joiningSegments(TranscriptText.sanitize(whisper))
+                == "Das habe ich alles mit dem lokalen Modell? Diktiert. Das ist ja der Oberhammer.")
+        #expect(TranscriptText.joiningSegments("eins\r\n\n  zwei") == "eins zwei")
+        #expect(TranscriptText.joiningSegments("a\tb  c 🧪") == "a\tb  c 🧪")
+    }
+
     @Test func multilineTextStaysInTheClipboardForTerminals() {
         #expect(!AutoPastePolicy.allowsPaste(of: "ls\nrm -rf x", intoBundleIdentifier: "com.apple.Terminal"))
         #expect(!AutoPastePolicy.allowsPaste(of: "a\nb", intoBundleIdentifier: "com.googlecode.iterm2"))

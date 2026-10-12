@@ -89,7 +89,8 @@ struct LocalServerTransportTests {
     }
 
     @Test func transcriptionReachesTheLocalServerWithoutAKey() async throws {
-        let server = try LoopbackServer(responseBody: #"{"text":" Hallo vom lokalen Modell "}"#)
+        // whisper.cpp ends each segment with a line break; a dictation arrives as running text.
+        let server = try LoopbackServer(responseBody: #"{"text":" Hallo vom\n lokalen Modell\n"}"#)
         defer { server.stop() }
         let port = try await server.start()
         let text = try await OpenAITranscriber().transcribe(audioData: Data([1, 2, 3]), options: options(port: port))
