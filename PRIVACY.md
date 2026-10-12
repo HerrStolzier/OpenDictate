@@ -1,12 +1,23 @@
 # Privacy
 
-This document describes the macOS app. The separate Windows beta app and
-Linux CLI have different local storage and delivery paths; see their
-[Windows preparation notes](windows/RELEASE-PLAN.md) and
-[Linux behavior and retention rules](linux/README.md). The Windows app is
-not a public release yet; the Linux CLI is a public beta (pre-release) that has not
-completed product acceptance. The iPhone app is described in its own
-[section](#iphone-app); it is not released yet.
+**In short**
+
+- OpenDictate records only while you dictate.
+- Your recording goes straight from your computer to OpenAI, or to your own
+  server if you set one up, using your own key. With a server on your own
+  computer, nothing leaves it. The project never sees your audio or text.
+- With translation on, the recognised text is sent a second time, for the
+  translation.
+- Your key stays in the system keychain. There is no tracking and no
+  analytics, and the log never contains your text, your audio or your key.
+- A recording that failed is kept for up to 24 hours (five at most) so you can
+  send it again, then deleted.
+
+The rest of this page is the detailed reference. It describes the macOS app
+first; the [Linux CLI](#linux-cli), the [iPhone app](#iphone-app) and
+[support requests](#support-requests) have their own sections. The Windows
+beta app is not released yet; its notes are in
+[windows/RELEASE-PLAN.md](windows/RELEASE-PLAN.md).
 
 OpenDictate records microphone audio only while a dictation is active. It does
 not include telemetry or analytics.

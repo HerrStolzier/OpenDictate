@@ -12,19 +12,18 @@ Kommandozeilenprogramm ohne eigenes Fenster, gedacht für Hyprland.
 [Pre-Release `linux-v0.1.0-beta.1`](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1).
 Erprobt auf einem einzigen Rechner
 (Omarchy 4 mit Hyprland 0.56, Arch Linux), dort seit dem 7. Oktober 2026 im
-Alltag. Nachweise: [Live-Nachweise](../docs/linux-live-2026-10-05-bis-07.md),
-[belegter Stand](../docs/remaining-acceptance.md#linux). Die
-[bekannten Grenzen](#bekannte-grenzen) unten gelten ausdrücklich.
+Alltag. Die [bekannten Grenzen](#bekannte-grenzen) unten gelten.
 
 ## Was es kostet
 
-OpenDictate selbst ist kostenlos und quelloffen (MIT). Du brauchst einen
-eigenen OpenAI-API-Schlüssel und zahlst OpenAI direkt nach Nutzung, kein Abo.
-Nach unserer eigenen Abrechnung (Juli bis Oktober 2026) kostet die Abschrift
-rund 0,0045 $ pro Minute Sprache, ein typisches Diktat von 15 Sekunden also
-rund 0,1 Cent. Die Übersetzung kommt mit
-einem kleinen Betrag für das Textmodell (`gpt-5.4-mini`) dazu. Preise legt
-OpenAI fest; maßgeblich ist deren Preisliste.
+Nichts, wenn ein Modell auf deinem eigenen Rechner läuft, zum Beispiel
+whisper.cpp (siehe [Eigenen Server verwenden](#eigenen-server-verwenden)); deine
+Aufnahme verlässt den Rechner dann nicht. Mit OpenAI brauchst du einen eigenen
+API-Schlüssel und zahlst OpenAI direkt nach Nutzung, kein Abo: 0,0045 $ pro
+Minute Sprache, ein typisches Diktat von 15 Sekunden kostet also rund einen
+Zehntel Cent. Die Übersetzung kommt mit einem kleinen Betrag für das Textmodell
+(`gpt-5.4-mini`) dazu. So hat OpenAI von Juli bis Oktober 2026 abgerechnet; die
+Preise legt OpenAI fest, maßgeblich ist deren Preisliste. OpenDictate selbst ist kostenlos und quelloffen (MIT).
 
 ## Kein Diktat geht verloren
 

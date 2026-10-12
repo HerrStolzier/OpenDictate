@@ -11,19 +11,20 @@ program without a window of its own, made for Hyprland.
 **Status:** Public beta since 11 October 2026:
 [pre-release `linux-v0.1.0-beta.1`](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1).
 Tested on a single machine (Omarchy 4 with
-Hyprland 0.56, Arch Linux), in daily use there since 7 October 2026. Evidence
-(German): [live evidence](../docs/linux-live-2026-10-05-bis-07.md),
-[verified state](../docs/remaining-acceptance.md#linux). The
+Hyprland 0.56, Arch Linux), in daily use there since 7 October 2026. The
 [known limits](#known-limits) below apply.
 
 ## What it costs
 
-OpenDictate itself is free and open source (MIT). You need your own OpenAI API
-key and pay OpenAI directly for what you use, no subscription. From our own
-bills (July to October 2026), transcription costs about $0.0045 per minute of
-speech, so a typical 15-second dictation is about $0.001. Translation adds a
-small amount for the text model (`gpt-5.4-mini`). OpenAI sets the prices; their
-price list is what counts.
+Nothing, if you run a model on your own computer, for example whisper.cpp
+(see [Custom server](#custom-server)); your audio then never leaves the
+machine. With OpenAI you bring your own API key and pay OpenAI directly for
+what you use, no subscription: $0.0045 per minute of speech, so a typical
+15-second dictation costs about a tenth of a cent. Translation adds a small
+amount for the text model (`gpt-5.4-mini`). That is what OpenAI charged from
+July to October 2026; OpenAI sets the prices, and its price list is what
+counts. OpenDictate itself is free and
+open source (MIT).
 
 ## No dictation gets lost
 
