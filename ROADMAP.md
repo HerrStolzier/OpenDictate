@@ -104,8 +104,9 @@ die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleiner
    prüfen), Show HN erst
    nach den ersten Rückmeldungen, Mastodon/X über Bastis Account.
 2. Beta laufen lassen: Issues beantworten, Rückmeldungen sammeln.
-3. Nächster Kandidat mit dem eigenen Server aus PR #70 (lokales Modell ohne
-   Schlüssel), dabei ein Live-Diktat gegen einen lokalen Modellserver. Die
+3. Eigener Server mit lokalem Modell: erledigt mit Build 11 und Build 12
+   (Live-Diktate über whisper.cpp ohne Schlüssel, siehe Erledigt). Offen ist,
+   ob Build 12 als nächste Beta erscheint (Bastis Entscheidung). Die
    vollständige UX- und VoiceOver-Prüfung bleibt bekannte Grenze der Beta.
 4. Neue Diktatanzeige im neuen Design (am 9. Oktober vorgezogen, seit
    11. Oktober im Code, offline und live am Mac Mini geprüft (Menüleiste,
@@ -249,6 +250,7 @@ Mehrsprachigkeit ohne Umschalten, Datenschutz und schnellem Zugriff.
 
 | Datum | Ergebnis | Nachweis |
 | --- | --- | --- |
+| 12. Oktober 2026 | Mac Build 12 aus `2d8d4ed` notarisiert und als Update installiert (nicht veröffentlicht). Diktat mit mehreren Pausen über einen lokalen whisper.cpp-Server ohne Schlüssel kam als ein Absatz; vorher am 11. Oktober vier lokale Diktate mit Build 11. | [Build 12](docs/release-plans/evidence/2026-10-12-build12.md), [Build 11](docs/release-plans/evidence/2026-10-11-build11.md#eigener-server-mit-lokalem-modell) |
 | 12. Oktober 2026 | Kurze Startseite live (rund 370 Wörter, 0,1 ct pro Diktat vorn, Bastis Satz unter „Probier es aus“) mit Vorschaubild für geteilte Links, strukturierten Daten, `sitemap.xml` und `robots.txt`. Der Worker liefert Commit `8b13db2` aus. | [website/README.md](website/README.md), [website/worker.js](website/worker.js) |
 | 12. Oktober 2026 | Website mit dem Preis vorn live („Diktieren ohne Abo“: 0 € mit Modell auf dem eigenen Rechner, rund 0,1 ct pro Diktat mit OpenAI); Blink bleibt am Handy beim Antippen der Zustände im Bild. Der Worker liefert Commit `2d8d4ed` aus. | [website/README.md](website/README.md), [website/worker.js](website/worker.js) |
 | 11. Oktober 2026 | Code-Befunde der Sicherheitsprüfung in einem PR behoben, alle Plattformen: Steuerzeichen und unsichtbare Richtungszeichen aus der Serverantwort entfernt; mehrzeiliger Text wird in bekannte Terminals und Konsolen nicht automatisch eingefügt (Linux, macOS, Windows); Zwischenablage ohne Chronik und Cloud-Sync (Windows), mit `ConcealedType` (macOS) und „nur lokal“ (iOS); macOS übernimmt den alten Schlüsselbund-Eintrag beim Lesen und erneuert den Schlüsselbund-Helfer nach einem Zertifikatswechsel; iOS ersetzt den Schlüssel erst nach erfolgreichem Schreiben; Linux bricht ohne `XDG_RUNTIME_DIR` mit Meldung ab. Nur offline geprüft (Linux 87 Tests, Core- und Windows-Prüfungen in CI). | [PRIVACY](PRIVACY.md#clipboard-and-automatic-insertion) |
