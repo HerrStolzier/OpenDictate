@@ -2,9 +2,9 @@
 <html lang="de" data-theme="nacht">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="OpenDictate: Diktieren für den Mac. Kürzel halten, sprechen, loslassen, und der Text landet in der App, in der du gerade warst.">
+<meta name="description" content="Taste halten, sprechen, loslassen. Mit einem lokalen Modell kostenlos, mit OpenAI rund 0,1 Cent pro Diktat. Open Source für Mac und Linux.">
 <meta name="color-scheme" content="dark">
-<title>OpenDictate — Diktieren auf dem Mac</title>
+<title>OpenDictate – Diktieren ohne Abo</title>
 <link rel="icon" href="blink-32.svg" type="image/svg+xml">
 <link rel="preload" href="fonts/GeistPixel-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="tokens.css"><link rel="stylesheet" href="style.css">
@@ -17,11 +17,10 @@
 <header class="top">
 <a class="home" href="#top" aria-label="OpenDictate, zum Seitenanfang"><span data-od="wordmark" data-size="26"><span class="od-wordmark" style="font-size:26px">opendictate</span></span></a>
 <nav aria-label="Hauptmenü" class="nav">
-<a href="#so-gehts">So geht's</a>
-<a href="#loslegen">Loslegen</a>
-<a href="#gut-zu-wissen">Gut zu wissen</a>
-<a href="#datenschutz">Datenschutz</a>
 <a href="#kosten">Kosten</a>
+<a href="#so-gehts">So geht's</a>
+<a href="#datenschutz">Datenschutz</a>
+<a href="#loslegen">Loslegen</a>
 <a href="https://github.com/HerrStolzier/OpenDictate">GitHub</a>
 </nav>
 </header>
@@ -32,16 +31,16 @@
 <div class="wrap">
 <div class="hero-head">
 <div class="hero-title">
-<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Diktieren für den Mac · Open Source · Beta</span></p>
-<h1 id="hero-title">Sprich.<br>Es steht da.</h1>
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Diktieren für Mac und Linux · Open Source · Beta</span></p>
+<h1 id="hero-title">Diktieren<br>ohne Abo.</h1>
 </div>
 <div class="hero-side">
-<p class="lead">OpenDictate wohnt in deiner Menüleiste. Halte dein Kürzel, zum Beispiel Fn, sprich und lass los. Der Text landet in der App, in der du gerade warst.</p>
+<p class="lead">Halte eine Taste, sprich und lass los. Der Text steht da, wo dein Cursor steht. Mit einem Modell auf deinem eigenen Rechner kostet das nichts, mit OpenAI etwa einen Zehntel Cent pro Diktat.</p>
 <div class="buttons">
-<a class="od-btn od-btn-primary" href="https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.10">Beta laden</a>
-<a class="od-btn od-btn-secondary" href="https://github.com/HerrStolzier/OpenDictate/blob/main/docs/release-plans/installationsanleitung.md">Installation</a>
+<a class="od-btn od-btn-primary" href="https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.10">Beta für Mac laden</a>
+<a class="od-btn od-btn-secondary" href="https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1">Für Linux</a>
 </div>
-<p class="meta">Beta für Macs mit Apple-Chip und macOS 14 oder neuer. Von Apple notarisiert.</p>
+<p class="meta">Mac mit Apple-Chip und macOS 14 oder neuer. Von Apple notarisiert.</p>
 </div>
 </div>
 
@@ -89,26 +88,18 @@
 </div>
 </section>
 
-<section id="zustaende" class="section rule" aria-labelledby="zustaende-title">
+<section id="kosten" class="section rule" aria-labelledby="kosten-title">
 <div class="wrap">
 <div class="intro">
-<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Fünf Zustände · Vorschau</span></p>
-<h2 id="zustaende-title">Blink zeigt, was gerade passiert.</h2>
-<p class="lead muted">Blink ist ein Block-Cursor mit Turnschuhen. Mit einem späteren Update zieht er in die Menüleiste und die Notch und sagt dir mit einem Wort, wo deine Aufnahme gerade ist.</p>
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Kosten</span></p>
+<h2 id="kosten-title">Was ein Diktat kostet.</h2>
 </div>
-<div class="states">
-<div class="states-stage">
-<div class="states-blink" data-od="blink" data-state="hoert" data-size="250" data-framed data-glow></div>
-<p class="states-word" aria-live="polite">Hört zu</p>
+<div class="cards">
+<article class="card stat"><span class="stat-num">0&nbsp;€</span><h3>Auf deinem Rechner</h3><p class="muted">Ein Modell wie whisper.cpp läuft auf deinem Mac oder Linux-PC. Kein Schlüssel, kein Konto, und deine Aufnahme verlässt den Rechner nicht. Unter Linux schon jetzt, am Mac ab der nächsten Version. <a href="https://github.com/HerrStolzier/OpenDictate#using-your-own-server">So richtest du es ein</a></p></article>
+<article class="card stat"><span class="stat-num">0,1&nbsp;ct</span><h3>Mit OpenAI</h3><p class="muted">Rund so viel kostet ein Diktat von 15 Sekunden. Du zahlst mit deinem eigenen Schlüssel direkt bei OpenAI: 0,0045&nbsp;$ pro Minute.</p></article>
+<article class="card stat"><span class="stat-num">1,35&nbsp;$</span><h3>Im Monat</h3><p class="muted">wenn du jeden Tag zehn Minuten mit OpenAI diktierst. Ein Diktier-Abo kostet meist 8 bis 15&nbsp;$.</p></article>
 </div>
-<div class="states-list" role="group" aria-label="Zustand auswählen">
-<button type="button" class="state-item" data-state="bereit" aria-pressed="false"><span class="num">01</span><span><span class="state-word">Bereit</span><span class="state-desc">Blink blinkt wie ein Cursor. Halte dein Kürzel, und es geht los.</span></span></button>
-<button type="button" class="state-item" data-state="hoert" aria-pressed="true"><span class="num">02</span><span><span class="state-word">Hört zu</span><span class="state-desc">Die Sohlen leuchten, solange aufgenommen wird. Loslassen beendet die Aufnahme.</span></span></button>
-<button type="button" class="state-item" data-state="schreibt" aria-pressed="false"><span class="num">03</span><span><span class="state-word">Schreibt</span><span class="state-desc">Die Aufnahme geht mit deinem Schlüssel an OpenAI und kommt als Text zurück.</span></span></button>
-<button type="button" class="state-item" data-state="eingefuegt" aria-pressed="false"><span class="num">04</span><span><span class="state-word">Eingefügt</span><span class="state-desc">Der Text landet in dem Feld, das den Fokus hat, in der App, in der du gerade warst.</span></span></button>
-<button type="button" class="state-item" data-state="hoppla" aria-pressed="false"><span class="num">05</span><span><span class="state-word">Hoppla</span><span class="state-desc">Keine Verbindung? Dann sagt Blink Bescheid. Deine Aufnahme ist gesichert.</span></span></button>
-</div>
-</div>
+<p class="meta">OpenAI-Preis für gpt-transcribe, Stand Oktober 2026. Übersetzen kostet pro Diktat eine kleine Textanfrage extra. Die Beta kostet nichts, und der Code ist Open Source.</p>
 </div>
 </section>
 
@@ -122,18 +113,34 @@
 <article class="card">
 <div class="card-vis"><kbd class="od-key od-key-text" aria-label="Fn-Taste" title="Fn-Taste">fn</kbd><span class="key-or">oder</span><span data-od="key" data-glyph="option"><kbd>⌥</kbd></span></div>
 <p class="num">01</p><h3>Halten</h3>
-<p class="muted">Halte dein Kürzel, egal in welcher App du gerade schreibst. Du wählst es beim ersten Start, zum Beispiel Fn oder die rechte Wahltaste, und kannst es in der Menüleiste ändern.</p>
+<p class="muted">Halte dein Kürzel, egal in welcher App du gerade schreibst. Du wählst es beim ersten Start, zum Beispiel Fn oder die rechte Wahltaste.</p>
 </article>
 <article class="card">
 <div class="card-vis"><canvas data-dither="voice" data-level="live" data-color="signal" class="voice-lg" aria-hidden="true"></canvas></div>
 <p class="num">02</p><h3>Sprechen</h3>
-<p class="muted">Sprich, wie du redest. Bis zu 90 Sekunden pro Diktat.</p>
+<p class="muted">Sprich, wie du redest. Bis zu 90 Sekunden am Stück.</p>
 </article>
 <article class="card">
 <div class="card-vis" aria-hidden="true"><span data-od="progress" data-value="0.55" data-cells="10" data-label="Umwandlung läuft"></span><span data-od="icon" data-name="check" data-size="36"></span></div>
 <p class="num">03</p><h3>Loslassen</h3>
-<p class="muted">OpenAI wandelt deine Aufnahme in Text um. OpenDictate fügt ihn per ⌘V in das Feld ein, das gerade den Fokus hat.</p>
+<p class="muted">Dein Modell oder OpenAI macht aus der Aufnahme Text, und OpenDictate fügt ihn dort ein, wo dein Cursor steht.</p>
 </article>
+</div>
+</div>
+</section>
+
+<section class="section-tight" aria-labelledby="sicher-title">
+<div class="wrap">
+<div class="translate">
+<div class="translate-text">
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Sicher aufgehoben</span></p>
+<h2 id="sicher-title">Kein Diktat geht verloren.</h2>
+<p class="muted">Bricht das Netz weg oder hakt der Dienst, bleibt deine Aufnahme auf deinem Rechner. Du schickst sie mit einem Klick noch einmal los, bis zu 24 Stunden lang.</p>
+</div>
+<div class="keep" aria-hidden="true">
+<div class="keep-blink" data-od="blink" data-state="hoppla" data-size="100"></div>
+<div class="keep-text"><span class="keep-word">Hoppla</span><span class="muted">Keine Verbindung. Deine Aufnahme ist gesichert.</span><span class="chip">Nochmal senden</span></div>
+</div>
 </div>
 </div>
 </section>
@@ -144,7 +151,7 @@
 <div class="translate-text">
 <p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Übersetzen</span></p>
 <h2 id="uebersetzen-title">Diktieren und gleich übersetzen.</h2>
-<p class="muted">Auf Wunsch übersetzt OpenDictate dein Diktat, zum Beispiel ins Englische. Dafür geht der erkannte Text an OpenAI, als kleine zusätzliche Anfrage pro Diktat. Schlägt die Übersetzung fehl, wird nichts eingefügt, und die Aufnahme bleibt zum Wiederholen erhalten.</p>
+<p class="muted">Sprich Deutsch, und Englisch kommt an, oder eine von elf weiteren Sprachen. Mit OpenAI kostet das pro Diktat eine kleine Textanfrage extra, mit einem lokalen Sprachmodell (etwa über Ollama) gar nichts. Klappt die Übersetzung nicht, wird nichts eingefügt, und die Aufnahme bleibt erhalten.</p>
 </div>
 <div class="translate-demo">
 <div class="bubble"><span class="label">Du sprichst</span><span lang="de">„Ich bin noch unterwegs. Lass uns eine halbe Stunde später anfangen.“</span></div>
@@ -155,39 +162,26 @@
 </div>
 </section>
 
-<section id="loslegen" class="section rule" aria-labelledby="los-title">
+<section id="zustaende" class="section rule" aria-labelledby="zustaende-title">
 <div class="wrap">
 <div class="intro">
-<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Loslegen</span></p>
-<h2 id="los-title">In drei Schritten startklar.</h2>
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Fünf Zustände · Vorschau</span></p>
+<h2 id="zustaende-title">Blink zeigt, was gerade passiert.</h2>
+<p class="muted">Blink ist ein Block-Cursor mit Turnschuhen. Mit einem späteren Update zieht er in die Menüleiste und die Notch und sagt dir mit einem Wort, wo deine Aufnahme gerade ist.</p>
 </div>
-<ol class="cards steps">
-<li class="card"><span class="step-num" aria-hidden="true">1</span><h3>Laden und öffnen</h3><p class="muted">App laden, in „Programme“ ziehen, öffnen, deinen OpenAI-Schlüssel hinterlegen und dein Kürzel wählen.</p></li>
-<li class="card"><span class="step-num" aria-hidden="true">2</span><h3>Zugriff erlauben</h3><p class="muted">Mikrofon erlauben und die Bedienungshilfen freigeben; sie sind für automatisches Einfügen und für Einzeltasten wie Fn nötig.</p></li>
-<li class="card"><span class="step-num" aria-hidden="true">3</span><h3>Losdiktieren</h3><p class="muted">Ins Textfeld klicken, dein Kürzel halten (zum Beispiel Fn), sprechen und loslassen.</p></li>
-</ol>
-<div class="buttons">
-<a class="od-btn od-btn-primary" href="https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.10">Beta laden</a>
-<a class="od-btn od-btn-secondary" href="https://github.com/HerrStolzier/OpenDictate/blob/main/docs/release-plans/installationsanleitung.md">Installationsanleitung</a>
+<div class="states">
+<div class="states-stage">
+<div class="states-blink" data-od="blink" data-state="hoert" data-size="180" data-framed data-glow></div>
+<p class="states-word" aria-live="polite">Hört zu</p>
+</div>
+<div class="states-list" role="group" aria-label="Zustand auswählen">
+<button type="button" class="state-item" data-state="bereit" aria-pressed="false"><span class="num">01</span><span><span class="state-word">Bereit</span><span class="state-desc">Blink blinkt wie ein Cursor. Halte dein Kürzel, und es geht los.</span></span></button>
+<button type="button" class="state-item" data-state="hoert" aria-pressed="true"><span class="num">02</span><span><span class="state-word">Hört zu</span><span class="state-desc">Die Sohlen leuchten, solange aufgenommen wird. Loslassen beendet die Aufnahme.</span></span></button>
+<button type="button" class="state-item" data-state="schreibt" aria-pressed="false"><span class="num">03</span><span><span class="state-word">Schreibt</span><span class="state-desc">Dein Modell oder OpenAI macht aus der Aufnahme Text.</span></span></button>
+<button type="button" class="state-item" data-state="eingefuegt" aria-pressed="false"><span class="num">04</span><span><span class="state-word">Eingefügt</span><span class="state-desc">Der Text landet in dem Feld, das den Fokus hat, in der App, in der du gerade warst.</span></span></button>
+<button type="button" class="state-item" data-state="hoppla" aria-pressed="false"><span class="num">05</span><span><span class="state-word">Hoppla</span><span class="state-desc">Keine Verbindung? Dann sagt Blink Bescheid. Deine Aufnahme ist gesichert.</span></span></button>
 </div>
 </div>
-</section>
-
-<section id="gut-zu-wissen" class="section rule" aria-labelledby="gut-title">
-<div class="wrap">
-<div class="intro">
-<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Gut zu wissen</span></p>
-<h2 id="gut-title">Was du vorher wissen solltest.</h2>
-</div>
-<dl class="cards details">
-<div class="card"><dt class="label">Voraussetzungen</dt><dd>Mac mit Apple-Chip und macOS 14 oder neuer, Internet und ein eigener OpenAI-API-Schlüssel. Ab der nächsten Version geht es auch mit einem eigenen Server, zum Beispiel einem lokalen Modell auf deinem Mac, ohne Schlüssel und ohne Internet.</dd></div>
-<div class="card"><dt class="label">Zugriff auf dem Mac</dt><dd>Mikrofon zum Aufnehmen, Bedienungshilfen zum automatischen Einfügen und für Einzeltasten wie Fn.</dd></div>
-<div class="card"><dt class="label">Einfügen</dt><dd>OpenDictate holt die App nach vorn, in der du angefangen hast, und löst dort ⌘V aus. Der Text landet in dem Feld, das dann den Fokus hat. Ob es ihn angenommen hat, kann die App nicht bestätigen, also kurz prüfen. Automatisches Einfügen lässt sich ausschalten.</dd></div>
-<div class="card"><dt class="label">Zwischenablage</dt><dd>Der vollständige Text bleibt in der Zwischenablage, bis etwas anderes ihn überschreibt. So kannst du ihn jederzeit selbst einfügen.</dd></div>
-<div class="card"><dt class="label">Länge</dt><dd>Bis zu 90 Sekunden pro Diktat. Die Grenze ist bewusst gesetzt: OpenDictate ist für kurze Texte gedacht.</dd></div>
-<div class="card"><dt class="label">Transkription</dt><dd>Mit gpt-transcribe von OpenAI. Eigenes Vokabular für Namen und Fachbegriffe.</dd></div>
-<div class="card"><dt class="label">Fehleraufnahmen</dt><dd>Bis zu fünf gespeicherte Fehleraufnahmen lassen sich höchstens 24 Stunden lang wiederholen. Aufgeräumt wird, während die App läuft; temporäre Originale können bei Sicherungsfehlern oder nach Abstürzen länger erhalten bleiben. <a href="https://github.com/HerrStolzier/OpenDictate/blob/main/PRIVACY.md">Details zur Aufbewahrung</a></dd></div>
-</dl>
 </div>
 </section>
 
@@ -195,59 +189,51 @@
 <div class="wrap">
 <div class="intro">
 <p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Datenschutz</span></p>
-<h2 id="daten-title">Dein Schlüssel. Dein Mac.</h2>
-<p class="lead muted">OpenDictate schickt deine Aufnahme direkt von deinem Mac an OpenAI, mit deinem eigenen API-Schlüssel. Zurück kommt der Text. Mit Übersetzung geht auch der erkannte Text an OpenAI.</p>
-</div>
-<div class="flow">
-<div class="flow-card"><span class="label">Dein Mac</span><span class="flow-title">Aufnehmen</span><span class="muted">Startet, wenn du dein Kürzel hältst, und endet beim Loslassen.</span></div>
-<div class="flow-arrow"><span class="label">Audio</span><svg width="36" height="36" viewBox="0 0 12 12" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="1" y="5" width="7" height="2"></rect><rect x="7" y="3" width="1" height="6"></rect><rect x="8" y="4" width="1" height="4"></rect><rect x="9" y="5" width="1" height="2"></rect></svg></div>
-<div class="flow-card"><span class="label">OpenAI</span><span class="flow-title">Umwandeln</span><span class="muted">Mit deinem Schlüssel, abgerechnet über dein OpenAI-Konto.</span></div>
-<div class="flow-arrow"><span class="label">Text</span><svg width="36" height="36" viewBox="0 0 12 12" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="1" y="5" width="7" height="2"></rect><rect x="7" y="3" width="1" height="6"></rect><rect x="8" y="4" width="1" height="4"></rect><rect x="9" y="5" width="1" height="2"></rect></svg></div>
-<div class="flow-card"><span class="label">Dein Mac</span><span class="flow-title">Einfügen</span><span class="muted">Der Text landet in dem Feld, das den Fokus hat.</span></div>
+<h2 id="daten-title">Was mit deiner Aufnahme passiert.</h2>
+<p class="lead muted">Mit einem lokalen Modell bleibt alles auf deinem Rechner. Mit OpenAI geht die Aufnahme direkt von deinem Rechner zu OpenAI, mit deinem eigenen Schlüssel. Ich sehe davon nichts.</p>
 </div>
 <ul class="facts">
-<li><span data-od="icon" data-name="check" data-size="24"></span><span><strong>Schlüsselbund</strong><span class="muted">Dein API-Schlüssel liegt im macOS-Schlüsselbund. Ein eigener Server auf deinem Mac bekommt ab der nächsten Version keinen.</span></span></li>
-<li><span data-od="icon" data-name="check" data-size="24"></span><span><strong>Kein Tracking</strong><span class="muted">Die App enthält kein Tracking.</span></span></li>
-<li><span data-od="icon" data-name="check" data-size="24"></span><span><strong>MIT-Lizenz</strong><span class="muted">Der Quellcode liegt offen auf GitHub.</span></span></li>
-<li><span data-od="icon" data-name="check" data-size="24"></span><span><strong>Für den Mac</strong><span class="muted">macOS 14 oder neuer, Apple Silicon.</span></span></li>
+<li><span data-od="icon" data-name="check" data-size="24"></span><span><strong>Schlüsselbund</strong><span class="muted">Dein API-Schlüssel liegt im Schlüsselbund. Ein Modell auf deinem Rechner bekommt keinen.</span></span></li>
+<li><span data-od="icon" data-name="check" data-size="24"></span><span><strong>Kein Tracking</strong><span class="muted">Die App zählt nicht mit und schickt nichts nach Hause.</span></span></li>
+<li><span data-od="icon" data-name="check" data-size="24"></span><span><strong>Open Source</strong><span class="muted">Jede Zeile Code liegt auf <a href="https://github.com/HerrStolzier/OpenDictate">GitHub</a>.</span></span></li>
 </ul>
 </div>
 </section>
 
-<section id="kosten" class="section" aria-labelledby="kosten-title">
-<div class="wrap">
-<div class="intro">
-<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Kosten</span></p>
-<h2 id="kosten-title">Du zahlst pro Minute. Nicht pro Monat.</h2>
-</div>
-<div class="cards">
-<div class="card stat"><span class="stat-num">0,0045&nbsp;$</span><span class="muted">pro Minute Sprache mit gpt-transcribe</span></div>
-<div class="card stat"><span class="stat-num">≈&nbsp;0,1&nbsp;ct</span><span class="muted">für ein typisches Diktat von rund 15 Sekunden</span></div>
-<div class="card stat"><span class="stat-num">18,5&nbsp;h</span><span class="muted">Sprache im Monat für den Preis eines 5-$-Abos</span></div>
-</div>
-<p class="meta">Preis von OpenAI für gpt-transcribe, Stand Oktober 2026. Mit Übersetzung kommt pro Diktat eine kleine Textanfrage dazu, die OpenAI nach Tokens abrechnet. Die Rechnung kommt von OpenAI. Die Beta kostet nichts.</p>
-</div>
-</section>
-
-<section class="section rule" aria-labelledby="plattform-title">
+<section id="plattformen" class="section" aria-labelledby="plattform-title">
 <div class="wrap">
 <div class="intro">
 <p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Plattformen</span></p>
-<h2 id="plattform-title">Mac zuerst. Die anderen laufen mit.</h2>
+<h2 id="plattform-title">Für Mac und Linux. iPhone und Windows folgen.</h2>
 </div>
 <div class="cards">
-<div class="card platform"><span class="chip chip-on">Beta</span><span class="platform-name">macOS</span><span class="muted">Von Apple notarisiert. Die Beta gibt es als Pre-Release auf GitHub.</span></div>
-<div class="card platform"><span class="chip chip-on">Beta</span><span class="platform-name">Linux</span><span class="muted">Kommandozeilen-Werkzeug für Hyprland. Die Beta gibt es als <a href="https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1">Pre-Release auf GitHub</a>.</span></div>
-<div class="card platform"><span class="chip">In Arbeit</span><span class="platform-name">Windows</span><span class="muted">Hat einen eigenen Strang und kommt, sobald er eine Beta erreicht.</span></div>
-<div class="card platform"><span class="chip">In Arbeit</span><span class="platform-name">iOS</span><span class="muted">Das Konzept steht: auslösen, sprechen, und der Text liegt in der Zwischenablage.</span></div>
+<div class="card platform"><span class="chip chip-on">Beta</span><span class="platform-name">macOS</span><span class="muted">Von Apple notarisiert, als <a href="https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.10">Testversion auf GitHub</a>.</span></div>
+<div class="card platform"><span class="chip chip-on">Beta</span><span class="platform-name">Linux</span><span class="muted">Für Arch mit Hyprland, ganz ohne Fenster: Kürzel drücken, sprechen, noch einmal drücken. <a href="https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1">Zur Testversion</a></span></div>
+<div class="card platform"><span class="chip">In Arbeit</span><span class="platform-name">iPhone</span><span class="muted">Hinten aufs iPhone tippen, sprechen, und der Text liegt in der Zwischenablage.</span></div>
+<div class="card platform"><span class="chip">In Arbeit</span><span class="platform-name">Windows</span><span class="muted">Sobald es eine Testversion gibt, steht sie hier.</span></div>
 </div>
+</div>
+</section>
+
+<section id="loslegen" class="section rule" aria-labelledby="los-title">
+<div class="wrap">
+<div class="intro">
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Loslegen</span></p>
+<h2 id="los-title">Bevor du loslegst.</h2>
+</div>
+<dl class="cards details">
+<div class="card"><dt class="label">Was du brauchst</dt><dd>Einen Mac mit Apple-Chip und macOS 14 oder neuer. Dazu einen OpenAI-API-Schlüssel oder, ab der nächsten Version, ein Modell auf deinem Rechner.</dd></div>
+<div class="card"><dt class="label">Einfügen</dt><dd>OpenDictate fügt den Text in die App ein, in der du angefangen hast. Ob er angekommen ist, sieht die App nicht, ein kurzer Blick genügt. Er liegt außerdem in der Zwischenablage.</dd></div>
+<div class="card"><dt class="label">Länge</dt><dd>Bis zu 90 Sekunden am Stück. Das reicht für Nachrichten, Mails und Notizen.</dd></div>
+<div class="card"><dt class="label">Eigene Wörter</dt><dd>Namen und Fachbegriffe gibst du der App als eigenes Vokabular mit.</dd></div>
+</dl>
 </div>
 </section>
 
 <section class="section rule cta" aria-labelledby="cta-title">
 <div class="wrap">
-<h2 id="cta-title" class="cta-title">Bereit, wenn du es bist.</h2>
-<p class="lead">OpenDictate ist von Apple notarisiert und als Testversion zu haben. Fehler sind zu erwarten; bekannte Grenzen stehen in den Release-Hinweisen.</p>
+<h2 id="cta-title" class="cta-title">Probier es aus.</h2>
+<p class="lead">Es ist eine Beta, manches hakt noch. Deine Diktate gehen trotzdem nicht verloren. Wenn dir etwas auffällt, schreib mir.</p>
 <div class="buttons">
 <a class="od-btn od-btn-primary" href="https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.10">Beta laden</a>
 <a class="od-btn od-btn-secondary" href="https://github.com/HerrStolzier/OpenDictate/blob/main/docs/release-plans/installationsanleitung.md">Installation</a>

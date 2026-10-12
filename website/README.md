@@ -84,3 +84,26 @@ sagt (siehe [Auslieferung](#auslieferung)). Headless Chromium: 1440, 375 und 320
 Pixel Breite ohne horizontalen Überlauf, keine Konsolenfehler, alle fünf
 Schriften geladen. Zoom und Tastaturweg wurden für diesen Stand nicht erneut
 geprüft.
+
+Textstand 2026-10-12: Umbau rund ums Kostenargument (Bastis Entscheidung vom
+12. Oktober). Titel „Diktieren ohne Abo“; direkt unter dem
+Kopf „Was ein Diktat kostet“ mit 0 € (Modell auf dem eigenen Rechner), rund
+0,1 ct pro Diktat mit OpenAI und 1,35 $ im Monat bei zehn Minuten am Tag
+(10 × 30 × 0,0045 $). Neu sind „Kein Diktat geht verloren“ (24 Stunden, wie
+README.md) und die Übersetzung mit einem lokalen Sprachmodell. Die alten
+Abschnitte „Kosten“, „Gut zu wissen“ und die drei Schritte unter „Loslegen“
+sind in „Was ein Diktat kostet“ und „Bevor du loslegst“ aufgegangen; der
+Ablauf Mac → OpenAI → Mac im Datenschutz entfällt, weil es jetzt zwei Wege
+gibt. Der Schlüsselbund-Punkt sagt nicht mehr, dass der Schlüssel nur an
+OpenAI geht, weil ein eigener Server über HTTPS ihn laut PRIVACY.md bekommt.
+„So richtest du es ein“ zeigt vorerst auf „Using your own server“ in
+README.md, bis es eine eigene Anleitung gibt. Blink und die fünf Zustände
+stehen weiter unten und kleiner (Vorschau, solange die Anzeige in keiner
+veröffentlichten Version steckt). Am Mac gibt es den eigenen Server erst ab
+Build 11. Bis dahin sagt die 0-€-Karte „Unter Linux schon jetzt, am Mac ab der
+nächsten Version“ und „Was du brauchst“ nennt das Modell „ab der nächsten
+Version“; beides fällt mit Build 11 weg. Headless Chromium für diesen Stand
+erneut geprüft: 1440, 375 und 320 Pixel ohne horizontalen Überlauf, keine
+Konsolenfehler, alle fünf Schriften geladen; Zustände bei 320 und 393 Pixel mit
+Touch (nach jedem Antippen ist die Bühne ganz oben im Bild und die angetippte
+Karte darunter sichtbar).
