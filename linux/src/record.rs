@@ -81,8 +81,8 @@ pub fn prepare_for_upload(path: &Path) -> Result<PreparedAudio, String> {
     let duration = Duration::from_secs_f64(total_frames as f64 / f64::from(spec.sample_rate));
     if duration < MINIMUM_RECORDING {
         return Err(crate::tr!(
-            "Aufnahme ist kürzer als 1,0 Sekunden und wurde nicht hochgeladen.",
-            "Recording is shorter than 1.0 seconds and was not uploaded."
+            "Zu kurz (unter 1 Sekunde) – nichts gesendet.",
+            "Too short (under 1 second) – nothing sent."
         ));
     }
     let window_frames = ((f64::from(spec.sample_rate) * 0.05).round() as usize).max(1);
@@ -110,8 +110,8 @@ pub fn prepare_for_upload(path: &Path) -> Result<PreparedAudio, String> {
     }
     let (first_speech, last_speech) = first_speech.zip(last_speech).ok_or_else(|| {
         crate::tr!(
-            "Keine Sprache erkannt; Aufnahme wurde nicht hochgeladen.",
-            "No speech detected; the recording was not uploaded."
+            "Keine Sprache gehört – nichts gesendet.",
+            "No speech heard – nothing sent."
         )
     })?;
     let padding_frames = (SILENCE_PADDING.as_secs_f64() * f64::from(spec.sample_rate)) as usize;
@@ -122,8 +122,8 @@ pub fn prepare_for_upload(path: &Path) -> Result<PreparedAudio, String> {
         Duration::from_secs_f64(upload_frames as f64 / f64::from(spec.sample_rate));
     if upload_duration < MINIMUM_RECORDING {
         return Err(crate::tr!(
-            "Sprachabschnitt ist kürzer als 1,0 Sekunden und wurde nicht hochgeladen.",
-            "Speech is shorter than 1.0 seconds and was not uploaded."
+            "Zu wenig Sprache (unter 1 Sekunde) – nichts gesendet.",
+            "Too little speech (under 1 second) – nothing sent."
         ));
     }
     let saving = duration.saturating_sub(upload_duration);
@@ -494,7 +494,7 @@ mod tests {
         let short =
             std::env::temp_dir().join(format!("opendictate-short-{}.wav", std::process::id()));
         write_silence_fixture(&short, 16_000, 8_000).unwrap();
-        assert!(prepare_for_upload(&short).unwrap_err().contains("kürzer"));
+        assert!(prepare_for_upload(&short).unwrap_err().contains("Zu kurz"));
         let silent =
             std::env::temp_dir().join(format!("opendictate-silent-{}.wav", std::process::id()));
         write_silence_fixture(&silent, 16_000, 32_000).unwrap();

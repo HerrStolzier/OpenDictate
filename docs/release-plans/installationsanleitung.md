@@ -25,7 +25,7 @@ Transkription läuft über dein OpenAI-Konto und kostet mit `gpt-transcribe`
 ## 3. Einrichten
 
 1. OpenDictate erscheint oben rechts in der Menüleiste. Panel öffnen,
-   **Schlüssel eingeben** wählen, Schlüssel einfügen, **Speichern**. Er liegt
+   **API-Schlüssel einrichten** wählen, Schlüssel einfügen, **Speichern**. Er liegt
    danach im macOS-Schlüsselbund und wird nur an OpenAI geschickt.
 2. Beim ersten Diktat fragt macOS nach dem **Mikrofon**: erlauben.
 3. Für automatisches Einfügen und für Einzeltasten wie Fn halten braucht die
@@ -40,7 +40,7 @@ Transkription läuft über dein OpenAI-Konto und kostet mit `gpt-transcribe`
 
 ## 4. Diktieren
 
-- Nach dem Speichern des Schlüssels fragt die App einmal, wie du die Aufnahme startest: **Fn halten**,
+- Nach dem Speichern des Schlüssels fragt die App einmal, wie du ein Diktat startest: **Fn halten**,
   **rechte Wahltaste halten** oder **⌃ Control + ⌥ Option + D**; die passende
   Taste für deine Tastatur ist vorausgewählt. Schließt du die Frage, bleibt
   **⌥ Option + ⇧ Umschalt + Leertaste**.

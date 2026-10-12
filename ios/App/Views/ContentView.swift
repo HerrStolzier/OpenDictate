@@ -108,7 +108,7 @@ struct ContentView: View {
                     .monospacedDigit()
             }
         case .writing:
-            Text(L10n.pick("Turning your words into text …", "Deine Worte werden zu Text …"))
+            Text(L10n.pick("Turning into text …", "Wird zu Text …"))
         case .copied:
             Text(L10n.copiedDetail)
         case .oops(let message):
@@ -197,7 +197,7 @@ struct ContentView: View {
             }
             step(done: !needsKey, L10n.pick("OpenAI API key", "OpenAI-API-Schlüssel")) {
                 if needsKey {
-                    Button(L10n.pick("Add API key", "API-Schlüssel hinterlegen")) { showsSettings = true }
+                    Button(L10n.pick("Set up API key", "API-Schlüssel einrichten")) { showsSettings = true }
                 }
             }
             step(done: false, L10n.pick("Start without opening the app", "Starten, ohne die App zu öffnen")) {
@@ -218,8 +218,9 @@ struct ContentView: View {
                                 + "Doppeltippen → „Diktieren“."))
                 Text(
                     L10n.pick(
-                        "3. Run it again to stop. The text is then on the clipboard; paste it anywhere.",
-                        "3. Nochmal auslösen beendet das Diktat. Der Text liegt dann in der Zwischenablage."))
+                        "3. Run the shortcut again to stop. The text is then on the clipboard; paste it anywhere.",
+                        "3. Führ den Kurzbefehl nochmal aus, um das Diktat zu beenden. "
+                            + "Der Text liegt dann in der Zwischenablage."))
             }
         }
         .font(BrandFont.sans(15))

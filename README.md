@@ -1,330 +1,90 @@
 # OpenDictate
 
-Native dictation for Apple Silicon Macs with macOS 14 and newer: press a
-shortcut, speak, then work with text in your chosen application. This is the
-scope of the first public Mac beta. OpenDictate uses your own OpenAI API key,
-and audio is sent to OpenAI over HTTPS; transcription incurs separate API charges.
-Alternatively, a [server of your own](#using-your-own-server) can do the work,
-including a free local model on this Mac that needs no key.
+Open-source dictation for Mac and Linux. Hold a key, say what you want to
+write, let go. A moment later the text is in the app you were typing in,
+translated if you like (say, German into English).
 
-The Windows development snapshot and its separate acceptance limits are in
-[windows/README.md](windows/README.md); it is not a public release. The
-[Linux CLI](linux/README.md) is a public beta (pre-release
-`linux-v0.1.0-beta.1`) with its own guide. The instructions below describe the
-macOS app.
+No subscription: with a model running on your own computer, dictation costs
+nothing. With OpenAI it costs about a tenth of a cent per dictation, paid
+directly to OpenAI with your own key.
 
-## First dictation
+OpenDictate is a small open-source menu bar app for Macs with Apple silicon
+(macOS 14 or newer). There is also a beta for
+[Linux with Hyprland](linux/README.md).
 
-You need a Mac and either an OpenAI API key with internet access, or (from the
-version after the current beta) a transcription server running on this Mac (see
-[Using your own server](#using-your-own-server)). With a local server no key is
-needed; in step 1, enter its address under **Einstellungen → Erweitert →
-Eigener Server** instead. The signed and notarized beta is
-a [pre-release on GitHub](https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.10);
-the [install guide](docs/release-plans/installationsanleitung.md) walks through it. GitHub CI also retains explicitly
-labelled [development archives](docs/development.md#ci-development-archives)
-for later testing. To build from source, use Swift 6 on macOS:
+**[Download the Mac beta](https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.10)** ·
+[Install guide (German)](docs/release-plans/installationsanleitung.md) ·
+[Website](https://opendictate.app)
+
+## Why OpenDictate
+
+- **Free or almost free.** Run a model such as whisper.cpp on your own
+  computer and dictation costs nothing; your audio never leaves the machine.
+  Or use your own OpenAI API key and pay OpenAI $0.0045 per minute of speech.
+  A typical 15-second dictation is about 0.1 cent, and ten minutes a day add
+  up to about $1.35 a month. On the Mac, your own server arrives with the
+  next version; the Linux beta has it already.
+  [How to set up a local model](docs/lokales-modell.md) (German).
+- **No dictation gets lost.** If the network drops or the service fails, the
+  recording stays on your Mac for up to 24 hours and you can send it again.
+- **Your words, not a rewrite.** OpenDictate pastes what you said. It only
+  changes the text when you turn on translation.
+- **Open and private.** MIT-licensed, your key stays in the macOS Keychain,
+  no tracking.
+
+## Getting started
+
+1. Download the ZIP, drag OpenDictate to Applications and open it.
+2. Click the menu bar icon (that's Blink), choose **API-Schlüssel einrichten …**
+   and paste your OpenAI API key. Saving it costs nothing.
+3. Pick your shortcut: hold Fn, hold the right Option key, or press ⌃⌥D.
+   The app suggests the one that fits your keyboard.
+4. Allow the microphone, and Accessibility for pasting and for single keys
+   like Fn. Without Accessibility, use a key combination like ⌃⌥D; the text
+   then waits on the clipboard for you to paste.
+5. Click into any text field, hold your key, talk, let go. With a key
+   combination: press it, talk, press it again.
+
+The app's menus are in German for now.
+
+## Good to know
+
+- Up to 90 seconds per dictation. It's made for messages, mails and notes.
+- OpenDictate pastes into the app you started in but can't see whether the
+  text arrived, so take a quick look. It also stays on the clipboard.
+- Tested in TextEdit, Safari, Brave, Obsidian and Terminal. Other apps should
+  work; please [let me know](https://github.com/HerrStolzier/OpenDictate/issues/new?template=beta-rueckmeldung.md)
+  if one doesn't.
+
+Everything else, from the settings to your own server and what happens to a
+failed recording, is in [the details](docs/mac-details.md). How your audio and
+text travel is in [PRIVACY.md](PRIVACY.md).
+
+## Using your own server
+
+With a speech model on your own computer, dictation is free and your audio
+stays with you. The Linux beta can do this now, the Mac from the next version.
+[Step-by-step guide](docs/lokales-modell.md) (German) ·
+[Mac settings](docs/mac-details.md#using-your-own-server)
+
+## Build it yourself
+
+With Swift 6 on macOS:
 
 ```bash
 ./scripts/build-app.sh
 open .build/OpenDictate.app
 ```
 
-1. Click the menu bar symbol (Blink). If a key is missing, choose
-   **API-Schlüssel einrichten …** to open the Keychain-backed dialog directly. Saving a key does not start a
-   recording or make a paid request.
-2. Choose your microphone and language in **Einstellungen**. Allow microphone
-   access when recording. Automatic insertion additionally needs macOS
-   Accessibility access; clipboard-only use does not need that permission.
-3. After the key (or a local server) is set up, the app asks once how you want to start recording
-   (also once after an update, if no shortcut was ever chosen):
-   hold **Fn/Globe**, the **right Option key**, or **Control+Option+D**, or a
-   custom shortcut. On a MacBook or a compact Apple keyboard, Fn/Globe is
-   preselected; with an Apple keyboard with numeric keypad or another brand,
-   where Fn sits far away or may not reach macOS, the right Option key is. A test step shows whether the
-   key reaches OpenDictate. Closing the question keeps **Option+Shift+Space**.
-4. Select the destination text field. Press your shortcut to record, speak,
-   then press it again to stop; with a held key, release it to stop. Each
-   dictation is limited to 90 seconds, a deliberate product limit for short texts.
-5. Check the destination. The complete transcript also remains available on
-   the clipboard and under **Letzten Text ansehen** in the menu. If input was interrupted, part may already be in
-   the destination: inspect it before pasting the full transcript manually.
-
-The API key is stored in the macOS Keychain. Never put it in a command, environment
-variable, checked-in file or log. A missing, invalid or inaccessible key receives
-an actionable message; the key dialog supports normal macOS editing shortcuts.
-If macOS asks whether **OpenDictateKeychainHelper** may access an existing
-Keychain item, verify the request and choose **Always Allow** for that item.
-The helper is installed once in OpenDictate's Application Support directory and
-kept unchanged across ordinary app updates. The API key and the recovery key
-are separate items, so each existing item may need its own initial approval.
-Enter the Mac password only in the macOS dialog. Do not enable access for all
-applications. Replacing the helper or signing identity can require approval
-again; the separate code-signing private key must retain its restricted access
-([development signing](docs/accessibility-signing.md#create-a-local-development-identity)).
-See [privacy and retention](PRIVACY.md) and the
-[current evidence and limitations](docs/remaining-acceptance.md).
-
-## Daily use
-
-While you dictate, a small black indicator at the top of the screen shows one
-word and a short line: **Hört zu** with the recording time, **Schreibt** while
-the service transcribes or translates, **Eingefügt** after the Paste command
-(the app cannot confirm the result, so the line says to check it), **Kopiert**
-when the text is only on the clipboard, and **Hoppla** with the reason after an
-error. It never activates OpenDictate or takes the focus, so Paste reaches the
-application you started in. It closes by itself about two seconds after
-**Eingefügt** and four seconds after **Kopiert**; **Hoppla** stays until you
-choose **Schließen**, or **Nochmal senden** when the failed recording was kept.
-Sending again asks for confirmation first, because it can cost again.
-
-On a MacBook with a notch the indicator grows out of the notch. Without a notch
-it floats as a pill just below the middle of the menu bar; an error turns it
-into a small card with the reason. **Ohne Notch** in Settings switches to a
-flat pill inside the menu bar, which covers nothing (an error then drops the
-card below it), or turns the indicator off (then only
-"REC" appears next to the menu bar symbol; an error still shows its card with
-the reason). Over a full-screen app without menu bar, the floating pill appears
-only while recording, writing or after an error; with the indicator off, only
-the error card appears there.
-With **Reduce motion** enabled, Blink and the indicator stand still.
-
-The menu bar symbol opens a menu: **Neues Diktat** (with your shortcut),
-**Letzten Text ansehen**, **Aufbewahrte Aufnahmen**, **Automatisch einfügen**,
-**Übersetzen**, **Einstellungen …** (⌘,), **Hilfe** and
-**OpenDictate beenden** (⌘Q). While recording, the first entry stops the
-dictation; while processing, it cancels and keeps the recording. Settings,
-saved recordings and Help use a separate compact window. Version and build
-are shown in Settings; **Hilfe** and **Über OpenDictate …** also show the source
-revision when embedded in that build. Older bundles without that information
-show it as unknown.
-
-Choose the target application before starting. Its identity is captured at the
-start action, before a Keychain dialog, permission wait or window focus change.
-An explicit recording action in the dictation window can return focus to the
-most recently used application. At delivery, automatic Paste activates the captured application.
-It uses whichever control is then focused there.
-
-Automatic input is always reported as unconfirmed. A rejected preflight, an
-attempt with an uncertain result and a submitted Paste command have distinct
-feedback. A submitted command cannot be safely rolled back. The transcript
-stays available on the clipboard; no automatic retry guesses whether Paste worked.
-
-A failed transcription keeps a recoverable recording where possible. Retrying
-asks for confirmation and copies the result without automatically inserting it.
-
-## Settings
-
-The Settings window groups the everyday options first. Advanced
-options are collapsed initially; saved recordings and Help open secondary pages.
-Changes apply to the next dictation, no restart needed.
-
-- **Hotkey** — a single key or a combination. Single keys count only while no
-  other key, modifier or mouse button is used, so combinations such as
-  Option+L for "@" keep typing:
-  - `Fn/Globus halten`: hold to record, release to stop. Set **System Settings ›
-    Keyboard › Press 🌐 key to** to **Do Nothing**; otherwise Fn also opens
-    Emoji or Apple's Dictation, because OpenDictate only observes the key.
-  - `Rechte Wahltaste` (right Option): tap to start or stop, hold to record
-    until release.
-  - Combinations: `Option+Shift+Space` (default), `Control+Option+D`, `F5`, or a
-    custom modified shortcut. Useful when another app already claims one.
-
-  Single keys need Accessibility access, because macOS delivers key events to
-  other apps' observers only then. Without it the menu explains the permission
-  and keeps the current shortcut. If another key or a mouse click joins a hold
-  after recording started, the dictation is cancelled and its audio is kept for
-  a manual retry.
-- **Model** — `gpt-transcribe` or `gpt-4o-mini-transcribe`, with the per-minute
-  price next to each. The `gpt-4o-mini-transcribe` price is approximate because
-  OpenAI bills that model by tokens, not by minute.
-- **Language** — Auto, German, or English. Auto lets the API detect it.
-- **Übersetzen** — off by default. With a target language (for example English),
-  the transcript is translated by a text model (`gpt-5.4-mini` by default) and
-  only the translation is copied and pasted. If the translation fails or comes
-  back empty, nothing is pasted, the original text is not used as a fallback and
-  the recording is kept for retry; a retry translates again.
-- **Ohne Notch** — how the indicator appears on screens without a notch:
-  floating below the menu bar (default), inside the menu bar, or off.
-- **Eigener Server** (Advanced) — use any server that speaks the OpenAI request
-  format instead of OpenAI, including a local model on this Mac. See
-  [Using your own server](#using-your-own-server).
-- **Vokabular und Kontext** — local prompt setting (up to 2,000 characters in the editor), sent with each dictation. A stored value overrides the legacy environment variable.
-- **Automatisch einfügen** — disable for clipboard-only delivery. At delivery,
-  the app captured when dictation began is brought forward if it is still
-  running. Paste uses whichever field is then focused there. If that app cannot
-  be verified as frontmost, the transcript remains on the clipboard.
-- **Letzten Text ansehen** (menu) — shows the last transcript with a copy action, without another API request. It is kept in RAM only and can be cleared.
-- Saved recordings can be retried or deleted individually. Retry is disabled during recording and processing.
-
-The indicator shows recording time and a countdown in the last ten seconds.
-Cancellation before a non-empty transcript reaches the clipboard keeps the audio.
-Once the full transcript is copied, it remains available even if insertion is
-cancelled, and the audio can be removed. The separate discard action removes an
-active recording. The recorder also enforces the 90-second cap natively.
-
-## If a transcription fails
-
-A failed upload no longer throws the recording away. It keeps a recovery copy in
-`~/Library/Application Support/OpenDictate/failed/`, and `Letzte Aufnahme wiederholen` in
-the menu uploads it again. A failed translation is handled the same way. Recordings are authenticated with a device-local
-Keychain secret before retry. Managed recovery files are limited to five and
-expire after 24 hours. Pruning runs at launch, after every keep and periodically
-while the app is open; expired recordings cannot be retried. Files can remain on
-disk while the app is closed or if macOS denies deletion. In that case the app
-logs the failure and retains the authentication file alongside the audio.
-Temporary originals preserved after a failed
-recovery write and historical crash leftovers are outside that managed store;
-see [PRIVACY.md](PRIVACY.md#last-transcript-and-temporary-originals). A retry deletes
-the file only after a non-empty transcript has reached the clipboard. Clipboard
-failures preserve the audio on disk and the last transcript in memory. Use
-`Gespeicherte Aufnahmen löschen …` to delete the app's managed retained or legacy
-recordings. Temporary originals are outside that action.
-
-Recordings classified as too short or too quiet are retained for a deliberate manual retry. These heuristics do not prove that no speech exists; they never trigger an automatic upload.
-
-## Cost
-
-You pay OpenAI per minute of speech instead of a flat fee. With the default
-`gpt-transcribe` at $0.0045/min, a typical 15-second dictation costs about
-0.1 cent; the price of a $5 monthly subscription buys about 18.5 hours of
-speech. These figures come
-from the maintainer's own OpenAI usage from July to October 2026
-([decision note](docs/plan4-aenderungen-2026-10-02.md)); your cost depends on
-how long you speak. Translation adds one text-model request per dictation,
-which OpenAI bills separately by tokens.
-
-Transcription uses `gpt-transcribe`, OpenAI's current accuracy-focused model.
-**Vokabular und Kontext** adds your own vocabulary for names and technical terms.
-
-## Cost controls
-
-OpenDictate keeps API usage lean by default:
-
-- skips recordings shorter than 1 second
-- auto-stops recordings after 90 seconds (deliberate per-dictation limit)
-- trims silence from the beginning and end before upload
-- records speech-focused mono AAC at 24 kHz / 48 kbps
-- defaults to `gpt-transcribe` ($0.0045/min), the accuracy-focused async model
-
-Optional environment variables. A choice made in the menu wins over these, so the
-menu is not silently ignored for anyone who exports them:
-
-- `OPENAI_TRANSCRIBE_MODEL`, default `gpt-transcribe`. Set `gpt-4o-mini-transcribe` (approx. $0.003/min, billed by tokens) to trade accuracy for cost. Setting `gpt-live-transcribe` is caught at launch with a warning: it targets the realtime endpoint, not this upload flow.
-- `OPENAI_TRANSCRIBE_LANGUAGE`, for example `de`
-- `OPENAI_TRANSCRIBE_PROMPT`, for vocabulary hints. The in-app vocabulary setting overrides this value.
-- `OPENAI_BASE_URL`, the server address as in the OpenAI SDKs, for example
-  `http://127.0.0.1:8080/v1`. A value saved under **Eigener Server** wins.
-
-## Using your own server
-
-**Einstellungen → Erweitert → Eigener Server** takes a server address and,
-optionally, the model names that server uses. Leave the address empty for
-OpenAI. The address is the base URL including `/v1`; OpenDictate appends
-`/audio/transcriptions` for dictation and `/chat/completions` for translation.
-
-- **A local model is free.** A server on this Mac (`http://127.0.0.1`,
-  `http://localhost` or `http://[::1]`) receives no API key, and none is
-  required. OpenDictate sends audio and text only to this Mac. Examples are whisper.cpp's server
-  or Speaches for transcription and LM Studio or Ollama for translation, each
-  with its own model names.
-- **Other servers need `https://`** and receive your saved API key, for
-  example a Groq key. Plain `http://` to another computer is rejected, so audio
-  and keys never travel unencrypted over a network.
-- Redirects are not followed, so audio and text go only to the address you
-  entered, never on to another host.
-- If an address taken from `OPENAI_BASE_URL` is not allowed, dictation stops
-  with a message instead of falling back to OpenAI.
-- Some servers, such as whisper.cpp, end every segment at a speaking pause
-  with a line break. For a server of your own, OpenDictate joins those breaks
-  with a space, so a dictation arrives as running text. OpenAI's text is not
-  changed.
-
-OpenAI is the tested provider. A local whisper.cpp server passed a live
-dictation on 11 October 2026; other servers are a known limit.
-Recordings that fail there stay available for retry as usual. The custom server
-is not part of Build 10, the current beta candidate; it arrives with the next
-Mac version.
-
-## Permissions
-
-macOS will ask for:
-
-- Microphone access for recording.
-- Accessibility access when automatic insertion is enabled or a single key
-  (Fn/Globe, right Option) starts recording. It is not requested at launch for
-  clipboard-only use with a key combination.
-
-Automatic insertion remembers the application in front when dictation starts.
-After transcription, OpenDictate puts the text on the general clipboard, brings
-that application to the front and sends the ordinary Command-V shortcut. The
-application and its currently focused control handle Paste. This also works with
-controls that do not expose a writable Accessibility text selection.
-
-This restores the early prototype's behavior: a focus or window change during
-dictation can cause the transcript to paste into a different control in the
-original application. OpenDictate checks that the original application is
-frontmost and that the clipboard still holds the transcript before sending the
-shortcut, but cannot confirm which control accepted it or whether Paste changed
-visible text. Control characters from the provider's answer are removed before
-the text is copied. In known terminals (Terminal, iTerm2, Alacritty, kitty,
-Ghostty, Warp, Hyper, WezTerm, Tabby) text with a line break is not pasted
-automatically, because the line break would run the dictated line as a command;
-it stays on the clipboard. A single line is pasted there as elsewhere, and
-OpenDictate does not send a separate Return. Use clipboard-only mode for targets
-where automatic Paste is unwanted, especially password fields. OpenDictate no
-longer inspects whether the focused control is protected or read-only. The transcript remains on the clipboard for
-manual recovery. Candidate-specific acceptance is tracked in
-[remaining acceptance](docs/remaining-acceptance.md).
-
-The indicator shows the elapsed time and counts down the last ten seconds
-before the automatic stop; VoiceOver announces each state and the countdown at
-ten and five seconds. The custom shortcut dialog supports Tab/Shift+Tab,
-Escape and Return without requiring macOS full keyboard access.
-
-See [PRIVACY.md](PRIVACY.md) for the complete data flow and retention behavior,
-[docs/accessibility-signing.md](docs/accessibility-signing.md) for safe local
-development signing, and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the
-VoiceScribe attribution and license notice.
+A local build is not signed and notarized like the beta; see
+[development workflows](docs/development.md) and
+[signing](docs/accessibility-signing.md) before you share one. Plans and
+checks live in [ROADMAP.md](ROADMAP.md) and [CHECKS.md](CHECKS.md) (mostly
+German).
 
 ## License
 
-OpenDictate is available under the [MIT License](LICENSE). The name, the logos,
-the figure Blink and the app icons are not covered by it; see
-[TRADEMARKS.md](TRADEMARKS.md). Third-party notices remain in
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
-The local self-signed development build is not a signed and notarized public
-binary. See [docs/accessibility-signing.md](docs/accessibility-signing.md) before
-distributing binaries.
-
-## Verification
-
-Run `swift test -Xswiftc -warnings-as-errors` for pure logic, lifecycle, HTTP stubs,
-recovery, logging and synthetic audio-file tests. No microphone or OpenAI calls
-are part of these tests. `./scripts/build-app.sh` builds and verifies the bundle;
-`VERSION` controls the marketing version, and `OPENDICTATE_BUILD_NUMBER` can set
-the numeric build number (default 1). CI runs tests and an ad-hoc bundle build on
-macOS, then uploads a verified development archive. It does not install an app
-or publish a notarized product release.
-
-See [CHECKS.md](CHECKS.md), [docs/performance-decisions.md](docs/performance-decisions.md),
-[docs/audio-quality-fixtures.md](docs/audio-quality-fixtures.md),
-[docs/remaining-acceptance.md](docs/remaining-acceptance.md) and the
-[project roadmap](ROADMAP.md). Live microphone, target-app, VoiceOver and paid
-API checks remain separate. Streaming is not enabled; the roadmap lists it as
-a future request, not current app behavior.
-
-## Development and project context
-
-Local launchers, isolated previews and API-key setup for older installations are described
-in [development workflows](docs/development.md). Product scope lives in
-[PROJECT.md](PROJECT.md), and the cross-platform feature/platform backlog lives
-in [ROADMAP.md](ROADMAP.md); repository rules live in [AGENTS.md](AGENTS.md),
-and earlier approvals are archived in
-[docs/archive/APPROVALS.md](docs/archive/APPROVALS.md). The
-[compatibility matrix](docs/compatibility-matrix.md) defines the broader testing
-goal, and [CHECKS.md](CHECKS.md) provides reproducible verification commands.
-
-The architecture was inspired by VoiceScribe; attribution is preserved in
+The code is under the [MIT License](LICENSE). The name, the logos, Blink and
+the app icons are not; see [TRADEMARKS.md](TRADEMARKS.md). The architecture was
+inspired by VoiceScribe; its notice is in
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

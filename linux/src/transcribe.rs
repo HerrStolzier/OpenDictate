@@ -95,7 +95,10 @@ impl Transcriber {
         }
         match api_key {
             Some(api_key) if !api_key.is_empty() => Ok(Some(api_key)),
-            _ => Err(crate::tr!("API-Schlüssel fehlt.", "API key is missing.")),
+            _ => Err(crate::tr!(
+                "Der API-Schlüssel fehlt. Richte ihn mit `opendictate setup` ein.",
+                "The API key is missing. Set it up with `opendictate setup`."
+            )),
         }
     }
 }
@@ -151,40 +154,43 @@ fn decode_response(
                 .read_to_end(&mut ignored);
             return Err(match status {
                 401 | 403 if !server.sends_api_key() => crate::tr!(
-                    "Der Server verlangt eine Anmeldung; an Adressen auf diesem Rechner sendet OpenDictate keinen API-Schlüssel.",
-                    "The server asks for a login; OpenDictate sends no API key to addresses on this computer."
+                    "Dein lokaler Server will eine Anmeldung. OpenDictate schickt an Server auf diesem Rechner keinen Schlüssel – schalte die Anmeldung dort ab.",
+                    "Your local server asks for a login. OpenDictate sends no key to servers on this computer – turn the login off there."
                 ),
-                401 => crate::tr!("API-Schlüssel ist ungültig.", "API key is invalid."),
+                401 => crate::tr!(
+                    "Dein API-Schlüssel ist ungültig. Trag ihn mit `opendictate setup` neu ein.",
+                    "Your API key is invalid. Enter it again with `opendictate setup`."
+                ),
                 404 if server.is_custom() => crate::tr!(
-                    "Der Server kennt diese Adresse oder dieses Modell nicht. Server-Adresse (mit /v1) und Modellnamen prüfen.",
+                    "Der Server kennt diese Adresse oder dieses Modell nicht. Prüf die Server-Adresse (mit /v1) und den Modellnamen.",
                     "The server does not know this address or model. Check the server address (with /v1) and the model name."
                 ),
                 413 => crate::tr!(
-                    "Aufnahme ist für den Upload zu groß.",
-                    "Recording is too large to upload."
+                    "Die Aufnahme ist zu groß zum Senden.",
+                    "The recording is too large to send."
                 ),
                 429 if server.is_custom() => crate::tr!(
-                    "Der Server ist ausgelastet. Bitte später erneut versuchen.",
-                    "The server is busy. Please try again later."
+                    "Der Server ist ausgelastet. Versuch es später nochmal.",
+                    "The server is busy. Try again later."
                 ),
                 429 => crate::tr!(
-                    "OpenAI-Limit erreicht. Bitte später erneut versuchen.",
-                    "OpenAI limit reached. Please try again later."
+                    "OpenAI-Limit erreicht oder dein Guthaben ist leer. Schau in dein OpenAI-Konto.",
+                    "OpenAI limit reached or your balance is empty. Check your OpenAI account."
                 ),
                 _ => crate::tr!("Transkription fehlgeschlagen.", "Transcription failed."),
             });
         }
         Err(ureq::Error::Transport(_)) if server.is_custom() => {
             return Err(crate::tr!(
-                "Netzwerkfehler: Eigener Server ({}) nicht erreichbar oder zu langsam.",
-                "Network error: custom server ({}) unreachable or too slow.",
+                "Dein Server ({}) ist nicht erreichbar oder zu langsam. Prüf, ob er läuft, und versuch es nochmal.",
+                "Your server ({}) is unreachable or too slow. Check that it is running and try again.",
                 server.log_host()
             ))
         }
         Err(ureq::Error::Transport(_)) => {
             return Err(crate::tr!(
-                "Netzwerkfehler oder Zeitüberschreitung bei der Transkription.",
-                "Network error or timeout during transcription."
+                "Keine Verbindung zum Dienst. Prüf das Internet und versuch es nochmal.",
+                "No connection to the service. Check your internet connection and try again."
             ))
         }
     };
@@ -204,8 +210,8 @@ fn decode_response(
 
 fn invalid_response() -> String {
     crate::tr!(
-        "Ungültige Antwort vom Transkriptionsdienst.",
-        "Invalid response from the transcription service."
+        "Der Dienst hat unerwartet geantwortet.",
+        "The service gave an unexpected answer."
     )
 }
 
@@ -375,7 +381,7 @@ mod tests {
         let error = transcriber
             .transcribe(&path, Some("test-key"), &Settings::default())
             .unwrap_err();
-        assert!(error.contains("Netzwerkfehler"));
+        assert!(error.contains("Keine Verbindung"));
         assert!(started.elapsed() < Duration::from_secs(5));
         server.join().unwrap();
         let _ = std::fs::remove_file(path);
@@ -437,7 +443,7 @@ mod tests {
         let error = Transcriber::new(&local)
             .transcribe_bytes(b"RIFF-test-audio", None, &Settings::default())
             .unwrap_err();
-        assert!(error.contains("Netzwerkfehler"));
+        assert!(error.contains("nicht erreichbar"));
         assert!(error.contains("127.0.0.1"));
         assert!(!error.contains("/v1"));
     }

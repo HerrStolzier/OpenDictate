@@ -40,6 +40,9 @@
 - Derive UI availability from canonical state and data instead of storing duplicate booleans.
 - Remove obsolete APIs and completed task notes instead of keeping commented-out or session-specific code. Preserve dated acceptance reports only when they still identify their exact historical scope.
 - Keep the static `website/` dependency-free and keep its product, privacy, pricing, and release claims aligned with `README.md` and `PRIVACY.md`.
+- Public texts (website, READMEs, release notes, app text) follow the tone and
+  shared terms in `PROJECT.md` (decision of 12 October 2026): short, warm,
+  plain, `du` in German, and the same word for the same thing on every platform.
 
 ## Required verification
 
@@ -70,7 +73,9 @@ fixture or one successful dictation into a general speech-quality claim.
   `docs/archive/uebergabe-chronik-bis-2026-10-07.md`.
 - `docs/archive/README.md`: index of all dated reports; `docs/archive/APPROVALS.md`
   is the archived approval record up to 2 October 2026 and not maintained.
-- `README.md`: current product behavior and setup (macOS); `linux/README.md`
+- `README.md`: what OpenDictate is and how to start on macOS, written for
+  people trying it; `docs/mac-details.md`: full current macOS behavior and
+  settings; `linux/README.md`
   (English) and `linux/README.de.md` (German) for Linux; change both together.
   Linux CLI messages exist in German and English (`tr!` in `linux/src/i18n.rs`).
 - `ios/README.md`: structure, flow and build of the iPhone app; its user-facing

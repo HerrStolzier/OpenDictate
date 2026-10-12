@@ -49,13 +49,11 @@ public struct TranscriptionModel: RawRepresentable, Sendable, Equatable, Hashabl
         self == .gpt4oMiniTranscribe
     }
 
-    /// Reason this model cannot be used for the record-then-upload flow, or nil.
+    /// User-facing (German) reason this model cannot be used for the record-then-upload flow, or nil.
     public var uploadRejectionReason: String? {
         guard !isUsableForUpload else { return nil }
-        return """
-            \(rawValue) is a realtime model. It is served from the realtime transcription \
-            endpoint, not from /v1/audio/transcriptions, so OpenDictate cannot use it. \
-            Unset OPENAI_TRANSCRIBE_MODEL to fall back to \(Self.default.rawValue).
-            """
+        return "„\(rawValue)“ ist ein Echtzeitmodell und funktioniert mit OpenDictate nicht. "
+            + "Wähl in den Einstellungen ein anderes Modell. "
+            + "Ohne OPENAI_TRANSCRIBE_MODEL nutzt OpenDictate wieder \(Self.default.rawValue)."
     }
 }

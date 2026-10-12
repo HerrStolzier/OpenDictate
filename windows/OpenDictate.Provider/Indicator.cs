@@ -22,7 +22,7 @@ public static class IndicatorText
     public static string Detail(IndicatorPhase phase, TimeSpan elapsed = default, bool translating = false, string reason = "") => phase switch
     {
         IndicatorPhase.Listening => Listening(elapsed, RecordingLimit),
-        IndicatorPhase.Writing => translating ? UiText.T("Wird übersetzt", "Translating") : UiText.T("Wird umgewandelt", "Transcribing"),
+        IndicatorPhase.Writing => translating ? UiText.T("Wird übersetzt …", "Translating …") : UiText.T("Wird zu Text …", "Turning into text …"),
         // The app cannot see whether the target accepted Ctrl+V.
         IndicatorPhase.Inserted => UiText.T("per Strg+V, kurz prüfen", "with Ctrl+V, check it"),
         IndicatorPhase.Copied => UiText.T("Nicht eingefügt. Der Text liegt in der Zwischenablage.", "Not pasted. The text is on the clipboard."),
@@ -68,8 +68,8 @@ public static class IndicatorText
             DictationOutcome.Cancelled => null,
             DictationOutcome.EmptyResponse => (IndicatorPhase.Oops, UiText.T("Nichts erkannt.", "Nothing recognized.") + safe),
             DictationOutcome.DeliveryUncertain => (IndicatorPhase.Oops, UiText.T(
-                "Einfügen nicht bestätigt. Bitte prüfen; der Text liegt unter „Letzten Text kopieren“.",
-                "Paste not confirmed. Please check; the text is under “Copy last text”.")),
+                "Einfügen nicht bestätigt. Schau kurz nach – der Text liegt auch unter „Letzten Text kopieren“.",
+                "Paste not confirmed. Take a quick look – the text is also under “Copy last text”.")),
             _ => (IndicatorPhase.Oops, (result.Message ?? UiText.T("Das hat nicht geklappt.", "That did not work.")) + safe),
         };
     }

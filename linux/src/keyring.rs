@@ -16,7 +16,7 @@ pub fn probe() -> Result<(), String> {
     match stored {
         Ok(value) if value == token => Ok(()),
         Ok(_) => Err(crate::tr!(
-            "Keyring-Antwort stimmte nicht mit dem gespeicherten Wert überein.",
+            "Die Antwort des Schlüsselbunds passte nicht zum gespeicherten Wert.",
             "Keyring response did not match the stored value."
         )),
         Err(error) => Err(error),
@@ -37,7 +37,10 @@ pub fn store_api_key(value: &str) -> Result<(), String> {
 pub fn api_key() -> Result<String, String> {
     require_secret_tool()?;
     if !exists(API_KEY)? {
-        return Err(crate::tr!("API-Schlüssel fehlt.", "API key is missing."));
+        return Err(crate::tr!(
+            "Der API-Schlüssel fehlt. Richte ihn mit `opendictate setup` ein.",
+            "The API key is missing. Set it up with `opendictate setup`."
+        ));
     }
     let value = lookup(API_KEY)?;
     validate_api_key(&value)?;
@@ -48,17 +51,21 @@ pub fn recording_auth() -> Result<Vec<u8>, String> {
     require_secret_tool()?;
     if !exists(RECORDING_AUTH)? {
         return Err(crate::tr!(
-            "Recording-Auth fehlt.",
-            "Recording auth is missing."
+            "Der Sicherungsschlüssel fehlt. `opendictate secrets init-auth` legt ihn an.",
+            "The key for kept recordings is missing. `opendictate secrets init-auth` creates it."
         ));
     }
     let encoded = lookup(RECORDING_AUTH)?;
-    let key = hex::decode(encoded)
-        .map_err(|_| crate::tr!("Recording-Auth ist ungültig.", "Recording auth is invalid."))?;
+    let key = hex::decode(encoded).map_err(|_| {
+        crate::tr!(
+            "Der Sicherungsschlüssel ist ungültig.",
+            "The key for kept recordings is invalid."
+        )
+    })?;
     if key.len() != 32 {
         return Err(crate::tr!(
-            "Recording-Auth ist ungültig.",
-            "Recording auth is invalid."
+            "Der Sicherungsschlüssel ist ungültig.",
+            "The key for kept recordings is invalid."
         ));
     }
     Ok(key)
@@ -102,7 +109,7 @@ fn require_secret_tool() -> Result<(), String> {
         Ok(())
     } else {
         Err(crate::tr!(
-            "Keyring nicht verfügbar (secret-tool fehlt).",
+            "Schlüsselbund nicht erreichbar (secret-tool fehlt).",
             "Keyring unavailable (secret-tool is missing)."
         ))
     }
@@ -141,7 +148,7 @@ fn lookup(key: &str) -> Result<String, String> {
     if output.status.success() {
         String::from_utf8(output.stdout).map_err(|_| {
             crate::tr!(
-                "Keyring-Antwort war nicht lesbar.",
+                "Die Antwort des Schlüsselbunds war nicht lesbar.",
                 "Keyring response was unreadable."
             )
         })
@@ -214,7 +221,7 @@ fn secret_service_missing(_: std::io::Error) -> String {
 }
 
 fn secret_service_unavailable() -> String {
-    crate::tr!("Keyring nicht verfügbar.", "Keyring unavailable.")
+    crate::tr!("Schlüsselbund nicht erreichbar.", "Keyring unavailable.")
 }
 
 fn classify_secret_error(stderr: &[u8]) -> String {
@@ -222,7 +229,7 @@ fn classify_secret_error(stderr: &[u8]) -> String {
     if is_missing_service(&message) {
         secret_service_unavailable()
     } else {
-        crate::tr!("Keyring nicht verfügbar.", "Keyring unavailable.")
+        crate::tr!("Schlüsselbund nicht erreichbar.", "Keyring unavailable.")
     }
 }
 
@@ -250,7 +257,7 @@ mod tests {
         let error = classify_secret_error(
             b"The name org.freedesktop.secrets was not provided by any .service files",
         );
-        assert_eq!(error, "Keyring nicht verfügbar.");
+        assert_eq!(error, "Schlüsselbund nicht erreichbar.");
     }
 
     #[test]

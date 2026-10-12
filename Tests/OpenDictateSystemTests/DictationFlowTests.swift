@@ -106,7 +106,7 @@ struct DictationFlowTests {
         await h.flow.task?.value
         #expect(h.translated.map(\.text) == ["Hallo Welt"] && h.translated.map(\.target) == ["en"])
         #expect(h.copiedTexts == ["translated text"] && h.pastedText == "translated text")
-        #expect(statuses.contains("Übersetzen …"))
+        #expect(statuses.contains("Wird übersetzt …"))
         #expect(h.kept.isEmpty)
     }
 
@@ -358,8 +358,8 @@ struct DictationFlowTests {
     @Test func insertionEvidenceReachesStatusWithoutChangingClipboardRecoveryPolicy() async throws {
         let cases: [(InsertionSubmission, DictationOutcome, String)] = [
             (.notAttempted, .textAvailable, "nicht automatisch eingefügt"),
-            (.submitted, .deliveryUnconfirmed, "Einfügebefehl gesendet"),
-            (.uncertain, .deliveryUncertain, "Einfügeversuch unbestätigt")
+            (.submitted, .deliveryUnconfirmed, "eingefügt – Text auch"),
+            (.uncertain, .deliveryUncertain, "Einfügen nicht bestätigt")
         ]
         for (submission, outcome, status) in cases {
             let h = Harness()

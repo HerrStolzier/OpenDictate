@@ -12,19 +12,18 @@ Kommandozeilenprogramm ohne eigenes Fenster, gedacht für Hyprland.
 [Pre-Release `linux-v0.1.0-beta.1`](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1).
 Erprobt auf einem einzigen Rechner
 (Omarchy 4 mit Hyprland 0.56, Arch Linux), dort seit dem 7. Oktober 2026 im
-Alltag. Nachweise: [Live-Nachweise](../docs/linux-live-2026-10-05-bis-07.md),
-[belegter Stand](../docs/remaining-acceptance.md#linux). Die
-[bekannten Grenzen](#bekannte-grenzen) unten gelten ausdrücklich.
+Alltag. Die [bekannten Grenzen](#bekannte-grenzen) unten gelten.
 
 ## Was es kostet
 
-OpenDictate selbst ist kostenlos und quelloffen (MIT). Du brauchst einen
-eigenen OpenAI-API-Schlüssel und zahlst OpenAI direkt nach Nutzung, kein Abo.
-Nach unserer eigenen Abrechnung (Juli bis Oktober 2026) kostet die Abschrift
-rund 0,0045 $ pro Minute Sprache, ein typisches Diktat von 15 Sekunden also
-rund 0,1 Cent. Die Übersetzung kommt mit
-einem kleinen Betrag für das Textmodell (`gpt-5.4-mini`) dazu. Preise legt
-OpenAI fest; maßgeblich ist deren Preisliste.
+Nichts, wenn ein Modell auf deinem eigenen Rechner läuft, zum Beispiel
+whisper.cpp (siehe [Eigenen Server verwenden](#eigenen-server-verwenden)); deine
+Aufnahme verlässt den Rechner dann nicht. Mit OpenAI brauchst du einen eigenen
+API-Schlüssel und zahlst OpenAI direkt nach Nutzung, kein Abo: 0,0045 $ pro
+Minute Sprache, ein typisches Diktat von 15 Sekunden kostet also rund einen
+Zehntel Cent. Die Übersetzung kommt mit einem kleinen Betrag für das Textmodell
+(`gpt-5.4-mini`) dazu. So hat OpenAI von Juli bis Oktober 2026 abgerechnet; die
+Preise legt OpenAI fest, maßgeblich ist deren Preisliste. OpenDictate selbst ist kostenlos und quelloffen (MIT).
 
 ## Kein Diktat geht verloren
 
@@ -32,7 +31,7 @@ Scheitert die Abschrift, die Übersetzung oder das Einfügen (Netz weg,
 Zeitüberschreitung, Abbruch), bleibt die Aufnahme auf deinem Rechner erhalten.
 Gelöscht wird eine Aufnahme erst, wenn ihr Text in der Zwischenablage
 angekommen ist. Normalerweise legt OpenDictate dafür eine gesicherte Kopie an:
-`opendictate retry` schickt sie erneut, aufbewahrt werden höchstens fünf
+`opendictate retry` sendet sie nochmal, aufbewahrt werden höchstens fünf
 solcher Kopien für 24 Stunden. Gelingt diese Kopie nicht (zum Beispiel weil der
 Schlüsselbund gesperrt ist), bleibt die Originaldatei unter
 `~/.local/state/opendictate/pending/` liegen; `retry` greift dann nicht, und die
@@ -231,7 +230,7 @@ bestimmter Server funktioniert, ist genau die Rückmeldung, die uns hilft.
 ## Wenn etwas nicht klappt
 
 - `opendictate status` zeigt, ob gerade aufgenommen oder verarbeitet wird.
-- `opendictate retry` schickt die letzte gesicherte Aufnahme erneut.
+- `opendictate retry` sendet die letzte gesicherte Aufnahme nochmal.
 - „Aufnahme konnte nicht starten“: Meist ist kein Mikrofon verfügbar. Mit
   `wpctl status` prüfen, ob unter Audio → Sources eine Quelle steht und als
   Standard (`*`) markiert ist; Mikrofon anstecken oder wählen und erneut
@@ -270,11 +269,11 @@ diesen Server. Details: [PRIVACY.md](../PRIVACY.md#linux-cli).
 
 ```bash
 opendictate setup                   # geführte Einrichtung: Schlüssel oder eigener Server, Kürzel
-opendictate toggle                  # Aufnahme starten oder stoppen
+opendictate toggle                  # Diktat starten oder beenden
 opendictate status                  # idle / starting / recording / processing / delivering
 opendictate bar                     # Status als JSON-Zeile für die Leiste (`waybar` gleichwertig)
 opendictate cancel                  # Aufnahme/Verarbeitung sicher abbrechen
-opendictate retry                   # neueste authentifizierte Aufnahme erneut senden
+opendictate retry                   # letzte gesicherte Aufnahme nochmal senden
 opendictate version                 # Version anzeigen
 opendictate settings show
 opendictate settings model gpt-transcribe
@@ -377,13 +376,13 @@ Quelle per Pipe (`trusted-secret-command | opendictate secrets set-api-key`).
   Sekunden). Mit eigenem Server ist die Grundzeit 2 Minuten statt 15 Sekunden
   (Übersetzung höchstens 3 Minuten). Der Verbindungsaufbau allein darf
   höchstens 10 Sekunden dauern. Fällt das Netz während eines
-  kurzen Diktats weg, kommt die Meldung „Netzwerkfehler oder
-  Zeitüberschreitung“ damit nach etwa 20 Sekunden statt nach bis zu zwei
+  kurzen Diktats weg, kommt die Meldung „Keine Verbindung zum
+  Dienst“ damit nach etwa 20 Sekunden statt nach bis zu zwei
   Minuten; reißt es mitten in einem langen Upload ab, kann es bis zum Doppelten
   des Limits dauern. Das Zeitlimit greift nicht bei einer hängenden
   Namensauflösung (DNS).
 - Fehler, Abbruch, leere Antwort oder Clipboard-Fehler behalten Audio. Eine
-  Recovery-Kopie wird mit einem Secret-Service-Schlüssel per HMAC-SHA256 an
+  gesicherte Kopie wird mit einem Secret-Service-Schlüssel per HMAC-SHA256 an
   Dateiname, Erstellzeit und exakte Bytes gebunden. Scheitert die Kopie, bleibt
   das Original erhalten.
 - `retry` lädt nur frisch authentifizierte Bytes und entfernt sie erst nach
