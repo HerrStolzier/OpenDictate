@@ -339,20 +339,6 @@
     requestAnimationFrame(frame);
   }
 
-  /* ---------- States picker ---------- */
-  function states() {
-    var big = document.querySelector('.states-blink');
-    var word = document.querySelector('.states-word');
-    var buttons = document.querySelectorAll('.state-item');
-    Array.prototype.forEach.call(buttons, function (b) {
-      b.addEventListener('click', function () {
-        Array.prototype.forEach.call(buttons, function (o) { o.setAttribute('aria-pressed', String(o === b)); });
-        big.innerHTML = blink(b.dataset.state, 180, true, true);
-        word.textContent = b.querySelector('.state-word').textContent;
-      });
-    });
-  }
-
   /* ---------- Footer: Blink runs along while the page scrolls ---------- */
   function runner() {
     var track = document.querySelector('.run-track');
@@ -388,6 +374,5 @@
   document.documentElement.classList.add('js');
   mount();
   stage();
-  states();
   runner();
 })();

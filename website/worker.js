@@ -32,6 +32,8 @@ const KINDS = {
   svg: ["image/svg+xml", 86400],
   woff2: ["font/woff2", 86400],
   txt: ["text/plain; charset=utf-8", 86400],
+  png: ["image/png", 86400],
+  xml: ["application/xml; charset=utf-8", 300],
 };
 
 const SECURITY = {
