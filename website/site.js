@@ -355,12 +355,12 @@
       if (running) { running = false; mover.innerHTML = blink('bereit', 100, true); }
     }
     // Blink runs towards the scroll target instead of jumping, at most one track width per 0.6 s.
-    // He only runs while the whole track is on screen: partly hidden he stands still, fully
+    // He only runs while the whole track is on screen: partly hidden at either edge he stands still, fully
     // hidden he takes his place unseen, so he is never cut off at the window edge mid-run.
     function step(now) {
       var r = track.getBoundingClientRect(), vh = window.innerHeight;
       if (r.top >= vh || r.bottom <= 0) { x = target; place(); stand(); return; }
-      if (r.bottom > vh + 1) { stand(); return; }
+      if (r.top < -1 || r.bottom > vh + 1) { stand(); return; }
       var dt = last ? Math.min(64, now - last) : 16, d = target - x, reach = Math.max(1, span()) / 600 * dt;
       var heading = d < 0 ? -1 : 1;
       last = now;
