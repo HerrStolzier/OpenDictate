@@ -235,8 +235,13 @@ OpenAI. The address is the base URL including `/v1`; OpenDictate appends
   entered, never on to another host.
 - If an address taken from `OPENAI_BASE_URL` is not allowed, dictation stops
   with a message instead of falling back to OpenAI.
+- Some servers, such as whisper.cpp, end every segment at a speaking pause
+  with a line break. For a server of your own, OpenDictate joins those breaks
+  with a space, so a dictation arrives as running text. OpenAI's text is not
+  changed.
 
-Only OpenAI is tested by the project; other servers are a known limit.
+OpenAI is the tested provider. A local whisper.cpp server passed a live
+dictation on 11 October 2026; other servers are a known limit.
 Recordings that fail there stay available for retry as usual. The custom server
 is not part of Build 10, the current beta candidate; it arrives with the next
 Mac version.

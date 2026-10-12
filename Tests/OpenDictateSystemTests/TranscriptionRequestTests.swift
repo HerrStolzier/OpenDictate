@@ -71,6 +71,15 @@ struct TranscriptionRequestTests {
         } catch { Issue.record("realtime model used \(error)") }
     }
 
+    @Test("A server of your own gets segment breaks joined; OpenAI text keeps its lines")
+    func joinsSegmentsOnlyForOwnServer() throws {
+        let whisper = Data(#"{"text":" Satz eins.\n Satz zwei.\n"}"#.utf8)
+        #expect(
+            try OpenAITranscriber.decode(data: whisper, statusCode: 200, joinSegments: true) == "Satz eins. Satz zwei.")
+        let openAI = Data(#"{"text":"Zeile eins\nZeile zwei"}"#.utf8)
+        #expect(try OpenAITranscriber.decode(data: openAI, statusCode: 200) == "Zeile eins\nZeile zwei")
+    }
+
     @Test func parsesTheSharedSuccessFixtureAndRejectsMalformedSuccess() throws {
         let success = try ProviderFixtures.cases().success
         let data = try ProviderFixtures.data(success.file)
