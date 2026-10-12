@@ -112,7 +112,7 @@ Touch (nach jedem Antippen ist die Bühne ganz oben im Bild und die angetippte
 Karte darunter sichtbar).
 
 Textstand 2026-10-12, kurz: Die Seite folgt der Textvorlage „Startseite, kurz
-und mit Recherche“ vom 12. Oktober (Bastis „Bauen“). Rund 350 Wörter in fünf
+und mit Recherche“ vom 12. Oktober (Bastis „Bauen“). Rund 370 Wörter in fünf
 Abschnitten: Kopf, „Was ein Diktat kostet“ (0,1 ct vorn, 0 € an dritter
 Stelle), „Kein Diktat geht verloren“, „Sprich Deutsch, schreib Englisch“ und
 „Was mit deiner Aufnahme passiert“, dazu der Schluss „Probier es aus“. Die fünf
