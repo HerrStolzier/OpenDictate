@@ -16,8 +16,11 @@ enum AlertPresenter {
 
     static func confirmDeleteSavedRecordings(count: Int) -> Bool {
         let alert = NSAlert()
-        alert.messageText = "Gespeicherte Aufnahmen löschen?"
-        alert.informativeText = "Damit werden \(count) aufbewahrte Aufnahme(n) endgültig gelöscht."
+        alert.messageText = count == 1 ? "Gesicherte Aufnahme löschen?" : "Gesicherte Aufnahmen löschen?"
+        alert.informativeText =
+            count == 1
+            ? "Die gesicherte Aufnahme wird endgültig gelöscht."
+            : "Die \(count) gesicherten Aufnahmen werden endgültig gelöscht."
         alert.alertStyle = .warning
         alert.addButton(withTitle: "Löschen")
         alert.addButton(withTitle: "Abbrechen")
@@ -26,10 +29,11 @@ enum AlertPresenter {
 
     static func confirmQuitWithActiveDictation() -> Bool {
         let alert = NSAlert()
-        alert.messageText = "Aktives Diktat sichern und beenden?"
+        alert.messageText = "OpenDictate beenden?"
         alert.informativeText =
-            "Die laufende Arbeit wird abgebrochen. Die Aufnahme bleibt zur manuellen Wiederholung erhalten."
-        alert.addButton(withTitle: "Sichern und beenden")
+            "Ein Diktat läuft noch. Es wird abgebrochen, die Aufnahme bleibt gesichert "
+            + "und du kannst sie später nochmal senden."
+        alert.addButton(withTitle: "Beenden")
         alert.addButton(withTitle: "Weiterarbeiten")
         return alert.runModal() == .alertFirstButtonReturn
     }
@@ -38,7 +42,9 @@ enum AlertPresenter {
         let alert = NSAlert()
         alert.messageText = "Vokabular und Kontext"
         alert.informativeText =
-            "Namen, Fachbegriffe oder ein kurzer Kontext. Maximal 2.000 Zeichen. Diese Hinweise werden mit jedem Diktat an den Transkriptionsdienst gesendet. Leer speichern entfernt die Hinweise."
+            "Namen und Fachbegriffe, die OpenDictate richtig schreiben soll, oder ein kurzer Kontext "
+            + "(bis 2.000 Zeichen). Sie gehen bei jedem Diktat mit an den Dienst. "
+            + "Speicherst du das Feld leer, sind sie gelöscht."
         let field = NSTextField(wrappingLabelWithString: "")
         field.isEditable = true
         field.isSelectable = true
@@ -66,10 +72,10 @@ enum AlertPresenter {
         let alert = NSAlert()
         alert.messageText = "Eigener Server"
         alert.informativeText =
-            "Statt OpenAI kann OpenDictate jeden Server nutzen, der dieselbe Schnittstelle anbietet, auch ein "
-            + "lokales Modell auf diesem Mac (zum Beispiel http://127.0.0.1:8080/v1). Ein Server auf diesem Mac "
-            + "bekommt keinen API-Schlüssel. Andere Server brauchen https:// und bekommen deinen gespeicherten "
-            + "Schlüssel. Leer lassen für OpenAI. Geprüft ist nur OpenAI."
+            "Statt OpenAI kannst du einen eigenen Server mit derselben Schnittstelle nutzen, etwa ein Modell "
+            + "auf diesem Mac (http://127.0.0.1:8080/v1). Server auf diesem Mac bekommen keinen Schlüssel, "
+            + "andere brauchen https:// und bekommen deinen API-Schlüssel. Ohne Adresse nutzt OpenDictate OpenAI. "
+            + "Getestet haben wir nur OpenAI."
         alert.addButton(withTitle: "Speichern")
         alert.addButton(withTitle: "Abbrechen")
         func field(_ label: String, _ value: String, placeholder: String) -> (NSTextField, NSStackView) {
@@ -111,7 +117,8 @@ enum AlertPresenter {
         let alert = NSAlert()
         alert.messageText = "OpenAI-API-Schlüssel einrichten"
         alert.informativeText =
-            "Verwende deinen eigenen API-Schlüssel aus der OpenAI-Plattform. OpenAI berechnet die Transkription separat. Der Schlüssel wird im macOS-Schlüsselbund unter OpenDictate gespeichert."
+            "Füge deinen API-Schlüssel von OpenAI ein. Die Kosten rechnet OpenAI direkt mit dir ab. "
+            + "Der Schlüssel bleibt im macOS-Schlüsselbund."
         alert.alertStyle = .informational
         alert.addButton(withTitle: "Speichern")
         alert.addButton(withTitle: "Abbrechen")
@@ -132,9 +139,9 @@ enum AlertPresenter {
         let alert = NSAlert()
         alert.messageText = "Freigabe für Bedienungshilfen fehlt"
         alert.informativeText =
-            "Damit OpenDictate „\(trigger.displayName)“ in jeder App erkennt, braucht es die Freigabe für "
-            + "Bedienungshilfen in den Systemeinstellungen, dieselbe wie fürs automatische Einfügen. Schalte "
-            + "OpenDictate dort ein und wähle die Taste danach erneut. Bis dahin bleibt „\(current.displayName)“ aktiv."
+            "Damit OpenDictate „\(trigger.displayName)“ in jeder App bemerkt, braucht es die Freigabe unter "
+            + "Bedienungshilfen in den Systemeinstellungen. Schalte OpenDictate dort ein und wähl die Taste "
+            + "dann nochmal. Bis dahin gilt weiter „\(current.displayName)“."
         alert.addButton(withTitle: "Bedienungshilfen öffnen")
         alert.addButton(withTitle: "Abbrechen")
         guard alert.runModal() == .alertFirstButtonReturn else { return }

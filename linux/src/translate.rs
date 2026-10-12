@@ -58,7 +58,12 @@ impl Translator {
         let api_key = match api_key {
             _ if !self.server.sends_api_key() => None,
             Some(api_key) if !api_key.is_empty() => Some(api_key),
-            _ => return Err(crate::tr!("API-Schlüssel fehlt.", "API key is missing.")),
+            _ => {
+                return Err(crate::tr!(
+                    "Der API-Schlüssel fehlt. Richte ihn mit `opendictate setup` ein.",
+                    "The API key is missing. Set it up with `opendictate setup`."
+                ))
+            }
         };
         let chars = text.chars().count();
         if chars == 0 || chars > MAX_INPUT_CHARS {
@@ -153,12 +158,15 @@ fn decode_response(
                 .read_to_end(&mut ignored);
             return Err(match status {
                 401 | 403 if !server.sends_api_key() => crate::tr!(
-                    "Der Server verlangt eine Anmeldung; an Adressen auf diesem Rechner sendet OpenDictate keinen API-Schlüssel.",
-                    "The server asks for a login; OpenDictate sends no API key to addresses on this computer."
+                    "Dein lokaler Server will eine Anmeldung. OpenDictate schickt an Server auf diesem Rechner keinen Schlüssel – schalte die Anmeldung dort ab.",
+                    "Your local server asks for a login. OpenDictate sends no key to servers on this computer – turn the login off there."
                 ),
-                401 => crate::tr!("API-Schlüssel ist ungültig.", "API key is invalid."),
+                401 => crate::tr!(
+                    "Dein API-Schlüssel ist ungültig. Trag ihn mit `opendictate setup` neu ein.",
+                    "Your API key is invalid. Enter it again with `opendictate setup`."
+                ),
                 404 if server.is_custom() => crate::tr!(
-                    "Übersetzungsmodell ist auf dem Server nicht verfügbar. Server-Adresse (mit /v1) und Modellnamen prüfen.",
+                    "Übersetzungsmodell ist auf dem Server nicht verfügbar. Prüf die Server-Adresse (mit /v1) und den Modellnamen.",
                     "Translation model is not available on the server. Check the server address (with /v1) and the model name."
                 ),
                 404 => crate::tr!(
@@ -166,27 +174,27 @@ fn decode_response(
                     "Translation model is not available."
                 ),
                 429 if server.is_custom() => crate::tr!(
-                    "Der Server ist ausgelastet. Bitte später erneut versuchen.",
-                    "The server is busy. Please try again later."
+                    "Der Server ist ausgelastet. Versuch es später nochmal.",
+                    "The server is busy. Try again later."
                 ),
                 429 => crate::tr!(
-                    "OpenAI-Limit erreicht. Bitte später erneut versuchen.",
-                    "OpenAI limit reached. Please try again later."
+                    "OpenAI-Limit erreicht oder dein Guthaben ist leer. Schau in dein OpenAI-Konto.",
+                    "OpenAI limit reached or your balance is empty. Check your OpenAI account."
                 ),
                 _ => crate::tr!("Übersetzung fehlgeschlagen.", "Translation failed."),
             });
         }
         Err(ureq::Error::Transport(_)) if server.is_custom() => {
             return Err(crate::tr!(
-                "Netzwerkfehler: Eigener Server ({}) nicht erreichbar oder zu langsam.",
-                "Network error: custom server ({}) unreachable or too slow.",
+                "Dein Server ({}) ist nicht erreichbar oder zu langsam. Prüf, ob er läuft, und versuch es nochmal.",
+                "Your server ({}) is unreachable or too slow. Check that it is running and try again.",
                 server.log_host()
             ))
         }
         Err(ureq::Error::Transport(_)) => {
             return Err(crate::tr!(
-                "Netzwerkfehler oder Zeitüberschreitung bei der Übersetzung.",
-                "Network error or timeout during translation."
+                "Keine Verbindung zum Dienst. Prüf das Internet und versuch es nochmal.",
+                "No connection to the service. Check your internet connection and try again."
             ))
         }
     };
@@ -197,8 +205,8 @@ fn decode_response(
         .read_to_end(&mut data)
         .map_err(|_| {
             crate::tr!(
-                "Ungültige Antwort bei der Übersetzung.",
-                "Invalid response during translation."
+                "Der Dienst hat bei der Übersetzung unerwartet geantwortet.",
+                "The service gave an unexpected answer to the translation."
             )
         })?;
     #[derive(Deserialize)]
@@ -215,8 +223,8 @@ fn decode_response(
     }
     let parsed: Response = serde_json::from_slice(&data).map_err(|_| {
         crate::tr!(
-            "Ungültige Antwort bei der Übersetzung.",
-            "Invalid response during translation."
+            "Der Dienst hat bei der Übersetzung unerwartet geantwortet.",
+            "The service gave an unexpected answer to the translation."
         )
     })?;
     let text = parsed
@@ -313,7 +321,7 @@ mod tests {
         let error = translator
             .translate("Hallo", "en", "test-model", Some("test-key"))
             .unwrap_err();
-        assert!(error.contains("Netzwerkfehler"));
+        assert!(error.contains("Keine Verbindung"));
         assert!(started.elapsed() < Duration::from_secs(5));
         server.join().unwrap();
     }

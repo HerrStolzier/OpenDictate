@@ -4,30 +4,31 @@ English · [Deutsch](README.de.md)
 
 OpenDictate records your voice at the press of a key, has OpenAI (or your own
 server, see [Custom server](#custom-server)) transcribe it,
-translates it if you want (for example into English) and inserts the text into
+translates it if you want (for example into English) and pastes the text into
 the window that was in front when you started. It is a small command-line
 program without a window of its own, made for Hyprland.
 
 **Status:** Public beta since 11 October 2026:
 [pre-release `linux-v0.1.0-beta.1`](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1).
 Tested on a single machine (Omarchy 4 with
-Hyprland 0.56, Arch Linux), in daily use there since 7 October 2026. Evidence
-(German): [live evidence](../docs/linux-live-2026-10-05-bis-07.md),
-[verified state](../docs/remaining-acceptance.md#linux). The
+Hyprland 0.56, Arch Linux), in daily use there since 7 October 2026. The
 [known limits](#known-limits) below apply.
 
 ## What it costs
 
-OpenDictate itself is free and open source (MIT). You need your own OpenAI API
-key and pay OpenAI directly for what you use, no subscription. From our own
-bills (July to October 2026), transcription costs about $0.0045 per minute of
-speech, so a typical 15-second dictation is about $0.001. Translation adds a
-small amount for the text model (`gpt-5.4-mini`). OpenAI sets the prices; their
-price list is what counts.
+Nothing, if you run a model on your own computer, for example whisper.cpp
+(see [Custom server](#custom-server)); your audio then never leaves the
+machine. With OpenAI you bring your own API key and pay OpenAI directly for
+what you use, no subscription: $0.0045 per minute of speech, so a typical
+15-second dictation costs about a tenth of a cent. Translation adds a small
+amount for the text model (`gpt-5.4-mini`). That is what OpenAI charged from
+July to October 2026; OpenAI sets the prices, and its price list is what
+counts. OpenDictate itself is free and
+open source (MIT).
 
 ## No dictation gets lost
 
-If transcription, translation or inserting fails (network gone, timeout,
+If transcription, translation or pasting fails (network gone, timeout,
 cancel), the recording stays on your machine. A recording is only deleted once
 its text has reached the clipboard. Normally OpenDictate keeps a secured copy
 for this: `opendictate retry` sends it again, and at most five such copies are
@@ -163,7 +164,7 @@ and `opendictate settings target off` turns it off again.
 1. Click into the field where the text should go.
 2. Press the shortcut, speak, press the shortcut again.
 3. After a few seconds the text is in the field. If another window has come to
-   the front in the meantime, nothing is inserted; the text is then in the
+   the front in the meantime, nothing is pasted; the text is then in the
    clipboard and a notification says so.
 
 In known terminals (for example Alacritty, foot, kitty) OpenDictate pastes with
@@ -171,7 +172,7 @@ Ctrl+Shift+V, elsewhere with Ctrl+V. Text with line breaks is not pasted into a
 terminal, because a line break would run the dictated line as a command; it
 stays in the clipboard and a notification says so. Control characters in the
 transcript are removed before anything is copied. The text is always in the
-clipboard afterwards too. `opendictate settings insert off` turns automatic inserting
+clipboard afterwards too. `opendictate settings insert off` turns automatic pasting
 off. `opendictate cancel` stops a running recording; the recording is kept for
 `retry`.
 
@@ -222,7 +223,7 @@ given server works is exactly the feedback we are looking for.
 ## When something goes wrong
 
 - `opendictate status` shows whether it is recording or processing.
-- `opendictate retry` sends the last secured recording again.
+- `opendictate retry` sends the last kept recording again.
 - "Recording could not start": usually no microphone is available. Check
   with `wpctl status` that a source is listed under Audio → Sources and
   marked as default (`*`); plug in or select the microphone and try again.
@@ -239,7 +240,7 @@ given server works is exactly the feedback we are looking for.
 These cases were deliberately not tested in advance; feedback on them helps
 most:
 
-- Inserting into Chromium, Electron and Discord windows (only a text editor
+- Pasting into Chromium, Electron and Discord windows (only a text editor
   and a terminal are tested).
 - Mixed languages within one dictation with translation.
 - Cancel or network loss exactly during translation.
@@ -261,18 +262,18 @@ the text then goes to OpenAI for translation. To no one else. With a
 
 ```bash
 opendictate setup                   # guided setup: key or custom server, shortcut
-opendictate toggle                  # start or stop a recording
+opendictate toggle                  # start or stop a dictation
 opendictate status                  # idle / starting / recording / processing / delivering
 opendictate bar                     # status as a JSON line for the bar (`waybar` works too)
 opendictate cancel                  # safely cancel recording/processing
-opendictate retry                   # send the newest authenticated recording again
+opendictate retry                   # send the last kept recording again
 opendictate version                 # show the version
 opendictate settings show
 opendictate settings model gpt-transcribe
 opendictate settings language en    # `auto` to detect the language
 opendictate settings target de      # translate dictations into German; `off` to stop
 opendictate settings target toggle  # off, or on with the last target language (else en)
-opendictate settings insert off     # clipboard only, no auto-insert
+opendictate settings insert off     # clipboard only, no auto-paste
 opendictate settings translation-model gpt-5.4-mini
 opendictate settings server http://127.0.0.1:8080/v1  # custom server; `off` for OpenAI
 opendictate shortcut status         # current shortcut, which keys are free
@@ -340,7 +341,7 @@ secrets; the HTTP tests only use a local stub.
   error; `retry` translates again.
 - A non-empty transcript is written only to the Wayland clipboard. The
   recording may be removed only after the copy succeeded.
-- Auto-insert (on by default, `settings insert off` turns it off): at start the
+- Auto-paste (on by default, `settings insert off` turns it off): at start the
   active Hyprland window is captured. After copying, the CLI checks that
   exactly this window is still in front and the clipboard still holds the
   text, then sends Ctrl+V (Ctrl+Shift+V in known terminals) to that window via
@@ -349,18 +350,18 @@ secrets; the HTTP tests only use a local stub.
   (Hyprland with Lua config, for example 0.56), and the older `sendshortcut`
   only when Hyprland clearly rejects it. Otherwise the text stays in the
   clipboard with a notice. If the clipboard no longer holds exactly the text
-  before inserting, or cannot be read within 2 seconds, the dictation counts as
+  before pasting, or cannot be read within 2 seconds, the dictation counts as
   not delivered and the recording is kept for `retry`; the same after `cancel`
   during delivery. The paste itself is unconfirmed; otherwise the recording
-  counts as delivered once the copy succeeded. `retry` never inserts
+  counts as delivered once the copy succeeded. `retry` never pastes
   automatically.
 - Every request has a time limit from its start, connecting included:
   transcription 15 seconds plus upload time at about 2 Mbit/s (about 50
   seconds for a 90-second recording at 48 kHz), translation 15 seconds plus
   one second per 100 characters (at most 60 seconds). With a custom server the
   base is 2 minutes instead of 15 seconds (translation at most 3 minutes).
-  Connecting alone may take at most 10 seconds. If the network drops during a short dictation, the "network error
-  or timeout" message comes after about 20 seconds instead of up to two
+  Connecting alone may take at most 10 seconds. If the network drops during a short dictation, the "No connection
+  to the service" message comes after about 20 seconds instead of up to two
   minutes; if it breaks in the middle of a long upload, it can take up to twice
   the limit. The limit does not cover a hanging name lookup (DNS).
 - Errors, cancel, empty answers or clipboard errors keep the audio. A recovery
@@ -383,7 +384,7 @@ files and proofs `0600`.
 - Phase 1 is not formally accepted: live upload, translation, shortcut, and
   cancel and network loss during processing are shown on one machine in single
   cases; the shorter timeouts are only tested offline.
-- Bar indicator and auto-insert are tried on one machine in single cases
+- Bar indicator and auto-paste are tried on one machine in single cases
   (editor, terminal, window switch, translation); the later clipboard
   hardening and the Waybar variant are not tested live. No settings window.
 - A cancel during a blocking HTTP call is evaluated after it returns or times

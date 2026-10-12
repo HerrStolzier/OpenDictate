@@ -71,7 +71,7 @@ public sealed record DictationSettings
         {
             case "gpt-transcribe" or "gpt-4o-mini-transcribe" or "gpt-4o-transcribe" or "whisper-1": return;
             case "gpt-live-transcribe": throw new UserFacingException(UiText.T(
-                "Das Echtzeitmodell kann nicht hochgeladen werden.", "The realtime model cannot take uploads."));
+                "Das Echtzeitmodell funktioniert mit OpenDictate nicht. Wähl ein anderes Modell.", "The realtime model does not work with OpenDictate. Pick another model."));
             default: throw new UserFacingException(UiText.T("Unbekanntes Transkriptionsmodell.", "Unknown transcription model."));
         }
     }
@@ -118,7 +118,7 @@ public static class SettingsFile
         try { settings.Validate(); }
         catch (UserFacingException error)
         {
-            throw new UserFacingException(UiText.T($"{error.Message} Gespeicherten Wert in {path} korrigieren oder die Zeile löschen.",
+            throw new UserFacingException(UiText.T($"{error.Message} Korrigier den Wert in {path} oder lösch die Zeile.",
                 $"{error.Message} Fix the stored value in {path} or delete its line."));
         }
         return settings;
@@ -147,7 +147,7 @@ public static class SettingsFile
         catch (Exception error) when (error is IOException or UnauthorizedAccessException)
         {
             try { File.Delete(temporary); } catch (Exception) { /* Only this save's own temporary file. */ }
-            throw new UserFacingException(UiText.T("Einstellungen nicht speicherbar.", "Settings could not be saved."));
+            throw new UserFacingException(UiText.T("Die Einstellungen ließen sich nicht speichern.", "The settings could not be saved."));
         }
     }
 }

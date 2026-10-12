@@ -98,7 +98,7 @@ impl Server {
         let loopback = matches!(host.as_str(), "localhost" | "127.0.0.1" | "[::1]");
         if scheme == "http" && !loopback {
             return Err(crate::tr!(
-                "http:// geht nur für diesen Rechner (localhost, 127.0.0.1, [::1]); sonst https:// verwenden.",
+                "http:// geht nur für diesen Rechner (localhost, 127.0.0.1, [::1]); nimm sonst https://.",
                 "http:// only works for this computer (localhost, 127.0.0.1, [::1]); use https:// otherwise."
             ));
         }
@@ -189,7 +189,7 @@ fn split_authority(authority: &str) -> Option<(&str, Option<&str>)> {
 
 fn invalid() -> String {
     crate::tr!(
-        "Ungültige Server-Adresse, z. B. http://127.0.0.1:8080/v1 verwenden.",
+        "Ungültige Server-Adresse. Nimm z. B. http://127.0.0.1:8080/v1.",
         "Invalid server address; use e.g. http://127.0.0.1:8080/v1."
     )
 }

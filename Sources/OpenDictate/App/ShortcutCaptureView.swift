@@ -71,7 +71,7 @@ final class ShortcutCaptureView: NSView {
         guard
             let result = HotKeyShortcut.custom(keyCode: UInt32(event.keyCode), modifiers: modifiers, displayName: name)
         else {
-            label.stringValue = "Bitte zusätzlich ⌘, ⌥ oder ⌃ verwenden"
+            label.stringValue = "Nimm noch ⌘, ⌥ oder ⌃ dazu"
             return
         }
         shortcut = result
@@ -91,8 +91,8 @@ final class ShortcutCaptureView: NSView {
 
     static func prompt() -> HotKeyShortcut? {
         let alert = NSAlert()
-        alert.messageText = "Eigene Tastenkombination"
-        alert.informativeText = "Die bisherige Kombination bleibt bei einem Konflikt erhalten."
+        alert.messageText = "Eigenes Tastenkürzel"
+        alert.informativeText = "Ist die Kombination schon belegt, bleibt dein bisheriges Kürzel aktiv."
         let input = ShortcutCaptureView(frame: NSRect(x: 0, y: 0, width: 400, height: 30))
         alert.accessoryView = input
         alert.addButton(withTitle: "Übernehmen")

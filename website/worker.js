@@ -4,7 +4,7 @@
 // KV namespace and served from there. Visitors never contact GitHub.
 // Update COMMIT and FILES with `python3 scripts/website-worker.py <commit>`.
 
-const COMMIT = "87cec8b5d50918d0585a5f6175618062c97a7dda";
+const COMMIT = "2d8d4ed07d052be73eeafbdca6095ba77a89264a";
 const FILES = {
   "/blink-32.svg": "8f8d4b92a787c76c86e3fbd372ba7f4d",
   "/fonts/Geist-Regular.woff2": "be82b88cfc92b5d4d697141631cf1607",
@@ -13,9 +13,9 @@ const FILES = {
   "/fonts/GeistMono-SemiBold.woff2": "9fc2d14841f1a53d23541c63643c9910",
   "/fonts/GeistPixel-Regular.woff2": "70b4b492ee459c69c61cedfa05380e54",
   "/fonts/OFL.txt": "1781d2806a07d91c4edf4740b88449fa",
-  "/index.html": "72041e7f25b044f15a69150125fc54f9",
-  "/site.js": "3437a996d809485787825e5df549c508",
-  "/style.css": "768ab687c06978537a452e69006cf1b3",
+  "/index.html": "e01badd80aa8b37f557e301bbc2bea6b",
+  "/site.js": "9e8d7fb2ae39f7373f1faf69744bded7",
+  "/style.css": "89dc8a1b4b43b372854357d353556204",
   "/tokens.css": "ded977b1cea80720ca8fb091c7ba90ec",
 };
 
@@ -32,6 +32,8 @@ const KINDS = {
   svg: ["image/svg+xml", 86400],
   woff2: ["font/woff2", 86400],
   txt: ["text/plain; charset=utf-8", 86400],
+  png: ["image/png", 86400],
+  xml: ["application/xml; charset=utf-8", 300],
 };
 
 const SECURITY = {

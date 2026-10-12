@@ -9,7 +9,7 @@ struct TranscriptionModelTests {
     func realtimeModelRejected() {
         #expect(!TranscriptionModel.gptLiveTranscribe.isUsableForUpload)
         let reason = TranscriptionModel.gptLiveTranscribe.uploadRejectionReason
-        #expect(reason?.contains("realtime") == true)
+        #expect(reason?.contains("Echtzeitmodell") == true)
         #expect(reason?.contains("gpt-transcribe") == true)
     }
 

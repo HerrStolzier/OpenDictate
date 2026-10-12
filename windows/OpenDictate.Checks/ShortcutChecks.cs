@@ -202,7 +202,7 @@ internal static class ShortcutChecks
                 Check(IndicatorText.Word(IndicatorPhase.Listening) == "Hört zu" && IndicatorText.Word(IndicatorPhase.Oops) == "Hoppla");
                 Check(IndicatorText.Detail(IndicatorPhase.Listening, TimeSpan.FromSeconds(7)) == "REC 0:07");
                 Check(IndicatorText.Detail(IndicatorPhase.Listening, TimeSpan.FromSeconds(82.5)) == "REC · Stopp in 8 s");
-                Check(IndicatorText.Detail(IndicatorPhase.Writing, translating: true) == "Wird übersetzt");
+                Check(IndicatorText.Detail(IndicatorPhase.Writing, translating: true) == "Wird übersetzt …");
                 Check(IndicatorText.ClosesAfter(IndicatorPhase.Inserted) == TimeSpan.FromSeconds(2) && IndicatorText.ClosesAfter(IndicatorPhase.Oops) is null);
                 CultureInfo.CurrentUICulture = new CultureInfo("en-US");
                 try
