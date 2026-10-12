@@ -10,8 +10,10 @@
   translation.
 - Your key stays in the system keychain. There is no tracking and no
   analytics, and the log never contains your text, your audio or your key.
-- A recording that failed is kept for up to 24 hours (five at most) so you can
-  send it again, then deleted.
+- A recording that failed is kept so you can send it again: the five newest,
+  for up to 24 hours. After that it can no longer be sent and is removed the
+  next time the app tidies up. A copy can stay longer in rare cases, for
+  example after a crash; [Failed recordings](#failed-recordings) explains when.
 
 The rest of this page is the detailed reference. It describes the macOS app
 first; the [Linux CLI](#linux-cli), the [iPhone app](#iphone-app) and
