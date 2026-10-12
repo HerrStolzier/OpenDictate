@@ -96,8 +96,10 @@ sind in „Was ein Diktat kostet“ und „Bevor du loslegst“ aufgegangen; der
 Ablauf Mac → OpenAI → Mac im Datenschutz entfällt, weil es jetzt zwei Wege
 gibt. Der Schlüsselbund-Punkt sagt nicht mehr, dass der Schlüssel nur an
 OpenAI geht, weil ein eigener Server über HTTPS ihn laut PRIVACY.md bekommt.
-„So richtest du es ein“ zeigt vorerst auf „Using your own server“ in
-README.md, bis es eine eigene Anleitung gibt. Blink und die fünf Zustände
+„So richtest du es unter Linux ein“ zeigt auf „Eigenen Server verwenden“ in
+linux/README.de.md, solange es den eigenen Server nur unter Linux
+veröffentlicht gibt; mit dem Mac-Release zeigt der Link auf die Anleitung für
+beide Systeme. Blink und die fünf Zustände
 stehen weiter unten und kleiner (Vorschau, solange die Anzeige in keiner
 veröffentlichten Version steckt). Am Mac gibt es den eigenen Server erst ab
 Build 11. Bis dahin sagt die 0-€-Karte „Unter Linux schon jetzt, am Mac ab der
