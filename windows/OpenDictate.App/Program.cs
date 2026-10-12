@@ -78,7 +78,7 @@ internal sealed class TrayApp
         copyLast.Click += async (_, _) =>
         {
             if (controller.LastText is { } text && !await ClipboardPaste.CopyAsync(text))
-                controller.Oops(UiText.T("Die Zwischenablage ist gerade belegt. Bitte gleich nochmal.", "The clipboard is busy. Please try again."));
+                controller.Oops(UiText.T("Die Zwischenablage ist gerade belegt. Versuch es gleich nochmal.", "The clipboard is busy. Try again in a moment."));
         };
         resend.Click += async (_, _) =>
         {
@@ -113,7 +113,7 @@ internal sealed class TrayApp
         {
             controller?.Oops(UiText.T(
                 "Das hat nicht geklappt. Bereits gesicherte Aufnahmen bleiben erhalten.",
-                "That did not work. Recordings already saved stay kept."));
+                "That did not work. Recordings saved so far are kept."));
         }
         catch (Exception) { /* Showing the error failed too; the app keeps running. */ }
     }
@@ -121,7 +121,7 @@ internal sealed class TrayApp
     private async Task ReportShortcutAsync()
     {
         if (!await controller!.ShortcutReady)
-            controller.Oops(UiText.T("Das Tastenkürzel ist nicht verfügbar. Diktate über das Symbol im Infobereich starten.",
+            controller.Oops(UiText.T("Das Tastenkürzel ist nicht verfügbar. Starte Diktate über das Symbol im Infobereich.",
                 "The shortcut is not available. Start dictations from the tray icon."));
     }
 

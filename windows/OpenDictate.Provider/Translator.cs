@@ -45,7 +45,7 @@ public sealed class Translator : IDisposable
             },
         });
         using var document = await ProviderHttp.SendAsync(client, request, server, DeadlineFor(text.Length), ResponseLimit, StatusMessage,
-            UiText.T("Netzwerkfehler oder Zeitüberschreitung bei der Übersetzung.", "Network error or timeout during translation."), token);
+            UiText.T("Keine Verbindung zum Dienst. Prüf das Internet und versuch es nochmal.", "No connection to the service. Check your internet connection and try again."), token);
         string translation = "";
         if (document.RootElement.ValueKind == JsonValueKind.Object &&
             document.RootElement.TryGetProperty("choices", out var choices) && choices.ValueKind == JsonValueKind.Array &&
@@ -84,14 +84,14 @@ public sealed class Translator : IDisposable
         401 or 403 when !server.SendsApiKey => UiText.T(
             "Der Server verlangt eine Anmeldung; an Adressen auf diesem Computer sendet OpenDictate keinen API-Schlüssel.",
             "The server asks for a login; OpenDictate sends no API key to addresses on this computer."),
-        401 => UiText.T("API-Schlüssel ist ungültig.", "API key is invalid."),
+        401 => UiText.T("Dein API-Schlüssel ist ungültig. Trag ihn in den Einstellungen neu ein.", "Your API key is invalid. Enter it again in the settings."),
         404 when server.IsCustom => UiText.T(
-            "Übersetzungsmodell ist auf dem Server nicht verfügbar. Server-Adresse (mit /v1) und Modellnamen prüfen.",
-            "Translation model is not available on the server. Check the server address (with /v1) and the model name."),
-        404 => UiText.T("Übersetzungsmodell ist nicht verfügbar.", "Translation model is not available."),
-        429 when server.IsCustom => UiText.T("Der Server ist ausgelastet. Bitte später erneut versuchen.", "The server is busy. Please try again later."),
-        429 => UiText.T("OpenAI-Limit erreicht oder Guthaben aufgebraucht. Bitte später erneut versuchen.",
-            "OpenAI limit reached or credit used up. Please try again later."),
+            "Das Übersetzungsmodell ist auf dem Server nicht verfügbar. Prüf die Server-Adresse (mit /v1) und den Modellnamen.",
+            "The translation model is not available on the server. Check the server address (with /v1) and the model name."),
+        404 => UiText.T("Das Übersetzungsmodell ist nicht verfügbar.", "The translation model is not available."),
+        429 when server.IsCustom => UiText.T("Der Server ist ausgelastet. Versuch es später nochmal.", "The server is busy. Try again later."),
+        429 => UiText.T("OpenAI-Limit erreicht oder dein Guthaben ist leer. Schau in dein OpenAI-Konto.",
+            "OpenAI limit reached or your balance is empty. Check your OpenAI account."),
         _ => UiText.T("Übersetzung fehlgeschlagen.", "Translation failed."),
     };
 

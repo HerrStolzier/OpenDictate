@@ -29,37 +29,35 @@ public enum OpenDictateError: LocalizedError {
 
     /// User-facing messages deliberately exclude raw provider and framework errors.
     public static func userMessage(for error: Error) -> String {
-        if let error = error as? OpenDictateError { return error.errorDescription ?? "Bitte versuche es erneut." }
+        if let error = error as? OpenDictateError { return error.errorDescription ?? "Versuch es nochmal." }
         if error is URLError {
             return
-                "Der Dienst ist gerade nicht erreichbar. Prüfe die Internetverbindung oder deinen eigenen Server und versuche es erneut."
+                "Keine Verbindung zum Dienst. Prüf das Internet oder deinen eigenen Server und versuch es nochmal."
         }
-        return "Der Vorgang konnte nicht abgeschlossen werden. Versuche es erneut oder öffne die Hilfe."
+        return "Das hat nicht geklappt. Versuch es nochmal oder öffne die Hilfe."
     }
 
     public var errorDescription: String? {
         switch self {
         case .audioPreprocessingFailed:
             return
-                "Die Aufnahme konnte nicht vorbereitet werden. Öffne die aufbewahrten Aufnahmen oder versuche ein neues Diktat."
+                "Die Aufnahme konnte nicht vorbereitet werden. Öffne die gesicherten Aufnahmen oder starte ein neues Diktat."
         case .audioNotEligibleForUpload:
-            return
-                "Die Aufnahme kann nicht gesendet werden. Sie ist leer oder zu groß für diesen Übertragungsweg."
+            return "Die Aufnahme ist leer oder zu groß zum Senden."
         case .apiError(let message):
             return message
         case .hotKeyRegistrationFailed:
             return "Das Tastenkürzel ist nicht verfügbar. Wähle in den Einstellungen ein anderes Kürzel."
         case .invalidResponse:
             return
-                "Der Dienst hat keinen verwendbaren Text geliefert. Versuche die Aufnahme später erneut zu verarbeiten."
+                "Der Dienst hat keinen brauchbaren Text geliefert. Du kannst die Aufnahme später nochmal senden."
         case .keychainStatus:
-            return "Der Schlüsselbund ist nicht zugänglich. Prüfe die Zugriffsabfrage von macOS und versuche es erneut."
+            return "Der Schlüsselbund ist nicht zugänglich. Prüf die Zugriffsabfrage von macOS und versuch es nochmal."
         case .missingAPIKey:
-            return "Der API-Schlüssel fehlt. Nutze „API-Schlüssel einrichten“ "
-                + "im Aufnahmefenster oder in den Einstellungen."
+            return "Der API-Schlüssel fehlt. Richte ihn über „API-Schlüssel einrichten“ "
+                + "im Diktatfenster oder in den Einstellungen ein."
         case .unusableTranscriptionModel:
-            return
-                "Das eingestellte Modell ist nicht für diesen Aufnahmeweg geeignet. Wähle in den Einstellungen ein anderes Modell."
+            return "Dieses Modell funktioniert mit OpenDictate nicht. Wähl in den Einstellungen ein anderes."
         case .noActiveRecording:
             return "Es läuft keine Aufnahme. Starte zuerst ein neues Diktat."
         case .noAudioFile:
@@ -72,9 +70,9 @@ public enum OpenDictateError: LocalizedError {
                 "Das Mikrofon konnte nicht gestartet werden. Prüfe den Anschluss und den Mikrofonzugriff in den Systemeinstellungen."
         case .recordingTooShort(let actual, let minimum):
             return
-                "Die Aufnahme war zu kurz (\(actual.formattedSeconds)). Sprich mindestens \(minimum.formattedSeconds) und beende dann die Aufnahme."
+                "Die Aufnahme war zu kurz (\(actual.formattedSeconds)). Sprich mindestens \(minimum.formattedSeconds) lang."
         case .emptyTranslation:
-            return "Der Dienst hat keine Übersetzung geliefert. Der Originaltext wird nicht ersatzweise eingefügt."
+            return "Die Übersetzung kam leer zurück. Der Originaltext wird nicht eingefügt."
         case .invalidServerAddress:
             return
                 "Die Server-Adresse ist ungültig. Trage sie unter Einstellungen → Erweitert → Eigener Server neu ein."

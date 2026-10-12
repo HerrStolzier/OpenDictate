@@ -42,28 +42,27 @@ Kürzel ein.
 
 Befehle:
   setup                  geführte Einrichtung: Dienst und Kürzel
-  toggle                 Aufnahme starten oder stoppen
-  status                 idle / starting / recording / processing / delivering
+  toggle                 Diktat starten oder beenden
+  status                 Zustand (idle, starting, recording, processing, delivering)
   bar                    Status als JSON-Zeile für Omarchy-Leiste oder Waybar
   cancel                 Aufnahme oder Verarbeitung sicher abbrechen
-  retry                  neueste authentifizierte Aufnahme erneut senden
+  retry                  letzte gesicherte Aufnahme nochmal senden
   copy-status            festen Statustext in die Zwischenablage
-  secrets probe          Secret Service schreiben, lesen, löschen
-  secrets status         ob API-Key und Recording-Auth existieren
-  secrets set-api-key    API-Key von stdin speichern (kein Argument)
-  secrets init-auth      Recording-Auth anlegen, falls fehlend
+  secrets probe          Schlüsselbund prüfen: schreiben, lesen, löschen
+  secrets status         zeigt, ob API-Schlüssel und Sicherungsschlüssel da sind
+  secrets set-api-key    API-Schlüssel über stdin speichern (kein Argument)
+  secrets init-auth      Sicherungsschlüssel (für gesicherte Aufnahmen) anlegen
   settings show          Modell, Sprache und Übersetzung anzeigen
-  settings model NAME    Upload-Modell setzen
+  settings model NAME    Modell für die Abschrift setzen
   settings language CODE Sprache setzen; `auto` für Erkennung
   settings target CODE   Übersetzen in Zielsprache, z. B. `en`; `off` aus
   settings target toggle Übersetzung aus- oder mit letzter Zielsprache einschalten
-  settings insert on|off Text automatisch ins Startfenster einfügen
+  settings insert on|off automatisch ins Fenster einfügen, in dem du gestartet hast
   settings translation-model NAME  Modell für die Übersetzung setzen
   settings server URL    Eigener Server: Server-Adresse inkl. /v1; `off` = OpenAI
   shortcut status        Kürzel und freie Tasten anzeigen
   shortcut set KÜRZEL    super-d, f9 oder right-alt in die Hyprland-Konfiguration
   version                Version anzeigen
-  record --daemon        interner Aufnahmeprozess
 ";
 const USAGE_EN: &str = "\
 opendictate — dictation for Hyprland (beta)
@@ -73,18 +72,18 @@ shortcut.
 
 Commands:
   setup                  guided setup: service and shortcut
-  toggle                 start or stop a recording
-  status                 idle / starting / recording / processing / delivering
+  toggle                 start or stop a dictation
+  status                 state (idle, starting, recording, processing, delivering)
   bar                    status as a JSON line for the Omarchy bar or Waybar
   cancel                 safely cancel a recording or processing
-  retry                  send the newest authenticated recording again
+  retry                  send the last kept recording again
   copy-status            put a fixed status text in the clipboard
-  secrets probe          write, read and delete in the Secret Service
-  secrets status         whether the API key and recording auth exist
+  secrets probe          check the keyring: write, read, delete
+  secrets status         whether the API key and the key for kept recordings exist
   secrets set-api-key    store the API key from stdin (no argument)
-  secrets init-auth      create the recording auth if missing
+  secrets init-auth      create the key for kept recordings if it is missing
   settings show          show model, language and translation
-  settings model NAME    set the upload model
+  settings model NAME    set the transcription model
   settings language CODE set the spoken language; `auto` to detect it
   settings target CODE   translate into a language, e.g. `en`; `off` to stop
   settings target toggle turn translation off, or on with the last language
@@ -94,7 +93,6 @@ Commands:
   shortcut status        show the shortcut and which keys are free
   shortcut set KEY       write super-d, f9 or right-alt into the Hyprland config
   version                show the version
-  record --daemon        internal recording process
 ";
 
 fn main() {
@@ -166,8 +164,8 @@ fn toggle() -> Result<(), String> {
                 println!(
                     "{}",
                     i18n::t(
-                        "Aufnahme beendet; Transkription läuft.",
-                        "Recording stopped; transcribing."
+                        "Aufnahme beendet. Wird zu Text …",
+                        "Recording stopped. Turning it into text …"
                     )
                 );
                 Ok(())
@@ -212,8 +210,8 @@ fn lock_toggle() -> Result<File, String> {
 
 fn starting() -> String {
     tr!(
-        "Die Aufnahme startet gerade; gleich noch einmal versuchen.",
-        "The recording is starting; try again in a moment."
+        "Die Aufnahme startet gerade. Versuch es gleich nochmal.",
+        "The recording is starting. Try again in a moment."
     )
 }
 
@@ -250,7 +248,7 @@ fn start_worker() -> Result<(), String> {
         &log,
         record::START_TIMEOUT + Duration::from_secs(1),
     )?;
-    let started = i18n::t("Aufnahme läuft", "Recording started");
+    let started = i18n::t("Aufnahme läuft", "Recording");
     notify::status(started);
     println!("{started}");
     Ok(())
@@ -385,7 +383,10 @@ fn copy_status() -> Result<(), String> {
 
 fn secrets_probe() -> Result<(), String> {
     keyring::probe()?;
-    println!("{}", i18n::t("Keyring erreichbar", "Keyring reachable"));
+    println!(
+        "{}",
+        i18n::t("Schlüsselbund erreichbar", "Keyring reachable")
+    );
     Ok(())
 }
 
@@ -410,7 +411,7 @@ fn present(exists: bool) -> &'static str {
 fn set_api_key() -> Result<(), String> {
     if atty_stdin() {
         return Err(tr!(
-            "API-Schlüssel per Pipe übergeben, z. B. `printf %s \"$KEY\" | opendictate secrets set-api-key`.",
+            "Gib den API-Schlüssel per Pipe weiter, z. B. `printf %s \"$KEY\" | opendictate secrets set-api-key`.",
             "Pass the API key through a pipe, e.g. `printf %s \"$KEY\" | opendictate secrets set-api-key`."
         ));
     }
@@ -436,7 +437,10 @@ fn init_auth() -> Result<(), String> {
     keyring::ensure_recording_auth()?;
     println!(
         "{}",
-        i18n::t("Recording-Auth bereit", "Recording auth ready")
+        i18n::t(
+            "Sicherungsschlüssel bereit",
+            "Key for kept recordings ready"
+        )
     );
     Ok(())
 }
@@ -526,8 +530,8 @@ fn settings_insert(enabled: bool) -> Result<(), String> {
     println!(
         "{}",
         match enabled {
-            true => i18n::t("Automatisches Einfügen an", "Auto-insert on"),
-            false => i18n::t("Automatisches Einfügen aus", "Auto-insert off"),
+            true => i18n::t("Automatisches Einfügen an", "Auto-paste on"),
+            false => i18n::t("Automatisches Einfügen aus", "Auto-paste off"),
         }
     );
     Ok(())
@@ -660,8 +664,8 @@ fn settings_server(address: &str) -> Result<(), String> {
     println!(
         "{}",
         tr!(
-            "Modellnamen deines Servers setzen: `opendictate settings model NAME`, für Übersetzungen `opendictate settings translation-model NAME` (jetzt: {}, {}).",
-            "Set your server's model names: `opendictate settings model NAME`, for translations `opendictate settings translation-model NAME` (now: {}, {}).",
+            "Die Modellnamen deines Servers setzt du mit `opendictate settings model NAME`, für Übersetzungen mit `opendictate settings translation-model NAME` (jetzt: {}, {}).",
+            "Set your server's model names with `opendictate settings model NAME`, for translations with `opendictate settings translation-model NAME` (now: {}, {}).",
             settings.model,
             settings.translation_model
         )
@@ -703,7 +707,7 @@ fn settings_server_off() -> Result<(), String> {
         println!(
             "{}",
             tr!(
-                "Transkriptionsmodell auf {} zurückgesetzt.",
+                "Modell für die Abschrift auf {} zurückgesetzt.",
                 "Transcription model reset to {}.",
                 settings::DEFAULT_MODEL
             )
@@ -793,7 +797,7 @@ fn auto_insert(
     match result {
         Ok(()) => {
             log_ops("insert-sent");
-            Ok(Some(tr!("eingefügt", "inserted")))
+            Ok(Some(tr!("eingefügt", "pasted")))
         }
         Err(skip) => {
             log_ops(&format!("insert-skipped reason={}", skip.log_reason()));
@@ -801,8 +805,8 @@ fn auto_insert(
                 return Err(format!("{}.", skip.message()));
             }
             Ok(Some(tr!(
-                "{}; liegt in der Zwischenablage",
-                "{}; it is in the clipboard",
+                "{} – der Text liegt in der Zwischenablage",
+                "{} – the text is in the clipboard",
                 skip.message()
             )))
         }
@@ -810,22 +814,22 @@ fn auto_insert(
 }
 
 fn delivered_status(settings: &settings::Settings, retry: bool) -> String {
-    tr!(
-        "{} in Zwischenablage kopiert",
+    let copied = tr!(
+        "{} in die Zwischenablage kopiert",
         "{} copied to the clipboard",
-        delivered_subject(settings, retry)
-    )
+        delivered_subject(settings)
+    );
+    if retry {
+        tr!("Nochmal gesendet. {copied}", "Sent again. {copied}")
+    } else {
+        copied
+    }
 }
 
-fn delivered_subject(settings: &settings::Settings, retry: bool) -> String {
-    match (settings.target_language.as_deref(), retry) {
-        (Some(target), false) => tr!("Übersetzung ({target})", "Translation ({target})"),
-        (Some(target), true) => tr!(
-            "Wiederholte Übersetzung ({target})",
-            "Retried translation ({target})"
-        ),
-        (None, false) => tr!("Text", "Text"),
-        (None, true) => tr!("Wiederholung", "Retry"),
+fn delivered_subject(settings: &settings::Settings) -> String {
+    match settings.target_language.as_deref() {
+        Some(target) => tr!("Übersetzung ({target})", "Translation ({target})"),
+        None => tr!("Text", "Text"),
     }
 }
 
@@ -932,8 +936,8 @@ fn process_new_recording(
         ensure_not_cancelled(state_guard)?;
         if transcript.is_empty() {
             return Err(tr!(
-                "Leere Transkription; Aufnahme wurde behalten.",
-                "Empty transcription; the recording was kept."
+                "Kein Text erkannt. Die Aufnahme bleibt gesichert.",
+                "No text came back. Your recording is kept."
             ));
         }
         let text = deliverable_text(
@@ -955,7 +959,7 @@ fn process_new_recording(
         }
         let status = match insert_status {
             Some(insert_status) => {
-                format!("{}: {insert_status}", delivered_subject(&settings, false))
+                format!("{}: {insert_status}", delivered_subject(&settings))
             }
             None => delivered_status(&settings, false),
         };
@@ -971,8 +975,8 @@ fn process_new_recording(
             notify::status(&error);
             match preservation {
                 Ok(()) => Err(tr!(
-                    "{error} Aufnahme für Wiederholung behalten.",
-                    "{error} Recording kept for retry."
+                    "{error} Die Aufnahme ist gesichert; `opendictate retry` sendet sie nochmal.",
+                    "{error} The recording is kept; `opendictate retry` sends it again."
                 )),
                 Err(preservation_error) => Err(tr!(
                     "{error} {preservation_error} Original blieb erhalten.",
@@ -993,8 +997,8 @@ fn retry() -> Result<(), String> {
             )
         } else {
             tr!(
-                "Wiederholung konnte nicht starten.",
-                "Retry could not start."
+                "OpenDictate konnte nicht nochmal senden.",
+                "OpenDictate could not send again."
             )
         }
     })?;
@@ -1013,8 +1017,8 @@ fn retry() -> Result<(), String> {
     let (entry, authenticated_bytes) = recovery::newest_authenticated(&recovery_dir, &auth)?
         .ok_or_else(|| {
             tr!(
-                "Keine authentifizierte Aufnahme für Wiederholung vorhanden.",
-                "No authenticated recording to retry."
+                "Keine gesicherte Aufnahme zum Nochmal-Senden.",
+                "No kept recording to send again."
             )
         })?;
     ensure_not_cancelled(&state_guard)?;
@@ -1030,8 +1034,8 @@ fn retry() -> Result<(), String> {
     ensure_not_cancelled(&state_guard)?;
     if transcript.is_empty() {
         return Err(tr!(
-            "Leere Transkription; Aufnahme bleibt erhalten.",
-            "Empty transcription; the recording is kept."
+            "Kein Text erkannt. Die Aufnahme bleibt gesichert.",
+            "No text came back. Your recording is kept."
         ));
     }
     let text = deliverable_text(
@@ -1130,8 +1134,8 @@ fn path_error(error: io::Error) -> String {
 
 fn cancel_requested() -> &'static str {
     i18n::t(
-        "Abbruch angefordert; Aufnahme wird sicher behalten.",
-        "Cancel requested; the recording is kept safe.",
+        "Wird abgebrochen. Die Aufnahme bleibt gesichert.",
+        "Cancelling. Your recording is kept.",
     )
 }
 

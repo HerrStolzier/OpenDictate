@@ -6,7 +6,9 @@ import OpenDictateCore
 final class DictationPanel: NSWindowController {
     typealias Display = DictationDisplay
 
-    private static let pasteDetail = "Automatisches Einfügen wurde ausgelöst. Prüfe den Text im Zielprogramm."
+    private static let pasteDetail = "Per ⌘V eingefügt. Schau kurz im Zielprogramm nach."
+    private static let uncertainPasteDetail =
+        "Ob der Text angekommen ist, ließ sich nicht prüfen. Schau kurz nach, bevor du ihn nochmal einfügst."
 
     var onRecord: (() -> Void)?
     var onSetup: (() -> Void)?
@@ -32,12 +34,12 @@ final class DictationPanel: NSWindowController {
     private let shortcut = NSTextField(wrappingLabelWithString: "")
     private let textView = NSTextView()
     private let textScroll = NSScrollView()
-    private let primary = TactileButton(title: "Aufnahme starten", target: nil, action: nil)
+    private let primary = TactileButton(title: "Diktat starten", target: nil, action: nil)
     private let secondary = TactileButton(title: "Abbrechen", target: nil, action: nil)
     private let actions = TactileButton(title: "Weitere Aktionen", target: nil, action: nil)
     private let settings = TactileButton(title: "Einstellungen", target: nil, action: nil)
     private var textHeight: NSLayoutConstraint!
-    private var currentDetail = "Starte die Aufnahme oder nutze dein Tastenkürzel."
+    private var currentDetail = "Starte ein Diktat hier oder mit deinem Kürzel."
     private var announcedCountdown: Int?
 
     init() {
@@ -99,9 +101,9 @@ final class DictationPanel: NSWindowController {
             announcedCountdown = nil
             set(.recording, detail: "Sprich in deinem Tempo.")
         case .processing:
-            set(.processing, detail: "Bitte warte einen Moment.")
+            set(.processing, detail: "Einen Moment.")
         case .delivering:
-            set(.processing, detail: "Die Übergabe wird vorbereitet.")
+            set(.processing, detail: "Gleich fertig …")
         case .idle: render()
         }
     }
@@ -110,12 +112,12 @@ final class DictationPanel: NSWindowController {
         guard display == .recording else { return }
         let seconds = max(0, Int(elapsed))
         let remaining = max(0, Int(ceil(Config.maximumRecordingDuration - elapsed)))
-        let signal = level < Config.silenceThresholdDb ? "Leises Eingangssignal" : "Eingangssignal vorhanden"
+        let signal = level < Config.silenceThresholdDb ? "Sehr leise." : "Ton kommt an."
         let countdown =
             remaining <= 10
             ? "Noch \(remaining) s bis zum automatischen Stopp."
             : "Stopp nach \(Int(Config.maximumRecordingDuration)) s."
-        setStatus("\(seconds) s aufgenommen · \(countdown)\n\(signal) (\(Int(level)) dB).")
+        setStatus("\(seconds) s aufgenommen · \(countdown)\n\(signal)")
         render()
         let milestone = remaining <= 5 ? 5 : (remaining <= 10 ? 10 : nil)
         if let milestone, announcedCountdown != milestone, window?.isVisible == true {
@@ -142,9 +144,7 @@ final class DictationPanel: NSWindowController {
             showingText = true
             set(
                 .unconfirmed,
-                detail: "Der Einfügeversuch konnte nicht bestätigt werden. "
-                    + "Möglicherweise steht bereits Text im Zielprogramm. "
-                    + "Prüfe es vor manuellem Einfügen, um eine Doppelung zu vermeiden.")
+                detail: Self.uncertainPasteDetail)
         case .failed:
             set(.failure, detail: currentDetail)
         case .cancelled:
@@ -155,7 +155,7 @@ final class DictationPanel: NSWindowController {
     func setStatus(_ value: String) {
         let panelText =
             value == "Bereit" && display == .ready
-            ? "Wähle ein Textfeld und starte mit deinem Tastenkürzel."
+            ? "Klick in ein Textfeld und starte mit deinem Kürzel."
             : value
         currentDetail = panelText
         detail.stringValue = panelText
@@ -172,12 +172,12 @@ final class DictationPanel: NSWindowController {
             set(
                 .setup,
                 detail: message
-                    ?? "Hinterlege deinen eigenen OpenAI-API-Schlüssel. OpenAI berechnet die Transkription separat.")
+                    ?? "Richte deinen OpenAI-API-Schlüssel ein. Die Kosten rechnet OpenAI direkt mit dir ab.")
         } else if display == .setup {
             set(
                 .ready,
                 detail: message
-                    ?? "Schlüssel gespeichert. Wähle jetzt dein Zieltextfeld und starte ein neues Diktat.")
+                    ?? "Schlüssel gespeichert. Klick in ein Textfeld und starte dein erstes Diktat.")
         }
     }
 
@@ -188,7 +188,7 @@ final class DictationPanel: NSWindowController {
     func clearText() {
         textView.string = ""
         showingText = false
-        if display == .manual || display == .unconfirmed { set(.ready, detail: "Text aus dem Speicher gelöscht.") }
+        if display == .manual || display == .unconfirmed { set(.ready, detail: "Letzter Text gelöscht.") }
         render()
     }
 
@@ -197,7 +197,7 @@ final class DictationPanel: NSWindowController {
     func presentLastText(_ text: String) {
         textView.string = text
         showingText = true
-        set(.manual, detail: "Dein letzter Text. Er bleibt bis zum Beenden der App gespeichert.", notify: false)
+        set(.manual, detail: "Dein letzter Text. OpenDictate behält ihn, bis du die App beendest.", notify: false)
         showForInteraction()
     }
 
@@ -206,7 +206,8 @@ final class DictationPanel: NSWindowController {
         set(
             .retry,
             detail: description
-                + "\nDie Aufnahme geht noch einmal an den eingestellten Dienst; bei OpenAI kostet das erneut. Ergebnis nur zum Kopieren."
+                + "\nDie Aufnahme geht nochmal an deinen Dienst – bei OpenAI kostet das wieder. "
+                + "Den Text bekommst du zum Kopieren."
         )
         showForInteraction()
     }
@@ -219,16 +220,16 @@ final class DictationPanel: NSWindowController {
         window?.title = "OpenDictate – Vorschau"
         let previewDetail: String =
             switch value {
-            case .ready: "Wähle dein Zieltextfeld und drücke das Tastenkürzel."
-            case .setup: "Hinterlege deinen eigenen OpenAI-API-Schlüssel. OpenAI berechnet die Transkription separat."
-            case .recording: "Sprich in deinem Tempo. Das Tastenkürzel beendet die Aufnahme."
-            case .processing: "Der Text wird verarbeitet. Du kannst im Zieltextfeld bleiben."
-            case .confirmed: "Der Text wurde im Zielprogramm bestätigt."
+            case .ready: "Klick in ein Textfeld und drück dein Kürzel."
+            case .setup: "Richte deinen OpenAI-API-Schlüssel ein. Die Kosten rechnet OpenAI direkt mit dir ab."
+            case .recording: "Sprich in deinem Tempo. Dein Kürzel beendet das Diktat."
+            case .processing: "Gleich fertig. Du kannst im Textfeld bleiben."
+            case .confirmed: "Der Text ist eingefügt."
             case .manual: "Automatisches Einfügen war nicht möglich. Du kannst den Text kopieren."
             case .unconfirmed: Self.pasteDetail
-            case .failure: "Beispiel: Die Verbindung ist fehlgeschlagen. Eine gesicherte Aufnahme bleibt verfügbar."
-            case .retry: "Ein neuer Versand an den eingestellten Dienst kann erneut Kosten verursachen."
-            case .cancelling: "Die laufende Arbeit wird beendet."
+            case .failure: "Beispiel: Keine Verbindung. Deine Aufnahme ist gesichert."
+            case .retry: "Nochmal senden kostet bei OpenAI wieder."
+            case .cancelling: "Einen Moment."
             }
         set(value, detail: previewDetail)
     }
@@ -381,13 +382,13 @@ final class DictationPanel: NSWindowController {
         secondary.isEnabled = display != .cancelling && (!busy || display == .recording || display == .processing)
         textScroll.isHidden = !showingText
         switch display {
-        case .ready, .confirmed: primary.title = "Aufnahme starten"
-        case .setup: primary.title = "Schlüssel eingeben"
-        case .recording: primary.title = "Aufnahme beenden"
+        case .ready, .confirmed: primary.title = "Diktat starten"
+        case .setup: primary.title = "API-Schlüssel einrichten"
+        case .recording: primary.title = "Diktat beenden"
         case .manual: primary.title = "Text kopieren"
         case .unconfirmed: primary.title = showingText ? "Text kopieren" : "Text ansehen"
-        case .failure: primary.title = "Aufbewahrte Aufnahmen"
-        case .retry: primary.title = "Erneut verarbeiten"
+        case .failure: primary.title = "Gesicherte Aufnahmen"
+        case .retry: primary.title = "Nochmal senden"
         case .processing, .cancelling: break
         }
         secondary.title = display == .retry ? "Zurück" : busy ? "Abbrechen" : "Neues Diktat"
@@ -440,7 +441,7 @@ final class DictationPanel: NSWindowController {
                 onCopy?()
             } else {
                 showingText = true
-                currentDetail = "Möglicherweise bereits eingefügt. Prüfe das Ziel, um eine Doppelung zu vermeiden."
+                currentDetail = Self.uncertainPasteDetail
                 render()
                 window?.makeFirstResponder(textView)
             }
@@ -452,13 +453,13 @@ final class DictationPanel: NSWindowController {
 
     @objc private func secondaryAction() {
         if busy {
-            set(.cancelling, detail: "Die laufende Arbeit wird beendet. Bitte warte.")
+            set(.cancelling, detail: "Einen Moment.")
             onCancel?()
         } else if display == .retry {
             onRecovery?()
         } else {
             showingText = false
-            set(.ready, detail: "Starte die Aufnahme oder nutze dein Tastenkürzel.")
+            set(.ready, detail: "Starte ein Diktat hier oder mit deinem Kürzel.")
         }
     }
 }

@@ -65,13 +65,13 @@ impl Skip {
             ),
             Self::ClipboardChanged => t(
                 "Zwischenablage wurde vor dem Einfügen überschrieben",
-                "Clipboard was overwritten before inserting",
+                "Clipboard was overwritten before pasting",
             ),
             Self::ClipboardUnreadable => t(
                 "Zwischenablage konnte vor dem Einfügen nicht geprüft werden",
-                "Clipboard could not be checked before inserting",
+                "Clipboard could not be checked before pasting",
             ),
-            Self::Unavailable => t("Einfügen nicht möglich", "Inserting is not possible"),
+            Self::Unavailable => t("Einfügen nicht möglich", "Pasting is not possible"),
         }
     }
 }

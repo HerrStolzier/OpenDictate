@@ -8,8 +8,12 @@ verfügbar machen: immer über die Zwischenablage, wo belegt auch durch
 automatisches Einfügen. Zielgruppe (Entscheidung vom 2. Oktober 2026):
 technisch versierte Nutzer, die einen eigenen API-Schlüssel einrichten können.
 
-Verkaufsargumente:
+Verkaufsargumente (Hauptargument seit 12. Oktober 2026 ist das erste):
 
+- Kostenlos oder fast kostenlos, ohne Abo: Mit einem Modell auf dem eigenen
+  Rechner (eigener Server, Stufe 1) kostet ein Diktat nichts; am Mac ab Build
+  11, unter Linux seit der ersten Beta. Ohne Terminal-Einrichtung erst mit
+  Stufe 2 (Modell in der App).
 - Abrechnung pro gesprochener Minute statt Pauschale (belegt: 0,0045 $/min,
   rund 0,1 Cent bei einem typischen Diktat von rund 15 Sekunden, rund 18,5
   Stunden Sprache für den Preis einer 5-$-Monatspauschale). Die Zahlen stammen
@@ -165,7 +169,11 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
+| 12. Oktober 2026 | Die Startseite wird kurz (rund 400 Wörter, fünf Abschnitte) und führt mit 0,1 Cent pro Diktat, weil „lokal kostenlos“ allein OpenDictate nicht mehr unterscheidet. Dazu kommen die SEO-Grundlagen (Titel, Vorschaubild, strukturierte Daten, Sitemap). Live nur auf Bastis Wort. | Karte „Bauen“ im Projektchat 12. Oktober |
 | 12. Oktober 2026 | Die umgebaute Website („Diktieren ohne Abo“, Preis vorn) geht sofort live, nicht erst mit Build 11. Bis die Mac-Beta mit eigenem Server veröffentlicht ist, sagt die 0-€-Karte „Unter Linux schon jetzt, am Mac ab der nächsten Version“. Bastis „Jetzt live“ (10:41) ersetzt sein „Mit Build 11“ (10:27). | [website/README.md](website/README.md); Karte „Jetzt live“ im Projektchat 12. Oktober |
+| 12. Oktober 2026 | Die nach dem Preis umgebaute Website geht erst live, wenn die Mac-Beta mit eigenem Server (Build 11 oder später) veröffentlicht ist; gebaut wird sie schon jetzt. Bis dahin wäre „lokal kostenlos“ am Mac nicht einlösbar. (Ersetzt durch „Jetzt live“, 10:41.) | [Anleitung lokales Modell](docs/lokales-modell.md); Karte „Mit Build 11“ im Projektchat 12. Oktober |
+| 12. Oktober 2026 | Hauptargument nach außen ist der Preis: mit einem Modell auf dem eigenen Rechner kostenlos, mit OpenAI wenige Cent im Monat. Website, README und Release-Texte führen damit; die Website wird darum umgebaut. | [README](README.md); Projektchat 12. Oktober |
+| 12. Oktober 2026 | Alle öffentlichen Texte (Website, GitHub, App-Texte) werden überarbeitet, damit sie sich lesen, als hätte ein Mensch sie geschrieben. Maßstab für den Ton: Die App soll Spaß machen und ein gutes Gefühl geben, ohne albern zu sein. Auf allen Plattformen gelten dieselben Begriffe (Tastenkürzel, Nochmal senden, Gesicherte Aufnahmen, du). | Karte „Alles“ im Projektchat 12. Oktober |
 | 11. Oktober 2026 | Nach der Sicherheitsprüfung (Code aller Plattformen, support-desk, Cloudflare-Konto, nur lesend) erzwingt die Cloudflare-Zone opendictate.app HTTPS: „Always Use HTTPS“ an, HSTS mit allen Subdomains, Mindest-TLS 1.2; http-Aufrufe auf Website und Support leiten per 301 um. Der Bericht mit Angriffsdetails liegt nur in der Projektbibliothek, nicht im Repo; offene Code-Befunde (Zeilenumbrüche vor dem Einfügen in Terminals, Zwischenablage-Kennzeichen, Schlüsselbund-Details) werden als eigene PRs behoben. | [ROADMAP](ROADMAP.md#plattformübergreifend), Zeile „Sicherheitsprüfung vom 11. Oktober“; Karte „HTTPS-Zwang“ im privaten Projektchat, 11. Oktober |
 | 11. Oktober 2026 | Die nächste Beta ist iOS, danach Windows. Beide Tracks laufen parallel weiter, aber iOS geht zuerst an Tester (TestFlight). Vorgaben des iOS-Threads für die erste iOS-Beta, Basti mitgeteilt: Erkennung über OpenAI mit eigenem Schlüssel oder einen eigenen Server (Apples Erkennung auf dem Gerät folgt später); Start über „Auf Rückseite tippen“ oder die Aktionstaste, das Kontrollzentrum folgt später; der alte Tastatur-Prototyp (PR #40) ist geschlossen, sein Zweig bleibt. Hochladen zu TestFlight und das Einladen von Testern brauchen Bastis eigenes Go. | [ROADMAP](ROADMAP.md#track-ios); Projektchat 11. Oktober |
 | 11. Oktober 2026 | Die Live-Abnahme der Windows-Beta (Installation, ein Diktat in Editor und Spielchat, beide Kürzel) läuft auf Bastis Windows-PC `xmg`, wenn die Beta-App fertig ist, und nur mit seinem Go. | [Windows-Plan](docs/windows-plan.md#weg-zur-windows-beta-stand-11-oktober-2026); Karte im Projektchat 11. Oktober |

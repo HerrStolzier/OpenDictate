@@ -66,8 +66,8 @@ public sealed class ProviderServer
         bool loopback = host is "localhost" or "127.0.0.1" or "[::1]";
         if (scheme == "http" && !loopback)
             throw new UserFacingException(UiText.T(
-                "http:// geht nur für diesen Computer (localhost, 127.0.0.1, [::1]); sonst https:// verwenden.",
-                "http:// only works for this computer (localhost, 127.0.0.1, [::1]); use https:// otherwise."));
+                "http:// geht nur für diesen Computer (localhost, 127.0.0.1, [::1]). Nimm sonst https://.",
+                "http:// only works for this computer (localhost, 127.0.0.1, [::1]). Use https:// otherwise."));
         path = path.TrimEnd('/');
         string baseAddress = port is null ? $"{scheme}://{host}{path}" : $"{scheme}://{host}:{port}{path}";
         return new ProviderServer(baseAddress, host, loopback);
@@ -97,6 +97,6 @@ public sealed class ProviderServer
     }
 
     private static UserFacingException Invalid() => new(UiText.T(
-        "Ungültige Server-Adresse, z. B. http://127.0.0.1:8080/v1 verwenden.",
+        "Ungültige Server-Adresse. Nimm z. B. http://127.0.0.1:8080/v1.",
         "Invalid server address; use e.g. http://127.0.0.1:8080/v1."));
 }

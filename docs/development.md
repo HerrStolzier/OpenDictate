@@ -1,6 +1,7 @@
 # Development workflows
 
-The [README](../README.md) covers the first dictation and daily behavior.
+The [README](../README.md) covers the first dictation; [the details](mac-details.md)
+cover daily behavior and every setting.
 Build and test requirements are in [CHECKS.md](../CHECKS.md). The workflows below
 are development tools with distinct side effects; they do not establish general
 product compatibility or speech quality.

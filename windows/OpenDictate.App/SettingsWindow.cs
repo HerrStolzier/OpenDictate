@@ -29,7 +29,7 @@ internal sealed class SettingsWindow : Window
     private readonly PasswordBox apiKey = new() { MaxLength = 2048, MinWidth = 260 };
     private readonly TextBlock keyState = new() { TextWrapping = TextWrapping.Wrap };
     private readonly RadioButton ctrlWin = new() { Content = UiText.T("Strg+Win halten (empfohlen)", "Hold Ctrl+Win (recommended)") };
-    private readonly RadioButton rightCtrl = new() { Content = UiText.T("Rechte Strg halten oder antippen (für Spiele)", "Hold or tap right Ctrl (for games)") };
+    private readonly RadioButton rightCtrl = new() { Content = UiText.T("Rechte Strg-Taste halten oder antippen (für Spiele)", "Hold or tap right Ctrl (for games)") };
     private readonly TextBlock detected = new() { TextWrapping = TextWrapping.Wrap };
     private readonly ComboBox spoken = new() { MinWidth = 260 };
     private readonly ComboBox target = new() { MinWidth = 260 };
@@ -65,15 +65,15 @@ internal sealed class SettingsWindow : Window
 
         Section(panel, UiText.T("Tastenkürzel", "Shortcut"));
         panel.Children.Add(ctrlWin); panel.Children.Add(rightCtrl);
-        detected.Text = UiText.T("Zum Testen jetzt das Kürzel halten.", "To test, hold the shortcut now.");
+        detected.Text = UiText.T("Halte jetzt das Kürzel, um es zu testen.", "Hold the shortcut now to test it.");
         detected.Foreground = Brand.Brush(DesignColor.InkMuted, Theme);
         detected.Margin = new Thickness(0, DesignMetric.Space2, 0, 0);
         AutomationProperties.SetLiveSetting(detected, AutomationLiveSetting.Polite);
         panel.Children.Add(detected);
 
         Section(panel, UiText.T("OpenAI-API-Schlüssel", "OpenAI API key"));
-        panel.Children.Add(Brand.Text(UiText.T("Nur hier eingeben. Er liegt in der Windows-Anmeldeinformationsverwaltung.",
-            "Enter it only here. It is kept in Windows Credential Manager."), DesignFont.Small, DesignColor.InkMuted, Theme));
+        panel.Children.Add(Brand.Text(UiText.T("Er wird sicher in der Windows-Anmeldeinformationsverwaltung gespeichert. Die Kosten rechnet OpenAI direkt mit dir ab.",
+            "It is stored safely in Windows Credential Manager. OpenAI bills you directly."), DesignFont.Small, DesignColor.InkMuted, Theme));
         AutomationProperties.SetName(apiKey, UiText.T("OpenAI-API-Schlüssel", "OpenAI API key"));
         var keyRow = new WrapPanel { Margin = new Thickness(0, DesignMetric.Space2, 0, 0) };
         var saveKey = new Button { Content = UiText.T("Speichern", "Save"), Margin = new Thickness(DesignMetric.Space2, 0, 0, 0), Padding = new Thickness(10, 4, 10, 4) };
@@ -89,10 +89,13 @@ internal sealed class SettingsWindow : Window
         panel.Children.Add(autostart);
 
         var serverFields = new StackPanel();
-        Field(serverFields, UiText.T($"Server-Adresse, z. B. http://127.0.0.1:8080/v1 (leer = OpenAI, oder {ProviderServer.BaseUrlVariable}, wenn gesetzt)",
-            $"Server address, e.g. http://127.0.0.1:8080/v1 (empty = OpenAI, or {ProviderServer.BaseUrlVariable} when set)"), server);
-        Field(serverFields, UiText.T("Transkriptionsmodell", "Transcription model"), model);
-        Field(serverFields, UiText.T("Übersetzungsmodell", "Translation model"), translationModel);
+        Field(serverFields, UiText.T("Server-Adresse", "Server address"), server);
+        var serverHint = Brand.Text(UiText.T($"Leer bedeutet OpenAI (oder {ProviderServer.BaseUrlVariable}, wenn gesetzt). Beispiel: http://127.0.0.1:8080/v1",
+            $"Empty means OpenAI (or {ProviderServer.BaseUrlVariable} when set). Example: http://127.0.0.1:8080/v1"), DesignFont.Small, DesignColor.InkMuted, Theme);
+        serverHint.Margin = new Thickness(0, DesignMetric.Space1, 0, 0);
+        serverFields.Children.Add(serverHint);
+        Field(serverFields, UiText.T("Modell für die Erkennung", "Transcription model"), model);
+        Field(serverFields, UiText.T("Modell für die Übersetzung", "Translation model"), translationModel);
         var saveServer = new Button { Content = UiText.T("Speichern", "Save"), HorizontalAlignment = HorizontalAlignment.Left, Padding = new Thickness(10, 4, 10, 4) };
         serverFields.Children.Add(saveServer);
         panel.Children.Add(new Expander { Header = UiText.T("Eigener Server und Modelle", "Custom server and models"), Content = serverFields, Margin = new Thickness(0, DesignMetric.Space4, 0, 0) });
@@ -121,7 +124,7 @@ internal sealed class SettingsWindow : Window
         {
             try { Autostart.Set(autostart.IsChecked == true); }
             catch (Exception error) when (error is UnauthorizedAccessException or System.Security.SecurityException or System.IO.IOException)
-            { status.Text = UiText.T("Autostart konnte nicht geändert werden.", "Start with Windows could not be changed."); }
+            { status.Text = UiText.T("„Mit Windows starten“ ließ sich nicht ändern.", "“Start with Windows” could not be changed."); }
             autostart.IsChecked = Autostart.IsEnabled;
         };
         saveServer.Click += (_, _) => SaveServer();
@@ -258,9 +261,9 @@ internal sealed class SettingsWindow : Window
         try
         {
             new CredentialStore().Save(apiKey.Password);
-            status.Text = UiText.T("Schlüssel gespeichert. Es wurde keine Anfrage gesendet.", "Key saved. No request was sent.");
+            status.Text = UiText.T("Schlüssel gespeichert.", "Key saved.");
         }
-        catch (ArgumentException) { status.Text = UiText.T("Bitte einen gültigen API-Schlüssel ohne Leerzeichen eingeben.", "Please enter a valid API key without spaces."); }
+        catch (ArgumentException) { status.Text = UiText.T("Gib einen gültigen API-Schlüssel ohne Leerzeichen ein.", "Enter a valid API key without spaces."); }
         catch (Exception) { status.Text = UiText.T("Schlüssel konnte nicht gespeichert werden.", "The key could not be saved."); }
         finally { apiKey.Clear(); }
         ShowKeyState();
@@ -270,7 +273,7 @@ internal sealed class SettingsWindow : Window
     {
         bool present;
         try { present = !string.IsNullOrEmpty(new CredentialStore().Read()); }
-        catch (Exception) { keyState.Text = UiText.T("Schlüsselablage nicht erreichbar.", "Key storage is not available."); return; }
+        catch (Exception) { keyState.Text = UiText.T("Die Windows-Anmeldeinformationsverwaltung ist nicht erreichbar.", "Windows Credential Manager is not available."); return; }
         keyState.Text = present
             ? UiText.T("Ein Schlüssel ist gespeichert.", "A key is saved.")
             : UiText.T("Noch kein Schlüssel gespeichert. Für einen eigenen Server auf diesem Computer ist keiner nötig.",
@@ -279,14 +282,14 @@ internal sealed class SettingsWindow : Window
 
     private void ShowDetected(ShortcutGestureKind gesture)
     {
-        string name = stored.ShortcutKey == ShortcutKey.CtrlWin ? UiText.T("Strg+Win", "Ctrl+Win") : UiText.T("Rechte Strg", "Right Ctrl");
+        string name = stored.ShortcutKey == ShortcutKey.CtrlWin ? UiText.T("Strg+Win", "Ctrl+Win") : UiText.T("Rechte Strg-Taste", "Right Ctrl");
         detected.Foreground = Brand.Brush(DesignColor.SignalInk, Theme);
         detected.Text = gesture switch
         {
             ShortcutGestureKind.HoldBegan => UiText.T($"Erkannt: {name} wird gehalten. Hier wird nichts aufgenommen.", $"Recognized: {name} is held. Nothing is recorded here."),
             ShortcutGestureKind.HoldEnded => UiText.T($"Erkannt: {name} losgelassen. Das Kürzel funktioniert.", $"Recognized: {name} released. The shortcut works."),
             ShortcutGestureKind.Tap => UiText.T($"Erkannt: {name} angetippt.", $"Recognized: {name} tapped."),
-            _ => UiText.T("Eine andere Taste kam dazu; dann zählt das Kürzel nicht.", "Another key joined; then the shortcut does not count."),
+            _ => UiText.T("Da kam eine andere Taste dazu – halte nur das Kürzel.", "Another key was pressed – hold only the shortcut."),
         };
     }
 }

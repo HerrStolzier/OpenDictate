@@ -90,7 +90,7 @@ internal static class ProviderChecks
             ("Network failures and the deadline become a message naming only the host", async () =>
             {
                 var custom = ProviderServer.Parse("https://Whisper.Example.org:8443/v1");
-                foreach (var (server, expected) in new[] { (openAi, "Netzwerkfehler oder Zeitüberschreitung"), (custom, "Eigener Server (whisper.example.org)") })
+                foreach (var (server, expected) in new[] { (openAi, "Keine Verbindung zum Dienst"), (custom, "Dein Server (whisper.example.org)") })
                 foreach (Exception thrown in new Exception[] { new HttpRequestException("private"), new TaskCanceledException("private") })
                 {
                     using var adapter = new OpenAiTranscriber(server, new FixtureHandler((HttpRequestMessage _) => throw thrown));
@@ -241,7 +241,7 @@ internal static class ProviderChecks
                 try
                 {
                     using var adapter = new OpenAiTranscriber(openAi, new FixtureHandler(_ => Response(401, "{}")));
-                    Check((await Refused<UserFacingException>(() => adapter.TranscribeAsync(wave, Key, german, default))).Message == "API key is invalid.");
+                    Check((await Refused<UserFacingException>(() => adapter.TranscribeAsync(wave, Key, german, default))).Message == "Your API key is invalid. Enter it again in the settings.");
                 }
                 finally { CultureInfo.CurrentUICulture = new CultureInfo("de-DE"); }
             }),

@@ -128,7 +128,7 @@ internal sealed class DictationController : IDisposable
             catch (Exception) { Oops(UiText.T("Die Windows-Anmeldeinformationsverwaltung ist nicht erreichbar.", "Windows Credential Manager is not available.")); return null; }
             if (string.IsNullOrWhiteSpace(key))
             {
-                Oops(UiText.T("Noch kein API-Schlüssel. Bitte in den Einstellungen eintragen.", "No API key yet. Please add it in the settings."));
+                Oops(UiText.T("Noch kein API-Schlüssel. Richte ihn in den Einstellungen ein.", "No API key yet. Set it up in the settings."));
                 SettingsNeeded?.Invoke();
                 return null;
             }
@@ -141,7 +141,7 @@ internal sealed class DictationController : IDisposable
         if (closing || IsBusy || Prepare() is not { } prepared) return;
         RecoveryStore store;
         try { store = OpenRecovery(); }
-        catch (Exception) { Oops(UiText.T("Die geschützte Ablage ist nicht verfügbar. Es wurde nichts aufgenommen.", "Protected storage is not available. Nothing was recorded.")); return; }
+        catch (Exception) { Oops(UiText.T("OpenDictate kann Aufnahmen gerade nicht sicher speichern. Darum wurde nichts aufgenommen.", "OpenDictate cannot store recordings safely right now, so nothing was recorded.")); return; }
         indicator.Anchor = target?.Window ?? 0;
         operation = RunAsync(prepared.Settings, prepared.Server, prepared.Key, store, target);
     }
@@ -194,8 +194,8 @@ internal sealed class DictationController : IDisposable
             catch (Exception)
             {
                 throw new UserFacingException(UiText.T(
-                    "Die Aufnahme konnte nicht geschützt gesichert werden. Das Original liegt im Aufnahmeordner.",
-                    "The recording could not be saved in protected form. The original is in the recordings folder."));
+                    "Die Aufnahme ließ sich nicht verschlüsselt sichern. Das Original liegt im Aufnahmeordner.",
+                    "The recording could not be saved encrypted. The original is in the recordings folder."));
             }
             saved = recording.Entry.Id;
             RemoveEmptyJournal(current.Journal);
@@ -248,8 +248,8 @@ internal sealed class DictationController : IDisposable
         if (closing || IsBusy) return;
         string where = SettingsTarget();
         var answer = MessageBox.Show(
-            UiText.T($"Diese Aufnahme nochmal an {where} senden? Bei OpenAI kostet das erneut.",
-                $"Send this recording to {where} again? With OpenAI this costs again."),
+            UiText.T($"Diese Aufnahme nochmal an {where} senden? OpenAI rechnet jedes Senden ab.",
+                $"Send this recording to {where} again? OpenAI bills every send."),
             "OpenDictate", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
         if (answer != MessageBoxResult.Yes || IsBusy || Prepare() is not { } prepared) return;
         indicator.Anchor = 0;
@@ -323,8 +323,8 @@ internal sealed class DictationController : IDisposable
     private static string TooShortMessage => UiText.T("Zu kurz. Halte das Kürzel, solange du sprichst.", "Too short. Hold the shortcut while you speak.");
 
     private static string MicrophoneMessage => UiText.T(
-        "Kein Mikrofon verfügbar. Unter Einstellungen > Datenschutz > Mikrofon den Zugriff für Desktop-Apps erlauben und das Mikrofon prüfen.",
-        "No microphone available. Allow desktop apps under Settings > Privacy > Microphone and check the microphone.");
+        "Kein Mikrofon verfügbar. Erlaube Desktop-Apps den Zugriff unter Einstellungen → Datenschutz und Sicherheit → Mikrofon und prüf, ob das Mikrofon angeschlossen ist.",
+        "No microphone available. Allow desktop apps access under Settings → Privacy & security → Microphone and check that the microphone is connected.");
 
     internal void Oops(string reason)
     {

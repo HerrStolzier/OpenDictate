@@ -29,7 +29,7 @@ pub fn run() -> Result<(), String> {
         Some(choice) => println!(
             "{}",
             tr!(
-                "Fertig. Klick in ein Textfeld, drück {0}, sprich, drück {0} noch mal.",
+                "Fertig. Klick in ein Textfeld, drück {0}, sprich, drück {0} nochmal.",
                 "Done. Click into a text field, press {0}, speak, press {0} again.",
                 choice.label()
             )
@@ -146,7 +146,7 @@ fn custom_server(path: &std::path::Path) -> Result<(), String> {
     }
     settings.model = ask_model(
         t(
-            "Modellname für die Transkription",
+            "Modellname für die Abschrift",
             "Model name for transcription",
         ),
         &settings.model,
@@ -260,7 +260,7 @@ fn ensure_key(server: &Server) -> Result<(), String> {
             println!(
                 "{}",
                 tr!(
-                    "{reason}; der bisherige Schlüssel bleibt gespeichert. Später `opendictate setup` noch einmal ausführen.",
+                    "{reason}; der bisherige Schlüssel bleibt gespeichert. Führ `opendictate setup` später nochmal aus.",
                     "{reason}; the stored key stays. Run `opendictate setup` again later."
                 )
             );
@@ -317,12 +317,12 @@ fn report_check(server: &Server, result: Check) -> Check {
         ),
         (Check::Works, true) => t("Der Server antwortet.", "The server answers."),
         (Check::LoginRequired, _) => t(
-            "Der Server verlangt eine Anmeldung; an Adressen auf diesem Rechner sendet OpenDictate keinen API-Schlüssel. Bitte die Anmeldung am Server abschalten.",
-            "The server asks for a login; OpenDictate sends no API key to addresses on this computer. Please turn off the login on the server.",
+            "Dein lokaler Server will eine Anmeldung. OpenDictate schickt an Server auf diesem Rechner keinen Schlüssel – schalte die Anmeldung dort ab.",
+            "Your local server asks for a login. OpenDictate sends no key to servers on this computer – turn the login off there.",
         ),
         (Check::KeyRejected, _) => t(
-            "Der Schlüssel wird abgelehnt. Bitte einen gültigen Schlüssel einfügen.",
-            "The key is rejected. Please paste a valid key.",
+            "Der Schlüssel wird abgelehnt. Füg einen gültigen Schlüssel ein.",
+            "The key is rejected. Paste a valid key.",
         ),
         (Check::Unreachable, false) => t(
             "OpenAI ist gerade nicht erreichbar; der Schlüssel bleibt gespeichert.",
@@ -457,7 +457,7 @@ pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
         println!(
             "{}",
             tr!(
-                "Diese Zeile in {} eintragen (Hyprland lädt sie beim Speichern):",
+                "Trag diese Zeile in {} ein (Hyprland lädt sie beim Speichern):",
                 "Add this line to {} (Hyprland loads it when you save):",
                 shortcut::display_path(&target.path)
             )
@@ -477,7 +477,7 @@ pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
         if !confirmed {
             println!(
                 "{}",
-                tr!("Diese Zeile selbst eintragen:", "Add this line yourself:")
+                tr!("Trag diese Zeile selbst ein:", "Add this line yourself:")
             );
             println!("  {}", choice.line(target.style));
             return Ok(choice);
@@ -638,10 +638,7 @@ fn ask_number(max: usize, default: usize) -> Result<usize, String> {
         }
         match answer.parse::<usize>() {
             Ok(number) if (1..=max).contains(&number) => return Ok(number),
-            _ => println!(
-                "{}",
-                tr!("Bitte 1 bis {max} eingeben.", "Please enter 1 to {max}.")
-            ),
+            _ => println!("{}", tr!("Gib 1 bis {max} ein.", "Enter 1 to {max}.")),
         }
     }
 }
@@ -655,7 +652,7 @@ fn ask_yes(question: &str, default: bool) -> Result<bool, String> {
         let answer = ask(&format!("{question} {hint} "))?.to_lowercase();
         match parse_yes(&answer, default) {
             Some(answer) => return Ok(answer),
-            None => println!("{}", t("Bitte j oder n eingeben.", "Please enter y or n.")),
+            None => println!("{}", t("Gib j oder n ein.", "Enter y or n.")),
         }
     }
 }

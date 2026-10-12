@@ -21,12 +21,12 @@ public enum OpenAIAPIErrorMessage {
             fallback = "Die Aufnahme ist für den Dienst zu groß. Nimm ein kürzeres Diktat auf."
         case 429:
             fallback =
-                "Der Dienst nimmt gerade keine weitere Anfrage an. Prüfe dein Guthaben oder versuche es später erneut."
+                "Der Dienst nimmt gerade keine Anfragen an. Versuch es gleich nochmal oder prüf dein Guthaben."
         case 500...599:
-            fallback = "Der Dienst ist gerade nicht verfügbar. Versuche es später erneut."
+            fallback = "Der Dienst ist gerade nicht verfügbar. Versuch es später nochmal."
         default:
             fallback =
-                "Der Dienst konnte diese Aufnahme nicht verarbeiten. Versuche ein neues Diktat oder öffne die Hilfe."
+                "Der Dienst konnte diese Aufnahme nicht verarbeiten. Starte ein neues Diktat oder öffne die Hilfe."
         }
         guard let body = try? JSONDecoder().decode(Body.self, from: data) else { return fallback }
         switch body.error.code ?? body.error.type {
@@ -41,7 +41,7 @@ public enum OpenAIAPIErrorMessage {
         case "model_not_found":
             return "Das eingestellte Modell ist beim Dienst nicht verfügbar."
         case "rate_limit_exceeded":
-            return "Zu viele Anfragen an den Dienst. Warte einen Moment und versuche es erneut."
+            return "Zu viele Anfragen an den Dienst. Warte einen Moment und versuch es nochmal."
         default:
             return fallback
         }
