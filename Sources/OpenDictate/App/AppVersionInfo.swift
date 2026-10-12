@@ -30,10 +30,10 @@ struct AppVersionInfo {
         }
         switch (sourceRevision != nil, value("OpenDictateSourceState")) {
         case (true, "clean"): sourceState = "ohne lokale Änderungen"
-        case (true, "dirty"): sourceState = "Basis mit lokalen Änderungen"
+        case (true, "dirty"): sourceState = "mit lokalen Änderungen"
         case (true, "unverified"): sourceState = "nicht verifiziert"
-        case (_, "unversioned"): sourceState = "ohne Git-Zuordnung"
-        default: sourceState = "Quellstatus unbekannt"
+        case (_, "unversioned"): sourceState = "Entwicklerversion"
+        default: sourceState = "Stand unbekannt"
         }
     }
 }

@@ -39,7 +39,7 @@ final class DictationFlow {
         guard state.canStart else { return false }
         try operations.start()
         state = .recording
-        onStatus?("Aufnahme")
+        onStatus?("Aufnahme läuft")
         return true
     }
 
@@ -70,7 +70,7 @@ final class DictationFlow {
                 task = nil
             }
             do {
-                onStatus?("Wiederholen …")
+                onStatus?("Wird nochmal gesendet …")
                 try Task.checkCancellation()
                 let transcript = try await operations.transcribeRetry(payload)
                 try Task.checkCancellation()
@@ -79,13 +79,13 @@ final class DictationFlow {
                 let result = await deliver(text, allowPaste: false)
                 if result.canRemoveRecoveryAudio { operations.removeRetry(payload) }
             } catch is CancellationError {
-                onStatus?("Abgebrochen – Aufnahme bleibt erhalten")
+                onStatus?("Abgebrochen – Aufnahme bleibt gesichert")
                 onOutcome?(.cancelled)
             } catch {
                 onStatus?(
                     Task.isCancelled
-                        ? "Abgebrochen – Aufnahme bleibt erhalten"
-                        : "Wiederholen fehlgeschlagen: \(OpenDictateError.userMessage(for: error))")
+                        ? "Abgebrochen – Aufnahme bleibt gesichert"
+                        : "Nochmal senden hat nicht geklappt: \(OpenDictateError.userMessage(for: error))")
                 onOutcome?(Task.isCancelled ? .cancelled : .failed)
             }
         }
@@ -102,12 +102,15 @@ final class DictationFlow {
                 if discardRecording || operations.keep(audio) {
                     operations.clean(audio)
                 } else {
-                    onStatus?("Aufnahme konnte nicht gesichert werden: \(audio.path)")
+                    onStatus?("Aufnahme konnte nicht gesichert werden. Sie liegt noch unter \(audio.path)")
                     onOutcome?(.failed)
                     state = .idle
                     return
                 }
-                onStatus?(discardRecording ? "Aufnahme verworfen" : "Aufnahme für Wiederholung gesichert")
+                onStatus?(
+                    discardRecording
+                        ? "Aufnahme verworfen"
+                        : "Abgebrochen – Aufnahme gesichert, du kannst sie nochmal senden")
                 onOutcome?(.cancelled)
             } catch {
                 onStatus?(OpenDictateError.userMessage(for: error))
@@ -141,12 +144,12 @@ final class DictationFlow {
             task = nil
         }
         do {
-            onStatus?("Audio vorbereiten …")
+            onStatus?("Wird vorbereitet …")
             try Task.checkCancellation()
             let prepared = try await operations.prepare(original)
             preparedURL = prepared.url
             try Task.checkCancellation()
-            onStatus?("Transkribieren …")
+            onStatus?("Wird zu Text …")
             let transcript = try await operations.transcribeFile(prepared.url)
             try Task.checkCancellation()
             let text = try await translateIfRequested(transcript)
@@ -164,8 +167,8 @@ final class DictationFlow {
                 if mayCleanOriginal {
                     onStatus?(
                         Task.isCancelled
-                            ? "Abgebrochen – Aufnahme für Wiederholung gesichert"
-                            : "\(OpenDictateError.userMessage(for: error)) – Aufnahme für manuelle Wiederholung gesichert"
+                            ? "Abgebrochen – Aufnahme gesichert, du kannst sie nochmal senden"
+                            : "Deine Aufnahme ist gesichert. \(OpenDictateError.userMessage(for: error))"
                     )
                     onOutcome?(Task.isCancelled ? .cancelled : .failed)
                 }
@@ -179,7 +182,7 @@ final class DictationFlow {
     private func translateIfRequested(_ transcript: String) async throws -> String {
         let transcript = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !transcript.isEmpty, let target = operations.translationTarget() else { return transcript }
-        onStatus?("Übersetzen …")
+        onStatus?("Wird übersetzt …")
         let translation = try await operations.translate(transcript, target)
         guard !translation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw OpenDictateError.emptyTranslation
@@ -190,7 +193,7 @@ final class DictationFlow {
     private func preserve(_ url: URL) -> Bool {
         if operations.keep(url) { return true }
         // Do not destroy the only surviving audio when the recovery store fails.
-        onStatus?("Sicherung fehlgeschlagen; Original bleibt unter \(url.path)")
+        onStatus?("Sicherung fehlgeschlagen – die Aufnahme liegt noch unter \(url.path)")
         onOutcome?(.failed)
         return false
     }
@@ -200,20 +203,20 @@ final class DictationFlow {
         defer { timing.finish() }
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else {
-            onStatus?("Kein Text – Aufnahme bleibt zur Wiederholung erhalten")
+            onStatus?("Kein Text erkannt – Aufnahme gesichert, du kannst sie nochmal senden")
             onOutcome?(.failed)
             return .empty
         }
         lastTranscript = text
         state = .delivering
         guard operations.copy(text) else {
-            onStatus?("Zwischenablage nicht verfügbar – letzten Text erneut kopieren")
+            onStatus?("Zwischenablage nicht verfügbar – kopier den letzten Text nochmal")
             onOutcome?(.textAvailable)
             return .clipboardFailed
         }
         guard !Task.isCancelled, allowPaste else {
             onStatus?("Text kopiert – automatisches Einfügen abgebrochen")
-            if !allowPaste { onStatus?("Wiederholter Text kopiert – nicht automatisch eingefügt") }
+            if !allowPaste { onStatus?("Nochmal gesendet – Text kopiert, nicht automatisch eingefügt") }
             onOutcome?(.textAvailable)
             return .copied(.notAttempted)
         }
@@ -222,9 +225,9 @@ final class DictationFlow {
         case .notAttempted:
             onStatus?("Text kopiert – nicht automatisch eingefügt")
         case .submitted:
-            onStatus?("Einfügebefehl gesendet – Text auch kopiert")
+            onStatus?("Per ⌘V eingefügt – Text auch in der Zwischenablage")
         case .uncertain:
-            onStatus?("Einfügeversuch unbestätigt – Ziel prüfen; vollständiger Text kopiert")
+            onStatus?("Einfügen nicht bestätigt – schau kurz nach, der Text ist kopiert")
         }
         let result = TranscriptDelivery.copied(submission)
         onOutcome?(.delivery(result))

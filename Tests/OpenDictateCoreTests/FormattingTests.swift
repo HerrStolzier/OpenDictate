@@ -26,4 +26,11 @@ struct OpenDictateErrorTests {
         #expect(!OpenDictateError.userMessage(for: audio).contains("raw export"))
     }
 
+    @Test("The too-short message uses German number formatting")
+    func tooShortMessage() {
+        let message = OpenDictateError.recordingTooShort(actual: 0.44, minimum: 1).errorDescription ?? ""
+        #expect(message.contains("(0,4 s)"))
+        #expect(message.contains("mindestens 1 s "))
+    }
+
 }

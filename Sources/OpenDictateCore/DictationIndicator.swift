@@ -11,12 +11,12 @@ public enum DictationDisplay: String, CaseIterable, Sendable {
         case .ready: "Bereit zum Diktieren."
         case .setup: "Fast bereit"
         case .recording: "Aufnahme läuft."
-        case .processing: "Text wird verarbeitet."
+        case .processing: "Schreibt …"
         case .confirmed: "Text eingefügt."
         case .manual: "Text ist verfügbar."
         case .unconfirmed: "Diktat verarbeitet."
         case .failure: "Nicht abgeschlossen"
-        case .retry: "Diese Aufnahme erneut verarbeiten?"
+        case .retry: "Diese Aufnahme nochmal senden?"
         case .cancelling: "Wird abgebrochen …"
         }
     }
@@ -75,7 +75,7 @@ public enum IndicatorPhase: String, CaseIterable, Sendable {
     }
 }
 
-/// The user's choice for screens without a notch ("Anzeige ohne Notch").
+/// The user's choice for screens without a notch ("Anzeige (Macs ohne Notch)").
 public enum IndicatorStyle: String, CaseIterable, Sendable {
     /// A flat pill in the middle of the menu bar; it covers nothing.
     case menuBar
@@ -220,7 +220,7 @@ public struct IndicatorContent: Equatable, Sendable {
             detail = IndicatorText.listening(elapsed: elapsed, limit: limit)
             compactDetail = detail
         case .writing:
-            detail = translating ? "Wird übersetzt" : "Wird umgewandelt"
+            detail = translating ? "Wird übersetzt …" : "Wird zu Text …"
             compactDetail = detail
         case .inserted:
             detail = "per ⌘V, kurz prüfen"

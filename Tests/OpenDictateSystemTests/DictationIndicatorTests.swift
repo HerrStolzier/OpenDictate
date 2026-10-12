@@ -65,7 +65,7 @@ struct DictationIndicatorSystemTests {
         #expect(items.first?.view != nil)
         #expect(
             items.dropFirst().map { $0.isSeparatorItem ? "—" : label($0) } == [
-                "—", "Neues Diktat", "Letzten Text ansehen", "Aufbewahrte Aufnahmen", "—", "Automatisch einfügen",
+                "—", "Diktat starten", "Letzten Text ansehen", "Gesicherte Aufnahmen", "—", "Automatisch einfügen",
                 "Übersetzen: Aus", "—", "Einstellungen …", "Hilfe", "—", "OpenDictate beenden"
             ])
         let settings = try #require(items.first { $0.title == "Einstellungen …" })
@@ -83,7 +83,7 @@ struct DictationIndicatorSystemTests {
         #expect(titles.contains("Diktat beenden"))
         delegate.state = .processing
         controller.menuNeedsUpdate(controller.dailyMenu)
-        #expect(controller.dailyMenu.items.map(label).contains("Abbrechen, Aufnahme behalten"))
+        #expect(controller.dailyMenu.items.map(label).contains("Abbrechen (Aufnahme bleibt)"))
     }
 }
 

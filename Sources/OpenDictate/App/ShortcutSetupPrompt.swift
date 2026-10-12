@@ -68,12 +68,12 @@ enum ShortcutSetupPrompt {
     private static func hint(for trigger: RecordingTrigger?) -> String {
         switch trigger {
         case .modifierKey(.fn):
-            "Halte Fn/🌐 gedrückt, solange du sprichst. Beim Loslassen wird transkribiert. " + fnSystemHint
+            "Halte Fn/🌐 gedrückt, solange du sprichst. Lass los, dann wird daraus Text. " + fnSystemHint
         case .modifierKey(.rightOption):
-            "Kurz antippen startet und stoppt die Aufnahme. Gedrückt halten nimmt auf, bis du loslässt. "
+            "Kurz antippen startet und beendet das Diktat. Gedrückt halten nimmt auf, bis du loslässt. "
                 + "Kombinationen wie ⌥L für @ funktionieren weiter."
         case .combination(let shortcut):
-            "\(shortcut.displayName) startet und stoppt die Aufnahme. Dafür braucht OpenDictate keine weitere Freigabe."
+            "\(shortcut.displayName) startet und beendet das Diktat. Dafür braucht OpenDictate keine weitere Freigabe."
         case nil:
             "Im nächsten Schritt drückst du eine eigene Kombination mit ⌘, ⌥ oder ⌃."
         }
@@ -85,13 +85,12 @@ enum ShortcutSetupPrompt {
         _ choices: [RecordingTrigger], recommended: ModifierKey, selected: Int
     ) -> Int? {
         let alert = NSAlert()
-        alert.messageText = "Wie willst du die Aufnahme starten?"
+        alert.messageText = "Wie willst du ein Diktat starten?"
         alert.informativeText =
             (recommended == .rightOption
-                ? "Erkannt ist eine Tastatur mit Ziffernblock oder eines anderen Herstellers. Dort liegt "
-                    + "Fn oft weit weg oder kommt bei macOS nicht an, deshalb ist die rechte Wahltaste "
-                    + "vorausgewählt. "
-                : "") + "Du kannst das später im Menü unter „Tastenkombination“ ändern."
+                ? "Du nutzt eine Tastatur mit Ziffernblock oder von einem anderen Hersteller. Dort liegt Fn "
+                    + "oft weit weg oder kommt bei macOS nicht an, deshalb ist die rechte Wahltaste vorgewählt. "
+                : "") + "Du kannst das später in den Einstellungen unter „Tastenkürzel“ ändern."
         alert.alertStyle = .informational
         alert.addButton(withTitle: "Weiter")
         alert.addButton(withTitle: "Später").keyEquivalent = "\u{1b}"
@@ -139,9 +138,9 @@ private final class LiveCheck {
     init(trigger: RecordingTrigger, tester: ShortcutSetupPrompt.Tester) {
         self.trigger = trigger
         self.tester = tester
-        alert.messageText = "Drück es jetzt einmal"
+        alert.messageText = "Drück dein Kürzel jetzt einmal"
         alert.informativeText =
-            "Teste „\(trigger.displayName)“, solange dieses Fenster offen ist. Eine Aufnahme startet dabei nicht."
+            "Teste „\(trigger.displayName)“, solange dieses Fenster offen ist. Ein Diktat startet dabei nicht."
         alert.alertStyle = .informational
         accept = alert.addButton(withTitle: "Übernehmen")
         accept.isEnabled = false
@@ -190,9 +189,9 @@ private final class LiveCheck {
             waitingForPermission = true
             permissionButton.isHidden = false
             show(
-                "Dafür braucht OpenDictate die Freigabe für Bedienungshilfen in den Systemeinstellungen, "
-                    + "dieselbe wie fürs automatische Einfügen. Schalte OpenDictate dort ein und drück "
-                    + "die Taste dann hier. Kommt sie danach nicht an, beende OpenDictate und starte es neu.")
+                "Dafür braucht OpenDictate die Freigabe unter Bedienungshilfen in den Systemeinstellungen. "
+                    + "Schalte OpenDictate dort ein und drück die Taste dann hier. Kommt sie danach nicht an, "
+                    + "beende OpenDictate und starte es neu.")
         case .failed(let message):
             show("\(message) Wähle „Andere Option“.")
         }
@@ -260,7 +259,7 @@ private final class ChoiceView: NSStackView {
         hintLabel.stringValue = hints[selected]
         setCustomSpacing(12, after: radios[radios.count - 1])
         addArrangedSubview(hintLabel)
-        setAccessibilityLabel("Aufnahme starten mit")
+        setAccessibilityLabel("Diktat starten mit")
         frame = NSRect(x: 0, y: 0, width: 360, height: fittingSize.height)
         // Reserve the tallest hint so the alert does not jump while choosing.
         let tallest =

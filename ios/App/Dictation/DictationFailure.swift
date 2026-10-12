@@ -45,8 +45,8 @@ enum DictationFailure: Error, Equatable {
                 "OpenDictate darf das Mikrofon nicht nutzen. Erlaube es unter Einstellungen → Apps → OpenDictate.")
         case .missingAPIKey:
             L10n.pick(
-                "Add your OpenAI API key in OpenDictate's settings first.",
-                "Hinterlege zuerst deinen OpenAI-API-Schlüssel in den Einstellungen von OpenDictate.")
+                "Set up your OpenAI API key in OpenDictate's settings first.",
+                "Richte zuerst deinen OpenAI-API-Schlüssel in den Einstellungen von OpenDictate ein.")
         case .invalidServerAddress:
             L10n.pick(
                 "The server address in OpenDictate's settings is not valid.",
@@ -63,8 +63,8 @@ enum DictationFailure: Error, Equatable {
                     + "Schalte sie unter Einstellungen → Apps → OpenDictate ein.")
         case .liveActivityFailed:
             L10n.pick(
-                "The Live Activity could not start, so iOS would stop the recording. Try again.",
-                "Die Live-Aktivität konnte nicht starten, darum würde iOS die Aufnahme beenden. Versuche es nochmal.")
+                "The Live Activity could not start. Without it iOS stops the recording. Try again.",
+                "Die Live-Aktivität ließ sich nicht starten. Ohne sie beendet iOS die Aufnahme. Versuch es nochmal.")
         case .recordingFailed:
             L10n.pick("The recording could not start.", "Die Aufnahme konnte nicht starten.")
         case .recordingUnreadable:
@@ -80,7 +80,9 @@ enum DictationFailure: Error, Equatable {
                 "The text could not be copied. Open OpenDictate to copy it.",
                 "Der Text konnte nicht kopiert werden. Öffne OpenDictate, um ihn zu kopieren.")
         case .offline:
-            L10n.pick("No connection to the service.", "Keine Verbindung zum Dienst.")
+            L10n.pick(
+                "No connection to the service. Check your connection and try again.",
+                "Keine Verbindung zum Dienst. Prüf deine Verbindung und versuch es nochmal.")
         case .invalidResponse:
             L10n.pick("The service sent an unexpected answer.", "Der Dienst hat unerwartet geantwortet.")
         case .service(let status, let code):
@@ -111,7 +113,7 @@ enum DictationFailure: Error, Equatable {
         case "rate_limit_exceeded":
             return L10n.pick(
                 "Too many requests to the service. Wait a moment and try again.",
-                "Zu viele Anfragen an den Dienst. Warte einen Moment und versuche es erneut.")
+                "Zu viele Anfragen an den Dienst. Warte einen Moment und versuch es nochmal.")
         default:
             break
         }
@@ -129,11 +131,11 @@ enum DictationFailure: Error, Equatable {
             return L10n.pick(
                 "The service is not taking more requests right now. Check your credit or try again later.",
                 "Der Dienst nimmt gerade keine weitere Anfrage an. "
-                    + "Prüfe dein Guthaben oder versuche es später erneut.")
+                    + "Prüf dein Guthaben oder versuch es später nochmal.")
         case 500...599:
             return L10n.pick(
                 "The service is not available right now. Try again later.",
-                "Der Dienst ist gerade nicht verfügbar. Versuche es später erneut.")
+                "Der Dienst ist gerade nicht verfügbar. Versuch es später nochmal.")
         default:
             return L10n.pick(
                 "The service could not process this recording.",

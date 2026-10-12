@@ -77,7 +77,7 @@ final class SettingsWindowController: NSWindowController {
             if needsSetup, let apiKey = item("apiKey") {
                 addText("Für dein erstes Diktat", to: stack, heading: true)
                 addText(
-                    "Richte deinen eigenen OpenAI-API-Schlüssel ein. OpenAI berechnet die Transkription separat.",
+                    "Richte deinen OpenAI-API-Schlüssel ein. Die Kosten rechnet OpenAI direkt mit dir ab.",
                     to: stack)
                 addControl(apiKey, to: stack)
             }
@@ -85,7 +85,7 @@ final class SettingsWindowController: NSWindowController {
             addRow("Tastenkürzel", id: "shortcut", to: stack)
             addRow("Sprache", id: "language", to: stack)
             addRow("Übersetzen", id: "translation", to: stack)
-            addRow("Ohne Notch", id: "indicatorStyle", to: stack)
+            addRow("Anzeige", id: "indicatorStyle", to: stack)
             if let item = item("autoPaste") { addControl(item, to: stack) }
             let disclosure = addButton(
                 expanded ? "▾ Erweitert" : "▸ Erweitert", id: "advanced",
@@ -106,29 +106,35 @@ final class SettingsWindowController: NSWindowController {
             addText(AppVersionInfo().versionDescription, to: stack)
         case .recordings:
             window?.title = "OpenDictate – Aufnahmen"
-            addText("Aufbewahrte Aufnahmen", to: stack, heading: true)
+            addText("Gesicherte Aufnahmen", to: stack, heading: true)
             addText(
-                "Bis zu fünf gespeicherte Aufnahmen. Gültige Aufnahmen sind bis zu 24 Stunden wiederholbar. "
-                    + "Bereinigt wird, während die App geöffnet ist. "
-                    + "Erneutes Verarbeiten sendet die gewählte Aufnahme an den eingestellten Dienst und fragt vorher nach.",
+                "OpenDictate sichert bis zu fünf Aufnahmen. Du kannst sie 24 Stunden lang nochmal senden, "
+                    + "danach löscht OpenDictate sie, während die App geöffnet ist. "
+                    + "Vor dem Senden fragt OpenDictate nach.",
                 to: stack)
             if let recordings = item("recordings")?.submenu, !recordings.items.isEmpty {
                 for recording in recordings.items { addControl(recording, to: stack) }
                 if let item = item("deleteRecordings") { addControl(item, to: stack) }
             } else {
-                addText("Keine aufbewahrten Aufnahmen.", to: stack)
+                addText("Keine gesicherten Aufnahmen.", to: stack)
             }
         case .help:
             window?.title = "OpenDictate – Hilfe"
             addText("Diktieren im Alltag", to: stack, heading: true)
             addText(
-                "OpenDictate arbeitet in der Menüleiste. Wähle ein Textfeld und starte die Aufnahme mit deinem Tastenkürzel. Nach spätestens 90 Sekunden endet die Aufnahme automatisch.",
+                "OpenDictate arbeitet in der Menüleiste. Klick in ein Textfeld und starte ein Diktat mit deinem "
+                    + "Kürzel. Nach spätestens 90 Sekunden endet die Aufnahme von selbst.",
                 to: stack)
             addText(
-                "Während des Diktats zeigt eine kleine Anzeige oben am Bildschirm, was passiert: Hört zu, Schreibt, Eingefügt, Kopiert oder Hoppla. Sie nimmt nie den Fokus und geht bei Erfolg von selbst zu. Auf Macs ohne Notch schwebt sie mittig unter der Menüleiste; unter „Ohne Notch“ kannst du sie flach in die Menüleiste legen oder ausschalten; Fehler zeigen ihre Karte trotzdem. Im Vollbild ohne Menüleiste erscheint sie nur bei Aufnahme, Verarbeitung und Fehlern.",
+                "Während du diktierst, zeigt eine kleine Anzeige oben am Bildschirm, was passiert: Hört zu, "
+                    + "Schreibt, Eingefügt, Kopiert oder Hoppla. Sie stört nicht beim Tippen und verschwindet bei "
+                    + "Erfolg von selbst. Auf Macs ohne Notch schwebt sie unter der Menüleiste. Unter „Anzeige“ "
+                    + "kannst du sie in die Menüleiste legen oder ausschalten, Fehler siehst du trotzdem. "
+                    + "Im Vollbild erscheint sie nur beim Diktieren und bei Fehlern.",
                 to: stack)
             addText(
-                "Das Menüleistensymbol öffnet das Menü mit „Neues Diktat“, deinem letzten Text, den aufbewahrten Aufnahmen und „OpenDictate beenden“.",
+                "Das Menüleistensymbol öffnet das Menü mit „Diktat starten“, deinem letzten Text, "
+                    + "den gesicherten Aufnahmen und „OpenDictate beenden“.",
                 to: stack)
             addText(AppVersionInfo().summary, to: stack)
             for id in ["about", "accessibility", "microphone", "log", "quit"] {

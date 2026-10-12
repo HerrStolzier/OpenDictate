@@ -32,32 +32,32 @@ pub struct Entry {
 pub fn preserve(original: &Path, recovery_dir: &Path, key: &[u8]) -> Result<Entry, String> {
     let metadata = fs::symlink_metadata(original).map_err(|_| {
         crate::tr!(
-            "Aufnahme konnte nicht für die Wiederholung gesichert werden.",
-            "Recording could not be secured for retry."
+            "Die Aufnahme ließ sich nicht sichern.",
+            "The recording could not be kept."
         )
     })?;
     if !metadata.file_type().is_file() || metadata.len() == 0 || metadata.len() > MAX_AUDIO_BYTES {
         return Err(crate::tr!(
-            "Aufnahme ist nicht für die Wiederholung geeignet.",
-            "Recording is not suitable for retry."
+            "Diese Aufnahme lässt sich nicht sichern.",
+            "This recording cannot be kept."
         ));
     }
     let directory_metadata = fs::symlink_metadata(recovery_dir).map_err(|_| {
         crate::tr!(
-            "Recovery-Verzeichnis nicht verfügbar.",
-            "Recovery folder unavailable."
+            "Sicherungsordner nicht verfügbar.",
+            "Folder for kept recordings unavailable."
         )
     })?;
     if !directory_metadata.file_type().is_dir() || directory_metadata.file_type().is_symlink() {
         return Err(crate::tr!(
-            "Recovery-Verzeichnis ist unsicher.",
-            "Recovery folder is not secure."
+            "Sicherungsordner ist unsicher.",
+            "Folder for kept recordings is not secure."
         ));
     }
     fs::set_permissions(recovery_dir, fs::Permissions::from_mode(0o700)).map_err(|_| {
         crate::tr!(
-            "Recovery-Verzeichnis nicht verfügbar.",
-            "Recovery folder unavailable."
+            "Sicherungsordner nicht verfügbar.",
+            "Folder for kept recordings unavailable."
         )
     })?;
     let file_name = original
@@ -69,8 +69,8 @@ pub fn preserve(original: &Path, recovery_dir: &Path, key: &[u8]) -> Result<Entr
     let sidecar_path = sidecar_path(&audio_path);
     let data = fs::read(original).map_err(|_| {
         crate::tr!(
-            "Aufnahme konnte nicht für die Wiederholung gelesen werden.",
-            "Recording could not be read for retry."
+            "Die Aufnahme ließ sich zum Sichern nicht lesen.",
+            "The recording could not be read to keep it."
         )
     })?;
     let created = unix_timestamp_secs();
@@ -88,8 +88,8 @@ pub fn preserve(original: &Path, recovery_dir: &Path, key: &[u8]) -> Result<Entr
     }
     fs::remove_file(original).map_err(|_| {
         crate::tr!(
-            "Originalaufnahme konnte nach der Recovery-Kopie nicht bereinigt werden.",
-            "Original recording could not be cleaned up after the recovery copy."
+            "Die Aufnahme ist gesichert, aber das Original ließ sich nicht aufräumen.",
+            "The recording is kept, but the original could not be cleaned up."
         )
     })?;
     let entry = Entry {
@@ -121,8 +121,8 @@ pub fn newest_authenticated(
 pub fn delete(entry: &Entry) -> Result<(), String> {
     fs::remove_file(&entry.audio_path).map_err(|_| {
         crate::tr!(
-            "Recovery-Aufnahme konnte nicht gelöscht werden.",
-            "Recovery recording could not be deleted."
+            "Gesicherte Aufnahme konnte nicht gelöscht werden.",
+            "Kept recording could not be deleted."
         )
     })?;
     let _ = fs::remove_file(&entry.sidecar_path);
@@ -154,8 +154,8 @@ fn authenticated_entries(recovery_dir: &Path, key: &[u8]) -> Result<Vec<(Entry, 
     }
     let directory = fs::read_dir(recovery_dir).map_err(|_| {
         crate::tr!(
-            "Recovery-Verzeichnis nicht lesbar.",
-            "Recovery folder unreadable."
+            "Sicherungsordner nicht lesbar.",
+            "Folder for kept recordings unreadable."
         )
     })?;
     let mut entries = Vec::new();
@@ -173,44 +173,48 @@ fn authenticated_entries(recovery_dir: &Path, key: &[u8]) -> Result<Vec<(Entry, 
 
 fn authenticate(audio_path: &Path, key: &[u8]) -> Result<(Entry, Vec<u8>), String> {
     let metadata = fs::symlink_metadata(audio_path)
-        .map_err(|_| crate::tr!("Recovery-Aufnahme fehlt.", "Recovery recording is missing."))?;
+        .map_err(|_| crate::tr!("Gesicherte Aufnahme fehlt.", "Kept recording is missing."))?;
     if !metadata.file_type().is_file() || metadata.len() == 0 || metadata.len() > MAX_AUDIO_BYTES {
         return Err(crate::tr!(
-            "Recovery-Aufnahme ist ungültig.",
-            "Recovery recording is invalid."
+            "Gesicherte Aufnahme ist ungültig.",
+            "Kept recording is invalid."
         ));
     }
     let sidecar_path = sidecar_path(audio_path);
-    let sidecar_metadata = fs::symlink_metadata(&sidecar_path)
-        .map_err(|_| crate::tr!("Recovery-Nachweis fehlt.", "Recovery proof is missing."))?;
+    let sidecar_metadata = fs::symlink_metadata(&sidecar_path).map_err(|_| {
+        crate::tr!(
+            "Sicherungsnachweis fehlt.",
+            "Proof for the kept recording is missing."
+        )
+    })?;
     if !sidecar_metadata.file_type().is_file() {
         return Err(crate::tr!(
-            "Recovery-Nachweis ist ungültig.",
-            "Recovery proof is invalid."
+            "Sicherungsnachweis ist ungültig.",
+            "Proof for the kept recording is invalid."
         ));
     }
     let sidecar: Sidecar = serde_json::from_slice(&fs::read(&sidecar_path).map_err(|_| {
         crate::tr!(
-            "Recovery-Nachweis ist nicht lesbar.",
-            "Recovery proof is unreadable."
+            "Sicherungsnachweis ist nicht lesbar.",
+            "Proof for the kept recording is unreadable."
         )
     })?)
     .map_err(|_| {
         crate::tr!(
-            "Recovery-Nachweis ist ungültig.",
-            "Recovery proof is invalid."
+            "Sicherungsnachweis ist ungültig.",
+            "Proof for the kept recording is invalid."
         )
     })?;
     if sidecar.version != 1 || sidecar.size != metadata.len() {
         return Err(crate::tr!(
-            "Recovery-Nachweis stimmt nicht mit der Aufnahme überein.",
-            "Recovery proof does not match the recording."
+            "Sicherungsnachweis passt nicht zur Aufnahme.",
+            "Proof does not match the kept recording."
         ));
     }
     let data = fs::read(audio_path).map_err(|_| {
         crate::tr!(
-            "Recovery-Aufnahme ist nicht lesbar.",
-            "Recovery recording is unreadable."
+            "Gesicherte Aufnahme ist nicht lesbar.",
+            "Kept recording is unreadable."
         )
     })?;
     let file_name = audio_path
@@ -218,8 +222,8 @@ fn authenticate(audio_path: &Path, key: &[u8]) -> Result<(Entry, Vec<u8>), Strin
         .and_then(|value| value.to_str())
         .ok_or_else(|| {
             crate::tr!(
-                "Recovery-Aufnahme ist ungültig.",
-                "Recovery recording is invalid."
+                "Gesicherte Aufnahme ist ungültig.",
+                "Kept recording is invalid."
             )
         })?;
     verify_authentication(file_name, sidecar.created, &data, key, &sidecar.mac)?;
@@ -245,15 +249,15 @@ fn write_pair(
         .and_then(|_| audio.sync_all())
         .map_err(|_| {
             crate::tr!(
-                "Recovery-Aufnahme konnte nicht geschrieben werden.",
-                "Recovery recording could not be written."
+                "Gesicherte Kopie konnte nicht geschrieben werden.",
+                "Kept copy could not be written."
             )
         })?;
     let mut proof = secure_create(sidecar_path)?;
     let proof_data = serde_json::to_vec(sidecar).map_err(|_| {
         crate::tr!(
-            "Recovery-Nachweis konnte nicht erstellt werden.",
-            "Recovery proof could not be created."
+            "Sicherungsnachweis konnte nicht erstellt werden.",
+            "Proof for the kept recording could not be created."
         )
     })?;
     proof
@@ -262,8 +266,8 @@ fn write_pair(
         .and_then(|_| proof.sync_all())
         .map_err(|_| {
             crate::tr!(
-                "Recovery-Nachweis konnte nicht geschrieben werden.",
-                "Recovery proof could not be written."
+                "Sicherungsnachweis konnte nicht geschrieben werden.",
+                "Proof for the kept recording could not be written."
             )
         })
 }
@@ -276,8 +280,8 @@ fn secure_create(path: &Path) -> Result<fs::File, String> {
         .open(path)
         .map_err(|_| {
             crate::tr!(
-                "Recovery-Datei konnte nicht erstellt werden.",
-                "Recovery file could not be created."
+                "Sicherungsdatei konnte nicht erstellt werden.",
+                "File for the kept recording could not be created."
             )
         })
 }
@@ -292,8 +296,12 @@ fn authentication(
     data: &[u8],
     key: &[u8],
 ) -> Result<String, String> {
-    let mut mac = HmacSha256::new_from_slice(key)
-        .map_err(|_| crate::tr!("Recording-Auth ist ungültig.", "Recording auth is invalid."))?;
+    let mut mac = HmacSha256::new_from_slice(key).map_err(|_| {
+        crate::tr!(
+            "Der Sicherungsschlüssel ist ungültig.",
+            "The key for kept recordings is invalid."
+        )
+    })?;
     update_mac(&mut mac, file_name, created, data);
     Ok(hex::encode(mac.finalize().into_bytes()))
 }
@@ -307,17 +315,21 @@ fn verify_authentication(
 ) -> Result<(), String> {
     let expected = hex::decode(expected).map_err(|_| {
         crate::tr!(
-            "Recovery-Nachweis ist ungültig.",
-            "Recovery proof is invalid."
+            "Sicherungsnachweis ist ungültig.",
+            "Proof for the kept recording is invalid."
         )
     })?;
-    let mut mac = HmacSha256::new_from_slice(key)
-        .map_err(|_| crate::tr!("Recording-Auth ist ungültig.", "Recording auth is invalid."))?;
+    let mut mac = HmacSha256::new_from_slice(key).map_err(|_| {
+        crate::tr!(
+            "Der Sicherungsschlüssel ist ungültig.",
+            "The key for kept recordings is invalid."
+        )
+    })?;
     update_mac(&mut mac, file_name, created, data);
     mac.verify_slice(&expected).map_err(|_| {
         crate::tr!(
-            "Recovery-Aufnahme ist nicht authentifiziert.",
-            "Recovery recording is not authenticated."
+            "Gesicherte Aufnahme lässt sich nicht bestätigen.",
+            "Kept recording could not be verified."
         )
     })
 }

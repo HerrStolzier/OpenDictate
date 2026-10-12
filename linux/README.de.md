@@ -31,7 +31,7 @@ Scheitert die Abschrift, die Übersetzung oder das Einfügen (Netz weg,
 Zeitüberschreitung, Abbruch), bleibt die Aufnahme auf deinem Rechner erhalten.
 Gelöscht wird eine Aufnahme erst, wenn ihr Text in der Zwischenablage
 angekommen ist. Normalerweise legt OpenDictate dafür eine gesicherte Kopie an:
-`opendictate retry` schickt sie erneut, aufbewahrt werden höchstens fünf
+`opendictate retry` sendet sie nochmal, aufbewahrt werden höchstens fünf
 solcher Kopien für 24 Stunden. Gelingt diese Kopie nicht (zum Beispiel weil der
 Schlüsselbund gesperrt ist), bleibt die Originaldatei unter
 `~/.local/state/opendictate/pending/` liegen; `retry` greift dann nicht, und die
@@ -230,7 +230,7 @@ bestimmter Server funktioniert, ist genau die Rückmeldung, die uns hilft.
 ## Wenn etwas nicht klappt
 
 - `opendictate status` zeigt, ob gerade aufgenommen oder verarbeitet wird.
-- `opendictate retry` schickt die letzte gesicherte Aufnahme erneut.
+- `opendictate retry` sendet die letzte gesicherte Aufnahme nochmal.
 - „Aufnahme konnte nicht starten“: Meist ist kein Mikrofon verfügbar. Mit
   `wpctl status` prüfen, ob unter Audio → Sources eine Quelle steht und als
   Standard (`*`) markiert ist; Mikrofon anstecken oder wählen und erneut
@@ -269,11 +269,11 @@ diesen Server. Details: [PRIVACY.md](../PRIVACY.md#linux-cli).
 
 ```bash
 opendictate setup                   # geführte Einrichtung: Schlüssel oder eigener Server, Kürzel
-opendictate toggle                  # Aufnahme starten oder stoppen
+opendictate toggle                  # Diktat starten oder beenden
 opendictate status                  # idle / starting / recording / processing / delivering
 opendictate bar                     # Status als JSON-Zeile für die Leiste (`waybar` gleichwertig)
 opendictate cancel                  # Aufnahme/Verarbeitung sicher abbrechen
-opendictate retry                   # neueste authentifizierte Aufnahme erneut senden
+opendictate retry                   # letzte gesicherte Aufnahme nochmal senden
 opendictate version                 # Version anzeigen
 opendictate settings show
 opendictate settings model gpt-transcribe
@@ -376,13 +376,13 @@ Quelle per Pipe (`trusted-secret-command | opendictate secrets set-api-key`).
   Sekunden). Mit eigenem Server ist die Grundzeit 2 Minuten statt 15 Sekunden
   (Übersetzung höchstens 3 Minuten). Der Verbindungsaufbau allein darf
   höchstens 10 Sekunden dauern. Fällt das Netz während eines
-  kurzen Diktats weg, kommt die Meldung „Netzwerkfehler oder
-  Zeitüberschreitung“ damit nach etwa 20 Sekunden statt nach bis zu zwei
+  kurzen Diktats weg, kommt die Meldung „Keine Verbindung zum
+  Dienst“ damit nach etwa 20 Sekunden statt nach bis zu zwei
   Minuten; reißt es mitten in einem langen Upload ab, kann es bis zum Doppelten
   des Limits dauern. Das Zeitlimit greift nicht bei einer hängenden
   Namensauflösung (DNS).
 - Fehler, Abbruch, leere Antwort oder Clipboard-Fehler behalten Audio. Eine
-  Recovery-Kopie wird mit einem Secret-Service-Schlüssel per HMAC-SHA256 an
+  gesicherte Kopie wird mit einem Secret-Service-Schlüssel per HMAC-SHA256 an
   Dateiname, Erstellzeit und exakte Bytes gebunden. Scheitert die Kopie, bleibt
   das Original erhalten.
 - `retry` lädt nur frisch authentifizierte Bytes und entfernt sie erst nach

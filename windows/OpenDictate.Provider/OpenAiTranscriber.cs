@@ -39,7 +39,7 @@ public sealed class OpenAiTranscriber : IDisposable
         form.Add(audio, "file", "recording.wav");
         request.Content = form;
         using var document = await ProviderHttp.SendAsync(client, request, server, Deadline, ResponseLimit, StatusMessage,
-            UiText.T("Netzwerkfehler oder Zeitüberschreitung bei der Transkription.", "Network error or timeout during transcription."), token);
+            UiText.T("Keine Verbindung zum Dienst. Prüf das Internet und versuch es nochmal.", "No connection to the service. Check your internet connection and try again."), token);
         if (document.RootElement.ValueKind != JsonValueKind.Object ||
             !document.RootElement.TryGetProperty("text", out var value) || value.ValueKind != JsonValueKind.String)
             throw ProviderHttp.InvalidResponse();
@@ -54,16 +54,16 @@ public sealed class OpenAiTranscriber : IDisposable
         401 or 403 when !server.SendsApiKey => UiText.T(
             "Der Server verlangt eine Anmeldung; an Adressen auf diesem Computer sendet OpenDictate keinen API-Schlüssel.",
             "The server asks for a login; OpenDictate sends no API key to addresses on this computer."),
-        401 => UiText.T("API-Schlüssel ist ungültig.", "API key is invalid."),
+        401 => UiText.T("Dein API-Schlüssel ist ungültig. Trag ihn in den Einstellungen neu ein.", "Your API key is invalid. Enter it again in the settings."),
         404 when server.IsCustom => UiText.T(
-            "Der Server kennt diese Adresse oder dieses Modell nicht. Server-Adresse (mit /v1) und Modellnamen prüfen.",
+            "Der Server kennt diese Adresse oder dieses Modell nicht. Prüf die Server-Adresse (mit /v1) und den Modellnamen.",
             "The server does not know this address or model. Check the server address (with /v1) and the model name."),
-        413 => UiText.T("Aufnahme ist für den Upload zu groß.", "Recording is too large to upload."),
-        429 when server.IsCustom => UiText.T("Der Server ist ausgelastet. Bitte später erneut versuchen.", "The server is busy. Please try again later."),
-        429 => UiText.T("OpenAI-Limit erreicht oder Guthaben aufgebraucht. Bitte später erneut versuchen.",
-            "OpenAI limit reached or credit used up. Please try again later."),
-        >= 500 and <= 599 => UiText.T("Der Dienst ist gerade nicht verfügbar. Bitte später erneut versuchen.",
-            "The service is not available right now. Please try again later."),
+        413 => UiText.T("Die Aufnahme ist für den Dienst zu groß. Nimm ein kürzeres Diktat auf.", "The recording is too large for the service. Record a shorter dictation."),
+        429 when server.IsCustom => UiText.T("Der Server ist ausgelastet. Versuch es später nochmal.", "The server is busy. Try again later."),
+        429 => UiText.T("OpenAI-Limit erreicht oder dein Guthaben ist leer. Schau in dein OpenAI-Konto.",
+            "OpenAI limit reached or your balance is empty. Check your OpenAI account."),
+        >= 500 and <= 599 => UiText.T("Der Dienst ist gerade nicht verfügbar. Versuch es später nochmal.",
+            "The service is not available right now. Try again later."),
         _ => UiText.T("Transkription fehlgeschlagen.", "Transcription failed."),
     };
 

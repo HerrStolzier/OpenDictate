@@ -13,8 +13,8 @@ pub fn runtime_dir() -> io::Result<PathBuf> {
         .map(PathBuf::from)
         .ok_or_else(|| {
             io::Error::other(crate::tr!(
-                "XDG_RUNTIME_DIR ist nicht gesetzt; bitte in einer Hyprland-Sitzung mit systemd-logind starten.",
-                "XDG_RUNTIME_DIR is not set; please start inside a Hyprland session with systemd-logind."
+                "XDG_RUNTIME_DIR ist nicht gesetzt. Starte OpenDictate in einer Hyprland-Sitzung mit systemd-logind.",
+                "XDG_RUNTIME_DIR is not set. Start OpenDictate inside a Hyprland session with systemd-logind."
             ))
         })?;
     let dir = base.join("opendictate");

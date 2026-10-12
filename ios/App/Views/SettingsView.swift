@@ -63,10 +63,9 @@ struct SettingsView: View {
                 }
                 Text(
                     L10n.pick(
-                        "Stays in this iPhone's Keychain and goes only to the service. Each dictation costs a little "
-                            + "on your OpenAI account.",
-                        "Bleibt im Schlüsselbund dieses iPhones und geht nur an den Dienst. Jedes Diktat kostet "
-                            + "ein wenig auf deinem OpenAI-Konto."))
+                        "Stays in this iPhone's Keychain and goes only to the service. OpenAI bills you directly.",
+                        "Bleibt im Schlüsselbund dieses iPhones und geht nur an den Dienst. "
+                            + "Die Kosten rechnet OpenAI direkt mit dir ab."))
                 Link(
                     L10n.pick("Create a key at OpenAI", "Schlüssel bei OpenAI anlegen"),
                     destination: URL(string: "https://platform.openai.com/api-keys")!)
@@ -119,16 +118,15 @@ struct SettingsView: View {
             if !Self.isUsable(serverAddress) {
                 Text(
                     L10n.pick(
-                        "This address does not work. Use https://, or http:// only for a server on this iPhone.",
-                        "Diese Adresse geht nicht. Nimm https:// oder http:// nur für einen Server auf dem iPhone.")
+                        "This address does not work. Use https:// (http:// only for a server on this iPhone).",
+                        "Diese Adresse geht nicht. Nutze https:// (http:// nur für einen Server auf diesem iPhone).")
                 )
                 .foregroundStyle(.red)
             } else {
                 Text(
                     L10n.pick(
-                        "Empty means OpenAI. Any server that speaks the OpenAI format works; enter its address "
-                            + "including /v1.",
-                        "Leer heißt OpenAI. Jeder Server, der das OpenAI-Format spricht, geht; trage seine Adresse "
+                        "Empty means OpenAI. For your own OpenAI-compatible server, enter its address including /v1.",
+                        "Leer bedeutet OpenAI. Für einen eigenen OpenAI-kompatiblen Server trag seine Adresse "
                             + "mit /v1 ein."))
             }
         }

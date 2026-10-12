@@ -104,12 +104,12 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         menu.addItem(statusMenuItem)
         menu.addItem(.separator())
 
-        let shortcutItem = NSMenuItem(title: "Tastenkombination", action: nil, keyEquivalent: "")
+        let shortcutItem = NSMenuItem(title: "Tastenkürzel", action: nil, keyEquivalent: "")
         shortcutItem.submenu = makeShortcutSubmenu()
         shortcutItem.identifier = NSUserInterfaceItemIdentifier("shortcut")
         menu.addItem(shortcutItem)
         self.shortcutMenuItem = shortcutItem
-        let customShortcut = makeActionItem("Eigene Tastenkombination …", action: #selector(configureShortcut))
+        let customShortcut = makeActionItem("Eigenes Tastenkürzel …", action: #selector(configureShortcut))
         shortcutItem.submenu?.addItem(.separator())
         shortcutItem.submenu?.addItem(customShortcut)
 
@@ -130,7 +130,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         translationItem.identifier = NSUserInterfaceItemIdentifier("translation")
         menu.addItem(translationItem)
         self.translationMenuItem = translationItem
-        let styleItem = NSMenuItem(title: "Anzeige ohne Notch", action: nil, keyEquivalent: "")
+        let styleItem = NSMenuItem(title: "Anzeige (Macs ohne Notch)", action: nil, keyEquivalent: "")
         styleItem.submenu = makeIndicatorStyleSubmenu()
         styleItem.identifier = NSUserInterfaceItemIdentifier("indicatorStyle")
         menu.addItem(styleItem)
@@ -158,7 +158,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
         menu.addItem(.separator())
 
-        let recordingItem = makeActionItem("Aufnahme starten/stoppen", action: #selector(toggleRecording))
+        let recordingItem = makeActionItem("Diktat starten/beenden", action: #selector(toggleRecording))
         menu.addItem(recordingItem)
         recordingMenuItem = recordingItem
         func actionItem(_ title: String, _ action: Selector) -> NSMenuItem {
@@ -166,30 +166,30 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             menu.addItem(item)
             return item
         }
-        cancelMenuItem = actionItem("Abbrechen und Aufnahme behalten", #selector(cancelOperation))
+        cancelMenuItem = actionItem("Abbrechen (Aufnahme bleibt)", #selector(cancelOperation))
         discardMenuItem = actionItem("Aktuelle Aufnahme verwerfen", #selector(discardOperation))
-        copyLastMenuItem = actionItem("Letzten Text erneut kopieren", #selector(copyLastText))
-        clearLastMenuItem = actionItem("Letzten Text aus Speicher löschen", #selector(clearLastText))
+        copyLastMenuItem = actionItem("Letzten Text nochmal kopieren", #selector(copyLastText))
+        clearLastMenuItem = actionItem("Letzten Text löschen", #selector(clearLastText))
         autoPasteMenuItem = actionItem("Automatisch einfügen", #selector(toggleAutoPaste))
         autoPasteMenuItem?.identifier = NSUserInterfaceItemIdentifier("autoPaste")
 
         let retryItem = makeActionItem(
-            "Letzte Aufnahme wiederholen",
+            "Letzte Aufnahme nochmal senden …",
             action: #selector(retryLastRecording),
-            toolTip: "Die neueste gültige Aufnahme bewusst erneut an den eingestellten Dienst senden."
+            toolTip: "Schickt die letzte gesicherte Aufnahme nochmal an deinen Dienst. Bei OpenAI kostet das wieder."
         )
         menu.addItem(retryItem)
         self.retryMenuItem = retryItem
-        let recordingsItem = NSMenuItem(title: "Gespeicherte Aufnahmen", action: nil, keyEquivalent: "")
+        let recordingsItem = NSMenuItem(title: "Gesicherte Aufnahmen", action: nil, keyEquivalent: "")
         recordingsItem.submenu = NSMenu()
         recordingsItem.identifier = NSUserInterfaceItemIdentifier("recordings")
         menu.addItem(recordingsItem)
         recordingsMenuItem = recordingsItem
 
         let deleteRecordingsItem = makeActionItem(
-            "Gespeicherte Aufnahmen löschen …",
+            "Gesicherte Aufnahmen löschen …",
             action: #selector(deleteSavedRecordings),
-            toolTip: "Aufbewahrte Aufnahmen endgültig löschen."
+            toolTip: "Löscht alle gesicherten Aufnahmen endgültig."
         )
         deleteRecordingsItem.identifier = NSUserInterfaceItemIdentifier("deleteRecordings")
         menu.addItem(deleteRecordingsItem)
@@ -208,7 +208,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         aboutItem.identifier = NSUserInterfaceItemIdentifier("about")
         menu.addItem(aboutItem)
         menu.addItem(.separator())
-        let quit = NSMenuItem(title: "Beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        let quit = NSMenuItem(
+            title: "OpenDictate beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         quit.identifier = NSUserInterfaceItemIdentifier("quit")
         menu.addItem(quit)
 
@@ -242,17 +243,17 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         switch state {
         case .idle, .recording:
             dictation = makeActionItem(
-                state == .idle ? "Neues Diktat" : "Diktat beenden", action: #selector(toggleRecording))
+                state == .idle ? "Diktat starten" : "Diktat beenden", action: #selector(toggleRecording))
             dictation.attributedTitle = Self.title(dictation.title, detail: delegate.menuBarTrigger.displayName)
         case .processing, .delivering:
-            dictation = makeActionItem("Abbrechen, Aufnahme behalten", action: #selector(cancelOperation))
+            dictation = makeActionItem("Abbrechen (Aufnahme bleibt)", action: #selector(cancelOperation))
         }
         dictation.identifier = NSUserInterfaceItemIdentifier("dictation")
         dailyMenu.addItem(dictation)
         let lastText = makeActionItem("Letzten Text ansehen", action: #selector(showLastText))
         lastText.isEnabled = state == .idle && delegate.menuBarHasTranscript
         dailyMenu.addItem(lastText)
-        let recordings = makeActionItem("Aufbewahrte Aufnahmen", action: #selector(openRecordings))
+        let recordings = makeActionItem("Gesicherte Aufnahmen", action: #selector(openRecordings))
         recordings.attributedTitle = Self.title(recordings.title, detail: "\(delegate.menuBarRecordings.count)")
         dailyMenu.addItem(recordings)
         dailyMenu.addItem(.separator())
@@ -351,10 +352,12 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             if let copy = item?.copy() as? NSMenuItem { menu.addItem(copy) }
         }
         menu.addItem(.separator())
-        let recordings = makeActionItem("Aufbewahrte Aufnahmen …", action: #selector(openRecordings))
+        let recordings = makeActionItem("Gesicherte Aufnahmen …", action: #selector(openRecordings))
         menu.addItem(recordings)
         menu.addItem(makeActionItem("Über OpenDictate …", action: #selector(showAbout)))
-        menu.addItem(NSMenuItem(title: "Beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(
+            NSMenuItem(
+                title: "OpenDictate beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: view.bounds.maxY), in: view)
     }
 
@@ -389,7 +392,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         if state == .recording {
             let remaining = max(0, Int(Config.maximumRecordingDuration - elapsed))
             let warning = remaining <= 10 ? " – noch \(remaining) s" : ""
-            updateStatus("Aufnahme \(Int(elapsed)) s, Pegel \(Int(level)) dB\(warning)")
+            updateStatus("Aufnahme läuft · \(IndicatorText.clock(elapsed))\(warning)")
         }
     }
 
@@ -399,7 +402,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         {
             settingsMenu?.items.first { $0.identifier?.rawValue == id }?.isEnabled = state == .idle
         }
-        recordingMenuItem?.title = state == .recording ? "Aufnahme stoppen" : "Aufnahme starten"
+        recordingMenuItem?.title = state == .recording ? "Diktat beenden" : "Diktat starten"
         recordingMenuItem?.isEnabled = state == .idle || state == .recording
         cancelMenuItem?.isEnabled = state != .idle
         discardMenuItem?.isEnabled = state == .recording
@@ -436,7 +439,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             submenu.delegate = self
             submenu.autoenablesItems = false
             let retry = makeActionItem(
-                entry.retryable ? "Wiederholen" : "Nicht zur Wiederholung verfügbar",
+                entry.retryable ? "Nochmal senden …" : "Kann nicht nochmal gesendet werden",
                 action: #selector(retrySelected(_:))
             )
             retry.representedObject = entry.filename
@@ -537,7 +540,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         guard let delegate else { return }
 
         let trigger = delegate.menuBarTrigger
-        shortcutMenuItem?.title = "Tastenkombination: \(trigger.displayName)"
+        shortcutMenuItem?.title = "Tastenkürzel: \(trigger.displayName)"
         for item in shortcutMenuItem?.submenu?.items ?? [] {
             let index = item.representedObject as? Int
             item.state = index.map { RecordingTrigger.menuChoices[$0] == trigger } == true ? .on : .off
@@ -565,7 +568,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         }
 
         let style = delegate.menuBarIndicatorStyle
-        indicatorStyleMenuItem?.title = "Anzeige ohne Notch: \(style.title)"
+        indicatorStyleMenuItem?.title = "Anzeige (Macs ohne Notch): \(style.title)"
         for item in indicatorStyleMenuItem?.submenu?.items ?? [] {
             item.state = (item.representedObject as? String) == style.rawValue ? .on : .off
         }

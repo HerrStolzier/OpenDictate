@@ -60,8 +60,12 @@ impl Settings {
         if !path.exists() {
             return Ok(Self::default());
         }
-        let data = fs::read(path)
-            .map_err(|_| crate::tr!("Einstellungen nicht lesbar.", "Settings unreadable."))?;
+        let data = fs::read(path).map_err(|_| {
+            crate::tr!(
+                "Einstellungen konnten nicht gelesen werden.",
+                "Settings could not be read."
+            )
+        })?;
         let settings: Self = serde_json::from_slice(&data).map_err(|_| {
             crate::tr!(
                 "Einstellungen sind beschädigt.",
@@ -80,7 +84,7 @@ impl Settings {
         if let Some(server) = self.server.as_deref() {
             crate::server::Server::parse(server).map_err(|error| {
                 crate::tr!(
-                    "{error} Gespeicherte Server-Adresse in ~/.config/opendictate/settings.json korrigieren oder die Zeile \"server\" löschen.",
+                    "{error} Korrigiere die gespeicherte Server-Adresse in ~/.config/opendictate/settings.json oder lösch die Zeile \"server\".",
                     "{error} Fix the stored server address in ~/.config/opendictate/settings.json or delete the \"server\" line."
                 )
             })?;
@@ -126,13 +130,13 @@ impl Settings {
         self.validate()?;
         let parent = path.parent().ok_or_else(|| {
             crate::tr!(
-                "Einstellungen nicht speicherbar.",
+                "Einstellungen konnten nicht gespeichert werden.",
                 "Settings could not be saved."
             )
         })?;
         fs::create_dir_all(parent).map_err(|_| {
             crate::tr!(
-                "Einstellungen nicht speicherbar.",
+                "Einstellungen konnten nicht gespeichert werden.",
                 "Settings could not be saved."
             )
         })?;
@@ -145,13 +149,13 @@ impl Settings {
                 .open(&temporary)
                 .map_err(|_| {
                     crate::tr!(
-                        "Einstellungen nicht speicherbar.",
+                        "Einstellungen konnten nicht gespeichert werden.",
                         "Settings could not be saved."
                     )
                 })?;
             let data = serde_json::to_vec_pretty(self).map_err(|_| {
                 crate::tr!(
-                    "Einstellungen nicht speicherbar.",
+                    "Einstellungen konnten nicht gespeichert werden.",
                     "Settings could not be saved."
                 )
             })?;
@@ -160,13 +164,13 @@ impl Settings {
                 .and_then(|_| file.sync_all())
                 .map_err(|_| {
                     crate::tr!(
-                        "Einstellungen nicht speicherbar.",
+                        "Einstellungen konnten nicht gespeichert werden.",
                         "Settings could not be saved."
                     )
                 })?;
             fs::rename(&temporary, path).map_err(|_| {
                 crate::tr!(
-                    "Einstellungen nicht speicherbar.",
+                    "Einstellungen konnten nicht gespeichert werden.",
                     "Settings could not be saved."
                 )
             })?;
@@ -183,8 +187,8 @@ pub fn validate_model(model: &str) -> Result<(), String> {
     match model {
         "gpt-transcribe" | "gpt-4o-mini-transcribe" | "gpt-4o-transcribe" | "whisper-1" => Ok(()),
         "gpt-live-transcribe" => Err(crate::tr!(
-            "Das Echtzeitmodell kann nicht hochgeladen werden.",
-            "The realtime model cannot take uploads."
+            "Das Echtzeitmodell funktioniert mit OpenDictate nicht. Wähl ein anderes Modell.",
+            "The realtime model does not work with OpenDictate. Pick another model."
         )),
         _ => Err(crate::tr!(
             "Unbekanntes Transkriptionsmodell.",

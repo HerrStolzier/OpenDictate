@@ -284,7 +284,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case .modifierKey(let key):
             let monitor = ModifierKeyMonitor(key: key) { [weak self] in self?.handleModifierGesture($0) }
             guard monitor.start() else {
-                updateStatus("Tastenkombination nicht verfügbar")
+                updateStatus("Tastenkürzel nicht verfügbar")
                 AppLog.write("Single-key monitor could not be installed: \(key.rawValue)")
                 AlertPresenter.showWarning(
                     title: "Tastenkürzel nicht verfügbar",
@@ -390,7 +390,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             AppLog.write("Global hotkey registered: \(shortcut.displayName)")
             return true
         } catch {
-            updateStatus("Tastenkombination nicht verfügbar")
+            updateStatus("Tastenkürzel nicht verfügbar")
             AppLog.write("Hotkey registration failed: \(error.localizedDescription)")
             AlertPresenter.showWarning(
                 title: "Tastenkürzel nicht verfügbar",
@@ -540,7 +540,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let loaded = await recordingLibrary.load(filename: filename)
         guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
         guard let payload = loaded else {
-            updateStatus("Keine gültige Aufnahme zum Wiederholen")
+            updateStatus("Diese Aufnahme kann nicht nochmal gesendet werden")
             refreshSavedRecordings()
             return
         }
@@ -603,8 +603,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         menuBar?.updateStatus("API-Schlüssel nicht verfügbar")
         let message =
-            "Der API-Schlüssel fehlt oder ist nicht zugänglich. "
-            + "Prüfe den macOS-Schlüsselbund oder richte den Schlüssel erneut ein."
+            "OpenDictate kommt nicht an deinen API-Schlüssel. "
+            + "Richte ihn über „API-Schlüssel einrichten“ neu ein."
         dictationPanel.updateAPIKeySetup(needsSetup: true, message: apiKeyNeedsSetup ? nil : message)
         apiKeyNeedsSetup = true
         indicator.canRetry = false
@@ -732,7 +732,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func warnAboutUnusableModelIfNeeded() {
         guard let reason = Config.model.uploadRejectionReason else { return }
         AppLog.write("Configured model is not usable: \(reason.replacingOccurrences(of: "\n", with: " "))")
-        AlertPresenter.showWarning(title: "Das eingestellte Modell ist nicht geeignet", message: reason)
+        AlertPresenter.showWarning(title: "Dieses Modell funktioniert nicht", message: reason)
     }
 
     private func updateStatus(_ value: String) {
@@ -765,15 +765,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 dictationPanel.updateAPIKeySetup(
                     needsSetup: true,
                     message:
-                        "Einrichtung abgebrochen. Über „API-Schlüssel einrichten“ "
-                        + "kannst du sie jederzeit fortsetzen.")
+                        "Einrichtung abgebrochen. Mit „API-Schlüssel einrichten“ "
+                        + "machst du jederzeit weiter.")
             }
             return
         }
         guard !key.isEmpty else {
             if settingUp {
                 dictationPanel.updateAPIKeySetup(
-                    needsSetup: true, message: "Das Feld war leer. Gib deinen eigenen OpenAI-API-Schlüssel ein.")
+                    needsSetup: true, message: "Das Feld war leer. Füge deinen API-Schlüssel von OpenAI ein.")
             }
             AlertPresenter.showWarning(title: "Kein API-Schlüssel gespeichert", message: "Das Feld war leer.")
             return
@@ -790,9 +790,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 AlertPresenter.showWarning(
                     title: "API-Schlüssel gespeichert",
                     message:
-                        "Der neue Schlüssel ist gespeichert. Der alte Keychain-Eintrag konnte "
-                        + "noch nicht entfernt werden. Speichere den Schlüssel erneut über diesen "
-                        + "Dialog, um die Bereinigung zu wiederholen.")
+                        "Dein neuer Schlüssel ist gespeichert. Der alte Eintrag im Schlüsselbund "
+                        + "ließ sich noch nicht entfernen. Speichere den Schlüssel einfach nochmal, "
+                        + "dann versucht OpenDictate es wieder.")
                 guard lifecycle.isCurrent(operation) else { return }
             }
             if settingUp, !Config.settings.hasStoredTrigger { askForTrigger(operation: operation) }
@@ -805,7 +805,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     needsSetup: true,
                     message:
                         "Der Schlüssel konnte nicht gespeichert werden. "
-                        + "Über „API-Schlüssel einrichten“ kannst du es erneut versuchen.")
+                        + "Über „API-Schlüssel einrichten“ kannst du es nochmal versuchen.")
             }
             AlertPresenter.showWarning(
                 title: "API-Schlüssel konnte nicht gespeichert werden",
@@ -823,7 +823,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let removed = FailedRecordingStore.removeAll()
         refreshSavedRecordings()
         updateStatus(
-            removed == count ? "Gespeicherte Aufnahmen gelöscht" : "Einige Aufnahmen konnten nicht gelöscht werden")
+            removed == count ? "Gesicherte Aufnahmen gelöscht" : "Einige Aufnahmen konnten nicht gelöscht werden")
         AppLog.write("User deleted \(removed) of \(count) saved recording(s)")
     }
 }

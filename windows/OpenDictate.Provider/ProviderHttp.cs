@@ -55,8 +55,8 @@ internal static class ProviderHttp
         new(UiText.T("Ungültige Antwort vom Server.", "Invalid response from the server."));
 
     private static UserFacingException Network(ProviderServer server, string message) => server.IsCustom
-        ? new(UiText.T($"Netzwerkfehler: Eigener Server ({server.Host}) nicht erreichbar oder zu langsam.",
-            $"Network error: custom server ({server.Host}) unreachable or too slow."))
+        ? new(UiText.T($"Dein Server ({server.Host}) ist nicht erreichbar oder zu langsam. Prüf, ob er läuft, und versuch es nochmal.",
+            $"Your server ({server.Host}) is unreachable or too slow. Check that it is running and try again."))
         : new(message);
 }
 

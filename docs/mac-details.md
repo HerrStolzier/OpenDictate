@@ -37,7 +37,7 @@ Sending again asks for confirmation first, because it can cost again.
 
 On a MacBook with a notch the indicator grows out of the notch. Without a notch
 it floats as a pill just below the middle of the menu bar; an error turns it
-into a small card with the reason. **Ohne Notch** in Settings switches to a
+into a small card with the reason. **Anzeige** in Settings switches to a
 flat pill inside the menu bar, which covers nothing (an error then drops the
 card below it), or turns the indicator off (then only
 "REC" appears next to the menu bar symbol; an error still shows its card with
@@ -46,8 +46,8 @@ only while recording, writing or after an error; with the indicator off, only
 the error card appears there.
 With **Reduce motion** enabled, Blink and the indicator stand still.
 
-The menu bar symbol opens a menu: **Neues Diktat** (with your shortcut),
-**Letzten Text ansehen**, **Aufbewahrte Aufnahmen**, **Automatisch einfügen**,
+The menu bar symbol opens a menu: **Diktat starten** (with your shortcut),
+**Letzten Text ansehen**, **Gesicherte Aufnahmen**, **Automatisch einfügen**,
 **Übersetzen**, **Einstellungen …** (⌘,), **Hilfe** and
 **OpenDictate beenden** (⌘Q). While recording, the first entry stops the
 dictation; while processing, it cancels and keeps the recording. Settings,
@@ -101,7 +101,7 @@ Changes apply to the next dictation, no restart needed.
   only the translation is copied and pasted. If the translation fails or comes
   back empty, nothing is pasted, the original text is not used as a fallback and
   the recording is kept for retry; a retry translates again.
-- **Ohne Notch** — how the indicator appears on screens without a notch:
+- **Anzeige** — how the indicator appears on screens without a notch:
   floating below the menu bar (default), inside the menu bar, or off.
 - **Eigener Server** (Advanced) — use any server that speaks the OpenAI request
   format instead of OpenAI, including a local model on this Mac. See
@@ -123,7 +123,7 @@ active recording. The recorder also enforces the 90-second cap natively.
 ## If a transcription fails
 
 A failed upload no longer throws the recording away. It keeps a recovery copy in
-`~/Library/Application Support/OpenDictate/failed/`, and `Letzte Aufnahme wiederholen` in
+`~/Library/Application Support/OpenDictate/failed/`, and `Letzte Aufnahme nochmal senden …` in
 the menu uploads it again. A failed translation is handled the same way. Recordings are authenticated with a device-local
 Keychain secret before retry. Managed recovery files are limited to five and
 expire after 24 hours. Pruning runs at launch, after every keep and periodically
@@ -135,7 +135,7 @@ recovery write and historical crash leftovers are outside that managed store;
 see [PRIVACY.md](../PRIVACY.md#last-transcript-and-temporary-originals). A retry deletes
 the file only after a non-empty transcript has reached the clipboard. Clipboard
 failures preserve the audio on disk and the last transcript in memory. Use
-`Gespeicherte Aufnahmen löschen …` to delete the app's managed retained or legacy
+`Gesicherte Aufnahmen löschen …` to delete the app's managed retained or legacy
 recordings. Temporary originals are outside that action.
 
 Recordings classified as too short or too quiet are retained for a deliberate manual retry. These heuristics do not prove that no speech exists; they never trigger an automatic upload.

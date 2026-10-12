@@ -97,12 +97,12 @@ struct DictationPanelTests {
         let message = "Der Schlüssel konnte nicht gespeichert werden. Versuche es erneut."
         panel.updateAPIKeySetup(needsSetup: true, message: message)
         #expect(views.compactMap { $0 as? NSTextField }.map(\.stringValue).contains(message))
-        #expect(primary.title == "Schlüssel eingeben")
+        #expect(primary.title == "API-Schlüssel einrichten")
         expectHidden(panel, keyWindow: keyWindow)
 
         panel.updateAPIKeySetup(needsSetup: false)
         #expect(panel.display == .ready)
-        #expect(primary.title == "Aufnahme starten")
+        #expect(primary.title == "Diktat starten")
         #expect(recordings == 0)
         expectHidden(panel, keyWindow: keyWindow)
     }
@@ -129,8 +129,8 @@ struct DictationPanelTests {
         #expect(textView.isSelectable)
         #expect(!scroll.isHidden)
         #expect(copy.isEnabled && !copy.isHidden)
-        #expect(labels.contains("Möglicherweise"))
-        #expect(labels.contains("Prüfe es vor manuellem Einfügen"))
+        #expect(labels.contains("ließ sich nicht prüfen"))
+        #expect(labels.contains("bevor du ihn nochmal einfügst"))
         #expect(!labels.contains("Nicht automatisch eingefügt"))
         #expect(!labels.contains("Text eingefügt."))
         copy.performClick(nil)
@@ -148,7 +148,7 @@ struct DictationPanelTests {
         let textView = try #require(views.compactMap { $0 as? NSTextView }.first)
         let labels = views.compactMap { $0 as? NSTextField }.map(\.stringValue).joined(separator: "\n")
         #expect(panel.display == .unconfirmed)
-        #expect(labels.contains("Prüfe den Text im Zielprogramm"))
+        #expect(labels.contains("Schau kurz im Zielprogramm nach"))
         #expect(!labels.contains("Text eingefügt."))
         reveal.performClick(nil)
         #expect(!scroll.isHidden)
@@ -171,6 +171,6 @@ struct DictationPanelTests {
         #expect(textView.string == "Vollständiger Text")
         #expect(copy.isEnabled && !copy.isHidden)
         #expect(labels.contains("Nicht automatisch eingefügt"))
-        #expect(!labels.contains("Möglicherweise"))
+        #expect(!labels.contains("ließ sich nicht prüfen"))
     }
 }
