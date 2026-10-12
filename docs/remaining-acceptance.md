@@ -221,8 +221,9 @@ veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
   (Modell large-v3-turbo, nur auf diesem Mac): vier Diktate eingefügt, laut
   App- und Server-Log ohne Anfrage an OpenAI, rund 2,4 s vom Stopp bis zum
   Text. Dabei fiel auf, dass whisper.cpp an Sprechpausen Zeilenumbrüche setzt;
-  seit diesem Stand werden sie bei einem eigenen Server zu Leerzeichen (offline
-  geprüft, noch in keinem Kandidaten). Andere Server werden nicht abgenommen,
+  seit Build 12 werden sie bei einem eigenen Server zu Leerzeichen (live am
+  12. Oktober bestätigt: Diktat mit mehreren Pausen kam als ein Absatz,
+  [Nachweis](release-plans/evidence/2026-10-12-build12.md)). Andere Server werden nicht abgenommen,
   Übersetzung über einen eigenen Server ist live nicht geprüft
   ([Nachweis](release-plans/evidence/2026-10-11-build11.md#eigener-server-mit-lokalem-modell)). Ebenfalls nur aus dem Code
   abgeleitet: Bei einer frischen Installation ohne Schlüssel führt das
@@ -269,7 +270,7 @@ veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
   `OPENAI_API_KEY` mit Build-Hashes in der Zugriffsliste; er wird nur durch die
   App-Migration entfernt, nicht manuell.
 
-**Letzter Nachweis:** 11. Oktober 2026 (Build 11 aus `8d178ed` notarisiert, als Update installiert, ein Diktat mit Übersetzung, nicht veröffentlicht; [Nachweis](release-plans/evidence/2026-10-11-build11.md)).
+**Letzter Nachweis:** 12. Oktober 2026 (Build 12 aus `2d8d4ed` notarisiert, als Update installiert, Diktat über lokalen Server, nicht veröffentlicht; [Nachweis](release-plans/evidence/2026-10-12-build12.md)).
 
 ## Windows
 
