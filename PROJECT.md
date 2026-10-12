@@ -169,6 +169,7 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
+| 12. Oktober 2026 | Die kurze Startseite (rund 370 Wörter, 0,1 Cent pro Diktat vorn, SEO-Grundlagen) geht mit Bastis Satz unter „Probier es aus“ live, sobald sie und die Anleitung zum lokalen Modell (docs/lokales-modell.md) auf `main` sind. | [website/README.md](website/README.md); Karte „Mit Satz live“ im Projektchat 12. Oktober |
 | 12. Oktober 2026 | Die Startseite wird kurz (rund 400 Wörter, fünf Abschnitte) und führt mit 0,1 Cent pro Diktat, weil „lokal kostenlos“ allein OpenDictate nicht mehr unterscheidet. Dazu kommen die SEO-Grundlagen (Titel, Vorschaubild, strukturierte Daten, Sitemap). Live nur auf Bastis Wort. | Karte „Bauen“ im Projektchat 12. Oktober |
 | 12. Oktober 2026 | Die umgebaute Website („Diktieren ohne Abo“, Preis vorn) geht sofort live, nicht erst mit Build 11. Bis die Mac-Beta mit eigenem Server veröffentlicht ist, sagt die 0-€-Karte „Unter Linux schon jetzt, am Mac ab der nächsten Version“. Bastis „Jetzt live“ (10:41) ersetzt sein „Mit Build 11“ (10:27). | [website/README.md](website/README.md); Karte „Jetzt live“ im Projektchat 12. Oktober |
 | 12. Oktober 2026 | Die nach dem Preis umgebaute Website geht erst live, wenn die Mac-Beta mit eigenem Server (Build 11 oder später) veröffentlicht ist; gebaut wird sie schon jetzt. Bis dahin wäre „lokal kostenlos“ am Mac nicht einlösbar. (Ersetzt durch „Jetzt live“, 10:41.) | [Anleitung lokales Modell](docs/lokales-modell.md); Karte „Mit Build 11“ im Projektchat 12. Oktober |

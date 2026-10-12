@@ -1,4 +1,5 @@
 import importlib.util
+import re
 import subprocess
 import unittest
 from pathlib import Path
@@ -34,6 +35,13 @@ class WebsiteWorkerTests(unittest.TestCase):
 
     def test_digest_is_sha256_prefix(self):
         self.assertEqual(MODULE.digest(b""), "e3b0c44298fc1c149afbf4c8996fb924")
+
+    def test_served_types_match_worker_kinds(self):
+        source = MODULE.WORKER.read_text()
+        block = re.search(r"^const KINDS = \{\n((?:.*\n)*?)\};$", source, re.M)
+        assert block
+        kinds = set(re.findall(r"^  (\w+):", block.group(1), re.M))
+        self.assertEqual(kinds, MODULE.SERVED_TYPES)
 
     def test_worker_matches_pinned_commit(self):
         commit = MODULE.COMMIT_LINE.search(MODULE.WORKER.read_text()).group(1)

@@ -18,7 +18,8 @@ verbinden sich nie mit GitHub. Der Worker setzt Sicherheitsregeln (CSP nur
 eigene Adresse, keine Einbettung in fremde Seiten) und beantwortet nur GET und
 HEAD. `README.md`, `worker.js` und `wrangler.toml` gehören nicht zur Seite.
 Der Worker selbst hat keine automatischen Tests; `scripts/website-worker.py`
-prüft nur, dass Commit und Fingerabdrücke zusammenpassen.
+prüft nur, dass Commit und Fingerabdrücke zusammenpassen, und ein Test hält die
+Dateitypen in `worker.js` und im Skript gleich.
 
 Cloudflare Web Analytics ist für die ganze Domain ausgeschaltet. Cloudflare
 schaltet es bei kostenlosen Domains von selbst ein und fügt dann ein Zählskript
@@ -109,3 +110,25 @@ erneut geprüft: 1440, 375 und 320 Pixel ohne horizontalen Überlauf, keine
 Konsolenfehler, alle fünf Schriften geladen; Zustände bei 320 und 393 Pixel mit
 Touch (nach jedem Antippen ist die Bühne ganz oben im Bild und die angetippte
 Karte darunter sichtbar).
+
+Textstand 2026-10-12, kurz: Die Seite folgt der Textvorlage „Startseite, kurz
+und mit Recherche“ vom 12. Oktober (Bastis „Bauen“). Rund 350 Wörter in fünf
+Abschnitten: Kopf, „Was ein Diktat kostet“ (0,1 ct vorn, 0 € an dritter
+Stelle), „Kein Diktat geht verloren“, „Sprich Deutsch, schreib Englisch“ und
+„Was mit deiner Aufnahme passiert“, dazu der Schluss „Probier es aus“. Die fünf
+Zustände, „Bevor du loslegst“ und die Plattform-Liste sind weg; Blink bleibt
+in der Bühne im Kopf. Der Link „So geht's“ zeigt auf `docs/lokales-modell.md`.
+Für Suchmaschinen und geteilte Links trägt der Kopf Titel, Beschreibung,
+Canonical, Open-Graph- und Twitter-Tags, ein Vorschaubild (`og.png`,
+1200 × 630, Bildschirmfoto einer HTML-Komposition auf `--bg` Nacht: Wortmarke
+`wordmark-nacht.svg` oben links, „Diktieren / ohne Abo.“ in Geist SemiBold
+118 px mit der zweiten Zeile in `--signal`, `blink-32.svg` 320 px groß rechts,
+unten „0,1 Cent pro Diktat · Mac und Linux · Open Source“ in Geist Mono 28 px), `apple-touch-icon.png`
+(180 × 180 aus `design/assets/app-icon/app-icon-256.png`) und strukturierte
+Daten (JSON-LD `WebSite` und `SoftwareApplication` mit Version
+`0.1.0-beta.10`). `sitemap.xml` und `robots.txt` liegen daneben; der Worker
+liefert dafür auch PNG und XML aus. Der Link „So geht's“ funktioniert erst, wenn
+`docs/lokales-modell.md` auf `main` ist; vorher nicht ausrollen. Mit dem
+Mac-Release ändern sich der Hinweis an der 0-€-Karte, die Download-Links und
+die Version im JSON-LD; sobald die App etwas kostet, auch `offers` und
+`isAccessibleForFree`.
