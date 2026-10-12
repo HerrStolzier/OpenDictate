@@ -344,26 +344,43 @@
     var track = document.querySelector('.run-track');
     var mover = track && track.querySelector('.run-blink');
     if (!mover) return;
-    var lastX = 0, running = false, timer = 0, queued = false;
+    var x = 0, target = 0, dir = 1, running = false, queued = false, frame = 0, last = 0;
     mover.innerHTML = blink('bereit', 100, true);
+    // Reduced motion keeps the runner still at the start of the track.
+    if (reduce) return;
+    function span() { return Math.max(0, track.clientWidth - 88 - 52); }
+    function place() { mover.style.transform = 'translateX(' + Math.round(x) + 'px) scaleX(' + dir + ')'; }
+    function stand() {
+      frame = 0; last = 0;
+      if (running) { running = false; mover.innerHTML = blink('bereit', 100, true); }
+    }
+    // Blink runs towards the scroll target instead of jumping, at most one track width per 0.6 s.
+    // He only runs while the whole track is on screen: partly hidden at either edge he stands still, fully
+    // hidden he takes his place unseen, so he is never cut off at the window edge mid-run.
+    function step(now) {
+      var r = track.getBoundingClientRect(), vh = window.innerHeight;
+      if (r.top >= vh || r.bottom <= 0) { x = target; place(); stand(); return; }
+      if (r.top < -1 || r.bottom > vh + 1) { stand(); return; }
+      var dt = last ? Math.min(64, now - last) : 16, d = target - x, reach = Math.max(1, span()) / 600 * dt;
+      var heading = d < 0 ? -1 : 1;
+      last = now;
+      dir = heading;
+      if (!running) { running = true; mover.innerHTML = blink('schreibt', 100, true); }
+      x = Math.abs(d) <= reach ? target : x + (d > 0 ? reach : -reach);
+      place();
+      if (x !== target) { frame = requestAnimationFrame(step); return; }
+      stand();
+    }
     function measure() {
       queued = false;
-      // Reduced motion keeps the runner still at the start of the track.
-      if (reduce) return;
       var docEl = document.scrollingElement || document.documentElement;
       var vh = window.innerHeight, scrollTop = window.pageYOffset || docEl.scrollTop || 0;
       var maxScroll = Math.max(0, docEl.scrollHeight - vh);
-      var r = track.getBoundingClientRect();
-      var start = Math.max(0, r.top + scrollTop - vh);
+      // The run starts only once the whole track is on screen, so Blink never runs cut off at the window edge.
+      var start = Math.max(0, track.getBoundingClientRect().bottom + scrollTop - vh);
       var prog = maxScroll > start + 1 ? Math.min(1, Math.max(0, (scrollTop - start) / (maxScroll - start))) : 0;
-      var x = Math.round(prog * Math.max(0, r.width - 88 - 52));
-      if (x === lastX) return;
-      var dir = x < lastX ? -1 : 1;
-      lastX = x;
-      mover.style.transform = 'translateX(' + x + 'px) scaleX(' + dir + ')';
-      if (!running) { running = true; mover.innerHTML = blink('schreibt', 100, true); }
-      clearTimeout(timer);
-      timer = setTimeout(function () { running = false; mover.innerHTML = blink('bereit', 100, true); }, 200);
+      target = Math.round(prog * span());
+      if (target !== x && !frame) frame = requestAnimationFrame(step);
     }
     function queue() { if (!queued) { queued = true; requestAnimationFrame(measure); } }
     window.addEventListener('scroll', queue, { passive: true });
