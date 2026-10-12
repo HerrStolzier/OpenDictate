@@ -197,6 +197,9 @@ html:not(.js) .notes-paste{visibility:visible}
 .cta-title{font-size:clamp(40px,6vw,84px) !important;line-height:1 !important}
 .cta .lead{max-width:560px}
 .cta .buttons{align-items:center;gap:12px 24px}
+.why{max-width:560px;margin:24px 0 0;padding-left:20px;border-left:2px solid var(--signal)}
+.why blockquote{margin:0;font-size:var(--type-lead-size);line-height:var(--type-lead-line)}
+.why figcaption{margin-top:8px;font-family:var(--font-mono);font-size:var(--type-label-size);line-height:var(--type-label-line);color:var(--ink-muted)}
 .text-link{padding:12px 0;font-family:var(--font-mono);font-size:var(--type-ui-size);line-height:var(--type-ui-line)}
 
 .foot{padding:48px 0 32px}
