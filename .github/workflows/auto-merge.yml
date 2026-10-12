@@ -1,7 +1,8 @@
 # Kopie aus HerrStolzier/claude-config (ci/auto-merge.yml); dort pflegen, dann scripts/install-repo-gate.py erneut ausführen.
 # Hinweis: Merges über GITHUB_TOKEN starten keine push-Workflows auf dem Haupt-Branch (dort laufen nur Prüfungen).
 # Basti liest und mergt keine PRs. Dieser Workflow mergt Claudes fertige PRs selbst (Regeln in auto_merge.py):
-# kein Entwurf, eigener Branch, jeder Code-Commit mit `Reviewed-by:`, alle Prüfungen grün, kein Konflikt.
+# kein Entwurf, eigener Branch, jeder Code-Commit mit `Reviewed-by:`, alle Prüfungen grün, kein Konflikt,
+# keine offenen Review-Hinweise.
 name: Auto-Merge
 
 on:
