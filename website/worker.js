@@ -4,7 +4,7 @@
 // KV namespace and served from there. Visitors never contact GitHub.
 // Update COMMIT and FILES with `python3 scripts/website-worker.py <commit>`.
 
-const COMMIT = "8b13db258d04e696880a5428ff4f3358386aad18";
+const COMMIT = "39738a98ceeb2504864c637265e58cde5ceb6601";
 const FILES = {
   "/apple-touch-icon.png": "017aca3eeebd83164aedace3bca37977",
   "/blink-32.svg": "8f8d4b92a787c76c86e3fbd372ba7f4d",
@@ -17,7 +17,7 @@ const FILES = {
   "/index.html": "9c065dd460b97036b6fd7a94a461555d",
   "/og.png": "a2c85a77e0fbea4381edc54218f36570",
   "/robots.txt": "3fb85fe309acd473d6be9a95d46879e4",
-  "/site.js": "cccb554b9cd6e1063b2fa498dcd7d79d",
+  "/site.js": "f25b1ef32cd6bf463db942107078dafd",
   "/sitemap.xml": "cfec2b8f97737de1b60c7699e5a23378",
   "/style.css": "f86fdd32ff308a151713db23fc6fdca7",
   "/tokens.css": "ded977b1cea80720ca8fb091c7ba90ec",
