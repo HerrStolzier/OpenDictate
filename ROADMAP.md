@@ -251,6 +251,7 @@ Mehrsprachigkeit ohne Umschalten, Datenschutz und schnellem Zugriff.
 
 | Datum | Ergebnis | Nachweis |
 | --- | --- | --- |
+| 12. Oktober 2026 | Website zeigt auf die Mac-Beta 12: Download-Knöpfe und strukturierte Daten auf `v0.1.0-beta.12`, die 0-€-Karte sagt „Am Mac und unter Linux“, die Notch-Animation ist keine Vorschau mehr. Der Worker liefert Commit `5c8bffe` aus. | [website/README.md](website/README.md), [website/worker.js](website/worker.js) |
 | 12. Oktober 2026 | Mac Build 12 aus `2d8d4ed` notarisiert, als Update installiert und als Pre-Release `v0.1.0-beta.12` veröffentlicht. Diktat mit mehreren Pausen über einen lokalen whisper.cpp-Server ohne Schlüssel kam als ein Absatz; vorher am 11. Oktober vier lokale Diktate mit Build 11. | [Build 12](docs/release-plans/evidence/2026-10-12-build12.md), [Build 11](docs/release-plans/evidence/2026-10-11-build11.md#eigener-server-mit-lokalem-modell) |
 | 12. Oktober 2026 | Blink rennt in der Website-Fußzeile nur noch, solange seine ganze Laufbahn im Fenster ist, und wird am Desktop beim Hochscrollen nicht mehr abgeschnitten. Der Worker liefert Commit `39738a9` aus. | [website/README.md](website/README.md), [website/worker.js](website/worker.js) |
 | 12. Oktober 2026 | Kurze Startseite live (rund 370 Wörter, 0,1 ct pro Diktat vorn, Bastis Satz unter „Probier es aus“) mit Vorschaubild für geteilte Links, strukturierten Daten, `sitemap.xml` und `robots.txt`. Der Worker liefert Commit `8b13db2` aus. | [website/README.md](website/README.md), [website/worker.js](website/worker.js) |

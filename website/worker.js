@@ -4,7 +4,7 @@
 // KV namespace and served from there. Visitors never contact GitHub.
 // Update COMMIT and FILES with `python3 scripts/website-worker.py <commit>`.
 
-const COMMIT = "39738a98ceeb2504864c637265e58cde5ceb6601";
+const COMMIT = "5c8bffe7e6cc9f9d585e3b3cf5b9a93a7fbbdbe4";
 const FILES = {
   "/apple-touch-icon.png": "017aca3eeebd83164aedace3bca37977",
   "/blink-32.svg": "8f8d4b92a787c76c86e3fbd372ba7f4d",
@@ -14,12 +14,12 @@ const FILES = {
   "/fonts/GeistMono-SemiBold.woff2": "9fc2d14841f1a53d23541c63643c9910",
   "/fonts/GeistPixel-Regular.woff2": "70b4b492ee459c69c61cedfa05380e54",
   "/fonts/OFL.txt": "1781d2806a07d91c4edf4740b88449fa",
-  "/index.html": "9c065dd460b97036b6fd7a94a461555d",
+  "/index.html": "c125c905fe722dc58736c67c6f6a9d9f",
   "/og.png": "a2c85a77e0fbea4381edc54218f36570",
   "/robots.txt": "3fb85fe309acd473d6be9a95d46879e4",
   "/site.js": "f25b1ef32cd6bf463db942107078dafd",
   "/sitemap.xml": "cfec2b8f97737de1b60c7699e5a23378",
-  "/style.css": "f86fdd32ff308a151713db23fc6fdca7",
+  "/style.css": "2cbd0046b0c31aab56b73022c7e433c9",
   "/tokens.css": "ded977b1cea80720ca8fb091c7ba90ec",
 };
 
