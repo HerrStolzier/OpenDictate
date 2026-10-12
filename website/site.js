@@ -270,7 +270,7 @@
   var HUD = {
     bereit: { word: 'Bereit', sub: 'fn halten' },
     hoert: { word: 'Hört zu', sub: 'REC 0:0' },
-    schreibt: { word: 'Schreibt', sub: 'OpenAI wandelt um' },
+    schreibt: { word: 'Schreibt', sub: 'wird zu Text' },
     eingefuegt: { word: 'Eingefügt', sub: 'ins Textfeld' },
     hoppla: { word: 'Hoppla', sub: 'Keine Verbindung. Deine Aufnahme ist gesichert.' }
   };
@@ -347,7 +347,7 @@
     Array.prototype.forEach.call(buttons, function (b) {
       b.addEventListener('click', function () {
         Array.prototype.forEach.call(buttons, function (o) { o.setAttribute('aria-pressed', String(o === b)); });
-        big.innerHTML = blink(b.dataset.state, 250, true, true);
+        big.innerHTML = blink(b.dataset.state, 180, true, true);
         word.textContent = b.querySelector('.state-word').textContent;
       });
     });
