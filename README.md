@@ -59,6 +59,13 @@ Everything else, from the settings to your own server and what happens to a
 failed recording, is in [the details](docs/mac-details.md). How your audio and
 text travel is in [PRIVACY.md](PRIVACY.md).
 
+## Using your own server
+
+With a speech model on your own computer, dictation is free and your audio
+stays with you. The Linux beta can do this now, the Mac from the next version.
+[Step-by-step guide](docs/lokales-modell.md) (German) ·
+[Mac settings](docs/mac-details.md#using-your-own-server)
+
 ## Build it yourself
 
 With Swift 6 on macOS:
