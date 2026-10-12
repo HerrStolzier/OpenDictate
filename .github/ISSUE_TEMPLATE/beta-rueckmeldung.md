@@ -9,7 +9,7 @@ Dieses Issue ist öffentlich. Keine Namen, keine privaten Texte, niemals
 API-Schlüssel oder Audiodateien. Nur unverfängliche Testsätze.
 -->
 
-**Build:** <!-- z. B. 0.1.0 Build 10 (steht unter „Über OpenDictate …“) -->
+**Build:** <!-- z. B. 0.1.0 Build 12 (steht unter „Über OpenDictate …“) -->
 
 **macOS-Version:** <!-- Apple-Menü → Über diesen Mac, z. B. 15.4 -->
 

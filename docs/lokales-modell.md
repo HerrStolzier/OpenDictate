@@ -8,9 +8,9 @@ Programm, das Sprache in Text umwandelt.
 
 Du brauchst dafür einmal das Terminal und etwa 600 MB Platz für das Modell.
 
-**Wo es geht:** In der Linux-Beta schon jetzt. Am Mac ab der nächsten Version
-(Build 11); die aktuelle Mac-Beta (Build 10) kennt den eigenen Server noch
-nicht.
+**Wo es geht:** In der Mac-Beta ab Build 12
+([`v0.1.0-beta.12`](https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.12))
+und in der Linux-Beta.
 
 **Was es nicht kann:** whisper.cpp schreibt nur ab, es übersetzt nicht.
 Schalte die Übersetzung aus, sonst bleibt das Diktat als fehlgeschlagen

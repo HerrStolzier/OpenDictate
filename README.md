@@ -12,7 +12,7 @@ OpenDictate is a small open-source menu bar app for Macs with Apple silicon
 (macOS 14 or newer). There is also a beta for
 [Linux with Hyprland](linux/README.md).
 
-**[Download the Mac beta](https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.10)** ·
+**[Download the Mac beta](https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.12)** ·
 [Install guide (German)](docs/release-plans/installationsanleitung.md) ·
 [Website](https://opendictate.app)
 
@@ -22,8 +22,8 @@ OpenDictate is a small open-source menu bar app for Macs with Apple silicon
   computer and dictation costs nothing; your audio never leaves the machine.
   Or use your own OpenAI API key and pay OpenAI $0.0045 per minute of speech.
   A typical 15-second dictation is about 0.1 cent, and ten minutes a day add
-  up to about $1.35 a month. On the Mac, your own server arrives with the
-  next version; the Linux beta has it already.
+  up to about $1.35 a month. The Mac beta (from Build 12) and the Linux
+  beta both support your own server.
   [How to set up a local model](docs/lokales-modell.md) (German).
 - **No dictation gets lost.** If the network drops or the service fails, the
   recording stays on your Mac for up to 24 hours and you can send it again.
@@ -63,7 +63,7 @@ text travel is in [PRIVACY.md](PRIVACY.md).
 ## Using your own server
 
 With a speech model on your own computer, dictation is free and your audio
-stays with you. The Linux beta can do this now, the Mac from the next version.
+stays with you. The Mac beta (from Build 12) and the Linux beta can both do this.
 [Step-by-step guide](docs/lokales-modell.md) (German) ·
 [Mac settings](docs/mac-details.md#using-your-own-server)
 

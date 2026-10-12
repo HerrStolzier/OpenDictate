@@ -200,8 +200,7 @@ OpenAI. The address is the base URL including `/v1`; OpenDictate appends
 OpenAI is the tested provider. A local whisper.cpp server passed a live
 dictation on 11 October 2026 ([step-by-step guide](lokales-modell.md));
 other servers are a known limit.
-Recordings that fail there stay available for retry as usual. The custom server comes with the next Mac version; the current beta (Build 10)
-does not have it yet.
+Recordings that fail there stay available for retry as usual. The Mac beta has the custom server since Build 12 (`v0.1.0-beta.12`).
 
 ## Permissions
 
