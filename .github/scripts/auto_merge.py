@@ -8,8 +8,9 @@ und ohne Branch-Schutz. Ein PR wird gemergt (Squash), wenn alles davon stimmt:
   - Er kommt aus einem Branch dieses Repos, nicht aus einem Fork, und sein Autor ist der Repo-Besitzer.
   - Jeder Commit, der Code ändert (nicht nur .md/.txt/.rst), trägt eine Zeile `Reviewed-by:` (wie hooks/review-gate.py).
   - Alle Prüfungen auf dem letzten Stand sind fertig und grün (Erfolg, neutral oder übersprungen).
-  - Es gibt keinen Konflikt mit dem Ziel-Branch.
-Fehlt ein Review, gibt es einen Konflikt oder ändert der PR Workflow-Dateien (die darf GitHubs eigener Schlüssel
+  - Es gibt keinen Konflikt mit dem Ziel-Branch und keinen offenen Review-Hinweis (Thread).
+Fehlt ein Review, ist ein Review-Hinweis offen, gibt es einen Konflikt, ist der Branch zu alt für einen
+Ziel-Branch, der einen aktuellen Stand verlangt, oder ändert der PR Workflow-Dateien (die darf GitHubs eigener Schlüssel
 nicht mergen), schreibt der Workflow einmal je Stand einen Kommentar. Der Claude-Thread, der den PR beobachtet,
 behebt das dann selbst. Rote CI kommentiert er nicht, die meldet GitHub dem Thread ohnehin.
 
@@ -59,7 +60,8 @@ def guarded(path):
     return path.startswith(".github/workflows/") or path == ".github/scripts/auto_merge.py"
 
 
-def evaluate(pr, owner, default_branch, commits, files, check_runs, status, waited, runs=(), has_ci=False):
+def evaluate(pr, owner, default_branch, commits, files, check_runs, status, waited, runs=(), has_ci=False,
+             unresolved=0):
     """Entscheidung für einen PR. Gibt (Ergebnis, Begründung) zurück.
 
     Ergebnis: "skip" (nicht unser Fall), "block" (Claude muss etwas tun, Kommentar), "red" (CI rot),
@@ -68,6 +70,8 @@ def evaluate(pr, owner, default_branch, commits, files, check_runs, status, wait
     status: kombinierter Commit-Status {"state", "total_count"}, waited: Sekunden seit Start dieses Laufs,
     runs: andere Workflow-Läufe auf diesem Stand (fängt Jobs ab, deren Prüfung noch nicht angelegt ist),
     has_ci: Das Repo hat eigene CI. Dann wird ohne jede sichtbare Prüfung nie gemergt, nur gewartet.
+    unresolved: Zahl offener Review-Threads. GitHub lehnt den Merge sonst ab, wenn das Repo verlangt,
+    dass alle Hinweise erledigt sind.
     """
     if pr.get("state") != "open" or pr.get("merged"):
         return "skip", "nicht offen"
@@ -91,6 +95,8 @@ def evaluate(pr, owner, default_branch, commits, files, check_runs, status, wait
         return "block", "workflow"
     if pr.get("mergeable") is False or pr.get("mergeable_state") == "dirty":
         return "block", "konflikt"
+    if unresolved:
+        return "block", f"hinweise:{unresolved}"
 
     checks = latest_checks(check_runs)
     failed = [c["name"] for c in checks if c.get("status") == "completed"
@@ -119,6 +125,14 @@ COMMENTS = {
                  "geprüft ist, merge den PR selbst (Squash). Basti muss nichts tun."),
     "konflikt": ("Auto-Merge wartet: Der PR hat einen Konflikt mit `{base}`. Claude: Hol `{base}` in den Branch, "
                  "löse den Konflikt und pushe. Danach mergt Auto-Merge von selbst."),
+    "hinweise": ("Auto-Merge wartet: {detail} Review-Hinweis(e) sind noch offen. Claude: Prüf jeden Hinweis, behebe "
+                 "die berechtigten und pushe, dann beantworte und löse jeden Thread auf. Musstest du nichts pushen, "
+                 "starte Auto-Merge danach neu: lokal `gh workflow run auto-merge.yml`, in der Cloud "
+                 "`POST /repos/{repo}/actions/workflows/auto-merge.yml/dispatches` mit `{{\"ref\": \"{base}\"}}`. "
+                 "Danach mergt Auto-Merge von selbst."),
+    "hinter": ("Auto-Merge wartet: Der Branch ist hinter `{base}`, und `{base}` verlangt einen aktuellen Stand. "
+               "Claude: Hol `{base}` in den Branch, lokal `gh pr update-branch`, in der Cloud "
+               "`PUT /repos/{repo}/pulls/{number}/update-branch`. Nach grüner CI mergt Auto-Merge von selbst."),
 }
 
 
@@ -232,7 +246,24 @@ def pr_facts(gh, number, cache):
     own = str(os.environ.get("GITHUB_RUN_ID", ""))
     runs = [x for x in gh.pages(f"/repos/{r}/actions/runs?head_sha={sha}", key="workflow_runs", limit=3)
             if str(x.get("id")) != own and x.get("name") != SELF_CHECK]
-    return pr, cache[number]["commits"], cache[number]["files"], checks, status, runs
+    return pr, cache[number]["commits"], cache[number]["files"], checks, status, runs, unresolved_threads(gh, number)
+
+
+def unresolved_threads(gh, number):
+    """Offene Review-Threads; nur über GraphQL abfragbar. Mehr als 100 Threads zählen als offen."""
+    owner, _, name = gh.repo.partition("/")
+    query = ("query($o:String!,$n:String!,$p:Int!){repository(owner:$o,name:$n){pullRequest(number:$p)"
+             "{reviewThreads(first:100){totalCount nodes{isResolved}}}}}")
+    code, data, _ = gh.call("POST", "/graphql", {"query": query, "variables": {"o": owner, "n": name, "p": number}})
+    errors = data.get("errors") if isinstance(data, dict) else None
+    if code == 200 and errors and any(e.get("type") == "RATE_LIMITED" or "rate limit" in str(e.get("message", "")).lower()
+                                      for e in errors if isinstance(e, dict)):
+        raise RateLimited("POST /graphql: Abfrage-Kontingent erschöpft")  # GraphQL meldet das mit Status 200
+    if code != 200 or not isinstance(data, dict) or errors:
+        fail("POST /graphql", code, data)
+    threads = data["data"]["repository"]["pullRequest"]["reviewThreads"]
+    open_count = sum(1 for t in threads["nodes"] if not t.get("isResolved"))
+    return open_count + max(0, threads.get("totalCount", 0) - len(threads["nodes"]))
 
 
 def wait_minutes(event_name, private, has_ci):
@@ -262,9 +293,9 @@ def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotoni
         while open_prs:
             waited = clock() - started
             for number in list(open_prs):
-                pr, commits, files, checks, status, runs = pr_facts(gh, number, cache)
+                pr, commits, files, checks, status, runs, unresolved = pr_facts(gh, number, cache)
                 result, why = evaluate(pr, owner, default_branch, commits, files, checks, status, waited, runs,
-                                       has_ci)
+                                       has_ci, unresolved)
                 print(f"#{number}: {result} ({why})")
                 if result == "wait":
                     continue
@@ -272,7 +303,7 @@ def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotoni
                 if result == "block":
                     kind, _, detail = why.partition(":")
                     comment_once(gh, number, pr["head"]["sha"], kind,
-                                 COMMENTS[kind].format(detail=detail, base=default_branch))
+                                 COMMENTS[kind].format(detail=detail, base=default_branch, repo=gh.repo, number=number))
                 elif result == "merge":
                     code, data, _ = gh.call("PUT", f"/repos/{gh.repo}/pulls/{number}/merge", {
                         "merge_method": method, "sha": pr["head"]["sha"],
@@ -283,6 +314,9 @@ def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotoni
                         merged.append(number)
                     elif rate_limited(code, data):
                         raise RateLimited(f"Merge #{number}: {code} Abfrage-Kontingent erschöpft")
+                    elif code == 405 and pr.get("mergeable_state") == "behind":  # wird von allein nicht aktuell
+                        comment_once(gh, number, pr["head"]["sha"], "hinter",
+                                     COMMENTS["hinter"].format(base=default_branch, repo=gh.repo, number=number))
                     elif code in (405, 409) and retries.get(number, 0) < 3:  # Stand geändert oder GitHub noch nicht so weit
                         retries[number] = retries.get(number, 0) + 1
                         open_prs.append(number)
