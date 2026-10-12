@@ -23,6 +23,7 @@ OpenDictate is a small open-source menu bar app for Macs with Apple silicon
   A typical 15-second dictation is about 0.1 cent, and ten minutes a day add
   up to about $1.35 a month. On the Mac, your own server arrives with the
   next version; the Linux beta has it already.
+  [How to set up a local model](docs/lokales-modell.md) (German).
 - **No dictation gets lost.** If the network drops or the service fails, the
   recording stays on your Mac for up to 24 hours and you can send it again.
 - **Your words, not a rewrite.** OpenDictate pastes what you said. It only
