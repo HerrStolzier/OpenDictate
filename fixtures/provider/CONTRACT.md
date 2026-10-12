@@ -37,7 +37,9 @@ the provider side is shared; each client keeps its own code. Decided on
 
 - `2xx` with a JSON object containing `text`
   ([response-ok.json](response-ok.json)). All clients trim surrounding
-  whitespace. An empty result keeps the recording for retry.
+  whitespace. For a server of the user's own, macOS also joins line breaks
+  between segments (whisper.cpp ends each segment with one) into single spaces;
+  Linux and Windows do not yet. An empty result keeps the recording for retry.
 - Any other status is an error. Every client shows its own message and never
   the provider's raw text. On macOS, the OpenAI error `code` (or `type` when
   `code` is missing) selects a more specific message; Linux and Windows map by
