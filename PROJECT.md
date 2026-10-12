@@ -169,6 +169,7 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
+| 12. Oktober 2026 | Die Startseite wird kurz (rund 400 Wörter, fünf Abschnitte) und führt mit 0,1 Cent pro Diktat, weil „lokal kostenlos“ allein OpenDictate nicht mehr unterscheidet. Dazu kommen die SEO-Grundlagen (Titel, Vorschaubild, strukturierte Daten, Sitemap). Live nur auf Bastis Wort. | Karte „Bauen“ im Projektchat 12. Oktober |
 | 12. Oktober 2026 | Die nach dem Preis umgebaute Website geht erst live, wenn die Mac-Beta mit eigenem Server (Build 11 oder später) veröffentlicht ist; gebaut wird sie schon jetzt. Bis dahin wäre „lokal kostenlos“ am Mac nicht einlösbar. | [Anleitung lokales Modell](docs/lokales-modell.md); Karte „Mit Build 11“ im Projektchat 12. Oktober |
 | 12. Oktober 2026 | Hauptargument nach außen ist der Preis: mit einem Modell auf dem eigenen Rechner kostenlos, mit OpenAI wenige Cent im Monat. Website, README und Release-Texte führen damit; die Website wird darum umgebaut. | [README](README.md); Projektchat 12. Oktober |
 | 12. Oktober 2026 | Alle öffentlichen Texte (Website, GitHub, App-Texte) werden überarbeitet, damit sie sich lesen, als hätte ein Mensch sie geschrieben. Maßstab für den Ton: Die App soll Spaß machen und ein gutes Gefühl geben, ohne albern zu sein. Auf allen Plattformen gelten dieselben Begriffe (Tastenkürzel, Nochmal senden, Gesicherte Aufnahmen, du). | Karte „Alles“ im Projektchat 12. Oktober |
