@@ -135,8 +135,9 @@ Marketingbeispiel sichtbar beurteilt werden: Wiedererkennbarkeit, Freude an
 der Nutzung, klare Zustände, Lesbarkeit und Bedienbarkeit einschließlich
 reduzierter Bewegung. Stilwahl und konkrete Ausgestaltung bleiben offen. Die
 Markenarbeit läuft seit dem 11. Oktober: Das Designsystem steckt in der
-Mac-Diktatanzeige (seit Beta 12), der Linux-Leiste und der Website; Windows und
-iOS folgen ([ROADMAP](ROADMAP.md#plattformübergreifend)).
+Mac-Diktatanzeige (seit Beta 12), der Linux-Leiste und der Website, im Code
+auch in der Windows- und der iPhone-App (dort noch nicht veröffentlicht)
+([ROADMAP](ROADMAP.md#plattformübergreifend)).
 
 ## Grenzen und offene Entscheidungen
 

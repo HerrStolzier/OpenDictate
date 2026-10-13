@@ -50,7 +50,8 @@ service `OpenDictate` and account `OPENAI_API_KEY_APP`. OpenDictate does not sup
 supplying the key through a command-line argument or environment variable.
 The app reads the older `OPENAI_API_KEY` account only when the new account is
 confirmed absent. When it finds a key only there, the first successful read
-moves it to the new entry in the same way as a save. Access errors or unusable data in the new account do not cause
+also tries to move it to the new entry in the same way as a save; if that move
+fails, the key stays usable from the older entry. Access errors or unusable data in the new account do not cause
 a fallback to an older key. On an explicit save, the app creates its own new
 entry or updates that entry's value, then removes the older account only after
 the new value has been stored successfully. It does not delete the active entry
