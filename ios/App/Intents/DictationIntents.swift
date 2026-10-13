@@ -10,7 +10,7 @@ import Foundation
 struct ToggleDictationIntent: AudioRecordingIntent, LiveActivityIntent {
     static let title: LocalizedStringResource = "Dictate"
     static let description = IntentDescription(
-        "Starts a dictation. Run it again to stop; the text is then on the clipboard.")
+        "Starts a dictation. Run it again to stop; it then returns the text for “Copy to Clipboard”.")
 
     /// Prefers the background; `perform()` may move to the front when iOS
     /// refuses the microphone there.
@@ -18,10 +18,10 @@ struct ToggleDictationIntent: AudioRecordingIntent, LiveActivityIntent {
     static let supportedModes: IntentModes = [.background, .foreground(.dynamic)]
 
     @MainActor
-    func perform() async throws -> some IntentResult & ReturnsValue<String> {
+    func perform() async throws -> some IntentResult & ReturnsValue<String?> {
         // The shortcut runs, even if this dictation fails for another reason.
         UserDefaults.standard.set(true, forKey: AppSettings.shortcutUsedKey)
-        let text: String
+        let text: String?
         do {
             text = try await DictationRunner.shared.toggle()
         } catch let failure as DictationFailure {

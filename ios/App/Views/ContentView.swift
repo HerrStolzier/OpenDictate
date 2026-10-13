@@ -204,13 +204,16 @@ struct ContentView: View {
             }
             step(done: shortcutUsed, L10n.pick("Start without opening the app", "Starten, ohne die App zu öffnen")) {
                 // Back Tap lists only the person's own shortcuts, not the
-                // app's, so step 1 builds one around the app's action.
+                // app's, and iOS lets only the shortcut copy in the
+                // background, so step 1 builds one around the app's action.
                 Text(
                     L10n.pick(
                         "1. Shortcuts app → + → Add Action → OpenDictate → “Dictate”. "
-                            + "Name it “Dictate”, then Done.",
+                            + "Below it add “Copy to Clipboard” with “Local Only” on. "
+                            + "Name the shortcut “Dictate”, then Done.",
                         "1. Kurzbefehle-App → + → Aktion hinzufügen → OpenDictate → „Diktieren“. "
-                            + "Nenne ihn „Diktieren“, dann Fertig."))
+                            + "Darunter „In Zwischenablage kopieren“ mit „Nur lokal“ hinzufügen. "
+                            + "Nenne den Kurzbefehl „Diktieren“, dann Fertig."))
                 Text(
                     DeviceTrigger.hasActionButton
                         ? L10n.pick(
@@ -222,7 +225,8 @@ struct ContentView: View {
                                 + "Doppeltippen → „Diktieren“."))
                 Text(
                     L10n.pick(
-                        "3. Run the shortcut again to stop. The text is then on the clipboard; paste it anywhere.",
+                        "3. Run the shortcut again to stop. The text is then on the clipboard; paste it "
+                            + "anywhere.",
                         "3. Führ den Kurzbefehl nochmal aus, um das Diktat zu beenden. "
                             + "Der Text liegt dann in der Zwischenablage."))
             }
