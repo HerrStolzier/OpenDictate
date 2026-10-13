@@ -66,6 +66,6 @@ heutige Abnahme oder Freigabe. Der aktuelle belegte Stand je Plattform steht in
 
 Nicht datierte Pläne und Referenzen (`compatibility-matrix.md`, `development.md`,
 `linux-build-plan.md`, `linux-live-translation-plan.md`, `windows-plan.md`, `ios-direction.md`,
-`ios-konzept.md`, `lokales-modell.md`, `mac-details.md`, `performance-decisions.md`,
+`ios-konzept.md`, `fehler-melden.md`, `lokales-modell.md`, `mac-details.md`, `performance-decisions.md`,
 `audio-quality-fixtures.md`, `accessibility-signing.md`, `test-signal-audit.md`) sind
 aktuelle Quellen und stehen nicht in dieser Liste.

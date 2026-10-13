@@ -97,12 +97,15 @@ Schritte in der [ROADMAP](ROADMAP.md).
   Server und geführte Einrichtung (`opendictate setup`, offline geprüft). Seit
   dem 7. Oktober 2026 im Alltag genutzt, seit 11. Oktober als Pre-Release
   [`linux-v0.1.0-beta.1`](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1) veröffentlicht. Einrichtung: [linux/README.de.md](linux/README.de.md).
-- **Windows:** Versionierter Prototyp unter [windows/](windows/README.md),
-  nur offline geprüft; kein echtes Diktat, keine Paketierung.
+- **Windows:** Beta-App unter [windows/](windows/README.md) seit dem
+  11. Oktober 2026, nur offline geprüft; noch nie auf Windows gestartet, kein
+  echtes Diktat, keine Paketierung.
 - **iOS:** Produktkonzept seit dem 11. Oktober 2026: Aufnahme im
   Hintergrund, Ergebnis in die Zwischenablage, keine eigene Tastatur
   ([Konzept](docs/ios-konzept.md)). Die Beta-App dazu liegt unter
-  [ios/](ios/README.md); auf dem iPhone ist sie noch nicht gebaut und geprüft.
+  [ios/](ios/README.md); sie läuft seit dem 12. Oktober auf Bastis iPhone
+  (Diktat im Hintergrund, Text über den Kurzbefehl in die Zwischenablage).
+  TestFlight ist offen.
   Nächste Beta nach Mac und Linux, vor Windows.
 - **Android:** Kein Code.
 - MIT-lizenzierter Quellcode. Nach erfolgreichen CI-Prüfungen sind zeitlich
@@ -131,8 +134,10 @@ Die spätere Gestaltung soll an tatsächlichen Produktzuständen und einem
 Marketingbeispiel sichtbar beurteilt werden: Wiedererkennbarkeit, Freude an
 der Nutzung, klare Zustände, Lesbarkeit und Bedienbarkeit einschließlich
 reduzierter Bewegung. Stilwahl und konkrete Ausgestaltung bleiben offen. Die
-Betas erscheinen mit der heutigen ruhigen Optik; die Markenarbeit beginnt nach
-der ersten Beta und blockiert keine ([ROADMAP](ROADMAP.md#plattformübergreifend)).
+Markenarbeit läuft seit dem 11. Oktober: Das Designsystem steckt in der
+Mac-Diktatanzeige (seit Beta 12), der Linux-Leiste und der Website, im Code
+auch in der Windows- und der iPhone-App (dort noch nicht veröffentlicht)
+([ROADMAP](ROADMAP.md#plattformübergreifend)).
 
 ## Grenzen und offene Entscheidungen
 
@@ -180,7 +185,7 @@ Preismodells und der Gaming-Ursprung verloren.
 | 13. Oktober 2026 | Blinks Stimme ist eine winzige, helle, freche Kunststimme: OpenAI-Stimme „nova“ mit der Anweisung, wie eine kleine Figur zu sprechen, danach höher und schneller gestellt (Probe L). Basti hat natürliche Stimmen verworfen („Blink ist ja kein Mensch“) und aus drei Runden mit 21 Proben L gewählt. | [ROADMAP](ROADMAP.md#plattformübergreifend); Thread „Erklärvideos mit Blink“, 13. Oktober 08:01 |
 | 13. Oktober 2026 | Apples Spracherkennung auf dem iPhone (SpeechAnalyzer, ab iOS 26, auf dem Gerät, ohne Schlüssel und ohne Kosten) wird als Option der iOS-App ausprobiert und am iPhone mit OpenAI verglichen. Veröffentlicht wird dabei nichts. Reicht die Qualität nicht, ist ein Whisper-Modell in der App (WhisperKit, rund 600 MB) der nächste Kandidat. | [ROADMAP](ROADMAP.md#track-ios); Karte „Testen“ im Projektchat 13. Oktober |
 | 12. Oktober 2026 | Mac-Beta 12 veröffentlicht: Pre-Release `v0.1.0-beta.12` mit Build 12 aus `2d8d4ed` (eigener Server, neue Diktatanzeige, Sicherheitsprüfung); README, Anleitung und Website zeigen darauf. `v0.1.0-beta.10` bleibt als ältere Beta stehen. | [Nachweis](docs/release-plans/evidence/2026-10-12-build12.md#veröffentlichung-als-beta-12-oktober-2026); Bastis „Ja, bitte veröffentlichen“ im Projektchat |
-| 12. Oktober 2026 | Blink bekommt schon jetzt eine richtige Stimme: OpenAI-Sprachausgabe mit Bastis eigenem Schlüssel, erzeugt am Mac Mini. Sie ist eine Übergangslösung für etwa sechs Wochen; danach ersetzt eine lokal auf dem Mac Studio erzeugte Stimme sie. Für diese Zeit bringen wir keinen Hinweis auf die KI-Stimme an (Bastis Karte „Gar kein Hinweis“ um 15:26, obwohl OpenAIs Nutzungsregeln ihn verlangen). Basti hatte die Karte „Mac Studio“ als Grundsatzfrage verstanden und das am selben Tag korrigiert. Solche Aufgaben laufen später lokal auf dem Mac Mini oder Mac Studio. | [ROADMAP](ROADMAP.md#plattformübergreifend); Thread „Erklärvideos mit Blink“, 12. Oktober 15:08 |
+| 12. Oktober 2026 | Blink bekommt schon jetzt eine richtige Stimme: OpenAI-Sprachausgabe mit Bastis eigenem Schlüssel, erzeugt am Mac Mini. Sie ist eine Übergangslösung für etwa sechs Wochen; danach ersetzt eine lokal auf dem Mac Studio erzeugte Stimme sie. Für diese Zeit bringen wir keinen Hinweis auf die KI-Stimme an. Basti hatte die Karte „Mac Studio“ als Grundsatzfrage verstanden und das am selben Tag korrigiert. Solche Aufgaben laufen später lokal auf dem Mac Mini oder Mac Studio. | [ROADMAP](ROADMAP.md#plattformübergreifend); Thread „Erklärvideos mit Blink“, 12. Oktober 15:08 |
 | 12. Oktober 2026 | Kurze Erklärvideos mit Blink: je Funktion ein Clip von 10 bis 15 Sekunden, der beeindrucken soll, mit Text im Bild, einer Stimme für Blink und Hintergrundmusik, im Stil des Designsystems (Blink, Tastenkappe und Pegel direkt aus `design/`, gerendert mit dem quelloffenen HyperFrames statt mit HeyGens Gratis-Tarif). Sie kommen an zwei Stellen auf die Website: als kurze Schleife mit Pause-Knopf neben dem passenden Abschnitt der Startseite und gesammelt auf einer eigenen Seite „Anleitungen“. Musik und Effekte werden als Code komponiert und gehören uns. Online nur auf Bastis Wort. Für Gesten (etwa mit drei Fingern wischen zum Einfügen) folgen später hochwertige 3D-Videos, die ab Ende November lokal entstehen, damit alle Rechte bei uns liegen. Blinks Stimme kommt schon jetzt von OpenAI (Eintrag darüber). | [ROADMAP](ROADMAP.md#plattformübergreifend); Karte „Beides“ im Projektchat 12. Oktober |
 | 12. Oktober 2026 | Die kurze Startseite (rund 370 Wörter, 0,1 Cent pro Diktat vorn, SEO-Grundlagen) geht mit Bastis Satz unter „Probier es aus“ live, sobald sie und die Anleitung zum lokalen Modell (docs/lokales-modell.md) auf `main` sind. | [website/README.md](website/README.md); Karte „Mit Satz live“ im Projektchat 12. Oktober |
 | 12. Oktober 2026 | Die Startseite wird kurz (rund 400 Wörter, fünf Abschnitte) und führt mit 0,1 Cent pro Diktat, weil „lokal kostenlos“ allein OpenDictate nicht mehr unterscheidet. Dazu kommen die SEO-Grundlagen (Titel, Vorschaubild, strukturierte Daten, Sitemap). Live nur auf Bastis Wort. | Karte „Bauen“ im Projektchat 12. Oktober |
