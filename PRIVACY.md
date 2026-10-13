@@ -174,11 +174,12 @@ The most recent non-empty transcript is also held in memory until replaced, clea
 The Linux CLI is a public beta since 11 October 2026 (pre-release
 `linux-v0.1.0-beta.1`) and is installed as an Arch package built from source.
 On an explicit toggle it records the ALSA default input (with PipeWire
-through pipewire-alsa) as an
-owner-only WAV. Recordings below one second or without a 50-ms window above
-−45 dBFS are not uploaded. Other recordings are sent over HTTPS to OpenAI's
-`/v1/audio/transcriptions` endpoint with the selected model and optional
-language. If a translation target language is set, the transcript text is then
+through pipewire-alsa) as an owner-only WAV. Recordings below one second or
+without a 50-ms window above −45 dBFS are not uploaded; they are kept like
+other recordings, but marked, so plain `retry` passes them over and only
+`retry --skipped` sends the last of them. Other recordings are sent over HTTPS
+to OpenAI's `/v1/audio/transcriptions` endpoint with the selected model and
+optional language. If a translation target language is set, the transcript text is then
 sent over HTTPS to OpenAI's `/v1/chat/completions` endpoint with the selected
 translation model, and only the translation is written to the clipboard. The
 returned text is written to the Wayland clipboard (`wl-copy`). Unless
@@ -222,7 +223,12 @@ files and 24 hours; unknown or modified files are not uploaded automatically.
 Audio is removed only after a non-empty transcript, or its non-empty
 translation when a target language is set, reaches the clipboard. With
 auto-insert on, audio is kept for retry if the clipboard no longer holds
-exactly that text before the paste.
+exactly that text before the paste. If the microphone fails during a
+recording, the audio captured until then is kept for retry the same way. Marked
+short or silent recordings count toward the same five newest. Kept recordings
+past the limits are also removed after any later dictation, not only at the
+next failure or retry.
+The mark is part of the authenticated proof.
 
 The operations log under `$XDG_STATE_HOME/opendictate/operations.log` records
 bounded events, durations, the captured window class and, with a custom server,

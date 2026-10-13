@@ -26,6 +26,14 @@ pub struct Recording {
     pub duration: Duration,
 }
 
+/// Why a recording could not be ended normally, and whether its file was
+/// completed with the audio captured so far.
+#[derive(Debug)]
+pub struct StopError {
+    pub message: String,
+    pub complete: bool,
+}
+
 pub struct RecordingHandle {
     stream: cpal::Stream,
     capture: Arc<Mutex<Capture>>,
@@ -53,7 +61,17 @@ impl Drop for PreparedAudio {
     }
 }
 
-pub fn prepare_for_upload(path: &Path) -> Result<PreparedAudio, String> {
+/// What a stopped recording yields for the provider.
+#[derive(Debug)]
+pub enum Upload {
+    Ready(PreparedAudio),
+    /// Too short or without speech: nothing is sent, and the recording is
+    /// kept with a mark that plain `retry` passes over. Holds the message
+    /// for the user.
+    Skipped(String),
+}
+
+pub fn prepare_for_upload(path: &Path) -> Result<Upload, String> {
     let mut reader = hound::WavReader::open(path).map_err(|_| {
         crate::tr!(
             "Aufnahme konnte nicht analysiert werden.",
@@ -80,10 +98,10 @@ pub fn prepare_for_upload(path: &Path) -> Result<PreparedAudio, String> {
     let total_frames = samples.len() / channels;
     let duration = Duration::from_secs_f64(total_frames as f64 / f64::from(spec.sample_rate));
     if duration < MINIMUM_RECORDING {
-        return Err(crate::tr!(
+        return Ok(Upload::Skipped(crate::tr!(
             "Zu kurz (unter 1 Sekunde) – nichts gesendet.",
             "Too short (under 1 second) – nothing sent."
-        ));
+        )));
     }
     let window_frames = ((f64::from(spec.sample_rate) * 0.05).round() as usize).max(1);
     let mut first_speech = None;
@@ -108,12 +126,12 @@ pub fn prepare_for_upload(path: &Path) -> Result<PreparedAudio, String> {
             last_speech = Some(end);
         }
     }
-    let (first_speech, last_speech) = first_speech.zip(last_speech).ok_or_else(|| {
-        crate::tr!(
+    let Some((first_speech, last_speech)) = first_speech.zip(last_speech) else {
+        return Ok(Upload::Skipped(crate::tr!(
             "Keine Sprache gehört – nichts gesendet.",
             "No speech heard – nothing sent."
-        )
-    })?;
+        )));
+    };
     let padding_frames = (SILENCE_PADDING.as_secs_f64() * f64::from(spec.sample_rate)) as usize;
     let start_frame = first_speech.saturating_sub(padding_frames);
     let end_frame = (last_speech + padding_frames).min(total_frames);
@@ -121,17 +139,17 @@ pub fn prepare_for_upload(path: &Path) -> Result<PreparedAudio, String> {
     let upload_duration =
         Duration::from_secs_f64(upload_frames as f64 / f64::from(spec.sample_rate));
     if upload_duration < MINIMUM_RECORDING {
-        return Err(crate::tr!(
+        return Ok(Upload::Skipped(crate::tr!(
             "Zu wenig Sprache (unter 1 Sekunde) – nichts gesendet.",
             "Too little speech (under 1 second) – nothing sent."
-        ));
+        )));
     }
     let saving = duration.saturating_sub(upload_duration);
     if saving < MINIMUM_TRIM_SAVING {
-        return Ok(PreparedAudio {
+        return Ok(Upload::Ready(PreparedAudio {
             path: path.to_path_buf(),
             temporary: false,
-        });
+        }));
     }
     let output = path.with_extension("upload.wav");
     let write_result = (|| {
@@ -160,10 +178,10 @@ pub fn prepare_for_upload(path: &Path) -> Result<PreparedAudio, String> {
         let _ = std::fs::remove_file(&output);
         return Err(error);
     }
-    Ok(PreparedAudio {
+    Ok(Upload::Ready(PreparedAudio {
         path: output,
         temporary: true,
-    })
+    }))
 }
 
 pub fn start(path: &Path) -> Result<RecordingHandle, String> {
@@ -303,30 +321,12 @@ impl RecordingHandle {
         Some(writer.is_some_and(|writer| writer.finalize().is_ok()))
     }
 
-    pub fn stop(self) -> Result<Recording, String> {
+    /// Ends the recording for processing. After a capture error (such as a
+    /// microphone that was unplugged) the audio up to that point is completed
+    /// when possible, so the caller can secure it for `retry`.
+    pub fn stop(self) -> Result<Recording, StopError> {
         drop(self.stream);
-        let mut capture = self.capture.lock().map_err(|_| {
-            crate::tr!(
-                "Aufnahme konnte nicht beendet werden.",
-                "Recording could not be stopped."
-            )
-        })?;
-        if let Some(error) = capture.error.take() {
-            return Err(error);
-        }
-        let frames = capture.frames;
-        let writer = capture.writer.take().ok_or_else(|| {
-            crate::tr!(
-                "Aufnahme konnte nicht beendet werden.",
-                "Recording could not be stopped."
-            )
-        })?;
-        writer.finalize().map_err(|_| {
-            crate::tr!(
-                "Aufnahme konnte nicht gespeichert werden.",
-                "Recording could not be saved."
-            )
-        })?;
+        let frames = finish(&self.capture)?;
         let duration = if self.sample_rate == 0 {
             Duration::ZERO
         } else {
@@ -337,6 +337,35 @@ impl RecordingHandle {
             duration,
         })
     }
+}
+
+/// Completes the file of a stopped capture and returns its frame count.
+fn finish(capture: &Mutex<Capture>) -> Result<u64, StopError> {
+    let mut capture = capture.lock().map_err(|_| StopError {
+        message: crate::tr!(
+            "Aufnahme konnte nicht beendet werden.",
+            "Recording could not be stopped."
+        ),
+        complete: false,
+    })?;
+    let frames = capture.frames;
+    let writer = capture.writer.take();
+    if let Some(message) = capture.error.take() {
+        // Without counted audio the file may still miss samples, so it is not
+        // completed and stays where it is, as in `abort`.
+        let complete = frames > 0 && writer.is_some_and(|writer| writer.finalize().is_ok());
+        return Err(StopError { message, complete });
+    }
+    if !writer.is_some_and(|writer| writer.finalize().is_ok()) {
+        return Err(StopError {
+            message: crate::tr!(
+                "Aufnahme konnte nicht gespeichert werden.",
+                "Recording could not be saved."
+            ),
+            complete: false,
+        });
+    }
+    Ok(frames)
 }
 
 fn write_f32(capture: &Arc<Mutex<Capture>>, data: &[f32]) {
@@ -538,13 +567,11 @@ mod tests {
         let short =
             std::env::temp_dir().join(format!("opendictate-short-{}.wav", std::process::id()));
         write_silence_fixture(&short, 16_000, 8_000).unwrap();
-        assert!(prepare_for_upload(&short).unwrap_err().contains("Zu kurz"));
+        assert!(skipped(&short).contains("Zu kurz"));
         let silent =
             std::env::temp_dir().join(format!("opendictate-silent-{}.wav", std::process::id()));
         write_silence_fixture(&silent, 16_000, 32_000).unwrap();
-        assert!(prepare_for_upload(&silent)
-            .unwrap_err()
-            .contains("Keine Sprache"));
+        assert!(skipped(&silent).contains("Keine Sprache"));
         let _ = std::fs::remove_file(short);
         let _ = std::fs::remove_file(silent);
     }
@@ -569,12 +596,119 @@ mod tests {
             writer.write_sample(sample).unwrap();
         }
         writer.finalize().unwrap();
-        let prepared = prepare_for_upload(&path).unwrap();
+        let Upload::Ready(prepared) = prepare_for_upload(&path).unwrap() else {
+            panic!("speech was skipped");
+        };
         assert_ne!(prepared.path(), path);
         let reader = hound::WavReader::open(prepared.path()).unwrap();
         assert_eq!(reader.duration(), 24_000);
         drop(prepared);
         assert!(!path.with_extension("upload.wav").exists());
+        let _ = std::fs::remove_file(path);
+    }
+
+    fn skipped(path: &Path) -> String {
+        match prepare_for_upload(path).unwrap() {
+            Upload::Skipped(message) => message,
+            Upload::Ready(_) => panic!("recording was not skipped"),
+        }
+    }
+
+    fn capture_into(path: &Path, channels: u16) -> Arc<Mutex<Capture>> {
+        let spec = WavSpec {
+            channels: 1,
+            sample_rate: 16_000,
+            bits_per_sample: 16,
+            sample_format: SampleFormat::Int,
+        };
+        Arc::new(Mutex::new(Capture {
+            writer: Some(WavWriter::create(path, spec).unwrap()),
+            frames: 0,
+            channels,
+            error: None,
+        }))
+    }
+
+    fn written(capture: &Arc<Mutex<Capture>>, path: &Path) -> Vec<i16> {
+        finish(capture).unwrap();
+        hound::WavReader::open(path)
+            .unwrap()
+            .samples::<i16>()
+            .collect::<Result<_, _>>()
+            .unwrap()
+    }
+
+    fn temp_wav(name: &str) -> PathBuf {
+        std::env::temp_dir().join(format!("opendictate-{name}-{}.wav", std::process::id()))
+    }
+
+    #[test]
+    fn stereo_is_averaged_to_mono_and_a_partial_frame_is_dropped() {
+        let path = temp_wav("downmix");
+        let capture = capture_into(&path, 2);
+        write_i16(&capture, &[100, 300, -200, -400, i16::MAX, i16::MAX, 7]);
+        assert_eq!(capture.lock().unwrap().frames, 3);
+        assert_eq!(written(&capture, &path), [200, -300, i16::MAX]);
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn float_samples_are_scaled_and_clipped() {
+        let path = temp_wav("float");
+        let capture = capture_into(&path, 1);
+        write_f32(&capture, &[0.0, 0.5, 1.0, -1.0, 2.0, -2.0]);
+        assert_eq!(
+            written(&capture, &path),
+            [0, 16_384, i16::MAX, -i16::MAX, i16::MAX, i16::MIN]
+        );
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn unsigned_samples_are_centred_on_zero() {
+        let path = temp_wav("unsigned");
+        let capture = capture_into(&path, 1);
+        write_u16(&capture, &[0, 32_768, u16::MAX]);
+        assert_eq!(written(&capture, &path), [i16::MIN, 0, i16::MAX]);
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn wider_formats_keep_silence_and_full_scale() {
+        let path = temp_wav("converted");
+        let capture = capture_into(&path, 1);
+        write_converted(&capture, &[0i32, i32::MAX, i32::MIN]);
+        write_converted(&capture, &[0.0f64, 1.0, -1.0]);
+        write_converted(&capture, &[u32::MAX / 2 + 1, u32::MAX, 0]);
+        let samples = written(&capture, &path);
+        for chunk in samples.chunks(3) {
+            assert_eq!(chunk[0], 0);
+            assert!(chunk[1] >= i16::MAX - 1, "{chunk:?}");
+            assert!(chunk[2] <= i16::MIN + 1, "{chunk:?}");
+        }
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn an_interrupted_recording_keeps_the_audio_captured_so_far() {
+        let path = temp_wav("interrupted");
+        let capture = capture_into(&path, 1);
+        write_i16(&capture, &[1, 2, 3]);
+        set_error(&capture, cpal::ErrorKind::DeviceNotAvailable.into());
+        let error = finish(&capture).unwrap_err();
+        assert!(error.complete);
+        assert!(error.message.contains("unterbrochen"));
+        let reader = hound::WavReader::open(&path).unwrap();
+        assert_eq!(reader.duration(), 3);
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn an_interrupted_recording_without_counted_audio_is_not_complete() {
+        let path = temp_wav("interrupted-empty");
+        let capture = capture_into(&path, 1);
+        set_error(&capture, cpal::ErrorKind::DeviceNotAvailable.into());
+        assert!(!finish(&capture).unwrap_err().complete);
         let _ = std::fs::remove_file(path);
     }
 }
