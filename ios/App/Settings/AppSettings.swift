@@ -13,8 +13,9 @@ enum AppSettings {
     /// Set once the shortcut started a dictation: iOS does not tell an app
     /// whether a shortcut, Back Tap or the Action button runs it.
     static let shortcutUsedKey = "shortcutUsed"
-    /// `Recognition` raw value; empty is the service.
+    /// `Engine` raw values; empty is the service.
     static let recognitionKey = "recognition"
+    static let translationEngineKey = "translationEngine"
 
     static func string(_ key: String) -> String {
         (UserDefaults.standard.string(forKey: key) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
@@ -26,27 +27,36 @@ enum AppSettings {
         return address.isEmpty ? .openAI : ServiceEndpoint(address)
     }
 
-    static var recognition: Recognition { Recognition(rawValue: string(recognitionKey)) ?? .service }
+    static var recognition: Engine { Engine(rawValue: string(recognitionKey)) ?? .service }
+    static var translationEngine: Engine { Engine(rawValue: string(translationEngineKey)) ?? .service }
 
-    /// Speech recognition on this iPhone without translation sends nothing,
-    /// and a server on this iPhone takes no key.
-    static var needsAPIKey: Bool {
-        let sendsNothing = recognition == .onDevice && string(translationTargetKey).isEmpty
-        return !sendsNothing && !(endpoint?.isLoopback ?? false)
+    /// Recognition and translation on this iPhone send nothing.
+    static var sendsNothing: Bool {
+        recognition == .onDevice && (string(translationTargetKey).isEmpty || translationEngine == .onDevice)
+    }
+
+    /// A server on this iPhone takes no key either.
+    static var needsAPIKey: Bool { !sendsNothing && !(endpoint?.isLoopback ?? false) }
+
+    /// What "the service" is right now, for the settings.
+    /// An address that does not work still names the server: nothing falls back to OpenAI.
+    static var serviceName: String {
+        string(serverAddressKey).isEmpty ? "OpenAI" : L10n.pick("Your server", "Eigener Server")
     }
 }
 
-/// Who turns the recording into text.
-enum Recognition: String, Sendable {
+/// Who turns the recording into text, or the text into another language.
+enum Engine: String, Sendable {
     /// OpenAI or the custom server.
     case service = ""
-    /// Apple's speech recognition on this iPhone, see `OnDeviceTranscriber`.
+    /// Apple's models on this iPhone, see `OnDeviceTranscriber` and `OnDeviceTranslator`.
     case onDevice = "device"
 }
 
 /// Everything one dictation needs, read once when it starts or is sent again.
 struct DictationConfiguration: Sendable {
-    let recognition: Recognition
+    let recognition: Engine
+    let translationEngine: Engine
     let endpoint: ServiceEndpoint
     /// nil when nothing is sent or the server is on this iPhone: it gets no
     /// key, and none is required.
@@ -59,10 +69,10 @@ struct DictationConfiguration: Sendable {
     /// that cannot be sent. A request never falls back to OpenAI from an invalid address.
     static func current() throws -> Self {
         let recognition = AppSettings.recognition
+        let translationEngine = AppSettings.translationEngine
         let target = AppSettings.string(AppSettings.translationTargetKey)
-        // Recognition on this iPhone without translation reaches no server.
-        let sendsNothing = recognition == .onDevice && target.isEmpty
-        guard let endpoint = AppSettings.endpoint ?? (sendsNothing ? .openAI : nil) else {
+        // Without a request no server address matters.
+        guard let endpoint = AppSettings.endpoint ?? (AppSettings.sendsNothing ? .openAI : nil) else {
             throw DictationFailure.invalidServerAddress
         }
         let key: String?
@@ -80,13 +90,14 @@ struct DictationConfiguration: Sendable {
         let translationModelName = AppSettings.string(AppSettings.translationModelKey)
         let translationModel = translationModelName.isEmpty ? Translation.defaultModel : translationModelName
         if !target.isEmpty {
-            guard Translation.isValidLanguageCode(target), Translation.isValidModel(translationModel) else {
+            let modelIsValid = translationEngine == .onDevice || Translation.isValidModel(translationModel)
+            guard Translation.isValidLanguageCode(target), modelIsValid else {
                 throw DictationFailure.invalidModel
             }
         }
         return Self(
-            recognition: recognition, endpoint: endpoint, apiKey: key, model: model,
-            translationTarget: target.isEmpty ? nil : target, translationModel: translationModel)
+            recognition: recognition, translationEngine: translationEngine, endpoint: endpoint, apiKey: key,
+            model: model, translationTarget: target.isEmpty ? nil : target, translationModel: translationModel)
     }
 
     /// Sets the bearer header only when a key belongs to this request.

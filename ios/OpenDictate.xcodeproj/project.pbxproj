@@ -20,6 +20,13 @@
 			remoteGlobalIDString = 0D1C00000000000000000005;
 			remoteInfo = OpenDictateWidgets;
 		};
+		0D1C0000000000000000002D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0D1C00000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D1C00000000000000000004;
+			remoteInfo = OpenDictateiOS;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -39,6 +46,7 @@
 /* Begin PBXFileReference section */
 		0D1C00000000000000000006 /* OpenDictateiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenDictateiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D1C00000000000000000007 /* OpenDictateWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OpenDictateWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D1C00000000000000000028 /* OpenDictateiOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OpenDictateiOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D1C00000000000000000025 /* App-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "App-Info.plist"; sourceTree = "<group>"; };
 		0D1C00000000000000000026 /* Widgets-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Widgets-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -48,6 +56,7 @@
 		0D1C00000000000000000009 /* Shared */ = {isa = PBXFileSystemSynchronizedRootGroup; path = Shared; sourceTree = "<group>"; };
 		0D1C0000000000000000000A /* Widgets */ = {isa = PBXFileSystemSynchronizedRootGroup; path = Widgets; sourceTree = "<group>"; };
 		0D1C0000000000000000000B /* Fonts */ = {isa = PBXFileSystemSynchronizedRootGroup; name = Fonts; path = ../design/fonts; sourceTree = "<group>"; };
+		0D1C00000000000000000027 /* UITests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = UITests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +76,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0D1C0000000000000000002B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -76,6 +92,7 @@
 				0D1C00000000000000000008 /* App */,
 				0D1C00000000000000000009 /* Shared */,
 				0D1C0000000000000000000A /* Widgets */,
+				0D1C00000000000000000027 /* UITests */,
 				0D1C0000000000000000000B /* Fonts */,
 				0D1C0000000000000000000C /* Config */,
 				0D1C00000000000000000003 /* Products */,
@@ -96,6 +113,7 @@
 			children = (
 				0D1C00000000000000000006 /* OpenDictateiOS.app */,
 				0D1C00000000000000000007 /* OpenDictateWidgets.appex */,
+				0D1C00000000000000000028 /* OpenDictateiOSUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -155,6 +173,27 @@
 			productReference = 0D1C00000000000000000007 /* OpenDictateWidgets.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		0D1C00000000000000000029 /* OpenDictateiOSUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0D1C0000000000000000002F /* Build configuration list for PBXNativeTarget "OpenDictateiOSUITests" */;
+			buildPhases = (
+				0D1C0000000000000000002A /* Sources */,
+				0D1C0000000000000000002B /* Frameworks */,
+				0D1C0000000000000000002C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0D1C0000000000000000002E /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				0D1C00000000000000000027 /* UITests */,
+			);
+			name = OpenDictateiOSUITests;
+			productName = OpenDictateiOSUITests;
+			productReference = 0D1C00000000000000000028 /* OpenDictateiOSUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -170,6 +209,10 @@
 					};
 					0D1C00000000000000000005 = {
 						CreatedOnToolsVersion = 16.0;
+					};
+					0D1C00000000000000000029 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = 0D1C00000000000000000004;
 					};
 				};
 			};
@@ -193,6 +236,7 @@
 			targets = (
 				0D1C00000000000000000004 /* OpenDictateiOS */,
 				0D1C00000000000000000005 /* OpenDictateWidgets */,
+				0D1C00000000000000000029 /* OpenDictateiOSUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -206,6 +250,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		0D1C0000000000000000001B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0D1C0000000000000000002C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -229,6 +280,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0D1C0000000000000000002A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -236,6 +294,11 @@
 			isa = PBXTargetDependency;
 			target = 0D1C00000000000000000005 /* OpenDictateWidgets */;
 			targetProxy = 0D1C00000000000000000013 /* PBXContainerItemProxy */;
+		};
+		0D1C0000000000000000002E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0D1C00000000000000000004 /* OpenDictateiOS */;
+			targetProxy = 0D1C0000000000000000002D /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -401,6 +464,44 @@
 			};
 			name = Release;
 		};
+		0D1C00000000000000000030 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.opendictate.ios.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TEST_TARGET_NAME = OpenDictateiOS;
+			};
+			name = Debug;
+		};
+		0D1C00000000000000000031 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.opendictate.ios.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TEST_TARGET_NAME = OpenDictateiOS;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -427,6 +528,15 @@
 			buildConfigurations = (
 				0D1C00000000000000000023 /* Debug */,
 				0D1C00000000000000000024 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0D1C0000000000000000002F /* Build configuration list for PBXNativeTarget "OpenDictateiOSUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0D1C00000000000000000030 /* Debug */,
+				0D1C00000000000000000031 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
