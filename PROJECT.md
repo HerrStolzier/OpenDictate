@@ -85,12 +85,11 @@ Schritte in der [ROADMAP](ROADMAP.md).
 
 - **macOS:** Native Menüleisten-App für macOS 14+, SwiftPM und Swift 6, zuerst
   für Apple Silicon. Aufnahme, Transkription, Zwischenablage und automatisches
-  Einfügen per ⌘V in die beim Start aktive App, eigenes Vokabular. Build 10 ist
-  als Beta `v0.1.0-beta.10` veröffentlicht
-  ([Nachweis](docs/release-plans/evidence/2026-10-11-build10.md)). Build 11 mit
-  eigenem Server und neuer Diktatanzeige ist notarisiert, als Update installiert
-  und hat ein Diktat mit Übersetzung bestanden, ist aber nicht veröffentlicht
-  ([Nachweis](docs/release-plans/evidence/2026-10-11-build11.md)).
+  Einfügen per ⌘V in die beim Start aktive App, eigenes Vokabular. Build 12 mit
+  eigenem Server (auch lokales Modell ohne Schlüssel) und neuer Diktatanzeige ist
+  seit dem 12. Oktober die öffentliche Beta `v0.1.0-beta.12`; er hat ein Diktat
+  über einen lokalen whisper.cpp-Server bestanden
+  ([Nachweis](docs/release-plans/evidence/2026-10-12-build12.md)).
   Einrichtung: [README](README.md).
 - **Linux:** Rust-CLI für Hyprland (Arch/omarchy) mit Aufnahme, Keyring,
   Transkription, Übersetzung, Zwischenablage, Auto-Einfügen in das beim Start
@@ -169,6 +168,7 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
+| 12. Oktober 2026 | Mac-Beta 12 veröffentlicht: Pre-Release `v0.1.0-beta.12` mit Build 12 aus `2d8d4ed` (eigener Server, neue Diktatanzeige, Sicherheitsprüfung); README, Anleitung und Website zeigen darauf. `v0.1.0-beta.10` bleibt als ältere Beta stehen. | [Nachweis](docs/release-plans/evidence/2026-10-12-build12.md#veröffentlichung-als-beta-12-oktober-2026); Bastis „Ja, bitte veröffentlichen“ im Projektchat |
 | 12. Oktober 2026 | Blink bekommt schon jetzt eine richtige Stimme: OpenAI-Sprachausgabe mit Bastis eigenem Schlüssel, erzeugt am Mac Mini. Sie ist eine Übergangslösung für etwa sechs Wochen; danach ersetzt sie die lokal auf dem Mac Studio erzeugte Stimme. Für diese Zeit bringen wir keinen Hinweis auf die KI-Stimme an (Bastis Karte „Gar kein Hinweis“ um 15:26, obwohl OpenAIs Nutzungsregeln ihn verlangen). Basti hatte die Karte „Mac Studio“ als Grundsatzfrage verstanden und das am selben Tag korrigiert. Solche Aufgaben laufen später lokal auf dem Mac Mini oder Mac Studio. | [ROADMAP](ROADMAP.md#plattformübergreifend); Thread „Erklärvideos mit Blink“, 12. Oktober 15:08 |
 | 12. Oktober 2026 | Kurze Erklärvideos mit Blink: je Funktion ein Clip von 10 bis 15 Sekunden, der beeindrucken soll, mit Text im Bild, einer Stimme für Blink und Hintergrundmusik, im Stil des Designsystems (Blink, Tastenkappe und Pegel direkt aus `design/`, gerendert mit dem quelloffenen HyperFrames statt mit HeyGens Gratis-Tarif). Sie kommen an zwei Stellen auf die Website: als kurze Schleife mit Pause-Knopf neben dem passenden Abschnitt der Startseite und gesammelt auf einer eigenen Seite „Anleitungen“. Musik und Effekte werden als Code komponiert und gehören uns. Online nur auf Bastis Wort. Für Gesten (etwa mit drei Fingern wischen zum Einfügen) folgen später hochwertige 3D-Videos, die ab Ende November lokal entstehen, damit alle Rechte bei uns liegen. Blinks Stimme kommt schon jetzt von OpenAI (Eintrag darüber). | [ROADMAP](ROADMAP.md#plattformübergreifend); Karte „Beides“ im Projektchat 12. Oktober |
 | 12. Oktober 2026 | Die kurze Startseite (rund 370 Wörter, 0,1 Cent pro Diktat vorn, SEO-Grundlagen) geht mit Bastis Satz unter „Probier es aus“ live, sobald sie und die Anleitung zum lokalen Modell (docs/lokales-modell.md) auf `main` sind. | [website/README.md](website/README.md); Karte „Mit Satz live“ im Projektchat 12. Oktober |

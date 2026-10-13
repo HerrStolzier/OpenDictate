@@ -151,8 +151,8 @@ veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
   gelesen: ein Magic Keyboard mit Ziffernblock (`004C:026C`) ergibt die rechte
   Wahltaste, das Fenster wurde gerendert und angesehen.
 
-- Neue Diktatanzeige und Menü der Menüleiste (seit Build 11, nicht
-  veröffentlicht, Entwurf in Claude Design vom 9. Oktober): kleine schwarze Anzeige
+- Neue Diktatanzeige und Menü der Menüleiste (seit Build 11, öffentlich
+  seit `v0.1.0-beta.12`, Entwurf in Claude Design vom 9. Oktober): kleine schwarze Anzeige
   oben am Bildschirm mit Blink, Zustandswort und Zeile; an der Notch, ohne
   Notch schwebend unter der Menüleiste (Standard seit Bastis Wahl am
   11. Oktober), flach in der Menüleiste oder aus; Menü mit
@@ -196,7 +196,7 @@ veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
   bei „Hoppla“ etwa 115 Punkte hoch; Wort und Zeile sitzen unter der Kamera.
   Basti bestätigte die Maße („passt“). Die Vorschau wurde danach beendet und
   vom MacBook gelöscht.
-- Eigener Server (11. Oktober, seit Build 11, nicht veröffentlicht): Adresse unter
+- Eigener Server (11. Oktober, seit Build 11, öffentlich seit `v0.1.0-beta.12`): Adresse unter
   Einstellungen → Erweitert, `https://` beliebig, `http://` nur auf diesem Mac.
   Offline geprüft: Adressregeln, Vorrang vor `OPENAI_BASE_URL`, kein Rückfall
   auf OpenAI bei ungültiger Adresse, Schlüssel nur an Server außerhalb dieses
@@ -221,8 +221,9 @@ veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
   (Modell large-v3-turbo, nur auf diesem Mac): vier Diktate eingefügt, laut
   App- und Server-Log ohne Anfrage an OpenAI, rund 2,4 s vom Stopp bis zum
   Text. Dabei fiel auf, dass whisper.cpp an Sprechpausen Zeilenumbrüche setzt;
-  seit diesem Stand werden sie bei einem eigenen Server zu Leerzeichen (offline
-  geprüft, noch in keinem Kandidaten). Andere Server werden nicht abgenommen,
+  seit Build 12 werden sie bei einem eigenen Server zu Leerzeichen (live am
+  12. Oktober bestätigt: Diktat mit mehreren Pausen kam als ein Absatz,
+  [Nachweis](release-plans/evidence/2026-10-12-build12.md)). Andere Server werden nicht abgenommen,
   Übersetzung über einen eigenen Server ist live nicht geprüft
   ([Nachweis](release-plans/evidence/2026-10-11-build11.md#eigener-server-mit-lokalem-modell)). Ebenfalls nur aus dem Code
   abgeleitet: Bei einer frischen Installation ohne Schlüssel führt das
@@ -269,7 +270,7 @@ veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
   `OPENAI_API_KEY` mit Build-Hashes in der Zugriffsliste; er wird nur durch die
   App-Migration entfernt, nicht manuell.
 
-**Letzter Nachweis:** 11. Oktober 2026 (Build 11 aus `8d178ed` notarisiert, als Update installiert, ein Diktat mit Übersetzung, nicht veröffentlicht; [Nachweis](release-plans/evidence/2026-10-11-build11.md)).
+**Letzter Nachweis:** 12. Oktober 2026 (Build 12 aus `2d8d4ed` notarisiert, als Update installiert, Diktat über lokalen Server, als `v0.1.0-beta.12` veröffentlicht; [Nachweis](release-plans/evidence/2026-10-12-build12.md)).
 
 ## Windows
 

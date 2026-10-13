@@ -2,7 +2,7 @@
 
 Auftrag: kleine deutsche Produktseite zu OpenDictate. Seit dem 11. Oktober 2026 ist sie unter https://opendictate.app live (Bastis „website live“).
 
-Umsetzung: eigenständige statische Seite ohne Abhängigkeiten. Die Demo ist illustrativ und nimmt kein Audio auf. Aussagen basieren auf README.md und PRIVACY.md des Projekts. Seit dem 11. Oktober 2026 verlinkt die Seite den Pre-Release `v0.1.0-beta.10`.
+Umsetzung: eigenständige statische Seite ohne Abhängigkeiten. Die Demo ist illustrativ und nimmt kein Audio auf. Aussagen basieren auf README.md und PRIVACY.md des Projekts. Seit dem 12. Oktober 2026 verlinkt die Seite den Pre-Release `v0.1.0-beta.12`.
 
 Vorschau aus diesem Ordner: `python3 -m http.server 4317 --bind 127.0.0.1`.
 
@@ -105,7 +105,7 @@ stehen weiter unten und kleiner (Vorschau, solange die Anzeige in keiner
 veröffentlichten Version steckt). Am Mac gibt es den eigenen Server erst ab
 Build 11. Bis dahin sagt die 0-€-Karte „Unter Linux schon jetzt, am Mac ab der
 nächsten Version“ und „Was du brauchst“ nennt das Modell „ab der nächsten
-Version“; beides fällt mit Build 11 weg. Headless Chromium für diesen Stand
+Version“; beides fiel mit der Beta 12 weg. Headless Chromium für diesen Stand
 erneut geprüft: 1440, 375 und 320 Pixel ohne horizontalen Überlauf, keine
 Konsolenfehler, alle fünf Schriften geladen; Zustände bei 320 und 393 Pixel mit
 Touch (nach jedem Antippen ist die Bühne ganz oben im Bild und die angetippte
@@ -126,12 +126,17 @@ Canonical, Open-Graph- und Twitter-Tags, ein Vorschaubild (`og.png`,
 unten „0,1 Cent pro Diktat · Mac und Linux · Open Source“ in Geist Mono 28 px), `apple-touch-icon.png`
 (180 × 180 aus `design/assets/app-icon/app-icon-256.png`) und strukturierte
 Daten (JSON-LD `WebSite` und `SoftwareApplication` mit Version
-`0.1.0-beta.10`). `sitemap.xml` und `robots.txt` liegen daneben; der Worker
+`0.1.0-beta.12`). `sitemap.xml` und `robots.txt` liegen daneben; der Worker
 liefert dafür auch PNG und XML aus. Der Link „So geht's“ funktioniert erst, wenn
 `docs/lokales-modell.md` auf `main` ist; vorher nicht ausrollen. Mit dem
 Mac-Release ändern sich der Hinweis an der 0-€-Karte, die Download-Links und
 die Version im JSON-LD; sobald die App etwas kostet, auch `offers` und
 `isAccessibleForFree`.
+
+Textstand 2026-10-12, Mac-Beta 12: Download-Links und JSON-LD-Version zeigen
+auf `v0.1.0-beta.12` (Build 12 mit eigenem Server); die 0-€-Karte sagt „Am Mac
+und unter Linux“. Der Chip „Vorschau“ an der Notch-Bühne ist weg; der Satz darunter
+sagt, dass Notch-Anzeige und Blink ab Build 12 in der Mac-Beta sind.
 
 Stand 2026-10-12, Fußzeile: Blink rennt nur noch, solange die ganze Laufbahn im
 Fenster ist (Bastis Meldung, am Desktop wurde er beim Hochscrollen unten
