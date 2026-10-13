@@ -257,10 +257,36 @@ run its formatter check and an unsigned simulator build from the repository
 root:
 
 ```bash
-swift format lint --strict --configuration .swift-format --recursive ios/App ios/Shared ios/Widgets
+swift format lint --strict --configuration .swift-format --recursive ios/App ios/Shared ios/Widgets ios/UITests
 xcodebuild -project ios/OpenDictate.xcodeproj -scheme OpenDictateiOS \
   -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
 ```
+
+The UI tests in `ios/UITests` drive the app and attach screenshots to the
+result bundle (`xcrun xcresulttool` exports them). `testScreens` needs nothing
+else and puts back every setting it changes; run it in a simulator before every
+install. The simulator is created once with
+`xcrun simctl create "OpenDictate iOS Beta" "iPhone 17"`:
+
+```bash
+xcodebuild test -project ios/OpenDictate.xcodeproj -scheme OpenDictateiOS \
+  -destination 'platform=iOS Simulator,name=OpenDictate iOS Beta' \
+  -only-testing:OpenDictateiOSUITests/OpenDictateUITests/testScreens \
+  -resultBundlePath /tmp/opendictate-ui.xcresult
+```
+
+The live tests (`testDictationInApp`, `testShortcutPastesIntoNotes`) run on
+the iPhone next to the Mac and are skipped unless `TEST_RUNNER_OD_KEYWORDS`
+names words the spoken sentence must produce. While they run, the Mac speaks
+the sentence repeatedly, for example
+`while true; do say -v Anna "Heute teste ich den Kurzbefehl"; sleep 2; done`,
+and the run passes `TEST_RUNNER_OD_KEYWORDS="heute,kurzbefehl"` with
+`-destination 'platform=iOS,id=<iPhone>'` and one
+`-only-testing:OpenDictateiOSUITests/OpenDictateUITests/<test>` per live test,
+so `testScreens` stays in the simulator. The shortcut test uses the
+person's own shortcut "Diktieren" and Notes, and needs "Enable UI
+Automation" in the iPhone's developer settings. A passed live test shows that
+a dictation arrives, not how well speech is recognized.
 
 The build proves neither a background start nor a clipboard write. Before a
 build goes to the iPhone, the Mac checks it in the simulator with screenshots.

@@ -24,6 +24,7 @@ selbst (siehe Grenzen).
   (`StopDictationIntent`, läuft im App-Prozess), Texte englisch/deutsch,
   Farben, Schriften und Blink im Designsystem.
 - `Widgets/`: Live-Aktivität auf dem Sperrbildschirm und in der Dynamic Island.
+- `UITests/`: UI-Tests für Simulator und iPhone (Ziel `OpenDictateiOSUITests`).
 - `Config/`: Info.plist-Ergänzungen (Hintergrund-Audio, Live-Aktivitäten,
   Texte zu Mikrofon und lokalem Netzwerk, Schriften).
 
@@ -64,7 +65,14 @@ Erkennung „Auf dem iPhone“ (ab iOS 26, Probe vom 13. Oktober 2026): Apples
 kostenlos, offline und ohne Schlüssel. Das Sprachmodell lädt man einmal in
 den Einstellungen („Sprache laden“); ein Diktat lädt nie selbst nach. Ohne
 Modell startet es gar nicht, und „Nochmal senden“ behält die Aufnahme.
-Nur eine Übersetzung geht dann noch an den Dienst und braucht den Schlüssel.
+Übersetzen geht genauso auf dem iPhone („Übersetzen mit: Auf dem iPhone“, ab
+iOS 26): Apples `TranslationSession` übersetzt offline, nachdem die App die
+Sprache des Textes auf dem Gerät erkannt hat. Die Sprachen lädt man einmal mit
+„Sprachen laden“ (für die Sprache des iPhones und die Zielsprache); fehlt ein
+Sprachpaar, endet das Diktat mit „Hoppla“ und die Aufnahme bleibt. Laufen
+Erkennung und Übersetzung beide auf dem iPhone, braucht die App keinen
+Schlüssel und sendet nichts. In den Einstellungen heißt der Dienst so, wie er
+gerade eingestellt ist: „OpenAI“ oder „Eigener Server“.
 
 Datenschutz: [PRIVACY.md](../PRIVACY.md#iphone-app).
 
@@ -80,8 +88,13 @@ xcodebuild \
   -destination 'generic/platform=iOS Simulator' \
   CODE_SIGNING_ALLOWED=NO \
   build
-swift format lint --strict --configuration .swift-format --recursive ios/App ios/Shared ios/Widgets
+swift format lint --strict --configuration .swift-format --recursive ios/App ios/Shared ios/Widgets ios/UITests
 ```
+
+`UITests/` (Ziel `OpenDictateiOSUITests`) tippt die App durch und hängt
+Screenshots an das Testergebnis; die Live-Tests mit echtem Diktat und dem
+Kurzbefehl laufen am iPhone, während der Mac einen Satz spricht
+([CHECKS](../CHECKS.md#ios-app)).
 
 Für das iPhone braucht der Build das Team (`DEVELOPMENT_TEAM=…`) und eine
 Signatur „Apple Development“; TestFlight zusätzlich „Apple Distribution“ und

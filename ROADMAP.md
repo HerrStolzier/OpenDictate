@@ -218,6 +218,9 @@ geschlossen ([Richtung](docs/ios-direction.md)).
    Whisper-Modell in der App (WhisperKit). Stand 13. Oktober: als Einstellung
    „Erkennung: Auf dem iPhone“ gebaut (Sprache des iPhones, Modell einmal in
    den Einstellungen laden); am Gerät und im Vergleich noch nicht geprüft.
+   Bastis Wunsch vom 13. Oktober: auch die Übersetzung lokal. Gebaut als
+   „Übersetzen mit: Auf dem iPhone“ (Apples Übersetzung, ab iOS 26); am Gerät
+   noch nicht geprüft. Am Mac übernimmt das der Track macOS.
 4. TestFlight-Beta. Hochladen und Tester einladen erst mit Bastis Go.
    Abhängigkeiten: Apple-Developer-Mitgliedschaft (vorhanden, Verlängerung
    September 2027), ein Zertifikat „Apple Distribution“ (am Mac noch nicht

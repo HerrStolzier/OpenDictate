@@ -26,6 +26,11 @@ enum DictationFailure: Error, Equatable {
     case onDeviceModelMissing
     /// The error domain and code, shown so a beta report names the cause.
     case onDeviceFailed(String?)
+    /// Translation on this iPhone needs iOS 26 and a pair Apple translates.
+    case translationUnavailable
+    case translationLanguagesMissing
+    /// The error domain and code, as for `onDeviceFailed`.
+    case translationFailed(String?)
     /// HTTP status and the provider's error code, if it sent one.
     case service(status: Int, code: String?)
 
@@ -95,9 +100,9 @@ enum DictationFailure: Error, Equatable {
         case .onDeviceUnavailable:
             L10n.pick(
                 "Recognition on this iPhone needs iOS 26 and a supported language. "
-                    + "Switch to OpenAI in OpenDictate's settings.",
+                    + "Switch recognition to the service in OpenDictate's settings.",
                 "Die Erkennung auf dem iPhone braucht iOS 26 und eine unterstützte Sprache. "
-                    + "Stell in den Einstellungen von OpenDictate auf OpenAI um.")
+                    + "Stell die Erkennung in den Einstellungen von OpenDictate auf den Dienst um.")
         case .onDeviceModelMissing:
             L10n.pick(
                 "Load the language for recognition on this iPhone first, in OpenDictate's settings.",
@@ -106,6 +111,21 @@ enum DictationFailure: Error, Equatable {
             L10n.pick(
                 "Recognition on this iPhone did not work. Try again.",
                 "Die Erkennung auf dem iPhone hat nicht geklappt. Versuch es nochmal.")
+                + (detail.map { " (\($0))" } ?? "")
+        case .translationUnavailable:
+            L10n.pick(
+                "Translation on this iPhone needs iOS 26 and a language pair Apple translates. "
+                    + "Switch translation to the service in OpenDictate's settings.",
+                "Übersetzen auf dem iPhone braucht iOS 26 und Sprachen, die Apple übersetzt. "
+                    + "Stell die Übersetzung in den Einstellungen von OpenDictate auf den Dienst um.")
+        case .translationLanguagesMissing:
+            L10n.pick(
+                "Load the languages for translation on this iPhone first, in OpenDictate's settings.",
+                "Lade zuerst die Sprachen fürs Übersetzen auf dem iPhone, in den Einstellungen von OpenDictate.")
+        case .translationFailed(let detail):
+            L10n.pick(
+                "Translation on this iPhone did not work. Try again.",
+                "Das Übersetzen auf dem iPhone hat nicht geklappt. Versuch es nochmal.")
                 + (detail.map { " (\($0))" } ?? "")
         case .service(let status, let code):
             Self.serviceMessage(status: status, code: code)

@@ -7,6 +7,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage(AppSettings.recognitionKey) private var recognition = ""
     @AppStorage(AppSettings.translationTargetKey) private var translationTarget = ""
+    @AppStorage(AppSettings.translationEngineKey) private var translationEngine = ""
     @AppStorage(AppSettings.serverAddressKey) private var serverAddress = ""
     @AppStorage(AppSettings.transcriptionModelKey) private var transcriptionModel = ""
     @AppStorage(AppSettings.translationModelKey) private var translationModel = ""
@@ -17,6 +18,10 @@ struct SettingsView: View {
     @State private var onDevice: OnDeviceTranscriber.Readiness?
     @State private var language: Locale?
     @State private var loadFailed = false
+    /// nil while the check runs.
+    @State private var translationReadiness: OnDeviceTranslator.Readiness?
+    /// Set to ask iOS for the languages; cleared when it answered.
+    @State private var translationDownload: String?
 
     var body: some View {
         NavigationStack {
@@ -40,10 +45,10 @@ struct SettingsView: View {
     private var recognitionSection: some View {
         Section {
             Picker(L10n.pick("Recognition", "Erkennung"), selection: $recognition) {
-                Text(L10n.pick("OpenAI or your server", "OpenAI oder eigener Server")).tag(Recognition.service.rawValue)
-                Text(L10n.pick("On this iPhone", "Auf dem iPhone")).tag(Recognition.onDevice.rawValue)
+                engineOptions
             }
-            if recognition == Recognition.onDevice.rawValue {
+            .accessibilityIdentifier("recognition")
+            if recognition == Engine.onDevice.rawValue {
                 onDeviceState
             }
         } header: {
@@ -59,15 +64,14 @@ struct SettingsView: View {
                     .foregroundStyle(.red)
                 }
                 Text(
-                    recognition == Recognition.onDevice.rawValue
+                    recognition == Engine.onDevice.rawValue
                         ? L10n.pick(
-                            "Free and offline with Apple's speech recognition: the recording stays on this iPhone. "
-                                + "Translation still goes to the service.",
+                            "Free and offline with Apple's speech recognition: the recording stays on this iPhone.",
                             "Kostenlos und offline mit Apples Spracherkennung: Die Aufnahme bleibt auf diesem "
-                                + "iPhone. Übersetzen geht weiter über den Dienst.")
+                                + "iPhone.")
                         : L10n.pick(
-                            "The recording goes to OpenAI or to your own server.",
-                            "Die Aufnahme geht an OpenAI oder an deinen eigenen Server."))
+                            "The recording goes to \(AppSettings.serviceName). Change the server below.",
+                            "Die Aufnahme geht an \(AppSettings.serviceName). Den Server stellst du unten ein."))
             }
         }
         .task(id: recognition) { await checkOnDevice() }
@@ -101,7 +105,7 @@ struct SettingsView: View {
     }
 
     private func checkOnDevice() async {
-        guard recognition == Recognition.onDevice.rawValue else { return }
+        guard recognition == Engine.onDevice.rawValue else { return }
         language = await OnDeviceTranscriber.supportedLanguage()
         onDevice = await OnDeviceTranscriber.readiness()
     }
@@ -168,14 +172,71 @@ struct SettingsView: View {
                     Text(Self.name(of: language)).tag(language.code)
                 }
             }
+            .accessibilityIdentifier("translationTarget")
+            if !translationTarget.isEmpty {
+                Picker(L10n.pick("Translate with", "Übersetzen mit"), selection: $translationEngine) {
+                    engineOptions
+                }
+                .accessibilityIdentifier("translationEngine")
+                if translationEngine == Engine.onDevice.rawValue {
+                    translationState
+                }
+            }
         } header: {
             Text(L10n.pick("Translation", "Übersetzung"))
         } footer: {
             Text(
-                L10n.pick(
-                    "After you speak, the text is translated before it is copied.",
-                    "Nach dem Sprechen wird der Text übersetzt, bevor er kopiert wird."))
+                translationEngine == Engine.onDevice.rawValue && !translationTarget.isEmpty
+                    ? L10n.pick(
+                        "After you speak, Apple's translation on this iPhone translates the text before it is "
+                            + "copied: free, offline, and the text stays here.",
+                        "Nach dem Sprechen übersetzt Apples Übersetzung auf diesem iPhone den Text, bevor er "
+                            + "kopiert wird: kostenlos, offline, und der Text bleibt hier.")
+                    : L10n.pick(
+                        "After you speak, the text is translated before it is copied.",
+                        "Nach dem Sprechen wird der Text übersetzt, bevor er kopiert wird."))
         }
+        .task(id: "\(translationTarget) \(translationEngine)") {
+            translationReadiness = nil
+            await checkTranslation()
+        }
+        .modifier(
+            TranslationDownload(target: translationDownload) {
+                translationDownload = nil
+                Task { await checkTranslation() }
+            })
+    }
+
+    /// The service as it is set right now, then this iPhone.
+    @ViewBuilder private var engineOptions: some View {
+        Text(AppSettings.serviceName).tag(Engine.service.rawValue)
+        Text(L10n.pick("On this iPhone", "Auf dem iPhone")).tag(Engine.onDevice.rawValue)
+    }
+
+    @ViewBuilder private var translationState: some View {
+        switch translationReadiness {
+        case nil:
+            ProgressView()
+        case .unavailable:
+            Text(DictationFailure.translationUnavailable.message)
+                .foregroundStyle(.red)
+        case .needsLanguages where translationDownload != nil:
+            HStack(spacing: 8) {
+                ProgressView()
+                Text(L10n.pick("Loading the languages …", "Sprachen werden geladen …"))
+            }
+        case .needsLanguages:
+            Button(L10n.pick("Load languages (once, from Apple)", "Sprachen laden (einmalig, von Apple)")) {
+                translationDownload = translationTarget
+            }
+        case .ready:
+            LabeledContent(L10n.pick("Languages", "Sprachen"), value: L10n.pick("Ready", "Bereit"))
+        }
+    }
+
+    private func checkTranslation() async {
+        guard !translationTarget.isEmpty, translationEngine == Engine.onDevice.rawValue else { return }
+        translationReadiness = await OnDeviceTranslator.readiness(into: translationTarget)
     }
 
     private var serverSection: some View {

@@ -14,6 +14,7 @@ struct ContentView: View {
     @AppStorage(AppSettings.serverAddressKey) private var serverAddress = ""
     @AppStorage(AppSettings.recognitionKey) private var recognition = ""
     @AppStorage(AppSettings.translationTargetKey) private var translationTarget = ""
+    @AppStorage(AppSettings.translationEngineKey) private var translationEngine = ""
     @AppStorage(AppSettings.shortcutUsedKey) private var shortcutUsed = false
     @Environment(\.scenePhase) private var scenePhase
 
@@ -93,6 +94,7 @@ struct ContentView: View {
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("state")
     }
 
     @ViewBuilder private var detail: some View {
@@ -154,6 +156,7 @@ struct ContentView: View {
                 .font(BrandFont.mono(13, semibold: true, relativeTo: .caption))
                 .foregroundStyle(Color(design: .inkMuted, theme: theme))
             Text(text)
+                .accessibilityIdentifier("lastText")
                 .font(BrandFont.sans(17))
                 .foregroundStyle(Color(design: .ink, theme: theme))
                 .textSelection(.enabled)

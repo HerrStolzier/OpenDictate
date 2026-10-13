@@ -102,9 +102,16 @@ final class DictationRunner {
                 case .unavailable: throw DictationFailure.onDeviceUnavailable
                 case .needsModel, .downloading: throw DictationFailure.onDeviceModelMissing
                 }
-                // Another start may have run during the check.
-                guard !isBusy else { return }
             }
+            if let target = configuration.translationTarget, configuration.translationEngine == .onDevice {
+                switch await OnDeviceTranslator.readiness(into: target) {
+                case .ready: break
+                case .unavailable: throw DictationFailure.translationUnavailable
+                case .needsLanguages: throw DictationFailure.translationLanguagesMissing
+                }
+            }
+            // Another start may have run during the checks.
+            guard !isBusy else { return }
             let startedAt = Date()
             try startActivity(at: startedAt)
             try recorder.start(into: store.newRecordingURL(), limit: Self.limit)
@@ -229,7 +236,10 @@ final class DictationRunner {
             }
             guard !text.isEmpty else { throw DictationFailure.nothingRecognized }
             if let target = configuration.translationTarget {
-                text = try await client.translate(text, into: target, configuration: configuration)
+                switch configuration.translationEngine {
+                case .service: text = try await client.translate(text, into: target, configuration: configuration)
+                case .onDevice: text = try await OnDeviceTranslator.translate(text, into: target)
+                }
                 guard !text.isEmpty else { throw DictationFailure.emptyTranslation }
             }
             // A text the app could not copy itself may not have reached the
