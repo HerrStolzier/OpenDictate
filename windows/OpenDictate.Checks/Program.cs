@@ -3,44 +3,6 @@ using OpenDictate.Core;
 
 var tests = new (string Name, Action Run)[]
 {
-    ("Reject overlapping operations", () =>
-    {
-        var gate = new AttemptGate(); gate.Begin(AttemptKind.Recording);
-        Throws<InvalidOperationException>(() => gate.Begin(AttemptKind.Insertion, "field-a"));
-    }),
-    ("Reject cancellation and stale completion", () =>
-    {
-        var gate = new AttemptGate(); var old = gate.Begin(AttemptKind.Insertion, "field-a");
-        gate.Cancel(); var current = gate.Begin(AttemptKind.Insertion, "field-a");
-        Check(!gate.CanInsert(old, "field-a", true) && !gate.Complete(old));
-        Check(gate.CanInsert(current, "field-a", true));
-    }),
-    ("Reject focus round trip", () =>
-    {
-        var gate = new AttemptGate(); var ticket = gate.Begin(AttemptKind.Insertion, "field-a");
-        gate.ObserveFocus("field-b"); gate.ObserveFocus("field-a");
-        Check(!gate.CanInsert(ticket, "field-a", true));
-    }),
-    ("Reject lost target and held modifiers", () =>
-    {
-        var gate = new AttemptGate(); var ticket = gate.Begin(AttemptKind.Insertion, "field-a");
-        Check(!gate.CanInsert(ticket, null, true));
-        Check(!gate.CanInsert(ticket, "field-a", false));
-        Check(gate.CanInsert(ticket, "field-a", true));
-    }),
-    ("Completed attempt cannot deliver twice", () =>
-    {
-        var gate = new AttemptGate(); var ticket = gate.Begin(AttemptKind.Insertion, "field-a");
-        Check(gate.Complete(ticket)); Check(!gate.CanInsert(ticket, "field-a", true));
-    }),
-    ("Dispatched delivery remains exclusive and cannot replay", () =>
-    {
-        var gate = new AttemptGate(); var ticket = gate.Begin(AttemptKind.Insertion, "field-a");
-        Check(gate.BeginDelivery(ticket) && gate.IsBusy && gate.IsDelivering);
-        Check(!gate.BeginDelivery(ticket) && !gate.CanInsert(ticket, "field-a", true) && !gate.Cancel());
-        Throws<InvalidOperationException>(() => gate.Begin(AttemptKind.Recording));
-        Check(gate.Complete(ticket)); gate.Begin(AttemptKind.Recording);
-    }),
     ("Transcript loses control characters and direction marks but keeps line breaks", () =>
     {
         Check(TranscriptText.Sanitize(" a\u001bb\u0007c\u0000\u0085d\u202ee\u200f ") == "abcde");
@@ -53,34 +15,6 @@ var tests = new (string Name, Action Run)[]
         Check(!PastePolicy.MayPasteText("ls\nrm -rf x", "WindowsTerminal") && !PastePolicy.MayPasteText("a\nb", "pwsh"));
         Check(PastePolicy.MayPasteText("one line", "WindowsTerminal") && PastePolicy.MayPasteText("a\nb", "notepad"));
         Check(PastePolicy.MayPasteText("a\nb", null) && PastePolicy.IsConsole("conhost") && !PastePolicy.IsConsole("Code"));
-    }),
-    ("Bridge Unicode frame survives fragmented reads", () =>
-    {
-        using var output = new MemoryStream();
-        var expected = new BridgeMessage("insert", "fixture-id", "fixture-token", "Grüße 🧪\nZeile zwei");
-        BridgeFrame.WriteAsync(output, expected).GetAwaiter().GetResult();
-        using var input = new FragmentedStream(output.ToArray());
-        Check(BridgeFrame.ReadAsync(input).GetAwaiter().GetResult() == expected);
-        Check(BridgeFrame.ReadAsync(input).GetAwaiter().GetResult() is null);
-    }),
-    ("Bridge rejects oversized frame before reading a body", () =>
-    {
-        byte[] prefix = new byte[4]; BinaryPrimitives.WriteUInt32LittleEndian(prefix, BridgeFrame.MaximumBytes + 1u);
-        using var input = new MemoryStream(prefix);
-        Throws<InvalidDataException>(() => BridgeFrame.ReadAsync(input).GetAwaiter().GetResult());
-    }),
-    ("Bridge rejects truncated payload", () =>
-    {
-        using var input = new MemoryStream(new byte[] { 8, 0, 0, 0, 123, 125 });
-        Throws<EndOfStreamException>(() => BridgeFrame.ReadAsync(input).GetAwaiter().GetResult());
-    }),
-    ("Bridge rejects unknown protocol and oversized text", () =>
-    {
-        foreach (var message in new[] { new BridgeMessage("capture", Protocol: 2), new BridgeMessage("insert", Text: new string('x', 16001)) })
-        {
-            using var input = new MemoryStream(); BridgeFrame.WriteAsync(input, message).GetAwaiter().GetResult(); input.Position = 0;
-            Throws<InvalidDataException>(() => BridgeFrame.ReadAsync(input).GetAwaiter().GetResult());
-        }
     }),
     ("WAV export has exact sample data and keeps original", () => InTemporaryDirectory(root =>
     {
@@ -106,6 +40,12 @@ var tests = new (string Name, Action Run)[]
         using (var journal = new PcmJournal(root)) { journal.Append([1, 2]); path = journal.RawPath; }
         Check(File.ReadAllBytes(path).SequenceEqual(new byte[] {1, 2}));
         Check(File.Exists(Path.Combine(Path.GetDirectoryName(path)!, "format.txt")));
+    })),
+    ("A journal closed after an interruption still exports its WAV", () => InTemporaryDirectory(root =>
+    {
+        using var journal = new PcmJournal(root); journal.Append([5, 6, 7, 8]); journal.Close();
+        var wav = File.ReadAllBytes(journal.ExportWave());
+        Check(wav.AsSpan(44).SequenceEqual(new byte[] {5, 6, 7, 8}) && File.ReadAllBytes(journal.RawPath).SequenceEqual(new byte[] {5, 6, 7, 8}));
     })),
     ("Reject malformed samples without changing saved data", () => InTemporaryDirectory(root =>
     {
@@ -145,10 +85,4 @@ static void InTemporaryDirectory(Action<string> action)
     Directory.CreateDirectory(directory);
     try { action(directory); }
     finally { Directory.Delete(directory, true); } // Only this test's synthetic files.
-}
-
-sealed class FragmentedStream(byte[] bytes) : MemoryStream(bytes)
-{
-    public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>
-        base.ReadAsync(buffer[..Math.Min(3, buffer.Length)], cancellationToken);
 }

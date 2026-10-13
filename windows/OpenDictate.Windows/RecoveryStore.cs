@@ -57,7 +57,8 @@ public sealed class RecoveryStore
 
     public IReadOnlyList<RecoveryEntry> List()
     {
-        lock (sync) return Scan().Where(entry => !Expired(entry)).OrderByDescending(entry => entry.Created).ToArray();
+        // A file pruning could not remove yet still counts against the limit.
+        lock (sync) return Scan().Where(entry => !Expired(entry)).OrderByDescending(entry => entry.Created).Take(5).ToArray();
     }
 
     public void Prune() { lock (sync) Prune(null); }
@@ -69,15 +70,24 @@ public sealed class RecoveryStore
         if (keep is not null) retained.Add(keep.Value);
         foreach (var entry in entries.Where(e => Expired(e) || !retained.Contains(e.Id)))
         {
-            // Authenticate again while holding a non-shareable handle. Deletion
-            // targets that verified handle, never a path that could be replaced.
-            using var file = Open(entry.Id, true);
-            var current = Decode(file, entry.Id, true);
-            if (current.Entry != entry) throw new CryptographicException("Recovery identity changed.");
-            var disposition = new Disposition { Delete = true };
-            if (!SetFileInformationByHandle(file.SafeFileHandle, 4, ref disposition, (uint)Marshal.SizeOf<Disposition>()))
-                throw new Win32Exception(Marshal.GetLastWin32Error());
+            // A file held open elsewhere (a virus scanner, a backup) stays until
+            // the next prune; the recording just saved must not fail for it.
+            try { Delete(entry); }
+            catch (Exception error) when (error is IOException or InvalidDataException or CryptographicException or UnauthorizedAccessException or Win32Exception or ArgumentException)
+            { /* Retried on the next save or prune. */ }
         }
+    }
+
+    private void Delete(RecoveryEntry entry)
+    {
+        // Authenticate again while holding a non-shareable handle. Deletion
+        // targets that verified handle, never a path that could be replaced.
+        using var file = Open(entry.Id, true);
+        var current = Decode(file, entry.Id, true);
+        if (current.Entry != entry) throw new CryptographicException("Recovery identity changed.");
+        var disposition = new Disposition { Delete = true };
+        if (!SetFileInformationByHandle(file.SafeFileHandle, 4, ref disposition, (uint)Marshal.SizeOf<Disposition>()))
+            throw new Win32Exception(Marshal.GetLastWin32Error());
     }
 
     private List<RecoveryEntry> Scan()
