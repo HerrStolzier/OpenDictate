@@ -150,30 +150,87 @@ Headless Chromium bei 1440 und 390 Pixel: beim schnellen Hoch- und
 Runterscrollen höchstens ein Bild mit Bewegung am Fensterrand (Messverzug),
 keine Konsolenfehler.
 
-Stand 2026-10-13, Erklärvideos und Datenschutz: Die fünf 3D-Clips mit Blink
-liegen in `videos/`, je Clip dreimal: die Fassung mit Ton in 1920 × 1080
-(`blink-0N-….mp4`, 2,9 bis 3,8 MB), eine stumme Schleife in 1280 × 720
-(`…-schleife.mp4`, 1,0 bis 1,3 MB) und ein Standbild in 1280 × 720 (`….jpg`).
-Die Startseite zeigt die Schleifen neben dem passenden Abschnitt; sie laufen
-nur, solange sie zur Hälfte im Fenster sind, und haben einen Pause-Knopf mit
-den Pixelzeichen `play` und `pause` (nur auf der Website, nicht im
-Designsystem). Wer „Bewegung reduzieren“ oder „Datensparen“ eingestellt hat,
-sieht das Standbild und startet den Clip selbst; ein angehaltener Clip bleibt
-angehalten. Ohne JavaScript zeigt der Browser seine eigenen Knöpfe. Die Clips
-ersetzen die kleine Hoppla-Karte und die Übersetzungs-Sprechblasen.
-`anleitungen.html` zeigt alle fünf mit Ton, dazu den gesprochenen Text zum
-Mitlesen und je ein `VideoObject` im JSON-LD. Der iPhone-Clip (Nr. 6) kommt
-erst mit der veröffentlichten iOS-App dazu. Der Abschnitt Datenschutz steht
-jetzt direkt nach den Kosten und sagt als zweites Argument „Deine Stimme
-bleibt auf deinem Rechner“ (Mac und Linux mit lokalem Modell; mit whisper.cpp aus der Anleitung
-geht Übersetzen noch nicht); iPhone erst, wenn die iOS-App veröffentlicht ist.
-Headless Chromium bei 1440 und 390 Pixel, auch mit „Bewegung reduzieren“:
-kein horizontaler Überlauf, keine Konsolenfehler, Schleifen starten und halten
-wie beschrieben (mit WebM-Ersatz, weil Chromium ohne H.264 kommt). Die
-`Range`-Antworten des Workers (ganze Datei, Anfang–Ende, ab Stelle, letzte n
-Bytes, ungültig, `If-Range`, HEAD) sind mit einer nachgebauten KV-Umgebung in
+Stand 2026-10-13 abends, Erklärvideos und Datenschutz: Die fünf 3D-Clips mit
+Blink liegen in `videos/`, je Clip in drei Formen. Die Fassung mit Ton ist
+1920 × 1080 (`blink-0N-….mp4`, 2,9 bis 3,8 MB). Die stumme Schleife ist
+1280 × 720 ohne den Abspann mit dem Schriftzug (`…-schleife.mp4`, 1,0 bis
+1,3 MB). Die Standbilder gibt es als WebP für die Seite (`….webp`, rund 25 KB)
+und als JPG für Vorschaubilder und JSON-LD (`….jpg`).
+
+Auf der Startseite steht seit Bastis Rückmeldung (13.10., 18:29: Kästen
+„generisch“, alle Clips starteten gleichzeitig) ein einziger Player mit fünf
+Kapiteln statt vier gleicher Video-Kästen:
+- **Abspielen:** Es läuft immer nur ein Clip. Der Player startet erst, wenn er
+  zur Hälfte im Fenster ist, und geht danach von selbst zum nächsten Kapitel.
+- **Bedienung:** Die Kapitel-Leiste zeigt den Fortschritt in Pixelzellen. „Ton
+  an“ wechselt an derselben Stelle auf die Fassung mit Ton.
+- **Bewegung reduzieren und Datensparen:** Der Player zeigt das Standbild und
+  startet erst auf Klick. Ein von Hand angehaltener Clip bleibt angehalten.
+- **Ohne JavaScript:** Der Browser zeigt seine eigenen Knöpfe, alle
+  Kapiteltexte sind sichtbar, und die Kapitel führen zu `anleitungen.html`.
+- **Pixelzeichen:** `play` und `pause` gibt es nur auf der Website, nicht im
+  Designsystem.
+- **Inhalt:** Die Kapiteltexte übernehmen die früheren Abschnitte „Kein Diktat
+  geht verloren“ und „Übersetzen“; der Link `#uebersetzen` öffnet das passende
+  Kapitel.
+
+Der Kosten-Abschnitt heißt seit Bastis Hinweis vom Abend „Einmal zahlen,
+nicht jeden Monat“: kein Abo, die Beta ist kostenlos, die fertige App kostet
+später einmal ein paar Euro (Preismodell in PROJECT.md, wie README.md).
+
+Der Vergleichswert „Ein Diktier-Abo kostet meist 8 bis 15 $“ stützt sich auf
+die Preisseiten zweier bekannter Diktier-Apps, Stand 12. Oktober 2026: 8,49 $
+und 15 $ im Monat beim Monatsabo (Recherche im geteilten Projektordner unter
+`texte-review/recherche/marketing-techniken-2026-10-12.md`). Andere Apps werden
+auf der Seite bewusst nicht genannt.
+
+Der Abschnitt nach den Kosten ist das zweite Argument: „Deine Stimme bleibt
+bei dir“, darüber die Einschränkung „Mit lokalem Modell“. Im Menü heißt er
+„Privat“, damit „Datenschutz“ nur die Datenschutzerklärung meint. Er nennt bewusst kein Gerät, weil später alle
+gängigen dazukommen. Ein Schaubild zeigt zwei Wege, lokal
+(0 €, die Aufnahme bleibt auf dem Gerät) und mit OpenAI (0,1 ct, mit eigenem
+Schlüssel). Das gilt für Mac und Linux mit lokalem Modell; mit whisper.cpp aus
+der Anleitung geht Übersetzen noch nicht. Das iPhone kommt dazu, sobald die
+iOS-App veröffentlicht ist.
+
+`anleitungen.html` zeigt alle fünf Clips mit Ton, dazu den gesprochenen Text
+zum Mitlesen, je eine deutsche Untertitelspur und je ein `VideoObject` im JSON-LD. Die Spuren
+(`videos/*.vtt`) beginnen mit den Sprecheinsätzen aus `videos/quelle/3d/clips/`
+im geteilten Projektordner und enden 0,3 s nach dem Satz, höchstens 50 ms vor
+dem nächsten Einsatz. Der Player auf der Startseite zeigt keine Untertitel, weil
+sie dort die Texte im Bild verdecken würden; er verweist auf diese Seite. Der iPhone-Clip (Nr. 6) kommt
+erst mit der veröffentlichten iOS-App dazu.
+
+Player und Weg-Grafik nehmen Farben, Abstände, Radien und Schriftgrößen aus
+`design/generated/tokens.css`. Fest bleibt nur das Schwarz des Mac-Rahmens in
+der Startanimation, weil es die Hardware zeigt.
+
+Die Startanimation im Kopf der Seite läuft nur, solange sie im Fenster ist. Die
+Schrift für den Einleitungstext wird vorab geladen.
+
+Lighthouse 12.8 gegen die lokale Vorschau (ohne Kompression), Handy vorher und
+nachher:
+
+| Messung | Vorher | Nachher |
+| --- | --- | --- |
+| Leistung | 84 | 98 |
+| Größter Inhalt | 3,9 s | 2,0 s |
+| Blockierzeit | 220 ms | 0 ms |
+| Seitengewicht | 455 KB | 190 KB |
+
+Am Desktop war die Leistung vorher und nachher 100. Barrierefreiheit,
+Best Practices und SEO liegen bei 100.
+
+Headless Chromium bei 1440 und 390 Pixel, auch mit „Bewegung reduzieren“,
+geprüft mit WebM-Ersatz, weil Chromium ohne H.264 kommt:
+- kein horizontaler Überlauf und keine Konsolenfehler,
+- nie mehr als ein Video auf der Seite,
+- Kapitelwechsel und Pause verhalten sich wie beschrieben.
+
+Die `Range`-Antworten des Workers (ganze Datei, Anfang–Ende, ab Stelle, letzte
+n Bytes, ungültig, `If-Range`, HEAD) sind mit einer nachgebauten KV-Umgebung in
 Node geprüft.
-Live seit 2026-10-13, 17:25 UTC, auf Commit `d6e6adf` (Bastis Karte „Live
+Die erste Fassung mit vier Video-Kästen war live seit 2026-10-13, 17:25 UTC, auf Commit `d6e6adf` (Bastis Karte „Live
 schalten“ um 17:02 UTC). Per Browser Rendering geprüft: alle Überschriften und
 Clips auf Startseite und `anleitungen.html`, kein Zählskript; alle zehn Videos
 spielen bis zum Ende vor (Dauer und Größe stimmen), alle fünf Standbilder laden.
