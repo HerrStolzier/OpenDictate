@@ -23,8 +23,8 @@ enum L10n {
     static let stop = pick("Stop", "Stopp")
     static let copiedDetail = pick("Paste the text wherever you like.", "Füge den Text ein, wo du möchtest.")
     static let shortcutCopiesDetail = pick(
-        "Your shortcut copies the text. Paste it wherever you like.",
-        "Dein Kurzbefehl kopiert den Text. Füge ihn ein, wo du möchtest.")
+        "With “Copy to Clipboard” in your shortcut, paste the text wherever you like.",
+        "Mit „In Zwischenablage kopieren“ im Kurzbefehl kannst du den Text jetzt einfügen.")
     static let keptDetail = pick(
         "Recording kept. Open OpenDictate to send it again.",
         "Aufnahme gesichert. Öffne OpenDictate, um sie nochmal zu senden.")

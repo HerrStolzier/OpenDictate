@@ -267,14 +267,12 @@ Screen and in the Dynamic Island shows that a recording is running.
 - **Last text:** kept only in memory while the app runs, for "Copy again";
   it is gone when iOS ends the app.
 - **Failed recordings:** a recording whose text did not reach the clipboard
-  stays in the app's own container. When the app's own copy failed but the
-  text went back to the shortcut, it counts as delivered once the clipboard
-  changed afterwards (the shortcut copied the text, or something else was
-  copied); the app then deletes it at the next dictation or when it is
-  opened. Kept recordings stay under the same rule
-  as on the Mac: at most the five newest, none older than 24 hours, checked
-  whenever the list is read. The folder is excluded from backups. As on the Mac, each kept
-  recording gets an authentication tag (HMAC-SHA256 with a key in the
+  stays in the app's own container. That includes a text the app returned to
+  the shortcut while iOS refused it the clipboard, because the app cannot
+  tell whether the shortcut copied it. Kept recordings stay under the same
+  rule as on the Mac: at most the five newest, none older than 24 hours,
+  checked whenever the list is read. The folder is excluded from backups. As
+  on the Mac, each kept recording gets an authentication tag (HMAC-SHA256 with a key in the
   Keychain); "Send again" offers only recordings with a valid tag and uploads
   exactly the bytes it checked. A recording shorter than one second is kept
   the same way. A recording cut off because iOS ended the app during it is

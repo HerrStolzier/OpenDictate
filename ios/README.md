@@ -53,8 +53,9 @@ Live-Aktivität. „Starten, ohne die App zu öffnen“ ist abgehakt, sobald der
 Kurzbefehl einmal lief, denn iOS verrät nicht, ob er eingerichtet ist. Das
 Rückseiten-Tippen bietet nur eigene Kurzbefehle an; darum legt man einmal
 einen eigenen Kurzbefehl an: Aktion „Diktieren“, darunter „In Zwischenablage
-kopieren“ mit „Nur lokal“. Hat der Kurzbefehl kopiert, löscht die App die
-Aufnahme dazu beim nächsten Diktat oder Öffnen.
+kopieren“ mit „Nur lokal“. Ob der Kurzbefehl den Text kopiert hat, sieht die
+App nicht; darum behält sie die Aufnahme und bietet sie nach dem nächsten
+Diktat unter „Nochmal senden“ an, bis sie nach 24 Stunden verfällt.
 
 Datenschutz: [PRIVACY.md](../PRIVACY.md#iphone-app).
 

@@ -36,8 +36,6 @@ final class DictationRunner {
     /// The clipboard as that copy left it, so opening the app never replaces
     /// something copied since.
     @ObservationIgnored private var missedClipboard: Int?
-    /// That text went back to the shortcut, whose own step may copy it.
-    @ObservationIgnored private var handedToShortcut = false
     /// Newest kept recording, for "Send again".
     private(set) var retryable: RecordingRetention.Entry?
 
@@ -181,23 +179,10 @@ final class DictationRunner {
     /// while that dictation is the last one shown and nothing, not even the
     /// shortcut, copied anything since.
     func copyUncopied() {
-        settleUncopied()
         guard uncopiedRecording != nil, UIPasteboard.general.changeCount == missedClipboard,
             phase == .copied || phase == .oops(DictationFailure.clipboardFailed.message)
         else { return }
         copyAgain()
-    }
-
-    /// Once the clipboard changed after a text went back to the shortcut, the
-    /// shortcut copied it (or the person copied something else instead); its
-    /// recording is not sent again.
-    private func settleUncopied() {
-        guard let uncopiedRecording, handedToShortcut, UIPasteboard.general.changeCount != missedClipboard
-        else { return }
-        store.remove(uncopiedRecording)
-        self.uncopiedRecording = nil
-        missedClipboard = nil
-        retryable = pendingRetry()
     }
 
     /// Only between dictations: a phase change while recording or writing
@@ -233,9 +218,9 @@ final class DictationRunner {
                 text = try await client.translate(text, into: target, configuration: configuration)
                 guard !text.isEmpty else { throw DictationFailure.emptyTranslation }
             }
-            // Otherwise the last dictation's recording would turn into "Send
-            // again" once this one replaces its text.
-            settleUncopied()
+            // A text the app could not copy itself may not have reached the
+            // clipboard; once this one replaces it, its recording is offered
+            // for "Send again", because the app cannot tell.
             lastText = text
             uncopiedRecording = nil
             do {
@@ -245,7 +230,6 @@ final class DictationRunner {
                 // shortcut has no copy step and the text lives only here.
                 uncopiedRecording = url
                 missedClipboard = UIPasteboard.general.changeCount
-                handedToShortcut = forShortcut
                 guard forShortcut else {
                     _ = await fail(.clipboardFailed)
                     return text
