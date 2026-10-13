@@ -4,9 +4,9 @@
 // KV namespace and served from there. Visitors never contact GitHub.
 // Update COMMIT and FILES with `python3 scripts/website-worker.py <commit>`.
 
-const COMMIT = "d6e6adf67c4aab4a08a34466d207e0b4a230e9c3";
+const COMMIT = "f887c31799bfe93a8dd9b40cf5518c89129688b9";
 const FILES = {
-  "/anleitungen.html": "c84edaeb540f33ab53b2ef4058f3deed",
+  "/anleitungen.html": "c3193420e41421ea97d0256a5c05e53f",
   "/apple-touch-icon.png": "017aca3eeebd83164aedace3bca37977",
   "/blink-32.svg": "8f8d4b92a787c76c86e3fbd372ba7f4d",
   "/fonts/Geist-Regular.woff2": "be82b88cfc92b5d4d697141631cf1607",
@@ -15,28 +15,38 @@ const FILES = {
   "/fonts/GeistMono-SemiBold.woff2": "9fc2d14841f1a53d23541c63643c9910",
   "/fonts/GeistPixel-Regular.woff2": "70b4b492ee459c69c61cedfa05380e54",
   "/fonts/OFL.txt": "1781d2806a07d91c4edf4740b88449fa",
-  "/index.html": "8d4df43fdf3d46333b1a147466e5c8b0",
+  "/index.html": "3040a804d63650edb69ca505b4d6324d",
   "/og.png": "a2c85a77e0fbea4381edc54218f36570",
   "/robots.txt": "3fb85fe309acd473d6be9a95d46879e4",
-  "/site.js": "9d1eb1ed72900532058dbc454ac4882e",
+  "/site.js": "6d37da3136c9362002ed92de0a1f240d",
   "/sitemap.xml": "c1b89893fc3d0284f52d8c675934bbcf",
-  "/style.css": "c4428b3083f8d6f82de98f9ce6dbbbc3",
+  "/style.css": "ab911a411d55f8223cc1e3c7791a82a8",
   "/tokens.css": "ded977b1cea80720ca8fb091c7ba90ec",
-  "/videos/blink-01-so-diktierst-du-schleife.mp4": "420327bf18b35926c7af8a038ea6458e",
+  "/videos/blink-01-so-diktierst-du-schleife.mp4": "d9f77f553aa7cca24b65c548cd574b13",
   "/videos/blink-01-so-diktierst-du.jpg": "da67768f4d06536978cf9eaa9b6eb6ab",
   "/videos/blink-01-so-diktierst-du.mp4": "e7b9e9f758bc10ae3f0b1348b2ccf2bc",
-  "/videos/blink-02-kostenlos-schleife.mp4": "021ce18122111df7e12ea82d10e86a4a",
+  "/videos/blink-01-so-diktierst-du.vtt": "107d50f4733e8943786a7d2dc8c9ef12",
+  "/videos/blink-01-so-diktierst-du.webp": "782c24cf9ecbd59eca838960cceb8111",
+  "/videos/blink-02-kostenlos-schleife.mp4": "2f0bb8f13f94f6e02b89dad2e1acd319",
   "/videos/blink-02-kostenlos.jpg": "83bef79c3e96faaa36faa2d528f6168a",
   "/videos/blink-02-kostenlos.mp4": "1b09e563bec67bc366ec22f7bf690cb4",
-  "/videos/blink-03-uebersetzen-schleife.mp4": "d31950179c1ae7d4b0296e7cdc1b9e08",
+  "/videos/blink-02-kostenlos.vtt": "c62ab7df05d7d7dbf20803b5abaec14d",
+  "/videos/blink-02-kostenlos.webp": "5a009bfaad9b8cac669ec3149970c003",
+  "/videos/blink-03-uebersetzen-schleife.mp4": "dcf408d64362fda6aa2ebf3cd184daeb",
   "/videos/blink-03-uebersetzen.jpg": "a3b6669cc6d13496ca08dbcfe7c5fe76",
   "/videos/blink-03-uebersetzen.mp4": "f07053ab218beaf77f27aba688d3f9dd",
-  "/videos/blink-04-nichts-geht-verloren-schleife.mp4": "02dbe2c962b864e94e70aa5f6e695a19",
+  "/videos/blink-03-uebersetzen.vtt": "8545e0741d2f2eb980de49be276bd3e1",
+  "/videos/blink-03-uebersetzen.webp": "2a3468a062fa9ae4081edfae8f47a15a",
+  "/videos/blink-04-nichts-geht-verloren-schleife.mp4": "94df556eaead64e0fff2473fdfe18c56",
   "/videos/blink-04-nichts-geht-verloren.jpg": "f954b7378f4ae48d7a1952bb975360ac",
   "/videos/blink-04-nichts-geht-verloren.mp4": "fef28b2a486afc648ae6285af080e181",
-  "/videos/blink-05-erste-schritte-schleife.mp4": "7e5435eec748c93bb5cde733eb61c82d",
+  "/videos/blink-04-nichts-geht-verloren.vtt": "c1a0b24087bdd90f6944f598d0254e43",
+  "/videos/blink-04-nichts-geht-verloren.webp": "d9c376d1838742ed6beca9fe034c6478",
+  "/videos/blink-05-erste-schritte-schleife.mp4": "2ea3a5abe39968ffa483b7a1f0e314b3",
   "/videos/blink-05-erste-schritte.jpg": "6ca2f464ef11cf320f15f9e0a3f489de",
   "/videos/blink-05-erste-schritte.mp4": "369f6ed7890e6a722de9521a1e9e5e62",
+  "/videos/blink-05-erste-schritte.vtt": "faae478f784557e93844ed259ad9e91b",
+  "/videos/blink-05-erste-schritte.webp": "264c0e54dcbd51f0215c654190dea198",
 };
 
 const HOST = "opendictate.app";
