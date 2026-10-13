@@ -26,26 +26,21 @@ enum OnDeviceTranslator {
         return await readiness(from: usualSource, to: target)
     }
 
-    /// Translates a dictation. Its language is recognized on the device; a short
-    /// text may be guessed wrong, so the iPhone's language is tried next. A pair
-    /// that is not installed fails, and the recording stays for "Send again".
+    /// Translates a dictation from the language recognized in it, or from the
+    /// iPhone's language when the text is too short to tell. Never from another
+    /// language than the text's: Apple would translate it wrong without saying
+    /// so. A pair that is not installed fails, and the recording stays for
+    /// "Send again".
     static func translate(_ text: String, into target: String) async throws -> String {
         guard #available(iOS 26.0, *) else { throw DictationFailure.translationUnavailable }
         let target = Locale.Language(identifier: target)
-        var source: Locale.Language?
-        var missing = false
-        for candidate in [language(of: text), usualSource] {
-            // Apple refuses a pair of one language; the text needs nothing then.
-            guard candidate.languageCode != target.languageCode else { return text }
-            switch await readiness(from: candidate, to: target) {
-            case .ready: source = candidate
-            case .needsLanguages: missing = true
-            case .unavailable: break
-            }
-            if source != nil { break }
-        }
-        guard let source else {
-            throw missing ? DictationFailure.translationLanguagesMissing : DictationFailure.translationUnavailable
+        let source = language(of: text)
+        // Apple refuses a pair of one language; the text needs nothing then.
+        guard source.languageCode != target.languageCode else { return text }
+        switch await readiness(from: source, to: target) {
+        case .ready: break
+        case .needsLanguages: throw DictationFailure.translationLanguagesMissing
+        case .unavailable: throw DictationFailure.translationUnavailable
         }
         do {
             let session = TranslationSession(installedSource: source, target: target)

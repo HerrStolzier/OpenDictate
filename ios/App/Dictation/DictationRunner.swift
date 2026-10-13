@@ -119,6 +119,8 @@ final class DictationRunner {
             self.startedAt = startedAt
             phase = .listening(since: startedAt)
         } catch {
+            // A start that ran during the checks owns the phase and the activity.
+            guard !isBusy else { return }
             phase = .oops(DictationFailure(error).message)
             // After the phase, so a start during the wait is not overwritten.
             // Awaited: the shortcut returns right after, and without a

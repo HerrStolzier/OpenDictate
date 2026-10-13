@@ -69,7 +69,10 @@ Modell startet es gar nicht, und „Nochmal senden“ behält die Aufnahme.
 iOS 26): Apples `TranslationSession` übersetzt offline, nachdem die App die
 Sprache des Textes auf dem Gerät erkannt hat. Die Sprachen lädt man einmal mit
 „Sprachen laden“ (für die Sprache des iPhones und die Zielsprache); fehlt ein
-Sprachpaar, endet das Diktat mit „Hoppla“ und die Aufnahme bleibt. Laufen
+Sprachpaar, endet das Diktat mit „Hoppla“ und die Aufnahme bleibt. Das gilt
+auch, wenn du in einer dritten Sprache sprichst: „Sprachen laden“ lädt bisher
+nur das Paar mit der Sprache des iPhones, und die App übersetzt nie aus einer
+anderen Sprache als der des Textes. Laufen
 Erkennung und Übersetzung beide auf dem iPhone, braucht die App keinen
 Schlüssel und sendet nichts. In den Einstellungen heißt der Dienst so, wie er
 gerade eingestellt ist: „OpenAI“ oder „Eigener Server“.
