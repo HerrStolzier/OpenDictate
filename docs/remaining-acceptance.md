@@ -1,6 +1,6 @@
 # Belegter Stand je Plattform
 
-Stand: 8. Oktober 2026. Diese Datei hält je Plattform fest, was belegt ist,
+Stand: 12. Oktober 2026. Diese Datei hält je Plattform fest, was belegt ist,
 was offen ist und wo der letzte Nachweis liegt. Die nächsten Schritte stehen
 in der [ROADMAP](../ROADMAP.md), Produkt und Entscheidungen in
 [PROJECT.md](../PROJECT.md), Prüfwege in [CHECKS.md](../CHECKS.md). Die
