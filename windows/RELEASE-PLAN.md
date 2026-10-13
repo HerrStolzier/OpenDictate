@@ -58,8 +58,8 @@ Skript wurde nicht ausgeführt und bleibt außerhalb des Releasepfads.
    Recovery nach `%LOCALAPPDATA%\OpenDictate\Recovery`; das Prüffenster nutzt
    weiter `%LOCALAPPDATA%\OpenDictatePrototype\Recordings` und `…\Recovery`.
    Synthetische Abläufe verwenden `SyntheticChecks` und `SyntheticRecovery`.
-   Das Transkript liegt nach jedem Diktat in der Zwischenablage von Windows
-   (also auch im Zwischenablageverlauf, wenn der Nutzer ihn eingeschaltet hat)
+   Das Transkript liegt nach jedem Diktat in der Zwischenablage von Windows,
+   ausgenommen vom Zwischenablageverlauf und von der Cloud-Zwischenablage,
    und bis zum Beenden im Speicher der App für „Letzten Text kopieren“.
    Einstellungen (Modell, Sprache, Übersetzung, Server-Adresse) liegen ohne
    Geheimnis in `%APPDATA%\OpenDictate\settings.json`. Die Aufnahme geht an
