@@ -123,6 +123,17 @@ die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleiner
    oder „Aus“ lassen sich einstellen. „Beenden“ steht im
    Menü der Menüleiste
    ([design/README.md](design/README.md#stand-je-oberfläche)).
+5. Für den nächsten Mac-Kandidaten (Bastis Wünsche vom 13. Oktober, noch
+   nicht gebaut):
+   - Im Menü und in den Einstellungen ist sichtbar, wer gerade transkribiert,
+     und es gibt eine Wahl „OpenAI / Eigener Server“. Heute sieht man das
+     nicht: Die Einstellungen zeigen das OpenAI-Modell auch dann, wenn der
+     eigene Server schreibt, und einen Schalter dafür gibt es nicht.
+   - Die Übersetzung läuft auch lokal, ohne OpenAI. Sie braucht dafür einen
+     eigenen Weg, weil der lokale whisper.cpp-Server nur transkribiert.
+     Vorgesehen ist Apples Übersetzung auf dem Gerät (Translation, offline und
+     kostenlos); sie gibt es ab macOS 15, unter macOS 14 bleibt es beim
+     bisherigen Dienst.
 
 **Bekannte Grenzen, den Beta-Nutzern überlassen:** Feldtypen und Programme
 jenseits der [Kompatibilitätsmatrix](docs/compatibility-matrix.md); gehörte
