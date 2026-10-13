@@ -132,8 +132,8 @@ die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleiner
    - Die Übersetzung läuft auch lokal, ohne OpenAI. Sie braucht dafür einen
      eigenen Weg, weil der lokale whisper.cpp-Server nur transkribiert.
      Vorgesehen ist Apples Übersetzung auf dem Gerät (Translation, offline und
-     kostenlos) wie auf dem iPhone ([Track iOS](#track-ios)); sie gibt es ab
-     macOS 15, unter macOS 14 bleibt es beim bisherigen Dienst.
+     kostenlos); sie gibt es ab macOS 15, unter macOS 14 bleibt es beim
+     bisherigen Dienst.
 
 **Bekannte Grenzen, den Beta-Nutzern überlassen:** Feldtypen und Programme
 jenseits der [Kompatibilitätsmatrix](docs/compatibility-matrix.md); gehörte
