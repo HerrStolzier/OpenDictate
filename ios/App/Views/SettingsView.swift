@@ -1,9 +1,11 @@
 import OpenDictateCore
 import SwiftUI
 
-/// API key, translation and the custom server. Empty fields mean the default.
+/// Recognition, API key, translation and the custom server. Empty fields
+/// mean the default.
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @AppStorage(AppSettings.recognitionKey) private var recognition = ""
     @AppStorage(AppSettings.translationTargetKey) private var translationTarget = ""
     @AppStorage(AppSettings.serverAddressKey) private var serverAddress = ""
     @AppStorage(AppSettings.transcriptionModelKey) private var transcriptionModel = ""
@@ -11,10 +13,15 @@ struct SettingsView: View {
     @State private var keyInput = ""
     @State private var hasKey = KeychainStore.apiKey() != nil
     @State private var keyRefused = false
+    /// nil while the check runs.
+    @State private var onDevice: OnDeviceTranscriber.Readiness?
+    @State private var language: Locale?
+    @State private var loadFailed = false
 
     var body: some View {
         NavigationStack {
             Form {
+                recognitionSection
                 keySection
                 translationSection
                 serverSection
@@ -28,6 +35,85 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    private var recognitionSection: some View {
+        Section {
+            Picker(L10n.pick("Recognition", "Erkennung"), selection: $recognition) {
+                Text(L10n.pick("OpenAI or your server", "OpenAI oder eigener Server")).tag(Recognition.service.rawValue)
+                Text(L10n.pick("On this iPhone", "Auf dem iPhone")).tag(Recognition.onDevice.rawValue)
+            }
+            if recognition == Recognition.onDevice.rawValue {
+                onDeviceState
+            }
+        } header: {
+            Text(L10n.pick("Recognition", "Erkennung"))
+        } footer: {
+            VStack(alignment: .leading, spacing: 6) {
+                if loadFailed {
+                    Text(
+                        L10n.pick(
+                            "The language could not be loaded. Check your connection and try again.",
+                            "Die Sprache ließ sich nicht laden. Prüf deine Verbindung und versuch es nochmal."))
+                        .foregroundStyle(.red)
+                }
+                Text(
+                    recognition == Recognition.onDevice.rawValue
+                        ? L10n.pick(
+                            "Free and offline with Apple's speech recognition: the recording stays on this iPhone. "
+                                + "Translation still goes to the service.",
+                            "Kostenlos und offline mit Apples Spracherkennung: Die Aufnahme bleibt auf diesem "
+                                + "iPhone. Übersetzen geht weiter über den Dienst.")
+                        : L10n.pick(
+                            "The recording goes to OpenAI or to your own server.",
+                            "Die Aufnahme geht an OpenAI oder an deinen eigenen Server."))
+            }
+        }
+        .task(id: recognition) { await checkOnDevice() }
+    }
+
+    @ViewBuilder private var onDeviceState: some View {
+        switch onDevice {
+        case nil:
+            ProgressView()
+        case .unavailable:
+            Text(DictationFailure.onDeviceUnavailable.message)
+                .foregroundStyle(.red)
+        case .needsModel:
+            Button(L10n.pick("Load language (once, from Apple)", "Sprache laden (einmalig, von Apple)")) {
+                Task { await loadLanguage() }
+            }
+        case .downloading:
+            HStack(spacing: 8) {
+                ProgressView()
+                Text(L10n.pick("Loading the language …", "Sprache wird geladen …"))
+            }
+        case .ready:
+            LabeledContent(L10n.pick("Language", "Sprache"), value: languageName)
+        }
+    }
+
+    private var languageName: String {
+        guard let language else { return "?" }
+        let locale = Locale(identifier: L10n.isGerman ? "de" : "en")
+        return locale.localizedString(forIdentifier: language.identifier) ?? language.identifier
+    }
+
+    private func checkOnDevice() async {
+        guard recognition == Recognition.onDevice.rawValue else { return }
+        language = await OnDeviceTranscriber.supportedLanguage()
+        onDevice = await OnDeviceTranscriber.readiness()
+    }
+
+    private func loadLanguage() async {
+        loadFailed = false
+        onDevice = .downloading
+        do {
+            try await OnDeviceTranscriber.installModel()
+        } catch {
+            loadFailed = true
+        }
+        await checkOnDevice()
     }
 
     private var keySection: some View {

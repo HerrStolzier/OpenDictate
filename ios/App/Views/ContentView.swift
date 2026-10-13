@@ -10,7 +10,10 @@ struct ContentView: View {
     @State private var microphone = Recorder.permission
     @State private var hasKey = KeychainStore.apiKey() != nil
     @State private var activitiesEnabled = ActivityAuthorizationInfo().areActivitiesEnabled
+    // Read by `needsKey` through `AppSettings`; stored here so a change redraws.
     @AppStorage(AppSettings.serverAddressKey) private var serverAddress = ""
+    @AppStorage(AppSettings.recognitionKey) private var recognition = ""
+    @AppStorage(AppSettings.translationTargetKey) private var translationTarget = ""
     @AppStorage(AppSettings.shortcutUsedKey) private var shortcutUsed = false
     @Environment(\.scenePhase) private var scenePhase
 
@@ -166,7 +169,7 @@ struct ContentView: View {
 
     // MARK: Setup
 
-    private var needsKey: Bool { !hasKey && !(AppSettings.endpoint?.isLoopback ?? false) }
+    private var needsKey: Bool { !hasKey && AppSettings.needsAPIKey }
 
     private var setup: some View {
         VStack(alignment: .leading, spacing: DesignMetric.space4) {

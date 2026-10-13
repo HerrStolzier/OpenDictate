@@ -36,8 +36,9 @@ selbst (siehe Grenzen).
    Start ab, wenn sie aus ist.
 2. Nochmal auslösen, Stopp in der Live-Aktivität, ein Anruf oder die
    90-Sekunden-Grenze beenden die Aufnahme. Unter einer Sekunde ist „zu kurz“.
-3. Die Aufnahme geht an OpenAI oder den eigenen Server; mit Zielsprache folgt
-   die Übersetzung. Ist die App vorn, kopiert sie den Text selbst. Im
+3. Die Aufnahme geht an OpenAI oder den eigenen Server, oder Apples
+   Spracherkennung schreibt sie auf dem iPhone (Einstellung „Erkennung“, siehe
+   unten); mit Zielsprache folgt die Übersetzung. Ist die App vorn, kopiert sie den Text selbst. Im
    Hintergrund verweigert iOS ihr die Zwischenablage; dann gibt sie den Text
    an den Kurzbefehl zurück, dessen Schritt „In Zwischenablage kopieren“ ihn
    ablegt. Beim Start gibt sie nichts zurück, damit dieser Schritt die
@@ -56,6 +57,13 @@ einen eigenen Kurzbefehl an: Aktion „Diktieren“, darunter „In Zwischenabla
 kopieren“ mit „Nur lokal“. Ob der Kurzbefehl den Text kopiert hat, sieht die
 App nicht; darum behält sie die Aufnahme und bietet sie nach dem nächsten
 Diktat unter „Nochmal senden“ an, bis sie nach 24 Stunden verfällt.
+
+Erkennung „Auf dem iPhone“ (ab iOS 26, Probe vom 13. Oktober 2026): Apples
+`SpeechTranscriber` schreibt die Aufnahme in der Sprache des iPhones,
+kostenlos, offline und ohne Schlüssel. Das Sprachmodell lädt man einmal in
+den Einstellungen („Sprache laden“); ein Diktat lädt nie selbst nach. Ohne
+Modell startet es gar nicht, und „Nochmal senden“ behält die Aufnahme.
+Nur eine Übersetzung geht dann noch an den Dienst und braucht den Schlüssel.
 
 Datenschutz: [PRIVACY.md](../PRIVACY.md#iphone-app).
 
@@ -90,8 +98,11 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
   kopieren“ im Kurzbefehl ließ er sich einfügen. Dass der Start die
   Zwischenablage nicht mehr leert, ist am Gerät noch nicht geprüft
   ([ROADMAP](../ROADMAP.md#track-ios)).
-- Kein Kontrollzentrum-Schalter, keine Erkennung auf dem Gerät, kein
-  Vokabular und keine feste Sprache; die Sprache erkennt der Dienst.
+- Kein Kontrollzentrum-Schalter, kein Vokabular und keine feste Sprache; die
+  Sprache erkennt der Dienst. Die Erkennung auf dem iPhone nutzt die Sprache
+  des iPhones und ist am Gerät noch nicht geprüft; ob sie im Hintergrund nach
+  dem Doppeltippen schreibt und wie gut sie gegen OpenAI abschneidet, zeigt
+  erst der Vergleich am iPhone.
 - Das Datenschutz-Manifest gibt Audio und Text als für die App-Funktion
   erfasst und mit der Person verknüpft an (kein Tracking), weil der gewählte
   Dienst beides eine Zeit lang aufbewahren und dem Konto hinter dem

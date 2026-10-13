@@ -104,6 +104,7 @@ Auf Bastis iPhone 15 mit „Auf Rückseite tippen“:
   kostenlose Wahl ohne Schlüssel. Vorgabe vom 11. Oktober: Die erste Beta
   schreibt mit OpenAI oder dem eigenen Server wie Mac und Linux; Apples
   Erkennung kommt danach, im Vergleich mit OpenAI. Mindestversion bleibt
-  iOS 18.
+  iOS 18. Am 13. Oktober als Probe gebaut (Einstellung „Erkennung“, nur ab
+  iOS 26, Sprache des iPhones); der Vergleich am iPhone steht aus.
 - ~~Draft-PR #40 (Kopplung von App und Tastatur mit Vollzugriff).~~ Am
   11. Oktober geschlossen, der Zweig bleibt erhalten.

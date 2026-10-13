@@ -95,6 +95,15 @@ final class DictationRunner {
         guard !isBusy else { return }
         do {
             let configuration = try DictationConfiguration.current()
+            if configuration.recognition == .onDevice {
+                switch await OnDeviceTranscriber.readiness() {
+                case .ready: break
+                case .unavailable: throw DictationFailure.onDeviceUnavailable
+                case .needsModel, .downloading: throw DictationFailure.onDeviceModelMissing
+                }
+                // Another start may have run during the check.
+                guard !isBusy else { return }
+            }
             let startedAt = Date()
             try startActivity(at: startedAt)
             try recorder.start(into: store.newRecordingURL(), limit: Self.limit)
@@ -212,7 +221,11 @@ final class DictationRunner {
         _ audio: Data, keptAt url: URL, configuration: DictationConfiguration, forShortcut: Bool = false
     ) async throws -> String {
         do {
-            var text = try await client.transcribe(audio, configuration: configuration)
+            var text: String
+            switch configuration.recognition {
+            case .service: text = try await client.transcribe(audio, configuration: configuration)
+            case .onDevice: text = try await OnDeviceTranscriber.transcribe(audio)
+            }
             guard !text.isEmpty else { throw DictationFailure.nothingRecognized }
             if let target = configuration.translationTarget {
                 text = try await client.translate(text, into: target, configuration: configuration)
