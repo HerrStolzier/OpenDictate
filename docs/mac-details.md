@@ -141,9 +141,9 @@ failures preserve the audio on disk and the last transcript in memory. Use
 `Gesicherte Aufnahmen löschen …` to delete the app's managed retained or legacy
 recordings. Temporary originals are outside that action.
 
-Recordings classified as too short or too quiet are retained for a deliberate manual retry. An empty
-recording, where the microphone delivered no audio at all, has nothing to keep: the app says so and
-removes the empty file. These heuristics do not prove that no speech exists; they never trigger an automatic upload.
+Recordings classified as too short or too quiet are retained for a deliberate manual retry. These heuristics do not prove that no speech exists; they never trigger an automatic upload.
+An empty recording, where the microphone delivered no audio at all, has nothing to keep: the app says so and
+removes the empty file.
 
 ## Cost
 
@@ -228,7 +228,7 @@ frontmost and that the clipboard still holds the transcript before sending the
 shortcut, but cannot confirm which control accepted it or whether Paste changed
 visible text. Control characters from the provider's answer are removed before
 the text is copied. In known terminals (Terminal, iTerm2, Alacritty, kitty,
-Ghostty, Warp, Hyper, WezTerm, Tabby) text with a line break is not pasted
+Ghostty, Warp, Hyper, WezTerm, Tabby, Xcode's terminal) text with a line break is not pasted
 automatically, because the line break would run the dictated line as a command;
 it stays on the clipboard. A single line is pasted there as elsewhere, and
 OpenDictate does not send a separate Return. Use clipboard-only mode for targets

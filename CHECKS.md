@@ -318,7 +318,7 @@ by excluding files or directories ([Gitleaks fingerprint ignores](https://github
 New or changed findings remain visible and fail the scan.
 
 Dependabot groups weekly updates for the repository's Actions, Cargo and NuGet
-manifests, with at most three open update pull requests.
+manifests, with at most three open update pull requests per ecosystem.
 
 ## Shared provider fixtures
 
@@ -563,10 +563,9 @@ The former Terminal-specific Unicode path has been removed. The installed
 `68ef919` candidate passed one shell-line case on that older path; see
 [the September 22 report](docs/terminal-focus-acceptance-2026-09-22.md).
 On the restored Command-V path, text with a line break is not pasted
-automatically into known terminals (`AutoPastePolicy`); it stays in the
-clipboard. Single-line text is pasted without any command filter, so test
-Terminal only with a harmless single-line phrase and a disposable, empty shell
-prompt.
+automatically into known terminals (it stays on the clipboard); a single line
+is pasted. Test Terminal only with a harmless single-line phrase and a
+disposable, empty shell prompt.
 
 For a separately authorized native dictation check:
 

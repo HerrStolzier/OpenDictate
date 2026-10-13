@@ -49,10 +49,10 @@ The OpenAI API key is stored as a generic password in the macOS Keychain under
 service `OpenDictate` and account `OPENAI_API_KEY_APP`. OpenDictate does not support
 supplying the key through a command-line argument or environment variable.
 The app reads the older `OPENAI_API_KEY` account only when the new account is
-confirmed absent. Access errors or unusable data in the new account do not cause
-a fallback to an older key. When the app reads a key from the older account, it
-moves that key to the new account right away; if the move fails, it keeps using
-the older entry. On a move or an explicit save, the app creates its own new
+confirmed absent. When it finds a key only there, the first successful read
+also tries to move it to the new entry in the same way as a save; if that move
+fails, the key stays usable from the older entry. Access errors or unusable data in the new account do not cause
+a fallback to an older key. On an explicit save, the app creates its own new
 entry or updates that entry's value, then removes the older account only after
 the new value has been stored successfully. It does not delete the active entry
 before attempting replacement. If removal of the older entry fails, the app
@@ -92,7 +92,7 @@ transcript. It does not inspect the destination's text or title. A different
 field or window in the original application may receive Paste after a focus
 change; the app cannot confirm that the target accepted the command. Text with
 a line break is not pasted automatically into known terminal applications
-(Terminal, iTerm2, Alacritty, kitty, Ghostty, Warp, Hyper, WezTerm, Tabby), because a
+(Terminal, iTerm2, Alacritty, kitty, Ghostty, Warp, Hyper, WezTerm, Tabby, Xcode's terminal), because a
 line break would run the dictated line as a command; the text stays on the
 clipboard. A single line is pasted there as elsewhere. OpenDictate does not
 identify protected, read-only or password controls before Paste. Retries copy their text
@@ -173,7 +173,8 @@ The most recent non-empty transcript is also held in memory until replaced, clea
 
 The Linux CLI is a public beta since 11 October 2026 (pre-release
 `linux-v0.1.0-beta.1`) and is installed as an Arch package built from source.
-On an explicit toggle it records the default PipeWire/Pulse input as an
+On an explicit toggle it records the ALSA default input (with PipeWire
+through pipewire-alsa) as an
 owner-only WAV. Recordings below one second or without a 50-ms window above
 −45 dBFS are not uploaded. Other recordings are sent over HTTPS to OpenAI's
 `/v1/audio/transcriptions` endpoint with the selected model and optional
@@ -320,11 +321,10 @@ Cloudflare Email Routing, and replies are sent from the support service through
 Cloudflare Email Service. Requests are not copied to another mailbox; the
 developer only gets a notice with the ticket number, without its content.
 
-The support service writes short technical lines to Cloudflare Workers Logs:
-for each new request its ticket number and channel, and when storing a request
-fails, the failing step and the kind of error (mail addresses are masked). A
-failure also sends the developer a notice without content. Logs of individual visits with IP addresses are off.
-Cloudflare deletes these lines after at most 7 days.
+The support service keeps no logs: Cloudflare Workers Logs are off, and logs
+of individual visits with IP addresses are off too. When storing a request
+fails, the developer gets a notice with the failing step and the kind of error,
+without content.
 
 Against spam, the form uses a hidden field, an origin check and daily limits.
 For the per-sender limit the IP address is kept only as a hash combined with
