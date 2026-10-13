@@ -35,7 +35,11 @@ for this: `opendictate retry` sends it again, and at most five such copies are
 kept for 24 hours. If that copy cannot be made (for example because the
 keyring is locked), the original file stays in
 `~/.local/state/opendictate/pending/`; `retry` does not pick it up then, and
-the file is not deleted automatically either.
+the file is not deleted automatically either. If the microphone fails or is
+unplugged during a recording, you get a notification and the audio up to that
+point is kept for `retry` the same way. A recording that is too short or
+silent is not sent; it is kept too, but plain `retry` passes it over
+(see [Flow and safety rules](#flow-and-safety-rules)).
 
 ## What you need
 
@@ -267,6 +271,7 @@ opendictate status                  # idle / starting / recording / processing /
 opendictate bar                     # status as a JSON line for the bar (`waybar` works too)
 opendictate cancel                  # safely cancel recording/processing
 opendictate retry                   # send the last kept recording again
+opendictate retry --skipped         # send the last too short or silent one anyway
 opendictate version                 # show the version
 opendictate settings show
 opendictate settings model gpt-transcribe
@@ -319,8 +324,12 @@ cargo build --release --manifest-path linux/Cargo.toml
 
 The binary ends up in `linux/target/release/opendictate`. The Arch package
 ([PKGBUILD](packaging/arch/PKGBUILD)) builds from the checkout it sits in; its
-version must match the one in `Cargo.toml`. Development and tests need no real
-secrets; the HTTP tests only use a local stub.
+version must match the one in `Cargo.toml`. `linux/target/` does not belong
+in Git. The macOS app and its Swift CI are not changed by this.
+
+Development and tests need no real secrets; the HTTP tests only use a local
+stub. The key comes in from any trusted source through a pipe
+(`trusted-secret-command | opendictate secrets set-api-key`).
 
 ### Flow and safety rules
 
@@ -333,12 +342,15 @@ secrets; the HTTP tests only use a local stub.
   `processing`; further starts during `starting`, `processing` or `delivering`
   are refused.
 - Below 1 second, or without a 50 ms window above −45 dBFS, nothing is
-  uploaded. Detected speech keeps a 0.25-second margin; only savings of 0.35
+  uploaded. The recording is kept with a mark: plain `retry` passes it over,
+  and `retry --skipped` sends the last such recording anyway. It counts toward
+  the five newest kept recordings like any other. Detected speech keeps a 0.25-second margin; only savings of 0.35
   seconds or more produce a trimmed upload WAV. The 90-second limit stays on.
 - With a target language set, the transcript is then translated via
   `/chat/completions` of the same server and only the translation is delivered. If the
   translation fails or is empty, the recording is kept like with any other
-  error; `retry` translates again.
+  error; `retry` translates again. Tried live on omarchy on 5 October
+  ([plan with evidence](../docs/linux-live-translation-plan.md)).
 - A non-empty transcript is written only to the Wayland clipboard. The
   recording may be removed only after the copy succeeded.
 - Auto-paste (on by default, `settings insert off` turns it off): at start the
@@ -369,7 +381,8 @@ secrets; the HTTP tests only use a local stub.
   creation time and exact bytes. If the copy fails, the original is kept.
 - `retry` only uploads freshly authenticated bytes and removes them only after
   a successful clipboard copy. Unknown, modified or expired files are never
-  uploaded. Managed recovery keeps at most five files for 24 hours.
+  uploaded. Managed recovery keeps at most five files for 24 hours; whatever
+  is past those limits is also removed after the next successful dictation.
 - Logs contain states and bounded timings, but no key, no transcript and no
   audio. The captured window class may be included; window titles are never
   read or logged.
@@ -382,12 +395,15 @@ files and proofs `0600`.
 ### Still open
 
 - Phase 1 is not formally accepted: live upload, translation, shortcut, and
-  cancel and network loss during processing are shown on one machine in single
-  cases; the shorter timeouts are only tested offline.
+  cancel and network loss during processing are shown on omarchy on 5 and
+  7 October in single cases. The shorter timeouts since then are only tested
+  offline.
 - Bar indicator and auto-paste are tried on one machine in single cases
-  (editor, terminal, window switch, translation); the later clipboard
+  (editor, terminal, window switch, translation; as of `fae3dae`,
+  [evidence](../docs/linux-live-translation-plan.md)); the later clipboard
   hardening and the Waybar variant are not tested live. No settings window.
 - A cancel during a blocking HTTP call is evaluated after it returns or times
   out; it never deletes the only recording.
-- The Arch package is installed on one machine and checked with a dictation;
+- The Arch package is installed on one machine (omarchy) and checked with a
+  dictation ([evidence](../docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026));
   not in the AUR, no second distribution.

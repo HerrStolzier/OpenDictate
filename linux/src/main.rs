@@ -47,6 +47,7 @@ Befehle:
   bar                    Status als JSON-Zeile für Omarchy-Leiste oder Waybar
   cancel                 Aufnahme oder Verarbeitung sicher abbrechen
   retry                  letzte gesicherte Aufnahme nochmal senden
+  retry --skipped        letzte zu kurze oder stille Aufnahme trotzdem senden
   copy-status            festen Statustext in die Zwischenablage
   secrets probe          Schlüsselbund prüfen: schreiben, lesen, löschen
   secrets status         zeigt, ob API-Schlüssel und Sicherungsschlüssel da sind
@@ -77,6 +78,7 @@ Commands:
   bar                    status as a JSON line for the Omarchy bar or Waybar
   cancel                 safely cancel a recording or processing
   retry                  send the last kept recording again
+  retry --skipped        send the last too short or silent recording anyway
   copy-status            put a fixed status text in the clipboard
   secrets probe          check the keyring: write, read, delete
   secrets status         whether the API key and the key for kept recordings exist
@@ -127,7 +129,8 @@ fn run(args: Vec<String>) -> Result<(), String> {
         ["status"] => status(),
         ["bar"] | ["waybar"] => waybar_status(),
         ["cancel"] => cancel(),
-        ["retry"] => retry(),
+        ["retry"] => retry(false),
+        ["retry", "--skipped"] => retry(true),
         ["copy-status"] => copy_status(),
         ["secrets", "probe"] => secrets_probe(),
         ["secrets", "status"] => secrets_status(),
@@ -900,13 +903,9 @@ fn worker() -> Result<(), String> {
     if let Event::Stop(mut stream) = event {
         let _ = ipc::reply(&mut stream, ipc::PROCESSING);
     }
-    let recording = handle.stop().map_err(|error| {
-        log_ops("recording-stop-failed");
-        tr!(
-            "{error} Originalaufnahme blieb erhalten.",
-            "{error} The original recording was kept."
-        )
-    })?;
+    let recording = handle
+        .stop()
+        .map_err(|error| keep_interrupted_recording(&path, error))?;
     restrict_file(&recording.path)?;
     log_ops(&format!(
         "recording-stopped milliseconds={}",
@@ -922,7 +921,10 @@ fn process_new_recording(
 ) -> Result<(), String> {
     let result = (|| {
         ensure_not_cancelled(state_guard)?;
-        let prepared = record::prepare_for_upload(path)?;
+        let prepared = match record::prepare_for_upload(path)? {
+            record::Upload::Ready(prepared) => prepared,
+            record::Upload::Skipped(message) => return Ok(Some(message)),
+        };
         ensure_not_cancelled(state_guard)?;
         let settings = settings::Settings::load(&paths::settings_path().map_err(path_error)?)?;
         let (server, _) = server::Server::resolve(settings.server.as_deref())?;
@@ -965,13 +967,36 @@ fn process_new_recording(
         };
         notify::status(&status);
         log_ops("transcription-copied");
-        Ok(())
+        Ok(None)
     })();
     match result {
-        Ok(()) => Ok(()),
+        Ok(None) => {
+            prune_kept_recordings();
+            Ok(())
+        }
+        Ok(Some(skipped)) => {
+            // Kept like any other recording, but marked: plain `retry` passes
+            // it over, and only `retry --skipped` sends it.
+            let preservation = preserve_recording(path, true);
+            log_ops(&format!(
+                "recording-skipped preserved={}",
+                preservation.is_ok()
+            ));
+            notify::status(&skipped);
+            match preservation {
+                Ok(()) => Err(tr!(
+                    "{skipped} `opendictate retry --skipped` sendet sie trotzdem.",
+                    "{skipped} `opendictate retry --skipped` sends it anyway."
+                )),
+                Err(preservation_error) => Err(tr!(
+                    "{skipped} {preservation_error} Original blieb erhalten.",
+                    "{skipped} {preservation_error} The original was kept."
+                )),
+            }
+        }
         Err(error) => {
             log_ops("recording-kept");
-            let preservation = preserve_recording(path);
+            let preservation = preserve_recording(path, false);
             notify::status(&error);
             match preservation {
                 Ok(()) => Err(tr!(
@@ -987,7 +1012,7 @@ fn process_new_recording(
     }
 }
 
-fn retry() -> Result<(), String> {
+fn retry(skipped: bool) -> Result<(), String> {
     let socket = paths::socket_path().map_err(path_error)?;
     let _listener = ipc::bind_socket(&socket).map_err(|error| {
         if error.kind() == io::ErrorKind::AddrInUse {
@@ -1014,13 +1039,20 @@ fn retry() -> Result<(), String> {
     let auth = keyring::recording_auth()?;
     let recovery_dir = paths::recovery_dir().map_err(path_error)?;
     recovery::prune(&recovery_dir, &auth)?;
-    let (entry, authenticated_bytes) = recovery::newest_authenticated(&recovery_dir, &auth)?
-        .ok_or_else(|| {
-            tr!(
-                "Keine gesicherte Aufnahme zum Nochmal-Senden.",
-                "No kept recording to send again."
-            )
-        })?;
+    let Some((entry, authenticated_bytes)) =
+        recovery::newest_authenticated(&recovery_dir, &auth, skipped)?
+    else {
+        if !skipped && recovery::newest_authenticated(&recovery_dir, &auth, true)?.is_some() {
+            return Err(tr!(
+                "Gesichert sind nur zu kurze oder stille Aufnahmen. `opendictate retry --skipped` sendet die letzte davon trotzdem.",
+                "Only recordings that were too short or silent are kept. `opendictate retry --skipped` sends the last one anyway."
+            ));
+        }
+        return Err(tr!(
+            "Keine gesicherte Aufnahme zum Nochmal-Senden.",
+            "No kept recording to send again."
+        ));
+    };
     ensure_not_cancelled(&state_guard)?;
     let settings = settings::Settings::load(&paths::settings_path().map_err(path_error)?)?;
     let (server, _) = server::Server::resolve(settings.server.as_deref())?;
@@ -1066,20 +1098,67 @@ fn abort_start(handle: record::RecordingHandle, path: &Path, reason: &str) {
         log_ops(&format!("recording-start-{reason} kept=false"));
         return;
     };
-    let preserved = complete && preserve_recording(path).is_ok();
+    let preserved = complete && preserve_recording(path, false).is_ok();
     log_ops(&format!(
         "recording-start-{reason} kept=true preserved={preserved}"
     ));
 }
 
-fn preserve_recording(path: &Path) -> Result<(), String> {
+/// Reports a recording that ended with an error after it was stopped, such as
+/// an unplugged microphone. The audio captured so far is secured for `retry`.
+fn keep_interrupted_recording(path: &Path, error: record::StopError) -> String {
+    let preservation = if error.complete {
+        preserve_recording(path, false).map(|()| true)
+    } else {
+        Ok(false)
+    };
+    log_ops(&format!(
+        "recording-stop-failed preserved={}",
+        preservation == Ok(true)
+    ));
+    let message = error.message;
+    let message = match preservation {
+        Ok(true) => tr!(
+            "{message} Die Aufnahme ist gesichert; `opendictate retry` sendet sie nochmal.",
+            "{message} The recording is kept; `opendictate retry` sends it again."
+        ),
+        Ok(false) => tr!(
+            "{message} Original blieb erhalten.",
+            "{message} The original was kept."
+        ),
+        Err(preservation_error) => tr!(
+            "{message} {preservation_error} Original blieb erhalten.",
+            "{message} {preservation_error} The original was kept."
+        ),
+    };
+    notify::status(&message);
+    message
+}
+
+/// Removes kept recordings past the recovery limits after a dictation that
+/// needed none, so they do not wait for the next failure. Best effort: the
+/// dictation itself is done, and no key is created here.
+fn prune_kept_recordings() {
+    let Ok(recovery_dir) = paths::recovery_dir() else {
+        return;
+    };
+    if !recovery::has_recordings(&recovery_dir) {
+        return;
+    }
+    let pruned = keyring::recording_auth().and_then(|auth| recovery::prune(&recovery_dir, &auth));
+    if pruned.is_err() {
+        log_ops("recovery-prune-failed");
+    }
+}
+
+fn preserve_recording(path: &Path, skipped: bool) -> Result<(), String> {
     if !path.exists() {
         return Ok(());
     }
     keyring::ensure_recording_auth()?;
     let auth = keyring::recording_auth()?;
     let recovery_dir = paths::recovery_dir().map_err(path_error)?;
-    recovery::preserve(path, &recovery_dir, &auth)?;
+    recovery::preserve(path, &recovery_dir, &auth, skipped)?;
     Ok(())
 }
 
