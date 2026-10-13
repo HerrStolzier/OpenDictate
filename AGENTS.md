@@ -25,7 +25,7 @@
 
 ## Behavioral invariants
 
-- Never delete the only surviving audio after a failed, cancelled, empty, or undelivered transcription. Preserve the original if the authenticated recovery copy cannot be created.
+- After a failed, cancelled, empty, or undelivered transcription, keep the audio for recovery until the recovery limits remove it: at most the five newest recordings, none older than 24 hours (Basti, 13 October 2026; see `PRIVACY.md`). Never delete it earlier, and preserve the original if the authenticated recovery copy cannot be created.
 - Retry only authenticated recordings, upload the bytes that were authenticated, enforce expiry at access time, and never upload legacy or heuristic-skipped audio automatically.
 - Keep recording, processing, delivery, cancellation, and retry mutually consistent through `DictationState`. Do not start overlapping provider requests.
 - Auto-paste may activate only the application captured for that dictation. Before sending Command-V, verify that it is frontmost and that the clipboard still holds the transcript. Clipboard-only fallback must remain available. The focused field is not bound by this legacy path.

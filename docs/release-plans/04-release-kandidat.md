@@ -29,8 +29,10 @@ hier noch nicht veröffentlicht.
    Archiv installieren. Dort Start,
    Berechtigungen, Schlüsselbund, ein echtes Diktat, manuellen Kopierweg,
    Beenden und erneuten Start prüfen. Den Updateweg von der vorigen lokalen
-   Installation einmal gesondert prüfen. Den nativen macOS-14-CI-Nachweis
-   gesondert dokumentieren; ein interaktiver macOS-14-Test ist nicht verfügbar.
+   Installation einmal gesondert prüfen. Den CI-Nachweis der ältesten
+   Xcode-16-Toolchain gesondert dokumentieren; ab dem 2. November 2026 gibt es
+   keinen gehosteten macOS-14-Runner mehr, ein interaktiver macOS-14-Test ist
+   nicht verfügbar.
 4. [README.md](../../README.md), [PRIVACY.md](../../PRIVACY.md),
    [PROJECT.md](../../PROJECT.md), Website-Text und Release-Hinweise mit dem
    Kandidaten vergleichen. Der lokale Website-Entwurf beschreibt den heutigen
