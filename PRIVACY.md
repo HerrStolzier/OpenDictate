@@ -167,7 +167,7 @@ API keys, transcript text, or audio contents. Logging is serialized and rotated 
 
 ## Last transcript and temporary originals
 
-The most recent non-empty transcript is also held in memory until replaced, cleared from the menu or the app exits. No persistent text history is created. Temporary recording files are restricted to the current user (permissions 0600); the original recording is created with these permissions before audio is written. If restricting fails, the app logs it. If a recovery-store write fails, the original temporary audio is deliberately not deleted and its path is shown in the error status. An original that is empty (zero bytes, the microphone delivered no audio) holds nothing to keep; the app removes it without a recovery attempt and says the recording was empty. Historical crash leftovers are not swept automatically because they may contain the only surviving recording.
+The most recent non-empty transcript is also held in memory until replaced, cleared from the menu or the app exits. No persistent text history is created. Temporary recording files are restricted to the current user (permissions 0600); the original recording is created with these permissions before audio is written. If restricting fails, the app logs it. If a recovery-store write fails, the original temporary audio is deliberately not deleted and its path is shown in the error status. An original that is empty (zero bytes, the microphone delivered no audio) holds nothing to resend; the app says the recording was empty and leaves the file where it is, like an original after a failed recovery write; it is not swept automatically. Historical crash leftovers are not swept automatically because they may contain the only surviving recording.
 
 ## Linux CLI
 

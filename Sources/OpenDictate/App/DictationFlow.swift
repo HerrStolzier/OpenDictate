@@ -12,7 +12,8 @@ final class DictationFlow {
         var transcribeFile: @MainActor (URL) async throws -> String
         var transcribeRetry: @MainActor (FailedRecordingStore.RetryPayload) async throws -> String
         var keep: @MainActor (URL) -> Bool
-        /// True only for a file known to hold no bytes; it has nothing to keep.
+        /// True only for a file known to hold no bytes. It has nothing to keep or
+        /// resend, but stays on disk like any temporary original.
         var isEmpty: @MainActor (URL) -> Bool = { _ in false }
         var removeRetry: @MainActor (FailedRecordingStore.RetryPayload) -> Void
         var clean: @MainActor (URL) -> Void
@@ -102,9 +103,9 @@ final class DictationFlow {
             do {
                 let audio = try operations.stop()
                 let empty = !discardRecording && operations.isEmpty(audio)
-                if discardRecording || empty || operations.keep(audio) {
+                if discardRecording || (!empty && operations.keep(audio)) {
                     operations.clean(audio)
-                } else {
+                } else if !empty {
                     onStatus?("Aufnahme konnte nicht gesichert werden. Sie liegt noch unter \(audio.path)")
                     onOutcome?(.failed)
                     state = .idle
@@ -169,8 +170,8 @@ final class DictationFlow {
                 onStatus?("Aufnahme verworfen")
                 onOutcome?(.cancelled)
             } else if operations.isEmpty(original) {
-                // No audio arrived, so there is no recording to keep or retry.
-                mayCleanOriginal = true
+                // No audio arrived, so there is nothing to resend. The original
+                // stays on disk; only the misleading backup warning is avoided.
                 onStatus?(
                     Task.isCancelled
                         ? "Abgebrochen – die Aufnahme war leer"

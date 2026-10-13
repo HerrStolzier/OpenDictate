@@ -142,8 +142,8 @@ failures preserve the audio on disk and the last transcript in memory. Use
 recordings. Temporary originals are outside that action.
 
 Recordings classified as too short or too quiet are retained for a deliberate manual retry. These heuristics do not prove that no speech exists; they never trigger an automatic upload.
-An empty recording, where the microphone delivered no audio at all, has nothing to keep: the app says so and
-removes the empty file.
+An empty recording, where the microphone delivered no audio at all, has nothing to resend: the app says so
+and leaves the empty temporary file where it is.
 
 ## Cost
 

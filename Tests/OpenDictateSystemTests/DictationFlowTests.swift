@@ -251,7 +251,7 @@ struct DictationFlowTests {
         #expect(h.cleaned.isEmpty)
     }
 
-    @Test func emptyRecordingIsRemovedWithoutAFalseBackupWarning() async throws {
+    @Test func emptyRecordingIsReportedAsEmptyAndLeftInPlace() async throws {
         let h = Harness()
         h.preparationFails = true
         h.audioIsEmpty = true
@@ -264,14 +264,14 @@ struct DictationFlowTests {
         _ = h.flow.stop()
         await h.flow.task?.value
         #expect(h.uploads == 0 && h.kept.isEmpty)
-        #expect(h.cleaned == [h.original])
+        #expect(h.cleaned.isEmpty)
         #expect(outcomes == [.failed])
         #expect(statuses.last == "Die Aufnahme ist leer. Prüfe das Mikrofon und starte ein neues Diktat.")
         #expect(!statuses.contains { $0.contains("Sicherung fehlgeschlagen") })
         #expect(h.flow.state == .idle)
     }
 
-    @Test func cancellingAnEmptyRecordingKeepsNothing() throws {
+    @Test func cancellingAnEmptyRecordingNeitherKeepsNorDeletesIt() throws {
         let h = Harness()
         h.audioIsEmpty = true
         var outcomes: [DictationOutcome] = []
@@ -281,9 +281,24 @@ struct DictationFlowTests {
         _ = try h.flow.start()
         h.flow.cancel()
         #expect(h.kept.isEmpty && h.uploads == 0)
-        #expect(h.cleaned == [h.original])
+        #expect(h.cleaned.isEmpty)
         #expect(outcomes == [.cancelled])
         #expect(statuses.last == "Abgebrochen – die Aufnahme war leer")
+        #expect(h.flow.state == .idle)
+    }
+
+    @Test func cancelWhoseBackupFailsLeavesTheRecordingInPlace() throws {
+        let h = Harness()
+        h.keepSucceeds = false
+        var outcomes: [DictationOutcome] = []
+        var status = ""
+        h.flow.onOutcome = { outcomes.append($0) }
+        h.flow.onStatus = { status = $0 }
+        _ = try h.flow.start()
+        h.flow.cancel()
+        #expect(h.kept == [h.original] && h.cleaned.isEmpty)
+        #expect(outcomes == [.failed])
+        #expect(status.hasPrefix("Aufnahme konnte nicht gesichert werden"))
         #expect(h.flow.state == .idle)
     }
 
