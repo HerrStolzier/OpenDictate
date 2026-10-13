@@ -262,10 +262,13 @@ xcodebuild -project ios/OpenDictate.xcodeproj -scheme OpenDictateiOS \
   -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
 ```
 
-The build proves neither a background start nor a clipboard write. The device
-check with Basti's Go follows the acceptance list in
-[docs/ios-konzept.md](docs/ios-konzept.md); uploading to TestFlight is a
-publication and needs Basti's explicit Go.
+The build proves neither a background start nor a clipboard write. Before a
+build goes to the iPhone, the Mac checks it in the simulator with screenshots.
+Since 13 October 2026 the device check on Basti's iPhone needs no Go: Claude
+installs test builds and runs automated tests there, real dictations included,
+following the acceptance list in [docs/ios-konzept.md](docs/ios-konzept.md).
+Only Back Tap itself stays a short manual look by Basti. Uploading to
+TestFlight is a publication and needs Basti's explicit Go.
 
 ## iOS prototype
 
