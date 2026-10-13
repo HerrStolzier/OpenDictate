@@ -266,9 +266,19 @@ Screen and in the Dynamic Island shows that a recording is running.
   the text, and the audio is not sent anywhere. For that the app writes the
   checked recording to a temporary file in its own container and deletes it
   afterwards; a copy left because iOS ended the app is deleted at the
-  next start or recognition. The language model is downloaded once from Apple when you tap
-  "Sprache laden"; iOS manages and shares it with other apps. Only a
-  translation still sends the text to the service as described above.
+  next start or recognition. The language model is downloaded once from
+  Apple when you tap "Sprache laden"; iOS manages and shares it with other
+  apps.
+- **Translation on the iPhone:** with "Übersetzen mit: Auf dem iPhone" (iOS 26
+  or later) Apple's on-device translation (`TranslationSession`) translates
+  the text, and the text is not sent anywhere. The app recognizes the text's
+  language on the device first. The languages are downloaded once from Apple
+  when you tap "Sprachen laden". Apple
+  [says](https://developer.apple.com/documentation/translation/translationsession)
+  it may collect usage and performance metrics with the app's bundle ID and
+  the language pair, never the original or translated text. With recognition
+  and translation both on the iPhone, a dictation sends nothing and needs no
+  API key.
 - **API key:** stored only in the iPhone's Keychain with "this device only"
   and readable after the first unlock, so a dictation from the Lock Screen
   works. It is not part of backups and never leaves the device except in the
