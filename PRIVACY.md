@@ -260,13 +260,20 @@ Screen and in the Dynamic Island shows that a recording is running.
   general clipboard marked "local only", so iOS does not share it with your
   other devices through Universal Clipboard. Control characters and invisible
   text-direction marks are removed from the service's answer first. The app
-  does not read the clipboard.
+  does not read the clipboard. While the app is in the background, iOS
+  refuses it the clipboard; there the shortcut's own "Copy to Clipboard" step
+  copies the text the app returns to it, and that step's "Local Only" option
+  decides whether Universal Clipboard shares it.
 - **Last text:** kept only in memory while the app runs, for "Copy again";
   it is gone when iOS ends the app.
 - **Failed recordings:** a recording whose text did not reach the clipboard
-  stays in the app's own container, under the same rule as on the Mac: at most
-  the five newest, none older than 24 hours, checked whenever the list is
-  read. The folder is excluded from backups. As on the Mac, each kept
+  stays in the app's own container. When the app's own copy failed but the
+  text went back to the shortcut, it counts as delivered once the clipboard
+  changed afterwards (the shortcut copied the text, or something else was
+  copied); the app then deletes it at the next dictation or when it is
+  opened. Kept recordings stay under the same rule
+  as on the Mac: at most the five newest, none older than 24 hours, checked
+  whenever the list is read. The folder is excluded from backups. As on the Mac, each kept
   recording gets an authentication tag (HMAC-SHA256 with a key in the
   Keychain); "Send again" offers only recordings with a valid tag and uploads
   exactly the bytes it checked. A recording shorter than one second is kept

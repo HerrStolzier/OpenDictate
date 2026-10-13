@@ -187,8 +187,9 @@ oder einen eigenen Server, Übersetzung, Zwischenablage, „Nochmal senden“ na
 einem Fehler, Texte englisch und deutsch. Am 12. Oktober lief sie
 zum ersten Mal auf Bastis iPhone 15: Ein Diktat aus der App kam an, der Start
 über den Kurzbefehl aus dem Hintergrund scheiterte mit „Die Aufnahme konnte
-nicht starten“. Seit dem 13. Oktober nimmt der Kurzbefehl im Hintergrund auf;
-offen ist, ob der Text von dort in die Zwischenablage kommt. Vorgaben für die erste Beta (11. Oktober): das
+nicht starten“. Seit dem 13. Oktober nimmt der Kurzbefehl per Doppeltippen im
+Hintergrund auf; die Zwischenablage verweigert iOS der App dort, darum
+kopiert der Kurzbefehl selbst, und so lässt sich der Text einfügen. Vorgaben für die erste Beta (11. Oktober): das
 Kontrollzentrum folgt später; der
 Tastatur-Prototyp bleibt als Nachweis im Repository, Draft-PR #40 ist
 geschlossen ([Richtung](docs/ios-direction.md)).
@@ -202,11 +203,12 @@ geschlossen ([Richtung](docs/ios-direction.md)).
 2. Am Mac bauen, dann der erste Prüfpunkt auf dem iPhone 15 mit Bastis Go:
    Startet die Aufnahme per „Auf Rückseite tippen“ im Hintergrund, ohne dass
    die App aufgeht, und landet der Text in der Zwischenablage? Danach die
-   Abnahme aus dem Konzept. Stand 13. Oktober: Der Kurzbefehl aus der
-   Kurzbefehle-App nimmt im Hintergrund auf und der Text kommt an, aber die
-   App meldete danach, dass die Zwischenablage ihn nicht nahm. Ob iOS das
-   verweigert, klärt ein Einfügen direkt nach einem Diktat aus dem
-   Hintergrund; öffnet man die App, kopiert sie den Text jetzt selbst.
+   Abnahme aus dem Konzept. Stand 13. Oktober: Doppeltippen nimmt im
+   Hintergrund auf und der Text kommt in der App an, aber iOS lässt die App
+   dort nicht in die Zwischenablage schreiben. Mit dem Schritt „In
+   Zwischenablage kopieren“ im Kurzbefehl kommt der Text an und lässt sich
+   einfügen. Die nächste Fassung gibt beim Start nichts zurück, damit der
+   Schritt die Zwischenablage nicht leert; das ist am Gerät noch zu prüfen.
 3. Apples Spracherkennung auf dem Gerät (SpeechAnalyzer, ab iOS 26) als
    kostenlose Option ausprobieren und am iPhone mit OpenAI vergleichen
    (entschieden am 13. Oktober). Reicht die Qualität nicht, folgt ein

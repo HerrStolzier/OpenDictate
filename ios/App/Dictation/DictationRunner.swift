@@ -36,6 +36,8 @@ final class DictationRunner {
     /// The clipboard as that copy left it, so opening the app never replaces
     /// something copied since.
     @ObservationIgnored private var missedClipboard: Int?
+    /// That text went back to the shortcut, whose own step may copy it.
+    @ObservationIgnored private var handedToShortcut = false
     /// Newest kept recording, for "Send again".
     private(set) var retryable: RecordingRetention.Entry?
 
@@ -74,16 +76,20 @@ final class DictationRunner {
         }
     }
 
-    /// The shortcut's action: starts a dictation and returns an empty text, or
-    /// stops it and returns the text, which is then on the clipboard unless iOS
-    /// refused it. While a dictation is written, another press changes nothing.
-    func toggle() async throws -> String {
+    /// The shortcut's action: starts a dictation and returns nothing, or stops
+    /// it and returns the text. iOS refuses the clipboard to an app in the
+    /// background, so the shortcut's own "Copy to Clipboard" step copies it;
+    /// with nothing returned, that step leaves the clipboard alone. While a
+    /// dictation is written, another press changes nothing.
+    func toggle() async throws -> String? {
         switch phase {
-        case .listening: return try await finish()
-        case .writing: return ""
+        case .listening:
+            let text = try await finish(forShortcut: true)
+            return text.isEmpty ? nil : text
+        case .writing: return nil
         case .ready, .copied, .oops:
             try await start()
-            return ""
+            return nil
         }
     }
 
@@ -109,8 +115,9 @@ final class DictationRunner {
 
     /// Stops the recording, sends it, copies the result and returns it. Returns
     /// an empty text when nothing was recording.
+    /// `forShortcut`: the shortcut waits for the text and copies it itself.
     @discardableResult
-    func finish() async throws -> String {
+    func finish(forShortcut: Bool = false) async throws -> String {
         guard case .listening = phase, let configuration else { return "" }
         // Before the microphone stops: releasing the audio session ends the
         // background mode that kept the app running.
@@ -124,7 +131,7 @@ final class DictationRunner {
         guard recording.duration >= Self.minimumDuration else { throw await fail(.tooShort) }
         await updateActivity(.writing)
         guard let audio = try? Data(contentsOf: kept) else { throw await fail(.recordingUnreadable) }
-        return try await deliver(audio, keptAt: kept, configuration: configuration)
+        return try await deliver(audio, keptAt: kept, configuration: configuration, forShortcut: forShortcut)
     }
 
     /// The Live Activity's stop button: returns once the recording stopped,
@@ -171,12 +178,26 @@ final class DictationRunner {
     }
 
     /// Opening the app completes a copy that iOS refused in the background,
-    /// while "Oops" still says so and nothing else was copied since.
+    /// while that dictation is the last one shown and nothing, not even the
+    /// shortcut, copied anything since.
     func copyUncopied() {
-        guard uncopiedRecording != nil, phase == .oops(DictationFailure.clipboardFailed.message),
-            UIPasteboard.general.changeCount == missedClipboard
+        settleUncopied()
+        guard uncopiedRecording != nil, UIPasteboard.general.changeCount == missedClipboard,
+            phase == .copied || phase == .oops(DictationFailure.clipboardFailed.message)
         else { return }
         copyAgain()
+    }
+
+    /// Once the clipboard changed after a text went back to the shortcut, the
+    /// shortcut copied it (or the person copied something else instead); its
+    /// recording is not sent again.
+    private func settleUncopied() {
+        guard let uncopiedRecording, handedToShortcut, UIPasteboard.general.changeCount != missedClipboard
+        else { return }
+        store.remove(uncopiedRecording)
+        self.uncopiedRecording = nil
+        missedClipboard = nil
+        retryable = pendingRetry()
     }
 
     /// Only between dictations: a phase change while recording or writing
@@ -202,9 +223,9 @@ final class DictationRunner {
     /// The caller holds a `BackgroundActivity`, so the requests finish even
     /// when the app is in the background.
     @discardableResult
-    private func deliver(_ audio: Data, keptAt url: URL, configuration: DictationConfiguration) async throws
-        -> String
-    {
+    private func deliver(
+        _ audio: Data, keptAt url: URL, configuration: DictationConfiguration, forShortcut: Bool = false
+    ) async throws -> String {
         do {
             var text = try await client.transcribe(audio, configuration: configuration)
             guard !text.isEmpty else { throw DictationFailure.nothingRecognized }
@@ -212,16 +233,26 @@ final class DictationRunner {
                 text = try await client.translate(text, into: target, configuration: configuration)
                 guard !text.isEmpty else { throw DictationFailure.emptyTranslation }
             }
+            // Otherwise the last dictation's recording would turn into "Send
+            // again" once this one replaces its text.
+            settleUncopied()
             lastText = text
             uncopiedRecording = nil
             do {
                 try Self.copy(text)
             } catch {
-                // The recording stays for "Send again" until "Copy again" works;
-                // the shortcut still gets the text to copy it itself.
+                // The recording stays until "Copy again" works, in case the
+                // shortcut has no copy step and the text lives only here.
                 uncopiedRecording = url
                 missedClipboard = UIPasteboard.general.changeCount
-                _ = await fail(.clipboardFailed)
+                handedToShortcut = forShortcut
+                guard forShortcut else {
+                    _ = await fail(.clipboardFailed)
+                    return text
+                }
+                retryable = pendingRetry()
+                phase = .copied
+                await endActivity(.copied, detail: L10n.shortcutCopiesDetail, after: 4)
                 return text
             }
             store.remove(url)
