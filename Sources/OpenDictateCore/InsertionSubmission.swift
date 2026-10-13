@@ -4,6 +4,4 @@ public enum InsertionSubmission: Equatable, Sendable {
     case notAttempted
     /// Every requested command was submitted; the destination was not verified.
     case submitted
-    /// A native insertion was attempted, but its result could not be confirmed.
-    case uncertain
 }

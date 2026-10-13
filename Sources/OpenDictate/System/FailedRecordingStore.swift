@@ -71,23 +71,6 @@ enum FailedRecordingStore {
 
     /// Loads and authenticates bytes once. The caller uploads these exact bytes,
     /// avoiding a second path lookup after validation.
-    static func newest(now: Date = Date()) -> RetryPayload? {
-        guard let key = RecordingAuthenticationKeyStore.read() else { return nil }
-        return newest(now: now, in: directory, key: key)
-    }
-
-    static func newest(now: Date, in directoryURL: URL, key: SymmetricKey) -> RetryPayload? {
-        for url in candidateAudioURLs(in: directoryURL).sorted(by: { $0.lastPathComponent > $1.lastPathComponent }) {
-            if let payload = payload(at: url, now: now, key: key) { return payload }
-        }
-        return nil
-    }
-
-    static func payload(filename: String, now: Date = Date()) -> RetryPayload? {
-        guard isExpectedFilename(filename), let key = RecordingAuthenticationKeyStore.read() else { return nil }
-        return payload(at: directory.appendingPathComponent(filename), now: now, key: key)
-    }
-
     static func payload(at url: URL, now: Date, key: SymmetricKey) -> RetryPayload? {
         guard let created = date(from: url.lastPathComponent),
             now.timeIntervalSince(created) < RecordingRetention.maximumAge,

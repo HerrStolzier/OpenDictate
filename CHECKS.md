@@ -562,8 +562,11 @@ are distinct evidence. One program does not establish its whole category.
 The former Terminal-specific Unicode path has been removed. The installed
 `68ef919` candidate passed one shell-line case on that older path; see
 [the September 22 report](docs/terminal-focus-acceptance-2026-09-22.md).
-The restored Command-V path has no line-break or command filter. Test Terminal
-only with a harmless single-line phrase and a disposable, empty shell prompt.
+On the restored Command-V path, text with a line break is not pasted
+automatically into known terminals (`AutoPastePolicy`); it stays in the
+clipboard. Single-line text is pasted without any command filter, so test
+Terminal only with a harmless single-line phrase and a disposable, empty shell
+prompt.
 
 For a separately authorized native dictation check:
 

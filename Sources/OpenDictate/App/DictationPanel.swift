@@ -7,7 +7,7 @@ final class DictationPanel: NSWindowController {
     typealias Display = DictationDisplay
 
     private static let pasteDetail = "Per ⌘V eingefügt. Schau kurz im Zielprogramm nach."
-    private static let uncertainPasteDetail =
+    private static let unverifiedPasteDetail =
         "Ob der Text angekommen ist, ließ sich nicht prüfen. Schau kurz nach, bevor du ihn nochmal einfügst."
 
     var onRecord: (() -> Void)?
@@ -140,11 +140,6 @@ final class DictationPanel: NSWindowController {
             set(.manual, detail: "Nicht automatisch eingefügt. Du kannst den Text kopieren.")
         case .deliveryUnconfirmed:
             set(.unconfirmed, detail: Self.pasteDetail)
-        case .deliveryUncertain:
-            showingText = true
-            set(
-                .unconfirmed,
-                detail: Self.uncertainPasteDetail)
         case .failed:
             set(.failure, detail: currentDetail)
         case .cancelled:
@@ -441,7 +436,7 @@ final class DictationPanel: NSWindowController {
                 onCopy?()
             } else {
                 showingText = true
-                currentDetail = Self.uncertainPasteDetail
+                currentDetail = Self.unverifiedPasteDetail
                 render()
                 window?.makeFirstResponder(textView)
             }

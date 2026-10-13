@@ -19,6 +19,7 @@ struct DictationFlowTests {
         var afterCopy: (() -> Void)?
         var copySucceeds = true
         var keepSucceeds = true
+        var audioIsEmpty = false
         var text = "dictated text"
         var preparationFails = false
         var stopFails = false
@@ -61,6 +62,7 @@ struct DictationFlowTests {
                         self.kept.append($0)
                         return self.keepSucceeds
                     },
+                    isEmpty: { _ in self.audioIsEmpty },
                     removeRetry: { _ in self.removed += 1 },
                     clean: { self.cleaned.append($0) },
                     copy: {
@@ -224,10 +226,15 @@ struct DictationFlowTests {
     @Test func retryProvidesManualTextInsteadOfAnUnconfirmedPaste() async {
         let h = Harness()
         var outcomes: [DictationOutcome] = []
+        var statuses: [String] = []
         h.flow.onOutcome = { outcomes.append($0) }
+        h.flow.onStatus = { statuses.append($0) }
         _ = h.flow.retry(h.payload)
         await h.flow.task?.value
         #expect(outcomes == [.textAvailable])
+        // A successful retry never flashes a cancellation message.
+        #expect(statuses.last == "Nochmal gesendet – Text kopiert, nicht automatisch eingefügt")
+        #expect(!statuses.contains { $0.contains("abgebrochen") })
         #expect(h.pasted == 0 && h.flow.lastTranscript == h.text)
     }
 
@@ -242,6 +249,42 @@ struct DictationFlowTests {
         await h.flow.task?.value
         #expect(outcomes == [.failed])
         #expect(h.cleaned.isEmpty)
+    }
+
+    @Test func emptyRecordingIsRemovedWithoutAFalseBackupWarning() async throws {
+        let h = Harness()
+        h.preparationFails = true
+        h.audioIsEmpty = true
+        h.keepSucceeds = false
+        var outcomes: [DictationOutcome] = []
+        var statuses: [String] = []
+        h.flow.onOutcome = { outcomes.append($0) }
+        h.flow.onStatus = { statuses.append($0) }
+        _ = try h.flow.start()
+        _ = h.flow.stop()
+        await h.flow.task?.value
+        #expect(h.uploads == 0 && h.kept.isEmpty)
+        #expect(h.cleaned == [h.original])
+        #expect(outcomes == [.failed])
+        #expect(statuses.last == "Die Aufnahme ist leer. Prüfe das Mikrofon und starte ein neues Diktat.")
+        #expect(!statuses.contains { $0.contains("Sicherung fehlgeschlagen") })
+        #expect(h.flow.state == .idle)
+    }
+
+    @Test func cancellingAnEmptyRecordingKeepsNothing() throws {
+        let h = Harness()
+        h.audioIsEmpty = true
+        var outcomes: [DictationOutcome] = []
+        var statuses: [String] = []
+        h.flow.onOutcome = { outcomes.append($0) }
+        h.flow.onStatus = { statuses.append($0) }
+        _ = try h.flow.start()
+        h.flow.cancel()
+        #expect(h.kept.isEmpty && h.uploads == 0)
+        #expect(h.cleaned == [h.original])
+        #expect(outcomes == [.cancelled])
+        #expect(statuses.last == "Abgebrochen – die Aufnahme war leer")
+        #expect(h.flow.state == .idle)
     }
 
     @Test func skippedAudioIsKeptWithoutUpload() async throws {
@@ -358,8 +401,7 @@ struct DictationFlowTests {
     @Test func insertionEvidenceReachesStatusWithoutChangingClipboardRecoveryPolicy() async throws {
         let cases: [(InsertionSubmission, DictationOutcome, String)] = [
             (.notAttempted, .textAvailable, "nicht automatisch eingefügt"),
-            (.submitted, .deliveryUnconfirmed, "eingefügt – Text auch"),
-            (.uncertain, .deliveryUncertain, "Einfügen nicht bestätigt")
+            (.submitted, .deliveryUnconfirmed, "eingefügt – Text auch")
         ]
         for (submission, outcome, status) in cases {
             let h = Harness()

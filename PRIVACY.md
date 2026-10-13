@@ -50,7 +50,9 @@ service `OpenDictate` and account `OPENAI_API_KEY_APP`. OpenDictate does not sup
 supplying the key through a command-line argument or environment variable.
 The app reads the older `OPENAI_API_KEY` account only when the new account is
 confirmed absent. Access errors or unusable data in the new account do not cause
-a fallback to an older key. On an explicit save, the app creates its own new
+a fallback to an older key. When the app reads a key from the older account, it
+moves that key to the new account right away; if the move fails, it keeps using
+the older entry. On a move or an explicit save, the app creates its own new
 entry or updates that entry's value, then removes the older account only after
 the new value has been stored successfully. It does not delete the active entry
 before attempting replacement. If removal of the older entry fails, the app
@@ -165,7 +167,7 @@ API keys, transcript text, or audio contents. Logging is serialized and rotated 
 
 ## Last transcript and temporary originals
 
-The most recent non-empty transcript is also held in memory until replaced, cleared from the menu or the app exits. No persistent text history is created. Temporary recording files are restricted to the current user (permissions 0600); the original recording is created with these permissions before audio is written. If restricting fails, the app logs it. If a recovery-store write fails, the original temporary audio is deliberately not deleted and its path is shown in the error status. Historical crash leftovers are not swept automatically because they may contain the only surviving recording.
+The most recent non-empty transcript is also held in memory until replaced, cleared from the menu or the app exits. No persistent text history is created. Temporary recording files are restricted to the current user (permissions 0600); the original recording is created with these permissions before audio is written. If restricting fails, the app logs it. If a recovery-store write fails, the original temporary audio is deliberately not deleted and its path is shown in the error status. An original that is empty (zero bytes, the microphone delivered no audio) holds nothing to keep; the app removes it without a recovery attempt and says the recording was empty. Historical crash leftovers are not swept automatically because they may contain the only surviving recording.
 
 ## Linux CLI
 
