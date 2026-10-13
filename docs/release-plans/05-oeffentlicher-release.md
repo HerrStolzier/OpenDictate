@@ -33,8 +33,8 @@ zu bestätigen; dieser Plan trifft keine Vertrags- oder Firmenentscheidung.
 2. Ein GitHub **Pre-Release** mit Versionshinweisen, dem **unveränderten** ZIP
    aus Plan 4, SHA-256-Wert und der
    [Installationsanleitung](installationsanleitung.md) veröffentlichen. Die
-   private Draft `v0.1.0-beta.8` ist dafür vorgesehen, solange Plan 4 keinen
-   neuen Kandidaten erzeugt. Kein
+   frühere private Draft `v0.1.0-beta.8` ist am 13. Oktober 2026 gelöscht;
+   veröffentlicht sind seither `v0.1.0-beta.10` und `v0.1.0-beta.12`. Kein
    Ad-hoc-CI-Archiv als Produktdownload verlinken. Die Website verlinkt genau
    diesen Release und seine Datenschutzhinweise.
 3. Von den öffentlichen Links das ZIP erneut herunterladen, den Hash

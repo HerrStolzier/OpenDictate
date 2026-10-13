@@ -82,8 +82,8 @@ wahlweise mit Übersetzung, und melden Probleme über GitHub Issues.
 
 **Stand:** Stufe 1 (interne Funktionsabnahme) am 24. September abgeschlossen.
 Stufe 2: Build 8 aus `b786d4c` ist von Apple notarisiert, das finale ZIP samt
-Manifest geprüft (SHA-256 `2e994cd8…e335768`) und in der privaten
-Release-Draft `v0.1.0-beta.8` hinterlegt. Teil B am 8. Oktober: installiert,
+Manifest geprüft (SHA-256 `2e994cd8…e335768`); die private Release-Draft
+`v0.1.0-beta.8` ist seit 13. Oktober gelöscht, abgelöst durch Beta 10 und 12. Teil B am 8. Oktober: installiert,
 erster Start mit Quarantäne und ein Diktat mit automatischem Einfügen bestanden
 ([Nachweis](docs/release-plans/evidence/2026-10-08-plan2-teil-b.md)). Übersetzung und die kleinen Punkte vom 7. Oktober sind im Code und
 offline geprüft ([Stand](docs/remaining-acceptance.md#macos)); ein echtes
