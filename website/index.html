@@ -21,6 +21,7 @@
 <link rel="icon" href="blink-32.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preload" href="fonts/GeistPixel-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/Geist-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="tokens.css"><link rel="stylesheet" href="style.css">
 <script src="site.js" defer></script>
 <script type="application/ld+json">
@@ -135,19 +136,6 @@
 </div>
 </section>
 
-<section id="so-gehts" class="section-tight" aria-labelledby="so-title">
-<div class="wrap">
-<div class="translate">
-<div class="translate-text">
-<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>So geht's</span></p>
-<h2 id="so-title">Taste halten, sprechen, loslassen.</h2>
-<p class="muted">Blink hört zu, solange du die Taste hältst. Lässt du los, steht dein Text da, wo du gerade warst: in der Mail, im Chat oder im Dokument.</p>
-</div>
-<figure class="clip"><div class="clip-frame"><video src="videos/blink-01-so-diktierst-du-schleife.mp4" poster="videos/blink-01-so-diktierst-du.jpg" width="1280" height="720" muted loop playsinline preload="none" controls aria-label="Erklärvideo ohne Ton: So diktierst du"></video><button class="clip-toggle" type="button" data-title="So diktierst du" hidden></button></div><figcaption class="meta"><a href="anleitungen.html#so-diktierst-du">Mit Ton ansehen</a></figcaption></figure>
-</div>
-</div>
-</section>
-
 <section id="kosten" class="section rule" aria-labelledby="kosten-title">
 <div class="wrap">
 <div class="intro">
@@ -171,44 +159,48 @@
 <h2 id="daten-title">Deine Stimme bleibt auf deinem Rechner.</h2>
 <p class="lead">Mit einem Modell auf deinem Mac oder Linux-Rechner verlässt weder deine Aufnahme noch dein Text das Gerät. Dafür brauchst du keinen Schlüssel und kein Konto. <a href="https://github.com/HerrStolzier/OpenDictate/blob/main/docs/lokales-modell.md">So richtest du es ein</a></p>
 <p class="muted">Mit OpenAI geht die Aufnahme direkt von deinem Rechner dorthin, mit deinem eigenen Schlüssel. Ich sehe davon nichts, und die App zählt nicht mit. Der Code liegt offen auf <a href="https://github.com/HerrStolzier/OpenDictate">GitHub</a>.</p>
-<p class="meta">Mit dem lokalen Modell aus der Anleitung geht Übersetzen noch nicht.</p>
 </div>
-<figure class="clip"><div class="clip-frame"><video src="videos/blink-02-kostenlos-schleife.mp4" poster="videos/blink-02-kostenlos.jpg" width="1280" height="720" muted loop playsinline preload="none" controls aria-label="Erklärvideo ohne Ton: Kostenlos diktieren"></video><button class="clip-toggle" type="button" data-title="Kostenlos diktieren" hidden></button></div><figcaption class="meta"><a href="anleitungen.html#kostenlos-diktieren">Mit Ton ansehen</a></figcaption></figure>
+<figure class="route" aria-label="Wohin deine Aufnahme geht">
+<div class="lane is-local">
+<p class="lane-head"><span>Mit lokalem Modell</span><span class="lane-tag">0&nbsp;€</span></p>
+<ol class="hops"><li>Mikrofon</li><li>dein Rechner</li><li>Text</li></ol>
+<p class="lane-note">Bleibt auf dem Gerät. Mit dem Modell aus der Anleitung geht Übersetzen noch nicht.</p>
 </div>
+<div class="lane">
+<p class="lane-head"><span>Mit OpenAI</span><span class="lane-tag">0,1&nbsp;ct</span></p>
+<ol class="hops"><li>Mikrofon</li><li class="is-out">OpenAI</li><li>Text</li></ol>
+<p class="lane-note">Mit deinem eigenen Schlüssel, ohne Umweg über uns.</p>
 </div>
-</section>
-
-<section class="section-tight" aria-labelledby="sicher-title">
-<div class="wrap">
-<div class="translate">
-<div class="translate-text">
-<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Sicher aufgehoben</span></p>
-<h2 id="sicher-title">Kein Diktat geht verloren.</h2>
-<p class="muted">Bricht das Netz weg oder hakt der Dienst, bleibt deine Aufnahme auf deinem Rechner. Du schickst sie mit einem Klick noch einmal los, bis zu 24 Stunden lang.</p>
-</div>
-<figure class="clip"><div class="clip-frame"><video src="videos/blink-04-nichts-geht-verloren-schleife.mp4" poster="videos/blink-04-nichts-geht-verloren.jpg" width="1280" height="720" muted loop playsinline preload="none" controls aria-label="Erklärvideo ohne Ton: Nichts geht verloren"></video><button class="clip-toggle" type="button" data-title="Nichts geht verloren" hidden></button></div><figcaption class="meta"><a href="anleitungen.html#nichts-geht-verloren">Mit Ton ansehen</a></figcaption></figure>
+</figure>
 </div>
 </div>
 </section>
 
-<section id="uebersetzen" class="section-tight" aria-labelledby="uebersetzen-title">
+<section id="so-gehts" class="section rule" aria-labelledby="kino-title">
 <div class="wrap">
-<div class="translate">
-<div class="translate-text">
-<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Übersetzen</span></p>
-<h2 id="uebersetzen-title">Sprich Deutsch, schreib Englisch.</h2>
-<p class="muted">OpenDictate übersetzt, bevor es einfügt. Die Mail ins Ausland oder die Nachricht im Gaming-Chat schreibst du so auf Englisch oder in einer von elf weiteren Sprachen.</p>
-<p class="muted">Und das eingebaute Diktat vom Mac? Das übersetzt nicht, und eine verpatzte Aufnahme kannst du dort nicht noch einmal senden.</p>
+<div class="intro">
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>So geht's</span></p>
+<h2 id="kino-title">Blink macht es dir vor.</h2>
 </div>
-<figure class="clip"><div class="clip-frame"><video src="videos/blink-03-uebersetzen-schleife.mp4" poster="videos/blink-03-uebersetzen.jpg" width="1280" height="720" muted loop playsinline preload="none" controls aria-label="Erklärvideo ohne Ton: Gleich auf Englisch"></video><button class="clip-toggle" type="button" data-title="Gleich auf Englisch" hidden></button></div><figcaption class="meta"><a href="anleitungen.html#gleich-auf-englisch">Mit Ton ansehen</a></figcaption></figure>
+<div class="kino">
+<div class="kino-screen">
+<video class="kino-video" src="videos/blink-01-so-diktierst-du-schleife.mp4" poster="videos/blink-01-so-diktierst-du.webp" width="1280" height="720" muted playsinline preload="none" controls aria-label="Erklärvideo: So diktierst du"></video>
+<div class="kino-tools" hidden><button class="kino-sound" type="button" aria-pressed="false">Ton</button><button class="kino-play" type="button"></button></div>
 </div>
+<ol class="kino-list">
+<li id="so-diktierst-du" class="is-on"><a class="kino-chapter" aria-current="step" href="anleitungen.html#so-diktierst-du" data-loop="videos/blink-01-so-diktierst-du-schleife.mp4" data-full="videos/blink-01-so-diktierst-du.mp4" data-poster="videos/blink-01-so-diktierst-du.webp"><span class="kino-num">01</span><span class="kino-name">So diktierst du</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Taste halten, sprechen, loslassen. Dein Text steht da, wo dein Cursor ist: in der Mail, im Chat oder im Dokument.</p></li>
+<li id="uebersetzen"><a class="kino-chapter" href="anleitungen.html#gleich-auf-englisch" data-loop="videos/blink-03-uebersetzen-schleife.mp4" data-full="videos/blink-03-uebersetzen.mp4" data-poster="videos/blink-03-uebersetzen.webp"><span class="kino-num">02</span><span class="kino-name">Gleich auf Englisch</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Du sprichst Deutsch, eingefügt wird Englisch oder eine von elf weiteren Sprachen. Für die Mail ins Ausland oder den Gaming-Chat. Das eingebaute Diktat vom Mac übersetzt nicht.</p></li>
+<li id="nichts-geht-verloren"><a class="kino-chapter" href="anleitungen.html#nichts-geht-verloren" data-loop="videos/blink-04-nichts-geht-verloren-schleife.mp4" data-full="videos/blink-04-nichts-geht-verloren.mp4" data-poster="videos/blink-04-nichts-geht-verloren.webp"><span class="kino-num">03</span><span class="kino-name">Nichts geht verloren</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Bricht das Netz weg oder hakt der Dienst, bleibt deine Aufnahme auf deinem Rechner. Mit „Nochmal senden“ schickst du sie los, bis zu 24 Stunden lang.</p></li>
+<li id="kostenlos"><a class="kino-chapter" href="anleitungen.html#kostenlos-diktieren" data-loop="videos/blink-02-kostenlos-schleife.mp4" data-full="videos/blink-02-kostenlos.mp4" data-poster="videos/blink-02-kostenlos.webp"><span class="kino-num">04</span><span class="kino-name">Kostenlos mit eigenem Server</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Trag einen Server auf deinem Rechner ein. Dann kostet ein Diktat nichts, und die Aufnahme bleibt bei dir.</p></li>
+<li id="erste-schritte"><a class="kino-chapter" href="anleitungen.html#erste-schritte" data-loop="videos/blink-05-erste-schritte-schleife.mp4" data-full="videos/blink-05-erste-schritte.mp4" data-poster="videos/blink-05-erste-schritte.webp"><span class="kino-num">05</span><span class="kino-name">Erste Schritte am Mac</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">App laden, in die Programme ziehen, Schlüssel oder Server eintragen, Kürzel wählen. Dann geht es los.</p></li>
+</ol>
+</div>
+<p class="meta"><a href="anleitungen.html">Alle Anleitungen mit Text zum Mitlesen</a></p>
 </div>
 </section>
 
 <section class="section cta" aria-labelledby="cta-title">
 <div class="wrap">
-<div class="split">
-<div class="cta-main">
 <h2 id="cta-title" class="cta-title">Probier es aus.</h2>
 <p class="lead">Es ist eine Beta. Wenn etwas hakt, schreib mir.</p>
 <div class="buttons">
@@ -217,9 +209,6 @@
 <a class="text-link" href="https://github.com/HerrStolzier/OpenDictate/issues/new?template=beta-rueckmeldung.md">Problem melden</a>
 </div>
 <p class="meta">iPhone und Windows folgen.</p>
-</div>
-<figure class="clip"><div class="clip-frame"><video src="videos/blink-05-erste-schritte-schleife.mp4" poster="videos/blink-05-erste-schritte.jpg" width="1280" height="720" muted loop playsinline preload="none" controls aria-label="Erklärvideo ohne Ton: Erste Schritte am Mac"></video><button class="clip-toggle" type="button" data-title="Erste Schritte am Mac" hidden></button></div><figcaption class="meta"><a href="anleitungen.html#erste-schritte">Mit Ton ansehen</a></figcaption></figure>
-</div>
 <figure class="why">
 <blockquote><p>Ich diktiere jeden Tag, bei der Arbeit und im Gaming-Chat. Ein Abo für etwas, das pro Diktat Bruchteile eines Cents kostet, wollte ich nicht.</p></blockquote>
 <figcaption>Basti</figcaption>

@@ -56,6 +56,7 @@ const KINDS = {
   xml: ["application/xml; charset=utf-8", 300],
   jpg: ["image/jpeg", 86400],
   mp4: ["video/mp4", 86400],
+  webp: ["image/webp", 86400],
 };
 
 const SECURITY = {
