@@ -52,7 +52,11 @@ consistency and diff checks, not an unrelated source test suite.
 
 Tests remain offline and deterministic by default. Live tests (microphone,
 provider requests, app launch/install, Keychain) run when Basti is at the
-device and gives an explicit "Go" in the session. Since 8 October 2026 only
+device and gives an explicit "Go" in the session. Exception since 13 October
+2026: on Basti's iPhone, Claude may install test builds of the iOS app and run
+automated tests there without a Go, including real dictations through the
+microphone and the provider (a few requests per run); everything else in this
+paragraph still applies. Since 8 October 2026 only
 the path every user takes (installation and one dictation) is verified by us;
 single-case checks are left to beta users and listed as known limits. There are no counted test blocks,
 quotas or advance approval documents. TCC resets, signing-identity changes and

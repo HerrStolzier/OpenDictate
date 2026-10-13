@@ -21,6 +21,11 @@ enum DictationFailure: Error, Equatable {
     case clipboardFailed
     case offline
     case invalidResponse
+    /// Speech recognition on this iPhone needs iOS 26 and a supported language.
+    case onDeviceUnavailable
+    case onDeviceModelMissing
+    /// The error domain and code, shown so a beta report names the cause.
+    case onDeviceFailed(String?)
     /// HTTP status and the provider's error code, if it sent one.
     case service(status: Int, code: String?)
 
@@ -87,6 +92,21 @@ enum DictationFailure: Error, Equatable {
                 "Keine Verbindung zum Dienst. Prüf deine Verbindung und versuch es nochmal.")
         case .invalidResponse:
             L10n.pick("The service sent an unexpected answer.", "Der Dienst hat unerwartet geantwortet.")
+        case .onDeviceUnavailable:
+            L10n.pick(
+                "Recognition on this iPhone needs iOS 26 and a supported language. "
+                    + "Switch to OpenAI in OpenDictate's settings.",
+                "Die Erkennung auf dem iPhone braucht iOS 26 und eine unterstützte Sprache. "
+                    + "Stell in den Einstellungen von OpenDictate auf OpenAI um.")
+        case .onDeviceModelMissing:
+            L10n.pick(
+                "Load the language for recognition on this iPhone first, in OpenDictate's settings.",
+                "Lade zuerst die Sprache für die Erkennung auf dem iPhone, in den Einstellungen von OpenDictate.")
+        case .onDeviceFailed(let detail):
+            L10n.pick(
+                "Recognition on this iPhone did not work. Try again.",
+                "Die Erkennung auf dem iPhone hat nicht geklappt. Versuch es nochmal.")
+                + (detail.map { " (\($0))" } ?? "")
         case .service(let status, let code):
             Self.serviceMessage(status: status, code: code)
         }

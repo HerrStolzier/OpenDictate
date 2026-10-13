@@ -123,6 +123,17 @@ die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleiner
    oder „Aus“ lassen sich einstellen. „Beenden“ steht im
    Menü der Menüleiste
    ([design/README.md](design/README.md#stand-je-oberfläche)).
+5. Für den nächsten Mac-Kandidaten (Bastis Wünsche vom 13. Oktober, noch
+   nicht gebaut):
+   - Im Menü und in den Einstellungen ist sichtbar, wer gerade transkribiert,
+     und es gibt eine Wahl „OpenAI / Eigener Server“. Heute sieht man das
+     nicht: Die Einstellungen zeigen das OpenAI-Modell auch dann, wenn der
+     eigene Server schreibt, und einen Schalter dafür gibt es nicht.
+   - Die Übersetzung läuft auch lokal, ohne OpenAI. Sie braucht dafür einen
+     eigenen Weg, weil der lokale whisper.cpp-Server nur transkribiert.
+     Vorgesehen ist Apples Übersetzung auf dem Gerät (Translation, offline und
+     kostenlos); sie gibt es ab macOS 15, unter macOS 14 bleibt es beim
+     bisherigen Dienst.
 
 **Bekannte Grenzen, den Beta-Nutzern überlassen:** Feldtypen und Programme
 jenseits der [Kompatibilitätsmatrix](docs/compatibility-matrix.md); gehörte
@@ -215,7 +226,9 @@ geschlossen ([Richtung](docs/ios-direction.md)).
 3. Apples Spracherkennung auf dem Gerät (SpeechAnalyzer, ab iOS 26) als
    kostenlose Option ausprobieren und am iPhone mit OpenAI vergleichen
    (entschieden am 13. Oktober). Reicht die Qualität nicht, folgt ein
-   Whisper-Modell in der App (WhisperKit).
+   Whisper-Modell in der App (WhisperKit). Stand 13. Oktober: als Einstellung
+   „Erkennung: Auf dem iPhone“ gebaut (Sprache des iPhones, Modell einmal in
+   den Einstellungen laden); am Gerät und im Vergleich noch nicht geprüft.
 4. TestFlight-Beta. Hochladen und Tester einladen erst mit Bastis Go.
    Abhängigkeiten: Apple-Developer-Mitgliedschaft (vorhanden, Verlängerung
    September 2027), ein Zertifikat „Apple Distribution“ (am Mac noch nicht
@@ -254,7 +267,7 @@ Mehrsprachigkeit ohne Umschalten, Datenschutz und schnellem Zugriff.
 | Konfigurierbarer Endpunkt | Am 2. Oktober für macOS spezifiziert ([Plan-4-Notiz](docs/plan4-aenderungen-2026-10-02.md)); seit dem 8. Oktober für alle Plattformen gewünscht, als Antwort auf den Wunsch nach lokaler Verarbeitung. | Mac: als „Eigener Server“ umgesetzt und offline geprüft (11. Oktober, inklusive echtem Testserver auf 127.0.0.1); ein lokaler Server bekommt keinen Schlüssel und braucht keinen, damit ist ein lokales Modell kostenlos nutzbar (Basti, 9. Oktober); ein mitgeliefertes Modell kommt erst später. Nicht in Build 10; in Build 11, öffentlich seit `v0.1.0-beta.12` ([Nachweis](docs/release-plans/evidence/2026-10-11-build11.md)). Linux am 11. Oktober mit denselben Begriffen gebaut (`opendictate settings server`, Abschnitt „Custom server“ / „Eigenen Server verwenden“ in der Linux-Anleitung), offline geprüft, live offen. Windows am 11. Oktober im Prototyp gebaut (Feld „Server-Adresse“, `OPENAI_BASE_URL`, gespeicherter Wert gewinnt), offline geprüft. Nur die Adresse, `http://` nur für Loopback; eine Fremd-URL wird nicht abgenommen. |
 | Provider-Vertrag | Am 2. Oktober entschieden: gemeinsame Fixtures unter `fixtures/provider/` für Swift, Rust und C#. Mac-Teil am 11. Oktober erledigt: [Vertrag](fixtures/provider/CONTRACT.md), Antwort- und Fehlerdateien, Swift-Tests lesen sie. | Linux- und Windows-Tests lesen die Dateien seit 11. Oktober; offen: Linux `validate_model` wie Mac. |
 | Markenidentität 1.1 | Langfristiges Ziel vom 29. September ([PROJECT](PROJECT.md#marken--und-gestaltungsrichtung)). Das Designsystem aus Claude Design (Pixel-Terminal, Blink, grünes Signal, drei Themes) liegt seit dem 9. Oktober als gemeinsame Quelle unter [`design/`](design/README.md). Seit dem 11. Oktober nutzen es die Linux-Leiste (offline geprüft) und die Mac-Diktatanzeige (live geprüft, öffentlich seit `v0.1.0-beta.12`); die Website im neuen Design ist seit dem 11. Oktober unter opendictate.app live. | Blockiert keine Beta; die veröffentlichten Betas bleiben in ihrer Fassung. Richtung mit Basti anhand echter App-Zustände und eines Marketingbeispiels festlegen. |
-| Erklärvideos mit Blink | Am 12. Oktober entschieden ([PROJECT](PROJECT.md#entscheidungen)): kurze, beeindruckende Clips mit Blink, je Funktion einer, mit Stimme, eigener Chiptune-Musik und Text im Bild, als Schleife neben dem passenden Abschnitt der Startseite und gesammelt auf einer Seite „Anleitungen“. Ein Probeclip „So diktierst du“ ist gebaut und von Basti im Stil bestätigt; weitere Themen: kostenlos mit eigenem Modell, Übersetzen, keine Aufnahme geht verloren, erste Schritte. | Alle fünf Clips sind gebaut und seit 13. Oktober mit Blinks Stimme (Probe L, OpenAI als Übergang) gemischt; ab Ende November ersetzt sie eine lokal auf dem Mac Studio erzeugte Stimme (Entscheidung 12. Oktober). Nächster Schritt: Basti sieht die Clips mit Ton an, dann den Einbau in `website/` vorbereiten (Pause-Knopf, Standbild bei „Bewegung reduzieren“, Text zum Nachlesen, VideoObject). Der Clip zum eigenen Modell kann mit `v0.1.0-beta.12` online. Online nur auf Bastis Wort. Gesten-Videos in 3D später. |
+| Erklärvideos mit Blink | Am 12. Oktober entschieden ([PROJECT](PROJECT.md#entscheidungen)): kurze, beeindruckende Clips mit Blink, je Funktion einer, mit Stimme, eigener Chiptune-Musik und Text im Bild, als Schleife neben dem passenden Abschnitt der Startseite und gesammelt auf einer Seite „Anleitungen“. Seit 13. Oktober als 3D-Animation in Pixel-Optik, in der Blink jeden Schritt vormacht; Blinks Stimme ist Probe L. Themen: so diktierst du, kostenlos mit eigenem Modell, Übersetzen, keine Aufnahme geht verloren, erste Schritte, iPhone-Rückseite. | Alle sechs Clips in 3D bauen und von Basti abnehmen lassen, dann an den Website-Thread für den Einbau in `website/` (Pause-Knopf, Standbild bei „Bewegung reduzieren“, Text zum Nachlesen, VideoObject). Der iPhone-Clip geht erst mit der veröffentlichten iOS-App online. Ab Ende November ersetzt die Stimme vom Mac Studio die OpenAI-Stimme. |
 | Vokabular | Mac hat „Vokabular und Kontext“; Linux und Windows nicht. Laut Recherche häufiger Wunsch. | Nach der ersten Beta-Rückmeldung je Plattform nachziehen. |
 | Echtzeit-Übersetzung und Streaming | Weg C (`gpt-realtime-translate`) ist recherchiert, nicht gebaut ([Plan](docs/linux-live-translation-plan.md)). Streaming beim Diktieren ist seit dem 26. September gewünscht. Beides widerspricht der Regel, unbestätigte Teilergebnisse nicht ins Zielfeld zu schreiben, und braucht eigene Akzeptanzkriterien. | Erst nach Beta-Rückmeldung, dass die Wartezeit von Weg A stört. |
 | Zielsprache je Anwendung | Idee aus der Recherche, nicht beauftragt. | Keiner. |

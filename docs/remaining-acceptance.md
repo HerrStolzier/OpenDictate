@@ -335,8 +335,9 @@ App im Hintergrund die Zwischenablage. Mit einem eigenen Kurzbefehl
 dem Doppeltippen einfügen. Draft-PR #40 ist geschlossen.
 
 **Offen / bekannte Grenzen:** Start ohne Leeren der Zwischenablage und die
-Änderungen nach `4993214` am Gerät, Abfrage „Lokales Netzwerk“,
-Abbruch-/Unterbrechungsfälle, Dateischutz am Gerät, Verteilung über TestFlight,
+Änderungen nach `4993214` am Gerät, die Erkennung „Auf dem iPhone“ (Apples
+Spracherkennung, ab iOS 26) am Gerät und im Vergleich mit OpenAI, Abfrage
+„Lokales Netzwerk“, Abbruch-/Unterbrechungsfälle, Dateischutz am Gerät, Verteilung über TestFlight,
 Barrierefreiheit. Die ferngesteuerte Device-Hub-Steuerung bleibt blockiert;
 Basti bedient das Gerät selbst.
 
