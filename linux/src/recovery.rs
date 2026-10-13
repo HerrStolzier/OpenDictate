@@ -401,6 +401,16 @@ fn unix_timestamp_secs() -> u64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Read;
+
+    /// A fresh random key, so tests never depend on a fixed secret.
+    fn test_key() -> [u8; 32] {
+        let mut key = [0u8; 32];
+        fs::File::open("/dev/urandom")
+            .and_then(|mut source| source.read_exact(&mut key))
+            .unwrap();
+        key
+    }
 
     fn fixture(name: &str) -> (PathBuf, PathBuf) {
         let root = std::env::temp_dir().join(format!(
@@ -419,7 +429,7 @@ mod tests {
     fn preserve_authenticates_exact_bytes_and_removes_original_after_copy() {
         let (original, recovery_dir) = fixture("roundtrip");
         fs::write(&original, b"audio-bytes").unwrap();
-        let key = [7u8; 32];
+        let key = test_key();
         preserve(&original, &recovery_dir, &key, false).unwrap();
         assert!(!original.exists());
         let (_, data) = newest_authenticated(&recovery_dir, &key, false)
@@ -433,9 +443,9 @@ mod tests {
     fn changed_bytes_and_wrong_key_are_never_returned() {
         let (original, recovery_dir) = fixture("tamper");
         fs::write(&original, b"audio-bytes").unwrap();
-        let key = [8u8; 32];
+        let key = test_key();
         let entry = preserve(&original, &recovery_dir, &key, false).unwrap();
-        assert!(newest_authenticated(&recovery_dir, &[9u8; 32], false)
+        assert!(newest_authenticated(&recovery_dir, &test_key(), false)
             .unwrap()
             .is_none());
         fs::write(&entry.audio_path, b"changed").unwrap();
@@ -449,7 +459,7 @@ mod tests {
     fn authentication_binds_the_file_name() {
         let (original, recovery_dir) = fixture("rename");
         fs::write(&original, b"audio-bytes").unwrap();
-        let key = [4u8; 32];
+        let key = test_key();
         let entry = preserve(&original, &recovery_dir, &key, false).unwrap();
         let renamed_audio = recovery_dir.join("renamed.wav");
         let renamed_sidecar = sidecar_path(&renamed_audio);
@@ -477,7 +487,7 @@ mod tests {
         let (original, recovery_dir) = fixture("failure");
         fs::write(&original, b"audio-bytes").unwrap();
         fs::write(recovery_dir.join("123.wav"), b"collision").unwrap();
-        assert!(preserve(&original, &recovery_dir, &[1u8; 32], false).is_err());
+        assert!(preserve(&original, &recovery_dir, &test_key(), false).is_err());
         assert_eq!(fs::read(&original).unwrap(), b"audio-bytes");
         let _ = fs::remove_dir_all(recovery_dir.parent().unwrap());
     }
@@ -485,7 +495,7 @@ mod tests {
     #[test]
     fn prune_keeps_five_and_removes_authenticated_expired_entries() {
         let (_, recovery_dir) = fixture("retention");
-        let key = [3u8; 32];
+        let key = test_key();
         let now = unix_timestamp_secs();
         for index in 0..6u64 {
             let file_name = format!("{index}.wav");
@@ -560,7 +570,7 @@ mod tests {
     #[test]
     fn plain_retry_passes_over_skipped_recordings() {
         let (_, recovery_dir) = fixture("skipped-retry");
-        let key = [4u8; 32];
+        let key = test_key();
         let now = unix_timestamp_secs();
         assert!(newest_authenticated(&recovery_dir, &key, false)
             .unwrap()
@@ -581,7 +591,7 @@ mod tests {
     #[test]
     fn the_skipped_flag_cannot_be_removed_without_the_key() {
         let (_, recovery_dir) = fixture("skipped-flag");
-        let key = [5u8; 32];
+        let key = test_key();
         let audio_path = keep(
             &recovery_dir,
             "short.wav",
@@ -603,7 +613,7 @@ mod tests {
     #[test]
     fn skipped_recordings_count_toward_the_five_newest() {
         let (_, recovery_dir) = fixture("skipped-prune");
-        let key = [6u8; 32];
+        let key = test_key();
         let now = unix_timestamp_secs();
         for index in 0..KEEP_COUNT as u64 {
             keep(
