@@ -404,11 +404,12 @@ mod tests {
     use std::io::Read;
 
     /// A fresh random key, so tests never depend on a fixed secret.
-    fn test_key() -> [u8; 32] {
-        let mut key = [0u8; 32];
+    fn test_key() -> Vec<u8> {
+        let mut key = Vec::with_capacity(32);
         fs::File::open("/dev/urandom")
-            .and_then(|mut source| source.read_exact(&mut key))
+            .and_then(|source| source.take(32).read_to_end(&mut key))
             .unwrap();
+        assert_eq!(key.len(), 32);
         key
     }
 
