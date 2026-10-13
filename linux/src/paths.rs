@@ -100,7 +100,10 @@ fn ensure_owner_directory(path: &Path) -> io::Result<()> {
     if !metadata.file_type().is_dir() || metadata.file_type().is_symlink() {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
-            "OpenDictate directory is not a real directory",
+            crate::tr!(
+                "das OpenDictate-Verzeichnis ist kein echtes Verzeichnis",
+                "the OpenDictate folder is not a real folder"
+            ),
         ));
     }
     #[cfg(unix)]

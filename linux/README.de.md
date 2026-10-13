@@ -35,7 +35,11 @@ angekommen ist. Normalerweise legt OpenDictate dafür eine gesicherte Kopie an:
 solcher Kopien für 24 Stunden. Gelingt diese Kopie nicht (zum Beispiel weil der
 Schlüsselbund gesperrt ist), bleibt die Originaldatei unter
 `~/.local/state/opendictate/pending/` liegen; `retry` greift dann nicht, und die
-Datei wird auch nicht automatisch gelöscht.
+Datei wird auch nicht automatisch gelöscht. Fällt das Mikrofon während der
+Aufnahme aus oder wird abgezogen, bekommst du eine Benachrichtigung, und der Ton
+bis dahin wird genauso für `retry` gesichert. Eine zu kurze oder stille Aufnahme
+wird nicht gesendet; sie wird auch gesichert, aber `retry` übergeht sie
+(siehe [Ablauf und Schutzregeln](#ablauf-und-schutzregeln)).
 
 ## Was du brauchst
 
@@ -274,6 +278,7 @@ opendictate status                  # idle / starting / recording / processing /
 opendictate bar                     # Status als JSON-Zeile für die Leiste (`waybar` gleichwertig)
 opendictate cancel                  # Aufnahme/Verarbeitung sicher abbrechen
 opendictate retry                   # letzte gesicherte Aufnahme nochmal senden
+opendictate retry --skipped         # letzte zu kurze oder stille trotzdem senden
 opendictate version                 # Version anzeigen
 opendictate settings show
 opendictate settings model gpt-transcribe
@@ -344,6 +349,9 @@ Quelle per Pipe (`trusted-secret-command | opendictate secrets set-api-key`).
   wechselt auf `processing`; weitere Starts während `starting`, `processing`
   oder `delivering` werden abgelehnt.
 - Unter 1 Sekunde oder ohne 50-ms-Fenster oberhalb −45 dBFS erfolgt kein Upload.
+  Die Aufnahme wird mit Vermerk gesichert: `retry` übergeht sie, und
+  `retry --skipped` sendet die letzte solche Aufnahme trotzdem. Sie zählt wie
+  jede andere zu den fünf neuesten gesicherten Aufnahmen.
   Erkannte Sprache erhält 0,25 Sekunden Rand; nur Einsparungen ab 0,35 Sekunden
   erzeugen eine zugeschnittene Upload-WAV. Das 90-Sekunden-Limit bleibt aktiv.
 - Mit gesetzter Zielsprache wird das Transkript danach über
@@ -388,7 +396,8 @@ Quelle per Pipe (`trusted-secret-command | opendictate secrets set-api-key`).
 - `retry` lädt nur frisch authentifizierte Bytes und entfernt sie erst nach
   erfolgreichem Clipboard-Copy. Unbekannte, veränderte oder abgelaufene Dateien
   werden nie hochgeladen. Verwaltete Recovery hält höchstens fünf Dateien und
-  24 Stunden.
+  24 Stunden; was darüber liegt, wird auch nach dem nächsten erfolgreichen
+  Diktat entfernt.
 - Logs enthalten Zustände und begrenzte Zeitangaben, aber keinen Key, kein
   Transkript und keine Audioinhalte. Die erfasste Fensterklasse darf enthalten
   sein; Fenstertitel werden nicht gelesen oder geloggt.

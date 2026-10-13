@@ -70,6 +70,13 @@ stellt `setup` die Konfiguration wieder her (seit dem Folge-PR zu #67). Live off
 Durchlauf auf omarchy, die Lua-Zeilen für F9 und rechte Alt, ein echter
 lokaler Server. Für das Arch-Paket ungeprüft: `namcap`, Bau mit pacman-Rust und `makepkg -si`,
 frische Ersteinrichtung des Schlüssels.
+Seit der Gesamtprüfung vom 13. Oktober meldet ein Mikrofon, das während der
+Aufnahme ausfällt, das per Benachrichtigung und sichert den Ton bis dahin für
+`retry`; zu kurze oder stille Aufnahmen werden mit Vermerk gesichert, den
+`retry` übergeht (`retry --skipped` sendet die letzte davon), und abgelaufene
+Sicherungen verschwinden nach jedem Diktat. Geprüft nur mit
+Unit-Tests (auch Stereo-Abmischung und Formatwandlung), nicht mit einem echt
+abgezogenen Mikrofon.
 Eine alte Testaufnahme vom 7. Oktober liegt noch im Recovery-Ordner auf
 omarchy; Löschen nur mit Bastis Go. Die leere Datei vom gescheiterten Start
 wurde am 8. Oktober mit Bastis Go gelöscht.
