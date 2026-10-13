@@ -230,6 +230,15 @@ geprüft mit WebM-Ersatz, weil Chromium ohne H.264 kommt:
 Die `Range`-Antworten des Workers (ganze Datei, Anfang–Ende, ab Stelle, letzte
 n Bytes, ungültig, `If-Range`, HEAD) sind mit einer nachgebauten KV-Umgebung in
 Node geprüft.
+
+Live seit 2026-10-13, 20:53 UTC, auf Commit `f887c31`: Player mit fünf
+Kapiteln, „Einmal zahlen, nicht jeden Monat“, „Mit lokalem Modell / Deine
+Stimme bleibt bei dir“, Untertitel und Tokens (Bastis Karten „Live schalten“
+19:06 und „Mit live“ 20:00 UTC). Per Browser Rendering geprüft: Überschriften,
+Menü „Privat“, Kapitel und Weg-Grafik auf der echten Seite, alle fünf
+Schleifen laden (1280 × 720, 13,6 bzw. 11,6 s), alle fünf WebP-Standbilder
+laden, die Untertitel kommen als WebVTT.
+
 Die erste Fassung mit vier Video-Kästen war live seit 2026-10-13, 17:25 UTC, auf Commit `d6e6adf` (Bastis Karte „Live
 schalten“ um 17:02 UTC). Per Browser Rendering geprüft: alle Überschriften und
 Clips auf Startseite und `anleitungen.html`, kein Zählskript; alle zehn Videos
