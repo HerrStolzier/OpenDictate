@@ -54,8 +54,9 @@ struct SettingsView: View {
                     Text(
                         L10n.pick(
                             "The language could not be loaded. Check your connection and try again.",
-                            "Die Sprache ließ sich nicht laden. Prüf deine Verbindung und versuch es nochmal."))
-                        .foregroundStyle(.red)
+                            "Die Sprache ließ sich nicht laden. Prüf deine Verbindung und versuch es nochmal.")
+                    )
+                    .foregroundStyle(.red)
                 }
                 Text(
                     recognition == Recognition.onDevice.rawValue
