@@ -4,8 +4,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
-PROJECT="ios/OpenDictateKeyboardDemo.xcodeproj"
-SCHEME="OpenDictateKeyboardDemo"
+# The iPhone app (ios/README.md). The September keyboard prototype in
+# ios/OpenDictateKeyboardDemo.xcodeproj is superseded and no longer built here.
+PROJECT="ios/OpenDictate.xcodeproj"
+SCHEME="OpenDictateiOS"
 if [[ ! -d "$PROJECT" ]]; then
   echo "SKIP: $PROJECT is absent from this ref; no iOS build was performed."
   exit 0
@@ -20,7 +22,7 @@ if ! command -v xcodebuild >/dev/null || ! command -v swift >/dev/null; then
 fi
 
 xcodebuild -version
-swift format lint --strict --configuration .swift-format --recursive ios/Sources
+swift format lint --strict --configuration .swift-format --recursive ios/App ios/Shared ios/Widgets
 
 derived_data="$(mktemp -d "${TMPDIR:-/tmp}/opendictate-ios-derived.XXXXXX")"
 cleanup() {

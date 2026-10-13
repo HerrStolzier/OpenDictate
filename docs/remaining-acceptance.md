@@ -109,7 +109,9 @@ veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
   Testbuild aus `cbddf7b` (PR #49). Ein nicht löschbarer abgelaufener Eintrag
   wird nur einmal pro Start geloggt (PR #50); die alte Aufnahme vom
   15. September ist nach Entfernen ihrer ACL gelöscht.
-- Offline: Swift-Suite und Bundle-Build in CI auf macOS 14.
+- Offline: Swift-Suite und Bundle-Build in CI bis Build 12 auch nativ auf
+  macOS 14; seit dem 13. Oktober auf macOS 15 mit Standard- und ältester
+  Xcode-16-Toolchain, weil GitHub den macOS-14-Runner am 2. November abschaltet.
 - Übersetzung nach dem Sprechen ist im Code (Menü und Einstellungen
   „Übersetzen“, Modell `gpt-5.4-mini`, gleiche Regeln wie auf Linux) und
   offline geprüft: Ablauftests für Übersetzen, Fehler und leere Antwort

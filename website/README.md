@@ -15,8 +15,11 @@ Ordners aus genau einem Commit (`COMMIT`). Jede Datei holt er einmal von
 GitHub, prüft sie gegen ihren SHA-256-Fingerabdruck (`FILES`), legt sie im
 KV-Speicher `opendictate-website` ab und liefert sie von dort aus. Besucher
 verbinden sich nie mit GitHub. Der Worker setzt Sicherheitsregeln (CSP nur
-eigene Adresse, keine Einbettung in fremde Seiten) und beantwortet nur GET und
-HEAD. `README.md`, `worker.js` und `wrangler.toml` gehören nicht zur Seite.
+eigene Adresse, keine Einbettung in fremde Seiten), beantwortet nur GET und
+HEAD und liefert auf Anfrage Teilstücke einer Datei (`Range`), weil Safari
+Videos nur so abspielt. Im KV-Speicher steht zu jeder Datei der geprüfte
+Fingerabdruck als Metadaten, damit der Worker die Videos nicht bei jedem Abruf
+neu durchrechnen muss. `README.md`, `worker.js` und `wrangler.toml` gehören nicht zur Seite.
 Der Worker selbst hat keine automatischen Tests; `scripts/website-worker.py`
 prüft nur, dass Commit und Fingerabdrücke zusammenpassen, und ein Test hält die
 Dateitypen in `worker.js` und im Skript gleich.
@@ -146,3 +149,31 @@ höchstens einer Bahnbreite in 0,6 Sekunden hinterher, statt zu springen.
 Headless Chromium bei 1440 und 390 Pixel: beim schnellen Hoch- und
 Runterscrollen höchstens ein Bild mit Bewegung am Fensterrand (Messverzug),
 keine Konsolenfehler.
+
+Stand 2026-10-13, Erklärvideos und Datenschutz: Die fünf 3D-Clips mit Blink
+liegen in `videos/`, je Clip dreimal: die Fassung mit Ton in 1920 × 1080
+(`blink-0N-….mp4`, 2,9 bis 3,8 MB), eine stumme Schleife in 1280 × 720
+(`…-schleife.mp4`, 1,0 bis 1,3 MB) und ein Standbild in 1280 × 720 (`….jpg`).
+Die Startseite zeigt die Schleifen neben dem passenden Abschnitt; sie laufen
+nur, solange sie zur Hälfte im Fenster sind, und haben einen Pause-Knopf mit
+den Pixelzeichen `play` und `pause` (nur auf der Website, nicht im
+Designsystem). Wer „Bewegung reduzieren“ oder „Datensparen“ eingestellt hat,
+sieht das Standbild und startet den Clip selbst; ein angehaltener Clip bleibt
+angehalten. Ohne JavaScript zeigt der Browser seine eigenen Knöpfe. Die Clips
+ersetzen die kleine Hoppla-Karte und die Übersetzungs-Sprechblasen.
+`anleitungen.html` zeigt alle fünf mit Ton, dazu den gesprochenen Text zum
+Mitlesen und je ein `VideoObject` im JSON-LD. Der iPhone-Clip (Nr. 6) kommt
+erst mit der veröffentlichten iOS-App dazu. Der Abschnitt Datenschutz steht
+jetzt direkt nach den Kosten und sagt als zweites Argument „Deine Stimme
+bleibt auf deinem Rechner“ (Mac und Linux mit lokalem Modell; mit whisper.cpp aus der Anleitung
+geht Übersetzen noch nicht); iPhone erst, wenn die iOS-App veröffentlicht ist.
+Headless Chromium bei 1440 und 390 Pixel, auch mit „Bewegung reduzieren“:
+kein horizontaler Überlauf, keine Konsolenfehler, Schleifen starten und halten
+wie beschrieben (mit WebM-Ersatz, weil Chromium ohne H.264 kommt). Die
+`Range`-Antworten des Workers (ganze Datei, Anfang–Ende, ab Stelle, letzte n
+Bytes, ungültig, `If-Range`, HEAD) sind mit einer nachgebauten KV-Umgebung in
+Node geprüft.
+Live seit 2026-10-13, 17:25 UTC, auf Commit `d6e6adf` (Bastis Karte „Live
+schalten“ um 17:02 UTC). Per Browser Rendering geprüft: alle Überschriften und
+Clips auf Startseite und `anleitungen.html`, kein Zählskript; alle zehn Videos
+spielen bis zum Ende vor (Dauer und Größe stimmen), alle fünf Standbilder laden.
