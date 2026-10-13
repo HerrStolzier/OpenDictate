@@ -57,6 +57,7 @@ final class DictationRunner {
 
     private init() {
         store.prepare()
+        OnDeviceTranscriber.removeLeftovers()
         retryable = pendingRetry()
         recorder.onUnexpectedStop = { Task { try? await DictationRunner.shared.finish() } }
         // A phone call or Siri takes the microphone: send what was said so far.

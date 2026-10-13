@@ -256,7 +256,8 @@ Screen and in the Dynamic Island shows that a recording is running.
   later) Apple's on-device speech recognition (`SpeechTranscriber`) writes
   the text, and the audio is not sent anywhere. For that the app writes the
   checked recording to a temporary file in its own container and deletes it
-  afterwards. The language model is downloaded once from Apple when you tap
+  afterwards; a copy left because iOS ended the app is deleted at the
+  next start or recognition. The language model is downloaded once from Apple when you tap
   "Sprache laden"; iOS manages and shares it with other apps. Only a
   translation still sends the text to the service as described above.
 - **API key:** stored only in the iPhone's Keychain with "this device only"

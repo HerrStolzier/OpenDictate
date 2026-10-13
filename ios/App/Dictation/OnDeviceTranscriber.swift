@@ -60,10 +60,11 @@ enum OnDeviceTranscriber {
         }
         // `AVAudioFile` reads only from a path, so the checked bytes go to a
         // private temporary file instead of reading the kept file again.
-        let file = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString).appendingPathExtension("m4a")
+        removeLeftovers()
+        let file = scratch.appendingPathComponent(UUID().uuidString).appendingPathExtension("m4a")
         defer { try? FileManager.default.removeItem(at: file) }
         do {
+            try FileManager.default.createDirectory(at: scratch, withIntermediateDirectories: true)
             try audio.write(to: file, options: [.completeFileProtectionUntilFirstUserAuthentication])
             async let text = module.results.reduce(into: "") { text, result in
                 text += String(result.text.characters)
@@ -79,6 +80,16 @@ enum OnDeviceTranscriber {
             let error = error as NSError
             throw DictationFailure.onDeviceFailed("\(error.domain) \(error.code)")
         }
+    }
+
+    /// Only one recognition runs at a time, so anything in here was left by
+    /// one that iOS ended; the kept recording itself is elsewhere.
+    static func removeLeftovers() {
+        try? FileManager.default.removeItem(at: scratch)
+    }
+
+    private static var scratch: URL {
+        FileManager.default.temporaryDirectory.appendingPathComponent("OnDeviceRecognition", isDirectory: true)
     }
 
     @available(iOS 26.0, *)
