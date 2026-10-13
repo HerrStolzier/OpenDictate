@@ -149,7 +149,7 @@
     check: [BL, BL, '..........X.', '.........XX.', '........XX..', '.X.....XX...', '.XX...XX....', '..XX.XX.....', '...XXX......', '....X.......', BL, BL],
     error: [BL, '.....XX.....', '.....XX.....', '.....XX.....', '.....XX.....', '.....XX.....', '.....XX.....', '.....XX.....', BL, '.....XX.....', '.....XX.....', BL],
     prompt: [BL, BL, '...XX.......', '....XX......', '.....XX.....', '......XX....', '.....XX.....', '....XX......', '...XX.......', BL, BL, BL],
-    play: [BL, BL, '...X........', '...XXX......', '...XXXXX....', '...XXXXXXX..', '...XXXXXXX..', '...XXXXX....', '...XXX......', '...X........', BL, BL],
+    play: [BL, BL, '...XX.......', '...XXXX.....', '...XXXXXX...', '...XXXXXXXX.', '...XXXXXXXX.', '...XXXXXX...', '...XXXX.....', '...XX.......', BL, BL],
     pause: [BL, BL, '...XX..XX...', '...XX..XX...', '...XX..XX...', '...XX..XX...', '...XX..XX...', '...XX..XX...', '...XX..XX...', '...XX..XX...', BL, BL]
   };
   function glyph(name, size, cls, label) {
@@ -336,9 +336,16 @@
           if (r.bottom > 0 && r.top < window.innerHeight && !c.closest('[hidden]')) paint(c, t, level, live);
         });
       }
-      requestAnimationFrame(frame);
+      raf = requestAnimationFrame(frame);
     }
-    requestAnimationFrame(frame);
+    // The loop only runs while the stage is on screen, so it costs nothing further down the page.
+    var raf = 0;
+    if (!('IntersectionObserver' in window)) { raf = requestAnimationFrame(frame); return; }
+    new IntersectionObserver(function (entries) {
+      var seen = entries[entries.length - 1].isIntersecting;
+      if (seen && !raf) raf = requestAnimationFrame(frame);
+      else if (!seen && raf) { cancelAnimationFrame(raf); raf = 0; }
+    }).observe(document.querySelector('.stage'));
   }
 
   /* ---------- Footer: Blink runs along while the page scrolls ---------- */
@@ -390,51 +397,108 @@
     queue();
   }
 
-  /* ---------- Explainer clips: muted loops that play while on screen ---------- */
-  function clips() {
+  /* ---------- Explainer player: one clip at a time, chapters advance on their own ---------- */
+  function kino() {
+    var root = document.querySelector('.kino');
+    if (!root) return;
+    var video = root.querySelector('.kino-video');
+    var play = root.querySelector('.kino-play');
+    var sound = root.querySelector('.kino-sound');
+    var items = root.querySelectorAll('.kino-list li');
     var save = navigator.connection && navigator.connection.saveData;
-    // With reduced motion or data saving, a clip starts only on a click.
-    var auto = !reduce && !save;
-    var seen = 'IntersectionObserver' in window && new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        var video = entry.target;
-        if (entry.isIntersecting && auto && !video.hasAttribute('data-held')) start(video);
-        else if (!entry.isIntersecting) video.pause();
-      });
-    }, { threshold: 0.5 });
-    function start(video) {
+    // With reduced motion or data saving nothing starts until the visitor asks for it.
+    var held = reduce || !!save, visible = false, withSound = false, current = 0;
+
+    function chapter(i) { return items[i].querySelector('.kino-chapter'); }
+    function start() {
       var playing = video.play();
-      if (playing) playing.catch(function () {});
-    }
-    Array.prototype.forEach.call(document.querySelectorAll('.clip-toggle'), function (button) {
-      var video = button.parentNode.querySelector('video');
-      function show() {
-        var paused = video.paused;
-        button.innerHTML = glyph(paused ? 'play' : 'pause', 20, 'clip-glyph');
-        button.setAttribute('aria-label', button.getAttribute('data-title') + (paused ? ': abspielen' : ': anhalten'));
-      }
-      video.removeAttribute('controls');
-      video.addEventListener('play', show);
-      video.addEventListener('pause', show);
-      button.addEventListener('click', function () {
-        // A clip paused by hand stays paused when it scrolls back into view.
-        if (video.paused) {
-          video.removeAttribute('data-held');
-          start(video);
-        } else {
-          video.setAttribute('data-held', '');
-          video.pause();
-        }
+      if (!playing) return;
+      playing.catch(function () {
+        // Some browsers refuse sound without a fresh tap, e.g. when the next chapter starts on its own.
+        if (video.muted) return;
+        setSound(false);
+        select(current, video.currentTime);
       });
-      show();
-      button.hidden = false;
-      if (seen) seen.observe(video);
+    }
+    function setSound(on) {
+      withSound = on;
+      sound.setAttribute('aria-pressed', String(on));
+    }
+    function button() {
+      play.innerHTML = glyph(video.paused ? 'play' : 'pause', 20, '');
+      play.setAttribute('aria-label', video.paused ? 'Abspielen' : 'Anhalten');
+    }
+    function select(i, time) {
+      items[current].classList.remove('is-on');
+      chapter(current).removeAttribute('aria-current');
+      chapter(current).querySelector('.kino-bar').style.setProperty('--p', 0);
+      current = i;
+      var link = chapter(i);
+      items[i].classList.add('is-on');
+      link.setAttribute('aria-current', 'step');
+      video.poster = link.dataset.poster;
+      video.src = withSound ? link.dataset.full : link.dataset.loop;
+      video.muted = !withSound;
+      video.setAttribute('aria-label', 'Erklärvideo: ' + link.querySelector('.kino-name').textContent);
+      if (time) video.addEventListener('loadedmetadata', function () { video.currentTime = time; }, { once: true });
+      if (visible && !held) start();
+    }
+    function fromHash() {
+      for (var i = 0; i < items.length; i++) {
+        if ('#' + items[i].id !== location.hash) continue;
+        if (i !== current) select(i);
+        // The link points at a chapter; show the whole player instead of the list row,
+        // after the browser's own jump to the fragment on page load.
+        if (document.readyState === 'complete') root.scrollIntoView({ block: 'center' });
+        else window.addEventListener('load', function () { root.scrollIntoView({ block: 'center' }); }, { once: true });
+      }
+    }
+
+    video.removeAttribute('controls');
+    video.addEventListener('play', button);
+    video.addEventListener('pause', button);
+    video.addEventListener('ended', function () { select((current + 1) % items.length); });
+    video.addEventListener('timeupdate', function () {
+      var p = video.duration ? video.currentTime / video.duration : 0;
+      chapter(current).querySelector('.kino-bar').style.setProperty('--p', Math.round(p * 24) / 24);
     });
+    Array.prototype.forEach.call(items, function (item, i) {
+      chapter(i).addEventListener('click', function (event) {
+        event.preventDefault();
+        held = false;
+        if (i !== current) select(i);
+        start();
+        // On a phone the list sits below the picture; bring the picture back into view.
+        if (!visible) root.querySelector('.kino-screen').scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+      });
+    });
+    play.addEventListener('click', function () {
+      held = !video.paused;
+      if (held) video.pause();
+      else start();
+    });
+    sound.addEventListener('click', function () {
+      setSound(!withSound);
+      held = false;
+      select(current, video.currentTime);
+      start();
+    });
+    window.addEventListener('hashchange', fromHash);
+    fromHash();
+    button();
+    root.querySelector('.kino-tools').hidden = false;
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        visible = entries[entries.length - 1].isIntersecting;
+        if (visible && !held) start();
+        else if (!visible) video.pause();
+      }, { threshold: 0.5 }).observe(video);
+    }
   }
 
   document.documentElement.classList.add('js');
   mount();
   stage();
   runner();
-  clips();
+  kino();
 })();

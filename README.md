@@ -6,7 +6,8 @@ translated if you like (say, German into English).
 
 No subscription: with a model running on your own computer, dictation costs
 nothing. With OpenAI it costs about a tenth of a cent per dictation, paid
-directly to OpenAI with your own key.
+directly to OpenAI with your own key. The beta is free; the finished app will
+later be a one-time purchase of a few euros.
 
 OpenDictate is a small open-source menu bar app for Macs with Apple silicon
 (macOS 14 or newer). There is also a beta for
