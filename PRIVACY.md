@@ -284,11 +284,15 @@ https://support.opendictate.app/kontakt. The privacy policy at
 https://support.opendictate.app/datenschutz names the same details with the
 legal bases.
 
-OpenDictate itself never contacts support and sends no logs, diagnostics or
-recordings there. A request contains only what you type into the contact form
-or write in an e-mail to the support address. Do not include your OpenAI API
-key; values that look like one (`sk-…`) are removed from the subject, name
-and message before the request is stored.
+OpenDictate sends nothing to support on its own: no logs, diagnostics or
+recordings. A request contains only what you type into the contact form or
+write in an e-mail to the support address. The form can also carry a short
+report for "Fehler melden" (app version, system, last error and a log excerpt,
+never text, audio or the key; see [Fehler melden](docs/fehler-melden.md)). An
+app only opens the form with it in your browser; you see the report, can edit
+or delete it and send it yourself. No app offers this yet. Do not include your OpenAI API key; values that look like one (`sk-…`) are
+removed from the subject, name, message and report before the request is
+stored.
 
 Requests are handled by a small support service on Cloudflare Workers,
 operated by the developer. It stores the e-mail address, the optional name,
@@ -298,6 +302,12 @@ service does not store attachments. Mail to the support address passes through
 Cloudflare Email Routing, and replies are sent from the support service through
 Cloudflare Email Service. Requests are not copied to another mailbox; the
 developer only gets a notice with the ticket number, without its content.
+
+The support service writes short technical lines to Cloudflare Workers Logs:
+for each new request its ticket number and channel, and when storing a request
+fails, the failing step and the kind of error (mail addresses are masked). A
+failure also sends the developer a notice without content. Logs of individual visits with IP addresses are off.
+Cloudflare deletes these lines after at most 7 days.
 
 Against spam, the form uses a hidden field, an origin check and daily limits.
 For the per-sender limit the IP address is kept only as a hash combined with
