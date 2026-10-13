@@ -184,9 +184,12 @@ vor Windows (11. Oktober).
 geschrieben: Kurzbefehl „Diktieren“ als Aufnahme-Kurzbefehl mit
 Live-Aktivität und Stopp-Taste, Erkennung über OpenAI mit eigenem Schlüssel
 oder einen eigenen Server, Übersetzung, Zwischenablage, „Nochmal senden“ nach
-einem Fehler, Texte englisch und deutsch. Sie ist noch nicht auf dem iPhone
-gebaut und geprüft. Vorgaben für die erste Beta (11. Oktober): Apples Erkennung
-auf dem Gerät (SpeechAnalyzer) und das Kontrollzentrum folgen später; der
+einem Fehler, Texte englisch und deutsch. Am 12. Oktober lief sie
+zum ersten Mal auf Bastis iPhone 15: Ein Diktat aus der App kam an, der Start
+über den Kurzbefehl aus dem Hintergrund scheiterte mit „Die Aufnahme konnte
+nicht starten“. Seit dem 13. Oktober nimmt der Kurzbefehl im Hintergrund auf;
+offen ist, ob der Text von dort in die Zwischenablage kommt. Vorgaben für die erste Beta (11. Oktober): das
+Kontrollzentrum folgt später; der
 Tastatur-Prototyp bleibt als Nachweis im Repository, Draft-PR #40 ist
 geschlossen ([Richtung](docs/ios-direction.md)).
 
@@ -199,8 +202,16 @@ geschlossen ([Richtung](docs/ios-direction.md)).
 2. Am Mac bauen, dann der erste Prüfpunkt auf dem iPhone 15 mit Bastis Go:
    Startet die Aufnahme per „Auf Rückseite tippen“ im Hintergrund, ohne dass
    die App aufgeht, und landet der Text in der Zwischenablage? Danach die
-   Abnahme aus dem Konzept.
-3. TestFlight-Beta. Hochladen und Tester einladen erst mit Bastis Go.
+   Abnahme aus dem Konzept. Stand 13. Oktober: Der Kurzbefehl aus der
+   Kurzbefehle-App nimmt im Hintergrund auf und der Text kommt an, aber die
+   App meldete danach, dass die Zwischenablage ihn nicht nahm. Ob iOS das
+   verweigert, klärt ein Einfügen direkt nach einem Diktat aus dem
+   Hintergrund; öffnet man die App, kopiert sie den Text jetzt selbst.
+3. Apples Spracherkennung auf dem Gerät (SpeechAnalyzer, ab iOS 26) als
+   kostenlose Option ausprobieren und am iPhone mit OpenAI vergleichen
+   (entschieden am 13. Oktober). Reicht die Qualität nicht, folgt ein
+   Whisper-Modell in der App (WhisperKit).
+4. TestFlight-Beta. Hochladen und Tester einladen erst mit Bastis Go.
    Abhängigkeiten: Apple-Developer-Mitgliedschaft (vorhanden, Verlängerung
    September 2027), ein Zertifikat „Apple Distribution“ (am Mac noch nicht
    vorhanden) und der App-Eintrag in App Store Connect.

@@ -3,8 +3,9 @@
 Die Beta-App nach dem [iOS-Konzept](../docs/ios-konzept.md): Ein Kurzbefehl
 startet die Aufnahme im Hintergrund, ohne dass OpenDictate aufgeht. Nochmal
 auslösen (oder Stopp in der Live-Aktivität) beendet sie; der Text, wahlweise
-übersetzt, liegt danach in der Zwischenablage. Stand 11. Oktober 2026:
-geschrieben, aber noch nicht auf dem iPhone gebaut und geprüft.
+übersetzt, liegt danach in der Zwischenablage. Stand 13. Oktober 2026: läuft
+auf dem iPhone, der Kurzbefehl nimmt im Hintergrund auf, das Kopieren von dort
+ist noch offen (siehe Grenzen).
 
 ## Aufbau
 
@@ -39,7 +40,15 @@ geschrieben, aber noch nicht auf dem iPhone gebaut und geprüft.
    zurück.
 4. Bei einem Fehler zeigt die Live-Aktivität „Hoppla“ mit dem Grund, und die
    Aufnahme bleibt für „Nochmal senden“ in der App (höchstens fünf, höchstens
-   24 Stunden, wie am Mac).
+   24 Stunden, wie am Mac). Nahm die Zwischenablage den Text nicht, kopiert
+   ihn die App beim Öffnen, solange iOS sie nicht beendet hat und seitdem
+   nichts anderes kopiert wurde.
+
+Die App ist immer im dunklen Schema „Nacht“ mit grünem Blink, wie die
+Live-Aktivität. „Starten, ohne die App zu öffnen“ ist abgehakt, sobald der
+Kurzbefehl einmal lief, denn iOS verrät nicht, ob er eingerichtet ist. Das
+Rückseiten-Tippen bietet nur eigene Kurzbefehle an; darum legt man einmal
+einen eigenen Kurzbefehl mit der Aktion „Diktieren“ an.
 
 Datenschutz: [PRIVACY.md](../PRIVACY.md#iphone-app).
 
@@ -64,9 +73,14 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
 
 ## Grenzen der ersten Beta
 
-- Der Start im Hintergrund und das Schreiben in die Zwischenablage aus dem
-  Hintergrund sind auf dem iPhone noch nicht geprüft; das ist der erste
-  Prüfpunkt ([ROADMAP](../ROADMAP.md#track-ios)).
+- Der Start im Hintergrund scheiterte beim ersten iPhone-Test am 12. Oktober
+  („Die Aufnahme konnte nicht starten“). Seitdem nimmt die App im Hintergrund
+  so auf, dass sie mit anderer Wiedergabe mischt (die wird leiser), nennt bei
+  einem Fehlschlag Schritt und Fehlercode und holt die App ab iOS 26 sonst
+  nach vorn. Am 13. Oktober nahm der Kurzbefehl so im Hintergrund auf, aber
+  die App meldete danach, dass die Zwischenablage den Text nicht nahm. Ob iOS
+  das Schreiben im Hintergrund verweigert, ist noch offen
+  ([ROADMAP](../ROADMAP.md#track-ios)).
 - Kein Kontrollzentrum-Schalter, keine Erkennung auf dem Gerät, kein
   Vokabular und keine feste Sprache; die Sprache erkennt der Dienst.
 - Das Datenschutz-Manifest gibt Audio und Text als für die App-Funktion
