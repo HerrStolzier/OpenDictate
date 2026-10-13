@@ -91,8 +91,8 @@ veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
   ([Plan-1-Bericht](release-plans/evidence/2026-09-24-plan1-fortsetzung.md)).
 - Stufe 2: Build 8 aus `b786d4c` ist von Apple notarisiert, das finale ZIP mit
   Manifest geprüft (Signatur, Entitlement, Ticket, Gatekeeper mit Quarantäne,
-  4,14 MiB, SHA-256 `2e994cd8…e335768`) und in der privaten Release-Draft
-  `v0.1.0-beta.8` hinterlegt
+  4,14 MiB, SHA-256 `2e994cd8…e335768`) und lag in der privaten Release-Draft
+  `v0.1.0-beta.8` (am 13. Oktober 2026 gelöscht, abgelöst durch Beta 10 und 12)
   ([Nachweis](release-plans/evidence/2026-10-02-plan2-build8-final.md)).
 - Stufe 2 Teil B (8. Oktober 2026, mit Bastis Go): Build 8 in
   `/Applications` installiert, erster Start mit Quarantäne, neuer
