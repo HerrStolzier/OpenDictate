@@ -1,4 +1,5 @@
 import AppIntents
+import Foundation
 
 /// The action for "Back Tap", the Action button and Siri. iOS keeps recording
 /// in the background only for an `AudioRecordingIntent` that shows a Live
@@ -18,20 +19,20 @@ struct ToggleDictationIntent: AudioRecordingIntent, LiveActivityIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult & ReturnsValue<String> {
+        // The shortcut runs, even if this dictation fails for another reason.
+        UserDefaults.standard.set(true, forKey: AppSettings.shortcutUsedKey)
+        let text: String
         do {
-            return .result(value: try await DictationRunner.shared.toggle())
+            text = try await DictationRunner.shared.toggle()
         } catch let failure as DictationFailure {
             guard case .recordingFailed = failure else { throw failure }
             // Started from the front, the recording then continues in the
             // background like one started in the app.
-            if #available(iOS 26.0, *) {
-                if systemContext.currentMode.canContinueInForeground {
-                    try await continueInForeground(alwaysConfirm: false)
-                    return .result(value: try await DictationRunner.shared.toggle())
-                }
-            }
-            throw failure
+            guard #available(iOS 26.0, *), systemContext.currentMode.canContinueInForeground else { throw failure }
+            try await continueInForeground(alwaysConfirm: false)
+            text = try await DictationRunner.shared.toggle()
         }
+        return .result(value: text)
     }
 }
 

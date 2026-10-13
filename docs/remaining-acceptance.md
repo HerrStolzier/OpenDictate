@@ -321,18 +321,21 @@ liegt seit dem 11. Oktober unter [ios/](../ios/README.md). Am 12. Oktober lief
 Signatur, per Kabel installiert): Mikrofon-Freigabe, Schlüssel und ein Diktat
 aus der App heraus kamen als Text an. Der Kurzbefehl „Diktieren“, aus der
 Kurzbefehle-App gestartet, scheiterte mit „Die Aufnahme konnte nicht
-starten“; die Live-Aktivität lief vorher an. Der genaue Fehler war nicht
-sichtbar. Eine Fassung, die ihn anzeigt, mit anderer Wiedergabe mischt und
-die App sonst nach vorn holt, ist geschrieben, aber am Gerät noch nicht
-geprüft. Draft-PR #40 ist geschlossen.
+starten“; die Live-Aktivität lief vorher an. Am 13. Oktober lief `b1781e7`
+(Aufnahme, die im Hintergrund mit anderer Wiedergabe mischt): Derselbe
+Kurzbefehl nahm im Hintergrund auf, die Dynamic Island zeigte Aufnahme und
+„Schreibt“ (im kleinen Feld abgeschnitten), und der Text kam in der App an. Danach meldete die App, dass sie
+den Text nicht in die Zwischenablage legen konnte. Ob iOS das im Hintergrund
+verweigert oder nur die Prüfung danebenliegt, ist offen. Draft-PR #40 ist
+geschlossen.
 
-**Offen / bekannte Grenzen:** Aufnahmestart im Hintergrund und Schreiben in die
-Zwischenablage aus dem Hintergrund, Abfrage „Lokales Netzwerk“,
+**Offen / bekannte Grenzen:** Schreiben in die Zwischenablage aus dem
+Hintergrund, Start per „Auf Rückseite tippen“, Abfrage „Lokales Netzwerk“,
 Abbruch-/Unterbrechungsfälle, Dateischutz am Gerät, Verteilung über TestFlight,
 Barrierefreiheit. Die ferngesteuerte Device-Hub-Steuerung bleibt blockiert;
 Basti bedient das Gerät selbst.
 
-**Letzter Nachweis:** 12. Oktober 2026.
+**Letzter Nachweis:** 13. Oktober 2026.
 
 ## Android
 
