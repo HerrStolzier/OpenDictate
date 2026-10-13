@@ -72,5 +72,6 @@ Datenschutzerklärung des Supports nennt den Bericht seit dem 13. Oktober 2026.
 ## Stand
 
 - Support-Backend: nimmt die Felder an, zeigt den Bericht im Ticket und unter
-  „Fehler“ eine Übersicht nach Häufigkeit (13. Oktober 2026, offline geprüft).
+  „Fehler“ eine Übersicht nach Häufigkeit (live seit 13. Oktober 2026; Prüfskript von
+  außen grün, das Formular übernimmt einen Bericht aus der Adresse).
 - macOS, Linux: nicht gebaut.
