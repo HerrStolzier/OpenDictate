@@ -5,7 +5,8 @@ Stand des technischen Detailplans: 8. Oktober 2026. Phase 0 (Wegwahl) ist
 Auto-Einfügen kamen mit PR #45, #47 und #51. **Phase 1 ist seit dem 5. bis
 7. Oktober 2026 auf omarchy belegt** (Live-Durchstich, Fehler- und Abbruchfälle,
 physischer Hotkey, Leistenanzeige), Phase 2 (Auto-Einfügen) ist Standard und
-erprobt, Phase 3 (Paketierung) ist offen
+erprobt, Phase 3 (Paketierung) ist seit dem 8. Oktober erledigt, die Beta seit
+dem 11. Oktober als Pre-Release veröffentlicht
 ([Nachweise](linux-live-2026-10-05-bis-07.md), [belegter Stand](remaining-acceptance.md#linux)).
 Die nächsten Schritte stehen im Linux-Track der [ROADMAP](../ROADMAP.md#track-linux).
 macOS-CI bleibt unverändert.
