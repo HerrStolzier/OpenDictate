@@ -79,7 +79,6 @@ Datenschutzerklärung des Supports nennt den Bericht seit dem 13. Oktober 2026.
 
 - Support-Backend: nimmt die Felder an, zeigt den Bericht im Ticket und unter
   „Fehler“ eine Übersicht nach Häufigkeit (live seit 13. Oktober 2026, Prüfskript von
-  außen grün). Die Übernahme aus dem Teil hinter `#` ist gebaut und im Browser
-  geprüft; bis sie ausgerollt ist, liest das Formular den Bericht noch aus dem
-  Abfrageteil. Da noch keine App den Knopf hat, kommt in der Zeit kein Bericht an.
+  außen grün). Den Bericht übernimmt es nur aus dem Teil hinter `#`; im Browser
+  geprüft.
 - macOS, Linux: nicht gebaut.
