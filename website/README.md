@@ -173,3 +173,7 @@ wie beschrieben (mit WebM-Ersatz, weil Chromium ohne H.264 kommt). Die
 `Range`-Antworten des Workers (ganze Datei, Anfang–Ende, ab Stelle, letzte n
 Bytes, ungültig, `If-Range`, HEAD) sind mit einer nachgebauten KV-Umgebung in
 Node geprüft.
+Live seit 2026-10-13, 17:25 UTC, auf Commit `d6e6adf` (Bastis Karte „Live
+schalten“ um 17:02 UTC). Per Browser Rendering geprüft: alle Überschriften und
+Clips auf Startseite und `anleitungen.html`, kein Zählskript; alle zehn Videos
+spielen bis zum Ende vor (Dauer und Größe stimmen), alle fünf Standbilder laden.
