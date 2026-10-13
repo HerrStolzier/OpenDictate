@@ -77,9 +77,9 @@ Windows-Beta.
   Zeilenumbruch wird nicht in Konsolen (Windows Terminal, cmd, PowerShell und
   andere) eingefügt, weil ein Zeilenumbruch die diktierte Zeile als Befehl
   ausführen würde; er bleibt in der Zwischenablage. Abschaltbar mit
-  „Automatisch einfügen“. Strg+V trägt neben der virtuellen Taste auch den
-  Scancode, weil manche Spiele nur diesen lesen; ob jedes Spiel es annimmt,
-  ist erst live prüfbar.
+  „Automatisch einfügen“. Strg+V wird als Scancode im Tastaturlayout des
+  Zielfensters gesendet, weil manche Spiele nur diesen lesen; ob jedes Spiel
+  es annimmt, ist erst live prüfbar.
 - Grenze: In ein Programm, das mit Adminrechten läuft, lässt Windows eine
   normale App nicht tippen; das Strg+V verpufft dort, ohne dass die App es
   merkt, und die Anzeige kann trotzdem „Eingefügt“ zeigen. Der Text liegt

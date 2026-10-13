@@ -11,7 +11,7 @@ internal static class Native
     internal const int KeyDown = 0x0100, KeyUp = 0x0101, SystemKeyDown = 0x0104, SystemKeyUp = 0x0105;
     internal const uint Injected = 0x10;
     internal const uint Quit = 0x0012;
-    private const uint InputKeyboard = 1, KeyEventUp = 0x0002, MapToScanCode = 0;
+    private const uint InputKeyboard = 1, KeyEventUp = 0x0002, KeyEventScanCode = 0x0008, MapToScanCode = 0;
     internal const int ExStyle = -20;
     internal const long NoActivate = 0x08000000, ToolWindow = 0x00000080, Transparent = 0x00000020;
 
@@ -38,7 +38,8 @@ internal static class Native
     [DllImport("user32.dll")] internal static extern short GetAsyncKeyState(int key);
     [DllImport("user32.dll")] internal static extern uint GetWindowThreadProcessId(nint window, out uint process);
     [DllImport("user32.dll", SetLastError = true)] private static extern uint SendInput(uint count, Input[] inputs, int size);
-    [DllImport("user32.dll")] private static extern uint MapVirtualKeyW(uint code, uint mapType);
+    [DllImport("user32.dll")] private static extern uint MapVirtualKeyExW(uint code, uint mapType, nint layout);
+    [DllImport("user32.dll")] private static extern nint GetKeyboardLayout(uint thread);
     [DllImport("user32.dll")] internal static extern nint GetWindowLongPtrW(nint window, int index);
     [DllImport("user32.dll")] internal static extern nint SetWindowLongPtrW(nint window, int index, nint value);
 
@@ -73,31 +74,34 @@ internal static class Native
 
     // Down and up of the unassigned mask key; see VirtualKey.StartMenuMask.
     internal static void MaskStartMenu() =>
-        Send([Key(VirtualKey.StartMenuMask, false), Key(VirtualKey.StartMenuMask, true)]);
+        Send([Key(VirtualKey.StartMenuMask, false, 0), Key(VirtualKey.StartMenuMask, true, 0)]);
 
     // Returns how many of the four Ctrl+V events Windows accepted. A partial
     // send still releases both keys, so no key stays held.
-    internal static int SendPaste()
+    internal static int SendPaste(nint window)
     {
-        int sent = Send([Key(VirtualKey.LeftCtrl, false), Key(VirtualKey.V, false), Key(VirtualKey.V, true), Key(VirtualKey.LeftCtrl, true)]);
-        if (sent is > 0 and < 4) Send([Key(VirtualKey.V, true), Key(VirtualKey.LeftCtrl, true)]);
+        // Windows reads scan codes with the target window's layout, not ours.
+        nint layout = GetKeyboardLayout(GetWindowThreadProcessId(window, out _));
+        int sent = Send([Key(VirtualKey.LeftCtrl, false, layout), Key(VirtualKey.V, false, layout), Key(VirtualKey.V, true, layout), Key(VirtualKey.LeftCtrl, true, layout)]);
+        if (sent is > 0 and < 4) Send([Key(VirtualKey.V, true, layout), Key(VirtualKey.LeftCtrl, true, layout)]);
         return sent;
     }
 
     // Games that read raw input or DirectInput ignore the virtual key and
-    // look only at the scan code, so every event carries both. The mask key
-    // has no scan code and stays zero.
-    private static Input Key(int key, bool up) => new()
+    // look only at the scan code, so keys with one are sent in scan-code mode.
+    // The scan code comes from the target's layout (0 = no layout, virtual-key
+    // mode), so it still means Ctrl or V on QWERTZ or Dvorak. The mask key
+    // has none and stays a virtual key.
+    private static Input Key(int key, bool up, nint layout)
     {
-        Type = InputKeyboard,
-        Data = new InputData
+        ushort scanCode = layout == 0 ? (ushort)0 : (ushort)MapVirtualKeyExW((uint)key, MapToScanCode, layout);
+        uint flags = (up ? KeyEventUp : 0) | (scanCode != 0 ? KeyEventScanCode : 0);
+        return new()
         {
-            Keyboard = new KeyboardInput
-            {
-                VirtualKey = (ushort)key, ScanCode = (ushort)MapVirtualKeyW((uint)key, MapToScanCode), Flags = up ? KeyEventUp : 0,
-            },
-        },
-    };
+            Type = InputKeyboard,
+            Data = new InputData { Keyboard = new KeyboardInput { VirtualKey = (ushort)key, ScanCode = scanCode, Flags = flags } },
+        };
+    }
 
     private static int Send(Input[] inputs) => (int)SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<Input>());
 }
