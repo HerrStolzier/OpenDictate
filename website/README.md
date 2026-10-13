@@ -174,8 +174,13 @@ Kapiteln statt vier gleicher Video-Kästen:
   geht verloren“ und „Übersetzen“; der Link `#uebersetzen` öffnet das passende
   Kapitel.
 
+Der Kosten-Abschnitt heißt seit Bastis Hinweis vom Abend „Einmal zahlen,
+nicht jeden Monat“: kein Abo, die Beta ist kostenlos, die fertige App kostet
+später einmal ein paar Euro (Preismodell in PROJECT.md, wie README.md).
+
 Der Abschnitt Datenschutz steht direkt nach den Kosten als zweites Argument:
-„Deine Stimme bleibt auf deinem Rechner“. Ein Schaubild zeigt zwei Wege, lokal
+„Deine Stimme bleibt bei dir“. Er nennt bewusst kein Gerät, weil später alle
+gängigen dazukommen. Ein Schaubild zeigt zwei Wege, lokal
 (0 €, die Aufnahme bleibt auf dem Gerät) und mit OpenAI (0,1 ct, mit eigenem
 Schlüssel). Das gilt für Mac und Linux mit lokalem Modell; mit whisper.cpp aus
 der Anleitung geht Übersetzen noch nicht. Das iPhone kommt dazu, sobald die
