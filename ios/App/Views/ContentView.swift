@@ -1,6 +1,5 @@
 import AVFAudio
 import ActivityKit
-import AppIntents
 import OpenDictateCore
 import SwiftUI
 
@@ -12,11 +11,12 @@ struct ContentView: View {
     @State private var hasKey = KeychainStore.apiKey() != nil
     @State private var activitiesEnabled = ActivityAuthorizationInfo().areActivitiesEnabled
     @AppStorage(AppSettings.serverAddressKey) private var serverAddress = ""
-    @Environment(\.colorScheme) private var colorScheme
+    @AppStorage(AppSettings.shortcutUsedKey) private var shortcutUsed = false
     @Environment(\.scenePhase) private var scenePhase
 
     private var runner: DictationRunner { .shared }
-    private var theme: DesignTheme { .matching(colorScheme) }
+    /// Always Nacht, like the Live Activity: the brand starts dark.
+    private let theme = DesignTheme.nacht
 
     var body: some View {
         NavigationStack {
@@ -45,7 +45,9 @@ struct ContentView: View {
         }
         .tint(Color(design: .signal, theme: theme))
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { refresh() }
+            guard phase == .active else { return }
+            refresh()
+            runner.copyUncopied()
         }
         .task { await runner.reachServer() }
     }
@@ -200,13 +202,15 @@ struct ContentView: View {
                     Button(L10n.pick("Set up API key", "API-Schlüssel einrichten")) { showsSettings = true }
                 }
             }
-            step(done: false, L10n.pick("Start without opening the app", "Starten, ohne die App zu öffnen")) {
+            step(done: shortcutUsed, L10n.pick("Start without opening the app", "Starten, ohne die App zu öffnen")) {
+                // Back Tap lists only the person's own shortcuts, not the
+                // app's, so step 1 builds one around the app's action.
                 Text(
                     L10n.pick(
-                        "1. Add “Dictate” to your shortcuts in the Shortcuts app.",
-                        "1. Lege in der Kurzbefehle-App den Kurzbefehl „Diktieren“ an."))
-                ShortcutsLink()
-                    .shortcutsLinkStyle(.automaticOutline)
+                        "1. Shortcuts app → + → Add Action → OpenDictate → “Dictate”. "
+                            + "Name it “Dictate”, then Done.",
+                        "1. Kurzbefehle-App → + → Aktion hinzufügen → OpenDictate → „Diktieren“. "
+                            + "Nenne ihn „Diktieren“, dann Fertig."))
                 Text(
                     DeviceTrigger.hasActionButton
                         ? L10n.pick(

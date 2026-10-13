@@ -315,20 +315,27 @@ Bastis iPhone 15 mit iOS 27.0.1 (30. September, signiert gebaut, installiert,
 Einfügen in beide Safari-Felder, Systemtastatur im Passwortfeld,
 [Gerätenachweis](ios-device-2026-09-30.md)). Test-App deinstalliert.
 
-**Geschrieben, nicht geprüft:** Die Beta-App nach dem [Konzept](ios-konzept.md)
-liegt seit dem 11. Oktober unter [ios/](../ios/README.md). Am Mac baut sie
-für den Simulator ohne Warnungen; keine Installation am Gerät, kein Diktat.
-Start der Live-Aktivität aus dem Hintergrund, Prüfung der Zwischenablage und
-die Abfrage „Lokales Netzwerk“ sind aus dem Code und Apples Doku abgeleitet,
-nicht am Gerät gesehen. Draft-PR #40 ist geschlossen.
+**Teilweise am Gerät gesehen:** Die Beta-App nach dem [Konzept](ios-konzept.md)
+liegt seit dem 11. Oktober unter [ios/](../ios/README.md). Am 12. Oktober lief
+`39738a9` auf Bastis iPhone 15 (iOS 27.0.1, Debug-Build mit Apple-Development-
+Signatur, per Kabel installiert): Mikrofon-Freigabe, Schlüssel und ein Diktat
+aus der App heraus kamen als Text an. Der Kurzbefehl „Diktieren“, aus der
+Kurzbefehle-App gestartet, scheiterte mit „Die Aufnahme konnte nicht
+starten“; die Live-Aktivität lief vorher an. Am 13. Oktober lief `b1781e7`
+(Aufnahme, die im Hintergrund mit anderer Wiedergabe mischt): Derselbe
+Kurzbefehl nahm im Hintergrund auf, die Dynamic Island zeigte Aufnahme und
+„Schreibt“ (im kleinen Feld abgeschnitten), und der Text kam in der App an. Danach meldete die App, dass sie
+den Text nicht in die Zwischenablage legen konnte. Ob iOS das im Hintergrund
+verweigert oder nur die Prüfung danebenliegt, ist offen. Draft-PR #40 ist
+geschlossen.
 
-**Offen / bekannte Grenzen:** Echte Aufnahme und Transkription, Aufnahmestart
-im Hintergrund und Schreiben in die Zwischenablage aus dem Hintergrund,
+**Offen / bekannte Grenzen:** Schreiben in die Zwischenablage aus dem
+Hintergrund, Start per „Auf Rückseite tippen“, Abfrage „Lokales Netzwerk“,
 Abbruch-/Unterbrechungsfälle, Dateischutz am Gerät, Verteilung über TestFlight,
 Barrierefreiheit. Die ferngesteuerte Device-Hub-Steuerung bleibt blockiert;
 Basti bedient das Gerät selbst.
 
-**Letzter Nachweis:** 30. September 2026.
+**Letzter Nachweis:** 13. Oktober 2026.
 
 ## Android
 

@@ -10,6 +10,9 @@ enum AppSettings {
     /// Target language code; empty turns translation off.
     static let translationTargetKey = "translationTarget"
     static let translationModelKey = "translationModel"
+    /// Set once the shortcut started a dictation: iOS does not tell an app
+    /// whether a shortcut, Back Tap or the Action button runs it.
+    static let shortcutUsedKey = "shortcutUsed"
 
     static func string(_ key: String) -> String {
         (UserDefaults.standard.string(forKey: key) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)

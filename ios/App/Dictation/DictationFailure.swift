@@ -12,7 +12,8 @@ enum DictationFailure: Error, Equatable {
     case invalidModel
     case liveActivitiesOff
     case liveActivityFailed
-    case recordingFailed
+    /// The step that failed and its error code, shown so a beta report names the cause.
+    case recordingFailed(String?)
     case recordingUnreadable
     case tooShort
     case nothingRecognized
@@ -65,8 +66,9 @@ enum DictationFailure: Error, Equatable {
             L10n.pick(
                 "The Live Activity could not start. Without it iOS stops the recording. Try again.",
                 "Die Live-Aktivität ließ sich nicht starten. Ohne sie beendet iOS die Aufnahme. Versuch es nochmal.")
-        case .recordingFailed:
+        case .recordingFailed(let detail):
             L10n.pick("The recording could not start.", "Die Aufnahme konnte nicht starten.")
+                + (detail.map { " (\($0))" } ?? "")
         case .recordingUnreadable:
             L10n.pick("The recording could not be read.", "Die Aufnahme konnte nicht gelesen werden.")
         case .tooShort:
