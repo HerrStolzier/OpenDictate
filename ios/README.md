@@ -3,8 +3,9 @@
 Die Beta-App nach dem [iOS-Konzept](../docs/ios-konzept.md): Ein Kurzbefehl
 startet die Aufnahme im Hintergrund, ohne dass OpenDictate aufgeht. Nochmal
 auslösen (oder Stopp in der Live-Aktivität) beendet sie; der Text, wahlweise
-übersetzt, liegt danach in der Zwischenablage. Stand 11. Oktober 2026:
-geschrieben, aber noch nicht auf dem iPhone gebaut und geprüft.
+übersetzt, liegt danach in der Zwischenablage. Stand 13. Oktober 2026: läuft
+auf dem iPhone, ein Diktat aus der App kam an, der Start im Hintergrund noch
+nicht (siehe Grenzen).
 
 ## Aufbau
 
@@ -64,9 +65,13 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
 
 ## Grenzen der ersten Beta
 
-- Der Start im Hintergrund und das Schreiben in die Zwischenablage aus dem
-  Hintergrund sind auf dem iPhone noch nicht geprüft; das ist der erste
-  Prüfpunkt ([ROADMAP](../ROADMAP.md#track-ios)).
+- Der Start im Hintergrund scheiterte beim ersten iPhone-Test am 12. Oktober
+  („Die Aufnahme konnte nicht starten“). Seitdem nimmt die App im Hintergrund
+  so auf, dass sie mit anderer Wiedergabe mischt (die wird leiser), nennt bei
+  einem Fehlschlag Schritt und Fehlercode und holt die App ab iOS 26 sonst
+  nach vorn, damit die Aufnahme trotzdem startet. Am Gerät ist das noch nicht
+  geprüft, ebenso das Schreiben in die Zwischenablage aus dem Hintergrund
+  ([ROADMAP](../ROADMAP.md#track-ios)).
 - Kein Kontrollzentrum-Schalter, keine Erkennung auf dem Gerät, kein
   Vokabular und keine feste Sprache; die Sprache erkennt der Dienst.
 - Das Datenschutz-Manifest gibt Audio und Text als für die App-Funktion
