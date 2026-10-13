@@ -9,26 +9,20 @@ Installation, Beschaffung eines Zertifikats oder echte Provider-/Mikrofonprobe.
 
 | Bereich | Belegter Stand | Noch offen |
 | --- | --- | --- |
-| App | WPF und WinForms; `net10.0-windows10.0.19041.0`. Das Manifest fordert `asInvoker`. | Unterstützte Windows-Versionen und Mindestbuild festlegen und installieren/abnehmen. Das TFM allein ist keine Kompatibilitätszusage. |
-| Bibliotheken und Prüfprogramme | `net10.0-windows`; gemeinsamer Kern `net10.0`. `global.json` nennt .NET SDK 10.0.401 und `latestPatch`. | Laufzeit- und Architekturmodell des öffentlichen Pakets festlegen. Architektur ist im aktuellen Projekt nicht explizit fixiert. |
+| App | WPF und WinForms; `net10.0-windows`, nur x64. Das Manifest fordert `asInvoker`. | Unterstützte Windows-Versionen und Mindestbuild festlegen und installieren/abnehmen. Das TFM allein ist keine Kompatibilitätszusage. |
+| Bibliotheken und Prüfprogramme | `OpenDictate.Windows` und der Schutzprüfer `net10.0-windows`; Kern, Provider und Offline-Prüfungen `net10.0`. `global.json` nennt .NET SDK 10.0.401 und `latestPatch`. | Laufzeitmodell des öffentlichen Pakets festlegen (mitgelieferte Laufzeit oder vorausgesetzte). |
 | Abhängigkeiten | `NAudio.Wasapi` 3.1.0 ist direkte App-Abhängigkeit. Nullable-Prüfung, Warnungen als Fehler und `Deterministic=true` sind gesetzt. | NuGet-Abhängigkeitsgraph sperren und Build aus sauberem Checkout reproduzierbar belegen. Es gibt keine `packages.lock.json`; `Deterministic=true` beweist keine bitgleichen Artefakte. |
-| Build | Auf Windows wurden App und Browser-Host mit SDK 10.0.401 ohne Warnungen oder Fehler gebaut. | `dotnet publish`, vollständige Artefaktliste, Hashprüfung und sauberen Offline-Wiederholungsbuild festlegen. |
-| Installation | Kein Windows-Produktinstaller und keine öffentliche Paketdefinition vorhanden. Die Browserprobe ist nur ein getrenntes Entwicklerwerkzeug. | Installerformat, Upgrade-/Rollbackverhalten, Deinstallation und Supportpfad entscheiden. |
+| Build | Die Beta-App baut auf Linux und im Windows-Job der CI ohne Warnungen; auf einem Windows-PC wurde sie noch nicht gebaut. | `dotnet publish`, vollständige Artefaktliste, Hashprüfung und sauberen Offline-Wiederholungsbuild festlegen. |
+| Installation | Kein Windows-Produktinstaller und keine öffentliche Paketdefinition vorhanden. | Installerformat, Upgrade-/Rollbackverhalten, Deinstallation und Supportpfad entscheiden. |
 | Signatur | Keine Release-Signatur oder ausgewählte Signieridentität belegt. | Authenticode-Signatur, vertrauenswürdiger Zeitstempel und Verifikation des endgültigen Pakets. Zertifikatbeschaffung braucht eine eigene Freigabe. |
-
-Die bestehende `scripts/install-browser-probe.ps1` ist kein Produktinstaller:
-Sie kopiert einen Browser-Testhost in `%LOCALAPPDATA%` und registriert ihn unter
-dem aktuellen Benutzer in `HKCU`. Sie verlangt einen vorbereiteten
-`.source-archive-sha256`-Marker, den dieser Quellsnapshot nicht enthält. Das
-Skript wurde nicht ausgeführt und bleibt außerhalb des Releasepfads.
 
 ## Releasepakete und nötige Gates
 
-1. **Supportumfang festlegen.** Ziel-Windows-Versionen, Prozessarchitektur,
-   Texteditoren und Browser ausdrücklich benennen. Die historischen Prüfungen
-   belegen nur den Windows Editor und einen isolierten Chrome-Testfall des
-   damaligen Kandidaten. Sie begründen keine Zusage für beliebige Editoren,
-   Chromium-Browser oder Webseiten.
+1. **Supportumfang festlegen.** Ziel-Windows-Versionen und Prozessarchitektur
+   ausdrücklich benennen. Eingefügt wird über Zwischenablage und Strg+V in das
+   Fenster, das beim Start vorne war; daraus folgt keine Zusage für beliebige
+   Programme oder Spiele. In Programme mit Adminrechten lässt Windows nicht
+   einfügen; die App erkennt das nicht, der Text bleibt in der Zwischenablage.
 2. **Build reproduzierbar machen.** Sauberen Snapshot und Commit identifizieren,
    .NET SDK/Windows-Referenzpakete festlegen, NuGet-Abhängigkeiten sperren,
    Restore- und Buildkommandos dokumentieren und zwei Builds vergleichen.
@@ -55,12 +49,13 @@ Skript wurde nicht ausgeführt und bleibt außerhalb des Releasepfads.
    ohne eine spätere ausdrücklich bestätigte Produktentscheidung.
 6. **Aufnahmen und Schlüssel schützen.** Die Beta-App schreibt
    PCM-/WAV-Originale nach `%LOCALAPPDATA%\OpenDictate\Recordings` und die
-   Recovery nach `%LOCALAPPDATA%\OpenDictate\Recovery`; das Prüffenster nutzt
-   weiter `%LOCALAPPDATA%\OpenDictatePrototype\Recordings` und `…\Recovery`.
-   Synthetische Abläufe verwenden `SyntheticChecks` und `SyntheticRecovery`.
-   Das Transkript liegt nach jedem Diktat in der Zwischenablage von Windows
-   (also auch im Zwischenablageverlauf, wenn der Nutzer ihn eingeschaltet hat)
-   und bis zum Beenden im Speicher der App für „Letzten Text kopieren“.
+   Recovery nach `%LOCALAPPDATA%\OpenDictate\Recovery`. Synthetische Abläufe
+   verwenden `SyntheticChecks` und `SyntheticRecovery`.
+   Das Transkript liegt nach jedem Diktat in der Zwischenablage von Windows und
+   bis zum Beenden im Speicher der App für „Letzten Text kopieren“. Die App
+   markiert es so, dass Windows es nicht in den Zwischenablageverlauf und nicht
+   in die Cloud-Zwischenablage übernimmt; ein Programm, das die Zwischenablage
+   selbst mitliest, kann es trotzdem sehen.
    Einstellungen (Modell, Sprache, Übersetzung, Server-Adresse) liegen ohne
    Geheimnis in `%APPDATA%\OpenDictate\settings.json`. Die Aufnahme geht an
    OpenAI oder an den eingetragenen eigenen Server; ist eine Übersetzung
@@ -87,8 +82,9 @@ Skript wurde nicht ausgeführt und bleibt außerhalb des Releasepfads.
 8. **Sichtbare Abnahme durchführen.** Installierten, signierten Kandidaten mit
    Quellcommit und Prüfsummen in einem normalen Benutzerkonto testen. Echte
    Mikrofon- und Providerläufe brauchen eine separate konkrete Freigabe für
-   Audioübertragung, Kosten und Testumfang. Bis dahin bleiben die 41 Offline-
-   Checks der aktuelle technische Nachweis, keine Live-Diktatabnahme.
+   Audioübertragung, Kosten und Testumfang. Bis dahin bleiben die Offline-
+   Checks (siehe [README](README.md#beta-app-11-oktober-2026)) der aktuelle
+   technische Nachweis, keine Live-Diktatabnahme.
 9. **Veröffentlichung freigeben.** Erst nach allen Gates Produkttexte,
    Datenschutzhinweise, Supportumfang, Installations-/Deinstallationsanleitung,
    Downloadhashes und Websiteversion abstimmen. Öffentliche Veröffentlichung

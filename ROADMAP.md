@@ -150,7 +150,7 @@ Anwendungsfall Gaming in [PROJECT](PROJECT.md#anwendungsfälle)) und melden
 Probleme über GitHub Issues.
 
 **Stand:** Seit 11. Oktober läuft Windows parallel; die nächste Beta ist iOS,
-danach Windows ([Log](PROJECT.md#entscheidungen)). Der Prototyp unter
+danach Windows ([Log](PROJECT.md#entscheidungen)). Die Windows-App unter
 [windows/](windows/README.md) nimmt Modell, gesprochene Sprache, Übersetzung
 nach dem Sprechen und eigenen Server aus den Einstellungen und prüft seine
 Anfragen gegen die gemeinsamen Fixtures (11. Oktober, nur offline, auf Linux und

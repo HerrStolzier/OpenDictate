@@ -11,7 +11,7 @@ internal static class Native
     internal const int KeyDown = 0x0100, KeyUp = 0x0101, SystemKeyDown = 0x0104, SystemKeyUp = 0x0105;
     internal const uint Injected = 0x10;
     internal const uint Quit = 0x0012;
-    private const uint InputKeyboard = 1, KeyEventUp = 0x0002;
+    private const uint InputKeyboard = 1, KeyEventUp = 0x0002, MapToScanCode = 0;
     internal const int ExStyle = -20;
     internal const long NoActivate = 0x08000000, ToolWindow = 0x00000080, Transparent = 0x00000020;
 
@@ -38,6 +38,7 @@ internal static class Native
     [DllImport("user32.dll")] internal static extern short GetAsyncKeyState(int key);
     [DllImport("user32.dll")] internal static extern uint GetWindowThreadProcessId(nint window, out uint process);
     [DllImport("user32.dll", SetLastError = true)] private static extern uint SendInput(uint count, Input[] inputs, int size);
+    [DllImport("user32.dll")] private static extern uint MapVirtualKeyW(uint code, uint mapType);
     [DllImport("user32.dll")] internal static extern nint GetWindowLongPtrW(nint window, int index);
     [DllImport("user32.dll")] internal static extern nint SetWindowLongPtrW(nint window, int index, nint value);
 
@@ -83,10 +84,19 @@ internal static class Native
         return sent;
     }
 
+    // Games that read raw input or DirectInput ignore the virtual key and
+    // look only at the scan code, so every event carries both. The mask key
+    // has no scan code and stays zero.
     private static Input Key(int key, bool up) => new()
     {
         Type = InputKeyboard,
-        Data = new InputData { Keyboard = new KeyboardInput { VirtualKey = (ushort)key, Flags = up ? KeyEventUp : 0 } },
+        Data = new InputData
+        {
+            Keyboard = new KeyboardInput
+            {
+                VirtualKey = (ushort)key, ScanCode = (ushort)MapVirtualKeyW((uint)key, MapToScanCode), Flags = up ? KeyEventUp : 0,
+            },
+        },
     };
 
     private static int Send(Input[] inputs) => (int)SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<Input>());
