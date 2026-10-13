@@ -262,14 +262,25 @@ build run with:
 
 ```bash
 bash scripts/ci/check-ios-prototype.sh
-swift format lint --strict --configuration .swift-format --recursive ios/UITests
+swift format lint --strict --configuration .swift-format --recursive ios/UITests ios/UnitTests
+```
+
+The unit tests in `ios/UnitTests` check kept recordings (tag, expiry, five
+newest), the settings a dictation reads, and the requests it builds. They run
+inside the app and change its settings for a moment, so run them only in the
+simulator. It is created once with
+`xcrun simctl create "OpenDictate iOS Beta" "iPhone 17"`:
+
+```bash
+xcodebuild test -project ios/OpenDictate.xcodeproj -scheme OpenDictateiOS \
+  -destination 'platform=iOS Simulator,name=OpenDictate iOS Beta' \
+  -only-testing:OpenDictateiOSTests
 ```
 
 The UI tests in `ios/UITests` drive the app and attach screenshots to the
 result bundle (`xcrun xcresulttool` exports them). `testScreens` needs nothing
 else and puts back every setting it changes; run it in a simulator before every
-install. The simulator is created once with
-`xcrun simctl create "OpenDictate iOS Beta" "iPhone 17"`:
+install, in the same simulator:
 
 ```bash
 xcodebuild test -project ios/OpenDictate.xcodeproj -scheme OpenDictateiOS \

@@ -27,6 +27,13 @@
 			remoteGlobalIDString = 0D1C00000000000000000004;
 			remoteInfo = OpenDictateiOS;
 		};
+		0D1C00000000000000000038 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0D1C00000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D1C00000000000000000004;
+			remoteInfo = OpenDictateiOS;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -47,6 +54,7 @@
 		0D1C00000000000000000006 /* OpenDictateiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenDictateiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D1C00000000000000000007 /* OpenDictateWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OpenDictateWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D1C00000000000000000028 /* OpenDictateiOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OpenDictateiOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D1C00000000000000000033 /* OpenDictateiOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OpenDictateiOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D1C00000000000000000025 /* App-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "App-Info.plist"; sourceTree = "<group>"; };
 		0D1C00000000000000000026 /* Widgets-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Widgets-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -57,6 +65,7 @@
 		0D1C0000000000000000000A /* Widgets */ = {isa = PBXFileSystemSynchronizedRootGroup; path = Widgets; sourceTree = "<group>"; };
 		0D1C0000000000000000000B /* Fonts */ = {isa = PBXFileSystemSynchronizedRootGroup; name = Fonts; path = ../design/fonts; sourceTree = "<group>"; };
 		0D1C00000000000000000027 /* UITests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = UITests; sourceTree = "<group>"; };
+		0D1C00000000000000000032 /* UnitTests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = UnitTests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,6 +92,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0D1C00000000000000000036 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -93,6 +109,7 @@
 				0D1C00000000000000000009 /* Shared */,
 				0D1C0000000000000000000A /* Widgets */,
 				0D1C00000000000000000027 /* UITests */,
+				0D1C00000000000000000032 /* UnitTests */,
 				0D1C0000000000000000000B /* Fonts */,
 				0D1C0000000000000000000C /* Config */,
 				0D1C00000000000000000003 /* Products */,
@@ -114,6 +131,7 @@
 				0D1C00000000000000000006 /* OpenDictateiOS.app */,
 				0D1C00000000000000000007 /* OpenDictateWidgets.appex */,
 				0D1C00000000000000000028 /* OpenDictateiOSUITests.xctest */,
+				0D1C00000000000000000033 /* OpenDictateiOSTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -194,6 +212,27 @@
 			productReference = 0D1C00000000000000000028 /* OpenDictateiOSUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		0D1C00000000000000000034 /* OpenDictateiOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0D1C0000000000000000003A /* Build configuration list for PBXNativeTarget "OpenDictateiOSTests" */;
+			buildPhases = (
+				0D1C00000000000000000035 /* Sources */,
+				0D1C00000000000000000036 /* Frameworks */,
+				0D1C00000000000000000037 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0D1C00000000000000000039 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				0D1C00000000000000000032 /* UnitTests */,
+			);
+			name = OpenDictateiOSTests;
+			productName = OpenDictateiOSTests;
+			productReference = 0D1C00000000000000000033 /* OpenDictateiOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -211,6 +250,10 @@
 						CreatedOnToolsVersion = 16.0;
 					};
 					0D1C00000000000000000029 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = 0D1C00000000000000000004;
+					};
+					0D1C00000000000000000034 = {
 						CreatedOnToolsVersion = 16.0;
 						TestTargetID = 0D1C00000000000000000004;
 					};
@@ -237,6 +280,7 @@
 				0D1C00000000000000000004 /* OpenDictateiOS */,
 				0D1C00000000000000000005 /* OpenDictateWidgets */,
 				0D1C00000000000000000029 /* OpenDictateiOSUITests */,
+				0D1C00000000000000000034 /* OpenDictateiOSTests */,
 			);
 		};
 /* End PBXProject section */
@@ -257,6 +301,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		0D1C0000000000000000002C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0D1C00000000000000000037 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -287,6 +338,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		0D1C00000000000000000035 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -299,6 +357,11 @@
 			isa = PBXTargetDependency;
 			target = 0D1C00000000000000000004 /* OpenDictateiOS */;
 			targetProxy = 0D1C0000000000000000002D /* PBXContainerItemProxy */;
+		};
+		0D1C00000000000000000039 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0D1C00000000000000000004 /* OpenDictateiOS */;
+			targetProxy = 0D1C00000000000000000038 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -502,6 +565,46 @@
 			};
 			name = Release;
 		};
+		0D1C0000000000000000003B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.opendictate.ios.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OpenDictateiOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/OpenDictateiOS";
+			};
+			name = Debug;
+		};
+		0D1C0000000000000000003C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.opendictate.ios.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OpenDictateiOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/OpenDictateiOS";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -537,6 +640,15 @@
 			buildConfigurations = (
 				0D1C00000000000000000030 /* Debug */,
 				0D1C00000000000000000031 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0D1C0000000000000000003A /* Build configuration list for PBXNativeTarget "OpenDictateiOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0D1C0000000000000000003B /* Debug */,
+				0D1C0000000000000000003C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

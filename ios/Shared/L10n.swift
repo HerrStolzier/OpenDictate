@@ -16,6 +16,7 @@ enum L10n {
         case .listening: pick("Listening", "Hört zu")
         case .writing: pick("Writing", "Schreibt")
         case .copied: pick("Copied", "Kopiert")
+        case .done: pick("Done", "Fertig")
         case .oops: pick("Oops", "Hoppla")
         }
     }
@@ -25,6 +26,9 @@ enum L10n {
     static let shortcutCopiesDetail = pick(
         "With “Copy to Clipboard” in your shortcut, paste the text wherever you like.",
         "Mit „In Zwischenablage kopieren“ im Kurzbefehl kannst du den Text jetzt einfügen.")
+    static let handOverDetail = pick(
+        "Run your shortcut again or open OpenDictate, then the text is on the clipboard.",
+        "Starte deinen Kurzbefehl nochmal oder öffne OpenDictate, dann liegt der Text in der Zwischenablage.")
     static let keptDetail = pick(
         "Recording kept. Open OpenDictate to send it again.",
         "Aufnahme gesichert. Öffne OpenDictate, um sie nochmal zu senden.")
