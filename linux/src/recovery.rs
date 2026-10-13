@@ -4,7 +4,7 @@ use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use hmac::{Hmac, Mac};
+use hmac::{Hmac, KeyInit, Mac};
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 
@@ -405,6 +405,17 @@ mod tests {
         fs::rename(&entry.sidecar_path, &renamed_sidecar).unwrap();
         assert!(newest_authenticated(&recovery_dir, &key).unwrap().is_none());
         let _ = fs::remove_dir_all(recovery_dir.parent().unwrap());
+    }
+
+    #[test]
+    fn authentication_tag_stays_stable_across_crate_updates() {
+        // Reference HMAC-SHA256 computed independently (Python `hmac`), so
+        // recordings kept by an earlier build still verify after an update.
+        let key: Vec<u8> = (0u8..32).collect();
+        assert_eq!(
+            authentication("recording.wav", 1_700_000_000, b"OpenDictate", &key).unwrap(),
+            "c6060393f092b6610d2b728711551693157292e19b8eb350dc1704f600969605"
+        );
     }
 
     #[test]

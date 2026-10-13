@@ -17,14 +17,17 @@ git diff --check
 ```
 
 CI uses strict formatting, warnings-as-errors tests and seven shell syntax checks
-on macOS 15. A separate macOS 14 Apple-Silicon job selects the
-runner's Xcode 16.2 and runs the offline Swift tests plus an ad-hoc bundle
-build and verification. This is a native macOS 14 runtime check, but cannot
+on macOS 15. A separate compatibility job selects the oldest Xcode 16 installed
+on the macOS 15 runner and runs the offline Swift tests plus an ad-hoc bundle
+build and verification. Until October 2026 this job ran natively on macOS 14
+with Xcode 16.2; [GitHub retires the macOS-14 runner on 2 November
+2026](https://github.com/actions/runner-images/issues/13518), so since 13
+October 2026 (Basti's decision) it checks the oldest toolchain instead of the
+macOS 14 runtime. Its job name `compatibility-macos-14` stays because branch
+protection requires it. From 2 November 2026 no hosted runner covers the macOS 14 runtime;
+the compiler still enforces the macOS 14 deployment target, and no CI job can
 exercise microphone, permission dialogs, VoiceOver or target-field insertion
-without an interactive desktop. [GitHub plans to retire the macOS-14 runner
-on 2 November 2026](https://github.com/actions/runner-images/issues/13518),
-with temporary brownouts beginning 5 October 2026; this gate needs another host
-before then. CI records the macOS, architecture, Swift and formatter versions so runner
+without an interactive desktop. CI records the macOS, architecture, Swift and formatter versions so runner
 updates are visible without changing the selected toolchain. Its
 whitespace check compares the checked-out commit with its first parent
 (`git diff --check HEAD^ HEAD`); on pull requests this covers the merge diff
@@ -43,8 +46,8 @@ toolchain and the hashes of `Package.swift`, `Sources/` and `Tests/`; the
 bundle script still recreates the app bundle on every run.
 
 The local Mac runs macOS 27 and exposes only the macOS 27 SDK. It cannot
-reproduce the macOS 14 runtime gate; a passing local build on macOS 27 does not
-replace that runner's compatibility evidence.
+reproduce the macOS 14 runtime either; a passing local build on macOS 27 is no
+macOS 14 compatibility evidence.
 
 On the macOS 27 / Swift 6.4 Command Line Tools host, the default build may fail
 to discover `TestingMacros`. The verified local workaround uses the installed
@@ -252,14 +255,13 @@ run the interactive Credential Manager checks.
 
 ## iOS app
 
-The beta app in `ios/OpenDictate.xcodeproj` is not yet part of CI. On the Mac,
-run its formatter check and an unsigned simulator build from the repository
-root:
+CI builds the beta app in `ios/OpenDictate.xcodeproj` on every change under
+`ios/` (workflow `iOS prototype`, macOS 26 runner, because the app uses iOS 26
+APIs). Locally on the Mac, the same formatter check and unsigned simulator
+build run with:
 
 ```bash
-swift format lint --strict --configuration .swift-format --recursive ios/App ios/Shared ios/Widgets
-xcodebuild -project ios/OpenDictate.xcodeproj -scheme OpenDictateiOS \
-  -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+bash scripts/ci/check-ios-prototype.sh
 ```
 
 The build proves neither a background start nor a clipboard write. Before a
@@ -270,26 +272,16 @@ following the acceptance list in [docs/ios-konzept.md](docs/ios-konzept.md).
 Only Back Tap itself stays a short manual look by Basti. Uploading to
 TestFlight is a publication and needs Basti's explicit Go.
 
-## iOS prototype
+## iOS keyboard prototype (superseded)
 
-When the optional iOS project is present, run the same formatter and unsigned
-simulator-target build used by CI:
-
-```bash
-bash scripts/ci/check-ios-prototype.sh
-```
-
-On a ref without `ios/OpenDictateKeyboardDemo.xcodeproj`, the script prints
-`SKIP` and performs no iOS build. A present project must include the shared
-`OpenDictateKeyboardDemo` scheme; format or build failures stop the check. The
-build uses a generic iOS Simulator destination and does not boot a simulator or
-prove keyboard installation or live text insertion. Follow
+The September keyboard prototype in `ios/OpenDictateKeyboardDemo.xcodeproj` is
+no longer built by CI. To rebuild it by hand, use the command in
+[ios/README.md](ios/README.md#offline-simulator-build). The build uses a
+generic iOS Simulator destination and does not boot a simulator or prove
+keyboard installation or live text insertion. Follow
 [ios/PRUEFPLAN.md](ios/PRUEFPLAN.md) for the visible Safari fixture check;
 [simulator evidence](docs/ios-keyboard-e2e-2026-09-29.md) and
 [physical-device evidence](docs/ios-device-2026-09-30.md) identify their exact scope.
-Installing/launching the test app and activating its keyboard require the
-corresponding test approval. Microphone, provider, credentials and distribution
-remain separate gates.
 
 ## Workflow and secret checks
 

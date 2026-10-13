@@ -174,7 +174,7 @@ pub fn start(path: &Path) -> Result<RecordingHandle, String> {
     let config = device
         .default_input_config()
         .map_err(|_| crate::tr!("Mikrofon nicht verfügbar.", "Microphone unavailable."))?;
-    let sample_rate = config.sample_rate().0;
+    let sample_rate = config.sample_rate();
     let channels = config.channels();
     let spec = WavSpec {
         channels: 1,
@@ -210,27 +210,23 @@ fn open_stream(
     config: cpal::SupportedStreamConfig,
     capture: &Arc<Mutex<Capture>>,
 ) -> Result<cpal::Stream, String> {
-    let stream_capture = Arc::clone(capture);
-    let err_capture = Arc::clone(capture);
+    let stream_config = config.config();
+    // cpal 0.18 ranks F64 and 24/32-bit integers above I16 when choosing the
+    // default config, so devices without F32 that used to record as I16 now
+    // offer one of those; they are converted to the same 16-bit mono WAV.
     let stream = match config.sample_format() {
-        cpal::SampleFormat::F32 => device.build_input_stream(
-            &config.into(),
-            move |data: &[f32], _| write_f32(&stream_capture, data),
-            move |error| set_error(&err_capture, error),
-            None,
-        ),
-        cpal::SampleFormat::I16 => device.build_input_stream(
-            &config.into(),
-            move |data: &[i16], _| write_i16(&stream_capture, data),
-            move |error| set_error(&err_capture, error),
-            None,
-        ),
-        cpal::SampleFormat::U16 => device.build_input_stream(
-            &config.into(),
-            move |data: &[u16], _| write_u16(&stream_capture, data),
-            move |error| set_error(&err_capture, error),
-            None,
-        ),
+        cpal::SampleFormat::F32 => build(device, stream_config, capture, write_f32),
+        cpal::SampleFormat::I16 => build(device, stream_config, capture, write_i16),
+        cpal::SampleFormat::U16 => build(device, stream_config, capture, write_u16),
+        cpal::SampleFormat::F64 => build(device, stream_config, capture, write_converted::<f64>),
+        cpal::SampleFormat::I32 => build(device, stream_config, capture, write_converted::<i32>),
+        cpal::SampleFormat::U32 => build(device, stream_config, capture, write_converted::<u32>),
+        cpal::SampleFormat::I24 => {
+            build(device, stream_config, capture, write_converted::<cpal::I24>)
+        }
+        cpal::SampleFormat::U24 => {
+            build(device, stream_config, capture, write_converted::<cpal::U24>)
+        }
         _ => {
             return Err(crate::tr!(
                 "Mikrofon-Sampleformat wird nicht unterstützt.",
@@ -243,6 +239,22 @@ fn open_stream(
         .play()
         .map_err(|error| start_failed("play", &error))?;
     Ok(stream)
+}
+
+fn build<T: cpal::SizedSample + 'static>(
+    device: &cpal::Device,
+    config: cpal::StreamConfig,
+    capture: &Arc<Mutex<Capture>>,
+    write: fn(&Arc<Mutex<Capture>>, &[T]),
+) -> Result<cpal::Stream, cpal::Error> {
+    let stream_capture = Arc::clone(capture);
+    let err_capture = Arc::clone(capture);
+    device.build_input_stream(
+        config,
+        move |data: &[T], _| write(&stream_capture, data),
+        move |error| set_error(&err_capture, error),
+        None,
+    )
 }
 
 /// Notes the audio backend's reason in the worker log (its stderr), which
@@ -341,6 +353,17 @@ fn write_u16(capture: &Arc<Mutex<Capture>>, data: &[u16]) {
     });
 }
 
+fn write_converted<T: Copy>(capture: &Arc<Mutex<Capture>>, data: &[T])
+where
+    i16: cpal::FromSample<T>,
+{
+    write_samples(
+        capture,
+        data.iter().copied(),
+        cpal::FromSample::from_sample_,
+    );
+}
+
 fn write_samples<T, F>(
     capture: &Arc<Mutex<Capture>>,
     samples: impl IntoIterator<Item = T>,
@@ -402,7 +425,14 @@ fn clamp_i16(sample: f32) -> i16 {
     scaled.clamp(f32::from(i16::MIN), f32::from(i16::MAX)) as i16
 }
 
-fn set_error(capture: &Arc<Mutex<Capture>>, error: cpal::StreamError) {
+fn set_error(capture: &Arc<Mutex<Capture>>, error: cpal::Error) {
+    // cpal 0.18 reports ALSA overruns and then recovers from them itself, so
+    // they no longer end the recording (0.15 stopped capturing on most of
+    // them). Up to about one period of audio can be missing at that point. A
+    // failed recovery is reported as a separate error.
+    if error.kind() == cpal::ErrorKind::Xrun {
+        return;
+    }
     if let Ok(mut guard) = capture.lock() {
         guard.error = Some(crate::tr!(
             "Aufnahme unterbrochen.",
@@ -446,6 +476,20 @@ pub fn write_silence_fixture(path: &Path, sample_rate: u32, frames: u32) -> std:
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn only_unrecovered_stream_errors_interrupt_the_recording() {
+        let capture = Arc::new(Mutex::new(Capture {
+            writer: None,
+            frames: 0,
+            channels: 1,
+            error: None,
+        }));
+        set_error(&capture, cpal::ErrorKind::Xrun.into());
+        assert!(capture.lock().unwrap().error.is_none());
+        set_error(&capture, cpal::ErrorKind::DeviceNotAvailable.into());
+        assert!(capture.lock().unwrap().error.is_some());
+    }
 
     #[test]
     fn a_failed_start_removes_only_an_empty_file() {

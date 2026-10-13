@@ -105,9 +105,9 @@ die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleiner
    prüfen), Show HN erst
    nach den ersten Rückmeldungen, Mastodon/X über Bastis Account.
 2. Beta laufen lassen: Issues beantworten, Rückmeldungen sammeln.
-   Vor dem 2. November 2026 braucht der macOS-14-Job der CI einen anderen
-   Host, weil GitHub den Runner dann abschaltet ([CHECKS](CHECKS.md)); das ist
-   eine CI-Änderung und braucht Bastis Wort.
+   Weil GitHub den macOS-14-Runner am 2. November 2026 abschaltet, prüft die
+   CI seit dem 13. Oktober die älteste Xcode-16-Toolchain auf macOS 15 statt
+   der macOS-14-Laufzeit ([CHECKS](CHECKS.md)).
 3. Eigener Server mit lokalem Modell: erledigt mit Build 11 und Build 12
    (Live-Diktate über whisper.cpp ohne Schlüssel, siehe Erledigt). Build 12 ist
    seit dem 12. Oktober die öffentliche Beta `v0.1.0-beta.12`. Die
