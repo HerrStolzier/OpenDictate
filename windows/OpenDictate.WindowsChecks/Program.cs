@@ -59,6 +59,20 @@ try
         for (int i = 0; i < 7; i++) { time += TimeSpan.FromSeconds(1); store.Save(wave); }
         Check(store.List().Count == 5 && Directory.GetFiles(Path.Combine(root, "count")).Length == 5);
     });
+    Test("A recovery file held open elsewhere neither fails the save nor exceeds five", () =>
+    {
+        var time = DateTimeOffset.UtcNow; string folder = Path.Combine(root, "held"); var store = new RecoveryStore(folder, () => time);
+        for (int i = 0; i < 5; i++) { time += TimeSpan.FromSeconds(1); store.Save(wave); }
+        string oldest = Path.Combine(folder, store.List()[^1].Id.ToString("N") + ".odr");
+        using (new FileStream(oldest, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+        {
+            time += TimeSpan.FromSeconds(1); var saved = store.Save(wave);
+            Check(File.Exists(oldest) && store.List().Count == 5 && store.List()[0].Id == saved.Entry.Id);
+        }
+        // Released but not yet pruned: six files, still only the five newest offered.
+        Check(Directory.GetFiles(folder).Length == 6 && store.List().Count == 5 && !store.List().Any(entry => oldest.Contains(entry.Id.ToString("N"))));
+        store.Prune(); Check(!File.Exists(oldest) && Directory.GetFiles(folder).Length == 5);
+    });
     Test("Renamed and tampered recovery files are refused and not deleted", () =>
     {
         string folder = Path.Combine(root, "invalid"); var store = new RecoveryStore(folder); var saved = store.Save(wave);

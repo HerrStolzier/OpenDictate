@@ -30,7 +30,7 @@ internal static class ClipboardPaste
         string? clipboard = await ReadAsync();
         if (!PastePolicy.MayPaste(autoInsert, captured, Native.ForegroundTarget(), clipboard, text,
                 Native.ModifiersReleased(), Environment.ProcessId)) return Result.ClipboardOnly;
-        int sent = Native.SendPaste();
+        int sent = Native.SendPaste(captured.Window);
         return sent == 4 ? Result.Pasted : sent == 0 ? Result.ClipboardOnly : Result.PasteUncertain;
     }
 

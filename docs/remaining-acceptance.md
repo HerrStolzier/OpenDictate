@@ -292,28 +292,31 @@ bestanden am 28. September 2026 auf dem Windows-PC
 vom 12. September bestand Cursor-, Auswahl- und Abbruchfälle mit künstlichem
 Text in Editor und Chrome-Testprofil ([Windows-Plan](windows-plan.md)).
 
-Seit 11. Oktober 2026 nimmt der Prototyp Modell, gesprochene Sprache,
+Seit 11. Oktober 2026 nimmt die Windows-App Modell, gesprochene Sprache,
 Übersetzung nach dem Sprechen (`gpt-5.4-mini`) und eigenen Server aus
 `%APPDATA%\OpenDictate\settings.json`; ein Server auf diesem Computer bekommt
-keinen Schlüssel. 40 Kern-, Ablauf- und Provider-Prüfungen (Provider gegen
-`fixtures/provider/`) und die Builds bestanden offline auf Linux mit .NET SDK
-10.0.401; die 13 Schutzprüfungen wurden dabei nicht ausgeführt.
+keinen Schlüssel. Die Provider-Prüfungen laufen gegen `fixtures/provider/`.
 
 Ebenfalls seit 11. Oktober gibt es die Beta-App `OpenDictate.App`
 ([Beschreibung](../windows/README.md#beta-app-11-oktober-2026)): Infobereich,
 Strg+Win halten oder rechte Strg, Einfügen per Zwischenablage und Strg+V nur ins
-erfasste Fenster, Diktatanzeige, Begrüßung mit Kürzeltest. 60 Offline-Prüfungen
-(davon 20 für Kürzel, Auslöser, Einfügeregel, Einstellungen und Anzeige) und
-alle Builds bestanden auf Linux; die App wurde nicht gestartet.
+erfasste Fenster, Diktatanzeige, Begrüßung mit Kürzeltest. Am 13. Oktober
+wurden das alte Prüffenster, der Browser-Host und die Test-Erweiterung
+entfernt; seitdem bestanden 53 Offline-Prüfungen (davon 20 für Kürzel,
+Auslöser, Einfügeregel, Einstellungen und Anzeige) und beide Builds auf
+Linux. Die 14 Schutzprüfungen und die App selbst liefen noch nicht auf
+Windows.
 
 **Offen / bekannte Grenzen:** Kein echtes Diktat, keine Provideranfrage, auch
 nicht gegen ein lokales Modell; die Beta-App lief noch nie auf Windows (Hook,
 Startmenü nach Strg+Win, Anzeige über Spielen, Strg+V, Mikrofonfreigabe,
-Autostart, Skalierung); kein Prompt (Vokabular); keine Maus-Seitentaste; keine
+Autostart, Skalierung, Strg+V mit Scancode in Spielen); in Programme mit
+Adminrechten lässt Windows nicht einfügen, und die Anzeige erkennt das nicht
+(Text bleibt in der Zwischenablage); kein Prompt (Vokabular); keine Maus-Seitentaste; keine
 reproduzierbare Paketierung, keine Signatur, kein Installer; Update- und
 Deinstallationsweg; Pflichtprogramme nicht festgelegt.
 
-**Letzter Nachweis:** 11. Oktober 2026 (offline).
+**Letzter Nachweis:** 13. Oktober 2026 (offline).
 
 ## iOS
 
