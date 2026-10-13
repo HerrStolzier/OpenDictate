@@ -276,7 +276,8 @@ xcodebuild test -project ios/OpenDictate.xcodeproj -scheme OpenDictateiOS \
 ```
 
 The live tests (`testDictationInApp`, `testShortcutPastesIntoNotes`) run on
-the iPhone next to the Mac and are skipped unless `TEST_RUNNER_OD_KEYWORDS`
+the iPhone next to the Mac, by cable or over the same Wi-Fi once the iPhone is
+paired and unlocked, and are skipped unless `TEST_RUNNER_OD_KEYWORDS`
 names words the spoken sentence must produce. While they run, the Mac speaks
 the sentence repeatedly, for example
 `while true; do say -v Anna "Heute teste ich den Kurzbefehl"; sleep 2; done`,
@@ -284,8 +285,10 @@ and the run passes `TEST_RUNNER_OD_KEYWORDS="heute,kurzbefehl"` with
 `-destination 'platform=iOS,id=<iPhone>'` and one
 `-only-testing:OpenDictateiOSUITests/OpenDictateUITests/<test>` per live test,
 so `testScreens` stays in the simulator. The shortcut test uses the
-person's own shortcut "Diktieren" and Notes, and needs "Enable UI
-Automation" in the iPhone's developer settings. A passed live test shows that
+person's own shortcut "Diktieren", started by its name, and Notes; it needs
+"Enable UI Automation" in the iPhone's developer settings. If Shortcuts asks
+whether the shortcut may hand on its text, the test allows it once only, and it
+empties its note again so Notes drops it. A passed live test shows that
 a dictation arrives, not how well speech is recognized.
 
 The build proves neither a background start nor a clipboard write. Before a

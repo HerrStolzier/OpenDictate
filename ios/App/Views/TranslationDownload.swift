@@ -1,5 +1,6 @@
 import SwiftUI
-import Translation
+// `TranslationSession` is not Sendable in the SDK; the task hands it over only once.
+@preconcurrency import Translation
 
 /// Asks iOS to download the languages for translation on this iPhone. Only a
 /// view's translation task may show that prompt, so the settings carry this.

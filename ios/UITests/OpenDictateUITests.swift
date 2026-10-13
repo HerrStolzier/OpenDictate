@@ -65,15 +65,21 @@ final class OpenDictateUITests: XCTestCase {
     func testShortcutPastesIntoNotes() throws {
         let keywords = try liveKeywords()
         let shortcuts = XCUIApplication(bundleIdentifier: "com.apple.shortcuts")
-        shortcuts.launch()
-        let tile = shortcuts.buttons["Diktieren"].firstMatch
-        XCTAssertTrue(tile.waitForExistence(timeout: 10), "Shortcut “Diktieren” not found")
-        tile.tap()
+        // By name: a tile query also matches the search field's dictation button.
+        let run = try XCTUnwrap(URL(string: "shortcuts://run-shortcut?name=Diktieren"))
+        XCUIDevice.shared.system.open(run)
         sleep(8)
         snapshot("Kurzbefehl nimmt auf", of: shortcuts)
-        tile.tap()
-        // Recognition, translation and the copy step.
-        sleep(15)
+        XCUIDevice.shared.system.open(run)
+        // Started by URL, Shortcuts may ask before it hands the text on; allow it
+        // for this run only, so no lasting setting changes.
+        let allowOnce = shortcuts.buttons["Einmal erlauben"]
+        if allowOnce.waitForExistence(timeout: 30) {
+            snapshot("Kurzbefehl fragt", of: shortcuts)
+            allowOnce.tap()
+        }
+        // Translation, if set, and the copy step.
+        sleep(5)
         snapshot("Kurzbefehl fertig", of: shortcuts)
 
         let notes = XCUIApplication(bundleIdentifier: "com.apple.mobilenotes")
@@ -90,7 +96,13 @@ final class OpenDictateUITests: XCTestCase {
         paste.tap()
         allowPasteIfAsked()
         snapshot("Notiz mit eingefügtem Text", of: notes)
-        assertContains(body.value as? String ?? "", keywords)
+        let pasted = body.value as? String ?? ""
+        // Empty the note and leave it, so Notes drops it instead of keeping it.
+        body.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: pasted.count))
+        let back = notes.navigationBars.buttons.firstMatch
+        if back.exists { back.tap() }
+        snapshot("Notizen nach dem Aufräumen", of: notes)
+        assertContains(pasted, keywords)
     }
 
     // MARK: Helpers
@@ -130,7 +142,9 @@ final class OpenDictateUITests: XCTestCase {
             XCTFail("No picker “\(picker)”")
             return ""
         }
-        return button.value as? String ?? ""
+        if let value = button.value as? String, !value.isEmpty { return value }
+        // SwiftUI reports a Form picker as "Title, Option" in its label.
+        return button.label.components(separatedBy: ", ").dropFirst().joined(separator: ", ")
     }
 
     /// A Form picker opens a menu; its options are buttons.

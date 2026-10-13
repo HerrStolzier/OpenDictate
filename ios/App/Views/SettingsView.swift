@@ -82,8 +82,13 @@ struct SettingsView: View {
         case nil:
             ProgressView()
         case .unavailable:
-            Text(DictationFailure.onDeviceUnavailable.message)
-                .foregroundStyle(.red)
+            Text(
+                L10n.pick(
+                    "Not on this iPhone: it needs iOS 26 and a supported language. Choose the service above.",
+                    "Geht auf diesem iPhone nicht: Es braucht iOS 26 und eine unterstützte Sprache. "
+                        + "Wähl oben den Dienst.")
+            )
+            .foregroundStyle(.red)
         case .needsModel:
             Button(L10n.pick("Load language (once, from Apple)", "Sprache laden (einmalig, von Apple)")) {
                 Task { await loadLanguage() }
@@ -218,8 +223,13 @@ struct SettingsView: View {
         case nil:
             ProgressView()
         case .unavailable:
-            Text(DictationFailure.translationUnavailable.message)
-                .foregroundStyle(.red)
+            Text(
+                L10n.pick(
+                    "Not on this iPhone: it needs iOS 26 and languages Apple translates. Choose the service above.",
+                    "Geht auf diesem iPhone nicht: Es braucht iOS 26 und Sprachen, die Apple übersetzt. "
+                        + "Wähl oben den Dienst.")
+            )
+            .foregroundStyle(.red)
         case .needsLanguages where translationDownload != nil:
             HStack(spacing: 8) {
                 ProgressView()
