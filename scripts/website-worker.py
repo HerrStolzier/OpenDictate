@@ -18,7 +18,7 @@ WORKER = ROOT / "website" / "worker.js"
 # Files in website/ that describe or run the site but are not served by it.
 NOT_SERVED = {"README.md", "worker.js", "wrangler.toml"}
 # Keep in step with KINDS in website/worker.js.
-SERVED_TYPES = {"html", "css", "js", "svg", "woff2", "txt", "png", "xml"}
+SERVED_TYPES = {"html", "css", "js", "svg", "woff2", "txt", "png", "xml", "jpg", "mp4"}
 COMMIT_LINE = re.compile(r'^const COMMIT = "([0-9a-f]{40})";$', re.M)
 FILES_BLOCK = re.compile(r"^const FILES = \{\n(?:.*\n)*?\};$", re.M)
 

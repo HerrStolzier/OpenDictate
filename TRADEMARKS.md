@@ -7,7 +7,9 @@ License does not cover the project's name and brand assets:
 - the figure Blink, the block cursor with legs, in every size and colour,
 - the app icons,
 - the logo and icon files in [`design/assets/`](design/assets/) and
-  [`Assets/OpenDictateIcon.png`](Assets/OpenDictateIcon.png).
+  [`Assets/OpenDictateIcon.png`](Assets/OpenDictateIcon.png),
+- the explainer videos with Blink and their stills in
+  [`website/videos/`](website/videos/), including Blink's voice and music.
 
 These remain © 2026 HerrStolzier, all rights reserved, except as allowed here.
 

@@ -38,6 +38,8 @@ const KINDS = {
   txt: ["text/plain; charset=utf-8", 86400],
   png: ["image/png", 86400],
   xml: ["application/xml; charset=utf-8", 300],
+  jpg: ["image/jpeg", 86400],
+  mp4: ["video/mp4", 86400],
 };
 
 const SECURITY = {
@@ -57,17 +59,19 @@ async function digest(body) {
   return [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 32);
 }
 
+// A KV entry carries the hash it was verified against as metadata, so a read
+// costs no rehash; that matters for the videos, which are several megabytes.
 async function load(env, path, hash) {
   if (loaded.has(path)) return loaded.get(path);
-  let body = await env.SITE.get(path, "arrayBuffer");
-  if (!body || (await digest(body)) !== hash) {
+  let { value: body, metadata } = await env.SITE.getWithMetadata(path, "arrayBuffer");
+  if (!body || metadata?.hash !== hash) {
     const response = await fetch(SOURCE + path);
     if (!response.ok) throw new Error(`source ${response.status} for ${path}`);
     body = await response.arrayBuffer();
     if ((await digest(body)) !== hash) throw new Error(`hash mismatch for ${path}`);
     // KV allows one write per key and second; a lost race must not cost the visitor the file.
     try {
-      await env.SITE.put(path, body);
+      await env.SITE.put(path, body, { metadata: { hash } });
     } catch (error) {
       console.error(`kv put ${path}: ${error}`);
     }
@@ -79,6 +83,27 @@ async function load(env, path, hash) {
 // True when an If-None-Match header names this ETag, also as a weak ETag.
 function matches(header, etag) {
   return (header ?? "").split(",").some((tag) => tag.trim().replace(/^W\//, "") === etag || tag.trim() === "*");
+}
+
+// Resolves a Range header against a file of `size` bytes: null serves the whole
+// file, false is unsatisfiable, otherwise the inclusive byte span. Safari plays
+// video only when the server answers ranges. Multiple ranges get the whole file.
+function byteRange(header, size) {
+  const match = /^bytes=(\d*)-(\d*)$/.exec((header ?? "").trim());
+  if (!match || (match[1] === "" && match[2] === "")) return null;
+  let start;
+  let end;
+  if (match[1] === "") {
+    const suffix = Number(match[2]);
+    if (suffix === 0) return false;
+    start = Math.max(0, size - suffix);
+    end = size - 1;
+  } else {
+    start = Number(match[1]);
+    end = match[2] === "" ? size - 1 : Math.min(Number(match[2]), size - 1);
+    if (start > end || start >= size) return false;
+  }
+  return { start, end };
 }
 
 function plain(status, text, extra = {}) {
@@ -101,7 +126,13 @@ export default {
     if (!hash) return plain(404, "Nicht gefunden");
     const [type, maxAge] = KINDS[path.split(".").pop()];
     const etag = `"${hash}"`;
-    const headers = { ...SECURITY, "content-type": type, "cache-control": `public, max-age=${maxAge}`, etag };
+    const headers = {
+      ...SECURITY,
+      "content-type": type,
+      "cache-control": `public, max-age=${maxAge}`,
+      etag,
+      "accept-ranges": "bytes",
+    };
     if (matches(request.headers.get("if-none-match"), etag)) return new Response(null, { status: 304, headers });
     let body;
     try {
@@ -109,6 +140,17 @@ export default {
     } catch (error) {
       console.error(String(error));
       return plain(503, "Gerade nicht erreichbar, bitte später erneut versuchen.", { "retry-after": "60" });
+    }
+    const ifRange = request.headers.get("if-range");
+    const range = ifRange === null || ifRange === etag ? byteRange(request.headers.get("range"), body.byteLength) : null;
+    if (range === false) {
+      return new Response(null, { status: 416, headers: { ...headers, "content-range": `bytes */${body.byteLength}` } });
+    }
+    if (range) {
+      const part = body.slice(range.start, range.end + 1);
+      headers["content-range"] = `bytes ${range.start}-${range.end}/${body.byteLength}`;
+      headers["content-length"] = String(part.byteLength);
+      return new Response(request.method === "HEAD" ? null : part, { status: 206, headers });
     }
     return new Response(request.method === "HEAD" ? null : body, { headers });
   },

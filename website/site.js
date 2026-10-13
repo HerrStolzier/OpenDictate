@@ -148,7 +148,9 @@
     rec: [BL, BL, '....XXXX....', '...XXXXXX...', '..XXXXXXXX..', '..XXXXXXXX..', '..XXXXXXXX..', '..XXXXXXXX..', '...XXXXXX...', '....XXXX....', BL, BL],
     check: [BL, BL, '..........X.', '.........XX.', '........XX..', '.X.....XX...', '.XX...XX....', '..XX.XX.....', '...XXX......', '....X.......', BL, BL],
     error: [BL, '.....XX.....', '.....XX.....', '.....XX.....', '.....XX.....', '.....XX.....', '.....XX.....', '.....XX.....', BL, '.....XX.....', '.....XX.....', BL],
-    prompt: [BL, BL, '...XX.......', '....XX......', '.....XX.....', '......XX....', '.....XX.....', '....XX......', '...XX.......', BL, BL, BL]
+    prompt: [BL, BL, '...XX.......', '....XX......', '.....XX.....', '......XX....', '.....XX.....', '....XX......', '...XX.......', BL, BL, BL],
+    play: [BL, BL, '...X........', '...XXX......', '...XXXXX....', '...XXXXXXX..', '...XXXXXXX..', '...XXXXX....', '...XXX......', '...X........', BL, BL],
+    pause: [BL, BL, '...XX..XX...', '...XX..XX...', '...XX..XX...', '...XX..XX...', '...XX..XX...', '...XX..XX...', '...XX..XX...', '...XX..XX...', BL, BL]
   };
   function glyph(name, size, cls, label) {
     var out = '';
@@ -388,8 +390,51 @@
     queue();
   }
 
+  /* ---------- Explainer clips: muted loops that play while on screen ---------- */
+  function clips() {
+    var save = navigator.connection && navigator.connection.saveData;
+    // With reduced motion or data saving, a clip starts only on a click.
+    var auto = !reduce && !save;
+    var seen = 'IntersectionObserver' in window && new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        var video = entry.target;
+        if (entry.isIntersecting && auto && !video.hasAttribute('data-held')) start(video);
+        else if (!entry.isIntersecting) video.pause();
+      });
+    }, { threshold: 0.5 });
+    function start(video) {
+      var playing = video.play();
+      if (playing) playing.catch(function () {});
+    }
+    Array.prototype.forEach.call(document.querySelectorAll('.clip-toggle'), function (button) {
+      var video = button.parentNode.querySelector('video');
+      function show() {
+        var paused = video.paused;
+        button.innerHTML = glyph(paused ? 'play' : 'pause', 20, 'clip-glyph');
+        button.setAttribute('aria-label', button.getAttribute('data-title') + (paused ? ': abspielen' : ': anhalten'));
+      }
+      video.removeAttribute('controls');
+      video.addEventListener('play', show);
+      video.addEventListener('pause', show);
+      button.addEventListener('click', function () {
+        // A clip paused by hand stays paused when it scrolls back into view.
+        if (video.paused) {
+          video.removeAttribute('data-held');
+          start(video);
+        } else {
+          video.setAttribute('data-held', '');
+          video.pause();
+        }
+      });
+      show();
+      button.hidden = false;
+      if (seen) seen.observe(video);
+    });
+  }
+
   document.documentElement.classList.add('js');
   mount();
   stage();
   runner();
+  clips();
 })();
