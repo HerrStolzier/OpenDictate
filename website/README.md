@@ -178,8 +178,15 @@ Der Kosten-Abschnitt heißt seit Bastis Hinweis vom Abend „Einmal zahlen,
 nicht jeden Monat“: kein Abo, die Beta ist kostenlos, die fertige App kostet
 später einmal ein paar Euro (Preismodell in PROJECT.md, wie README.md).
 
-Der Abschnitt Datenschutz steht direkt nach den Kosten als zweites Argument:
-„Deine Stimme bleibt bei dir“. Er nennt bewusst kein Gerät, weil später alle
+Der Vergleichswert „Ein Diktier-Abo kostet meist 8 bis 15 $“ stützt sich auf
+die Preisseiten zweier bekannter Diktier-Apps, Stand 12. Oktober 2026: 8,49 $
+und 15 $ im Monat beim Monatsabo (Recherche im geteilten Projektordner unter
+`texte-review/recherche/marketing-techniken-2026-10-12.md`). Andere Apps werden
+auf der Seite bewusst nicht genannt.
+
+Der Abschnitt nach den Kosten ist das zweite Argument: „Deine Stimme bleibt
+bei dir“, darüber die Einschränkung „Mit lokalem Modell“. Im Menü heißt er
+„Privat“, damit „Datenschutz“ nur die Datenschutzerklärung meint. Er nennt bewusst kein Gerät, weil später alle
 gängigen dazukommen. Ein Schaubild zeigt zwei Wege, lokal
 (0 €, die Aufnahme bleibt auf dem Gerät) und mit OpenAI (0,1 ct, mit eigenem
 Schlüssel). Das gilt für Mac und Linux mit lokalem Modell; mit whisper.cpp aus
@@ -187,8 +194,16 @@ der Anleitung geht Übersetzen noch nicht. Das iPhone kommt dazu, sobald die
 iOS-App veröffentlicht ist.
 
 `anleitungen.html` zeigt alle fünf Clips mit Ton, dazu den gesprochenen Text
-zum Mitlesen und je ein `VideoObject` im JSON-LD. Der iPhone-Clip (Nr. 6) kommt
+zum Mitlesen, je eine deutsche Untertitelspur und je ein `VideoObject` im JSON-LD. Die Spuren
+(`videos/*.vtt`) beginnen mit den Sprecheinsätzen aus `videos/quelle/3d/clips/`
+im geteilten Projektordner und enden 0,3 s nach dem Satz, höchstens 50 ms vor
+dem nächsten Einsatz. Der Player auf der Startseite zeigt keine Untertitel, weil
+sie dort die Texte im Bild verdecken würden; er verweist auf diese Seite. Der iPhone-Clip (Nr. 6) kommt
 erst mit der veröffentlichten iOS-App dazu.
+
+Player und Weg-Grafik nehmen Farben, Abstände, Radien und Schriftgrößen aus
+`design/generated/tokens.css`. Fest bleibt nur das Schwarz des Mac-Rahmens in
+der Startanimation, weil es die Hardware zeigt.
 
 Die Startanimation im Kopf der Seite läuft nur, solange sie im Fenster ist. Die
 Schrift für den Einleitungstext wird vorab geladen.
