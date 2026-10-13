@@ -21,7 +21,7 @@ pub fn bind_socket(path: &Path) -> io::Result<UnixListener> {
             Ok(_) => {
                 return Err(io::Error::new(
                     io::ErrorKind::AddrInUse,
-                    "Aufnahme läuft bereits",
+                    crate::tr!("Aufnahme läuft bereits", "A recording is already running"),
                 ));
             }
             Err(_) => {
