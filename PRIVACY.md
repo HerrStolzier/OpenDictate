@@ -331,14 +331,15 @@ Cloudflare Email Routing, and replies are sent from the support service through
 Cloudflare Email Service. Requests are not copied to another mailbox; the
 developer only gets a notice with the ticket number, without its content.
 
-The support service keeps no logs: Cloudflare Workers Logs are off, and logs
-of individual visits with IP addresses are off too. When storing a request
-fails, the developer gets a notice with the failing step and the kind of error,
-without content.
+The support service keeps no logs at Cloudflare. When a step fails, for
+example storing a request, the developer gets a short mail naming the step and
+the kind of error, without the content of the request, mail addresses or IP
+addresses.
 
-Against spam, the form uses a hidden field, an origin check and daily limits.
-For the per-sender limit the IP address is kept only as a hash combined with
-the date and deleted the following day. If Cloudflare Turnstile is enabled,
+Against spam, the form uses a hidden field, an origin check, a size limit and
+daily limits; new requests by mail have a daily limit too. For the per-sender
+limits the IP address or mail address is kept only as a hash combined with a
+secret value and the date, and deleted the following day. If Cloudflare Turnstile is enabled,
 Cloudflare checks the browser before the request is accepted.
 
 An optional assistant can sort a request and draft a reply. It is off unless
