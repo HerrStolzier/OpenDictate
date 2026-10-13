@@ -4,8 +4,11 @@ Dieses Verzeichnis enthält einen versionierten Quellsnapshot des Windows-
 Prototyps. Basti hat am 28. September 2026 **öffentliche Verteilung als Ziel**
 gewählt. Es gibt noch kein Windows-Release, keinen Produktinstaller, keine
 Signatur und keine Freigabe zur Veröffentlichung. Der nächste Releasepfad steht
-im [Windows-Releaseplan](RELEASE-PLAN.md); Herkunft und Prüfsummen stehen in
-[PROVENANCE.md](PROVENANCE.md) und [SOURCE-SHA256SUMS](SOURCE-SHA256SUMS).
+im [Windows-Releaseplan](RELEASE-PLAN.md). Die Herkunft des ersten Imports steht
+in [PROVENANCE.md](PROVENANCE.md). [SOURCE-SHA256SUMS](SOURCE-SHA256SUMS) gilt
+nur für diesen Import (Commit `9bf554e`), nicht für den heutigen Stand. Prüfen
+lässt es sich so: `git archive 9bf554e windows | tar -x -C <leerer Ordner>`,
+dann im entpackten `windows/` `sha256sum -c SOURCE-SHA256SUMS`.
 
 ## Aktueller technischer Stand
 
@@ -43,9 +46,8 @@ im [Windows-Releaseplan](RELEASE-PLAN.md); Herkunft und Prüfsummen stehen in
   eigener Server“. Die Provider-Prüfungen laufen jetzt mit
   `OpenDictate.Checks` (auch auf Linux und im Windows-Job der CI);
   `OpenDictate.WindowsChecks` enthält nur noch die 13 Schutzprüfungen.
-- Geprüft am 11. Oktober nur offline auf Linux mit .NET SDK 10.0.401:
-  40 von 40 Prüfungen, App, Browser-Host und Schutzprüfer bauen ohne Warnung.
-  Kein echtes Diktat, keine Anfrage an OpenAI oder an ein lokales Modell.
+- Kein echtes Diktat, keine Anfrage an OpenAI oder an ein lokales Modell; den
+  aktuellen Prüfstand nennt der Abschnitt „Beta-App“.
 
 ## Beta-App (11. Oktober 2026)
 
