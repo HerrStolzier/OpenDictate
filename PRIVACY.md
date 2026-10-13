@@ -294,8 +294,10 @@ recordings. A request contains only what you type into the contact form or
 write in an e-mail to the support address. The form can also carry a short
 report for "Fehler melden" (app version, system, last error and a log excerpt,
 never text, audio or the key; see [Fehler melden](docs/fehler-melden.md)). An
-app only opens the form with it in your browser; you see the report, can edit
-or delete it and send it yourself. No app offers this yet. Do not include your OpenAI API key; values that look like one (`sk-…`) are
+app only opens the form with it in your browser. The report sits after the
+`#` in the address, which browsers never send to a server, so it reaches
+support only when you send the form; until then you see it, can edit or delete
+it. No app offers this yet. Do not include your OpenAI API key; values that look like one (`sk-…`) are
 removed from the subject, name, message and report before the request is
 stored.
 

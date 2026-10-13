@@ -13,12 +13,18 @@ Adresse im Standardbrowser.
 ## Adresse
 
 ```
-https://support.opendictate.app/kontakt?lang=de&app=…&system=…&fehler=…&diagnose=…
+https://support.opendictate.app/kontakt?lang=de#app=…&system=…&fehler=…&diagnose=…
 ```
 
+Der Bericht steht hinter `#`. Diesen Teil der Adresse schickt der Browser nie an einen
+Server; das Formular liest ihn auf dem Gerät, zeigt ihn an und nimmt ihn danach aus
+der Adresszeile. Beim Support kommt der Bericht deshalb erst an, wenn die Person das
+Formular abschickt. Ein Bericht im Abfrageteil (`?app=…`) wird nicht übernommen.
+
 Alle Werte sind URL-kodiert (`application/x-www-form-urlencoded`). Fehlt ein Wert,
-bleibt das Feld leer. Das Support-Backend kürzt auf die Grenzen unten und entfernt
-Werte, die wie ein OpenAI-Schlüssel aussehen (`sk-…`), als zweite Sicherung.
+bleibt das Feld leer. Das Formular kürzt auf die Grenzen unten; das Support-Backend
+kürzt beim Speichern noch einmal und entfernt Werte, die wie ein OpenAI-Schlüssel
+aussehen (`sk-…`), als zweite Sicherung.
 
 | Feld | Inhalt | Grenze | Beispiel |
 | --- | --- | --- | --- |
@@ -72,6 +78,8 @@ Datenschutzerklärung des Supports nennt den Bericht seit dem 13. Oktober 2026.
 ## Stand
 
 - Support-Backend: nimmt die Felder an, zeigt den Bericht im Ticket und unter
-  „Fehler“ eine Übersicht nach Häufigkeit (live seit 13. Oktober 2026; Prüfskript von
-  außen grün, das Formular übernimmt einen Bericht aus der Adresse).
+  „Fehler“ eine Übersicht nach Häufigkeit (live seit 13. Oktober 2026, Prüfskript von
+  außen grün). Die Übernahme aus dem Teil hinter `#` ist gebaut und im Browser
+  geprüft; bis sie ausgerollt ist, liest das Formular den Bericht noch aus dem
+  Abfrageteil. Da noch keine App den Knopf hat, kommt in der Zeit kein Bericht an.
 - macOS, Linux: nicht gebaut.
