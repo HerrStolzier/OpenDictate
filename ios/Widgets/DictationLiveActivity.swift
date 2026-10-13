@@ -47,15 +47,29 @@ struct DictationLiveActivity: Widget {
                         .frame(maxWidth: 44)
                         .foregroundStyle(Color(design: .rec))
                 } else {
-                    Text(L10n.word(context.state.phase))
-                        .font(BrandFont.mono(12, semibold: true))
+                    // The compact area is too narrow for the word on some
+                    // iPhones; the expanded and Lock Screen views show it.
+                    Image(systemName: CompactSymbol.name(context.state.phase))
+                        .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(Color(design: context.state.phase == .oops ? .warn : .signal))
+                        .accessibilityLabel(L10n.word(context.state.phase))
                 }
             } minimal: {
                 BlinkView(pose: context.state.pose, small: true, animated: false)
                     .frame(width: 20, height: 20)
             }
             .keylineTint(Color(design: .signal))
+        }
+    }
+}
+
+private enum CompactSymbol {
+    static func name(_ phase: DictationAttributes.ContentState.Phase) -> String {
+        switch phase {
+        case .listening: "mic.fill"
+        case .writing: "ellipsis"
+        case .copied: "checkmark"
+        case .oops: "exclamationmark"
         }
     }
 }

@@ -33,6 +33,9 @@ final class DictationRunner {
     private(set) var lastText: String?
     /// The recording behind `lastText` while that text missed the clipboard.
     @ObservationIgnored private var uncopiedRecording: URL?
+    /// The clipboard as that copy left it, so opening the app never replaces
+    /// something copied since.
+    @ObservationIgnored private var missedClipboard: Int?
     /// Newest kept recording, for "Send again".
     private(set) var retryable: RecordingRetention.Entry?
 
@@ -167,6 +170,15 @@ final class DictationRunner {
         retryable = pendingRetry()
     }
 
+    /// Opening the app completes a copy that iOS refused in the background,
+    /// while "Oops" still says so and nothing else was copied since.
+    func copyUncopied() {
+        guard uncopiedRecording != nil, phase == .oops(DictationFailure.clipboardFailed.message),
+            UIPasteboard.general.changeCount == missedClipboard
+        else { return }
+        copyAgain()
+    }
+
     /// Only between dictations: a phase change while recording or writing
     /// would orphan the running dictation.
     func copyAgain() {
@@ -208,6 +220,7 @@ final class DictationRunner {
                 // The recording stays for "Send again" until "Copy again" works;
                 // the shortcut still gets the text to copy it itself.
                 uncopiedRecording = url
+                missedClipboard = UIPasteboard.general.changeCount
                 _ = await fail(.clipboardFailed)
                 return text
             }

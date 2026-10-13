@@ -1,5 +1,6 @@
 @preconcurrency import AVFoundation
 import Foundation
+import UIKit
 
 /// The microphone, recorded as AAC in an `.m4a` file with the Mac's settings.
 /// The `audio` background mode keeps it running while another app is in front.
@@ -27,11 +28,22 @@ final class Recorder: NSObject, AVAudioRecorderDelegate {
         default: throw DictationFailure.microphoneNotAsked
         }
         let session = AVAudioSession.sharedInstance()
+        let inBackground = UIApplication.shared.applicationState == .background
         do {
-            try session.setCategory(.record, mode: .default)
+            if inBackground {
+                // A session that interrupts the app in front may not start
+                // from the background; ducking mixes with it instead.
+                try session.setCategory(.playAndRecord, mode: .default, options: [.duckOthers])
+            } else {
+                try session.setCategory(.record, mode: .default)
+            }
+        } catch {
+            throw DictationFailure.recordingFailed("category \((error as NSError).code)")
+        }
+        do {
             try session.setActive(true)
         } catch {
-            throw DictationFailure.recordingFailed
+            throw DictationFailure.recordingFailed("\(inBackground ? "background" : "app") \((error as NSError).code)")
         }
         let settings: [String: Any] = [
             AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
@@ -40,15 +52,18 @@ final class Recorder: NSObject, AVAudioRecorderDelegate {
             AVEncoderBitRateKey: 48_000,
             AVEncoderAudioQualityKey: AVAudioQuality.medium.rawValue
         ]
-        guard let recorder = try? AVAudioRecorder(url: url, settings: settings) else {
+        let recorder: AVAudioRecorder
+        do {
+            recorder = try AVAudioRecorder(url: url, settings: settings)
+        } catch {
             Self.releaseSession()
-            throw DictationFailure.recordingFailed
+            throw DictationFailure.recordingFailed("recorder \((error as NSError).code)")
         }
         recorder.delegate = self
         guard recorder.record(forDuration: limit) else {
             Self.releaseSession()
             try? FileManager.default.removeItem(at: url)
-            throw DictationFailure.recordingFailed
+            throw DictationFailure.recordingFailed("record")
         }
         self.recorder = recorder
         self.limit = limit

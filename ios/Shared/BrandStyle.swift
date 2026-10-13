@@ -10,11 +10,6 @@ extension Color {
     }
 }
 
-extension DesignTheme {
-    /// Nacht on dark surfaces, Papier on light ones, as on the Mac.
-    static func matching(_ scheme: ColorScheme) -> DesignTheme { scheme == .dark ? .nacht : .papier }
-}
-
 /// Geist, Geist Mono and Geist Pixel from `design/fonts`, bundled through
 /// `UIAppFonts` (SIL Open Font License). SwiftUI falls back to the system font
 /// when a file is missing. Sizes scale with Dynamic Type.
