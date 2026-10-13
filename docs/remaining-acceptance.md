@@ -1,6 +1,6 @@
 # Belegter Stand je Plattform
 
-Stand: 8. Oktober 2026. Diese Datei hält je Plattform fest, was belegt ist,
+Stand: 12. Oktober 2026. Diese Datei hält je Plattform fest, was belegt ist,
 was offen ist und wo der letzte Nachweis liegt. Die nächsten Schritte stehen
 in der [ROADMAP](../ROADMAP.md), Produkt und Entscheidungen in
 [PROJECT.md](../PROJECT.md), Prüfwege in [CHECKS.md](../CHECKS.md). Die
@@ -324,13 +324,16 @@ Kurzbefehle-App gestartet, scheiterte mit „Die Aufnahme konnte nicht
 starten“; die Live-Aktivität lief vorher an. Am 13. Oktober lief `b1781e7`
 (Aufnahme, die im Hintergrund mit anderer Wiedergabe mischt): Derselbe
 Kurzbefehl nahm im Hintergrund auf, die Dynamic Island zeigte Aufnahme und
-„Schreibt“ (im kleinen Feld abgeschnitten), und der Text kam in der App an. Danach meldete die App, dass sie
-den Text nicht in die Zwischenablage legen konnte. Ob iOS das im Hintergrund
-verweigert oder nur die Prüfung danebenliegt, ist offen. Draft-PR #40 ist
-geschlossen.
+„Schreibt“ (im kleinen Feld abgeschnitten), und der Text kam in der App an.
+Danach meldete die App, dass sie den Text nicht in die Zwischenablage legen
+konnte. Mit demselben `b1781e7` nahm sie auch per Doppeltippen auf die
+Rückseite auf, aber der neue Text ließ sich nicht einfügen: iOS verweigert der
+App im Hintergrund die Zwischenablage. Mit einem eigenen Kurzbefehl
+„Diktieren“, darunter „In Zwischenablage kopieren“, ließ sich der Text nach
+dem Doppeltippen einfügen. Draft-PR #40 ist geschlossen.
 
-**Offen / bekannte Grenzen:** Schreiben in die Zwischenablage aus dem
-Hintergrund, Start per „Auf Rückseite tippen“, Abfrage „Lokales Netzwerk“,
+**Offen / bekannte Grenzen:** Start ohne Leeren der Zwischenablage und die
+Änderungen nach `4993214` am Gerät, Abfrage „Lokales Netzwerk“,
 Abbruch-/Unterbrechungsfälle, Dateischutz am Gerät, Verteilung über TestFlight,
 Barrierefreiheit. Die ferngesteuerte Device-Hub-Steuerung bleibt blockiert;
 Basti bedient das Gerät selbst.

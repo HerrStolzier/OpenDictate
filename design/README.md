@@ -40,10 +40,9 @@ geändert wurde, ohne die Dateien neu zu erzeugen.
 
 ## Stand je Oberfläche
 
-Die Linux-Leiste nutzt diesen Ordner als erste Oberfläche; Website und Mac-App
-sind in Arbeit. Seit dem 11. Oktober 2026 laufen die Umstellungen parallel statt
-in der Reihenfolge der Tabelle unten ([Entscheidungs-Log](../PROJECT.md#entscheidungen)). Die veröffentlichten Betas (Mac Build 9,
-Linux-Pre-Release) bleiben in ihrer Fassung; die Markenarbeit blockiert keine Beta
+Linux-Leiste, Website (live seit 11. Oktober) und Mac-Diktatanzeige (öffentlich
+seit `v0.1.0-beta.12`) nutzen diesen Ordner. Seit dem 11. Oktober 2026 laufen die Umstellungen parallel statt
+in der Reihenfolge der Tabelle unten ([Entscheidungs-Log](../PROJECT.md#entscheidungen)). Veröffentlichte Betas bleiben in ihrer Fassung; die Markenarbeit blockiert keine Beta
 ([PROJECT](../PROJECT.md#marken--und-gestaltungsrichtung)).
 
 | Oberfläche | Wie sie das Designsystem übernimmt |
@@ -51,7 +50,7 @@ Linux-Pre-Release) bleiben in ihrer Fassung; die Markenarbeit blockiert keine Be
 | Website (`website/`) | `tokens.css`, Schriften und SVGs in den Seitenordner kopieren; Entwurf der Startseite liegt in Claude Design |
 | macOS-App | Im Code, live auf dem Mac Mini geprüft, Notch-Maße mit der Vorschau auf einem MacBook Air bestätigt: `DesignTokens.swift` liegt in `OpenDictateCore`, die Schriften liegen im App-Bundle unter `Resources/Fonts` (mit `OFL.txt`), Blink ist aus `components/web/bundle.js` nach Swift übertragen (`BlinkFigure`, ein Test vergleicht beide). Neue Diktatanzeige an der Notch, ohne Notch schwebend unter der Menüleiste (Bastis Wahl), wahlweise flach in der Menüleiste, Blink-Silhouette als Menüleisten-Symbol, Menü mit Wortmarke. Offen: `.icns` aus `app-icon-1024.png`. Bauen und prüfen nur auf dem Mac |
 | Linux | Leistenanzeige mit Blink (`▮`), „REC“ und den Zustandswörtern im Tooltip, Farben aus `gtk-colors.css` im Waybar-Beispiel; ein Test prüft, dass sie zu den Tokens passen. Bekannte Abweichung: Beim Schreiben zeigt die Leiste aus Platzgründen nur `▮ …`, das Wort „Schreibt“ steht im Tooltip |
-| Support-Formular und Dashboard | `tokens.css` und Schriften übernehmen, sobald der Support live geht (privates Repo `support-desk`) |
+| Support-Formular und Dashboard | `tokens.css` und Schriften übernehmen; der Support ist seit 11. Oktober live (privates Repo `support-desk`) |
 | iOS | dieselbe Swift-Datei wie macOS |
 | Windows | Der WPF-Prototyp braucht ein XAML-ResourceDictionary; dafür bekommt der Generator eine weitere Ausgabe |
 
