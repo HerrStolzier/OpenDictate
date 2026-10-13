@@ -37,14 +37,16 @@ und keine Portierung der Mac-Oberfläche.
   ([Apple](https://developer.apple.com/documentation/appintents/audiorecordingintent)).
 - Erster Prüfpunkt: Entwickler berichten, dass der Start aus dem Hintergrund
   teils scheitert ([Apple-Forum](https://developer.apple.com/forums/thread/836958)).
-  Ob er auf einem echten iPhone ohne Öffnen der App gelingt, ist nicht belegt.
+  Auf Bastis iPhone 15 gelang er am 13. Oktober 2026 per „Auf Rückseite
+  tippen“, ohne die App zu öffnen ([Stand](remaining-acceptance.md#ios)).
 - Die App kann den Auslöser nicht selbst belegen. Sie zeigt die Einrichtung
   in den iOS-Einstellungen. Vorausgewählt ist die Aktionstaste, auf Geräten
   ohne sie „Auf Rückseite tippen“.
-- Ob die App im Hintergrund selbst in die Zwischenablage schreiben darf, ist
-  offen. Der Kurzbefehl „Diktieren“ gibt den Text darum zusätzlich als
-  Ergebnis zurück; notfalls kopiert ein Schritt „In Zwischenablage kopieren“
-  im Kurzbefehl.
+- Im Hintergrund darf die App nicht in die Zwischenablage schreiben (am
+  iPhone am 13. Oktober 2026 gesehen). Die Aktion „Diktieren“ gibt den Text
+  darum als Ergebnis zurück, und der eigene Kurzbefehl legt ihn mit dem
+  Schritt „In Zwischenablage kopieren“ ab. Diesen Kurzbefehl braucht es
+  ohnehin, weil „Auf Rückseite tippen“ nur eigene Kurzbefehle anbietet.
 - Eigene Tastaturen dürfen nicht aufnehmen; Zwischenablage und Netz brauchen
   Vollzugriff ([Richtung](ios-direction.md)). Deshalb gibt es keine Tastatur,
   solange Beta-Nutzer nicht danach fragen.

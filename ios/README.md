@@ -3,8 +3,11 @@
 Die Beta-App nach dem [iOS-Konzept](../docs/ios-konzept.md): Ein Kurzbefehl
 startet die Aufnahme im Hintergrund, ohne dass OpenDictate aufgeht. Nochmal
 auslösen (oder Stopp in der Live-Aktivität) beendet sie; der Text, wahlweise
-übersetzt, liegt danach in der Zwischenablage. Stand 11. Oktober 2026:
-geschrieben, aber noch nicht auf dem iPhone gebaut und geprüft.
+übersetzt, liegt danach in der Zwischenablage. Im Hintergrund legt ihn der
+Kurzbefehl selbst ab; nach Stopp in der Live-Aktivität kopiert ihn dort erst
+das Öffnen der App. Stand 13. Oktober 2026: läuft auf dem iPhone, der
+Kurzbefehl nimmt per Doppeltippen im Hintergrund auf und kopiert den Text
+selbst (siehe Grenzen).
 
 ## Aufbau
 
@@ -34,12 +37,25 @@ geschrieben, aber noch nicht auf dem iPhone gebaut und geprüft.
 2. Nochmal auslösen, Stopp in der Live-Aktivität, ein Anruf oder die
    90-Sekunden-Grenze beenden die Aufnahme. Unter einer Sekunde ist „zu kurz“.
 3. Die Aufnahme geht an OpenAI oder den eigenen Server; mit Zielsprache folgt
-   die Übersetzung. Der Text kommt in die Zwischenablage, die Live-Aktivität
-   zeigt kurz „Kopiert“. Der Kurzbefehl gibt den Text auch als Ergebnis
-   zurück.
+   die Übersetzung. Ist die App vorn, kopiert sie den Text selbst. Im
+   Hintergrund verweigert iOS ihr die Zwischenablage; dann gibt sie den Text
+   an den Kurzbefehl zurück, dessen Schritt „In Zwischenablage kopieren“ ihn
+   ablegt. Beim Start gibt sie nichts zurück, damit dieser Schritt die
+   Zwischenablage nicht leert. Die Live-Aktivität zeigt kurz „Kopiert“.
 4. Bei einem Fehler zeigt die Live-Aktivität „Hoppla“ mit dem Grund, und die
    Aufnahme bleibt für „Nochmal senden“ in der App (höchstens fünf, höchstens
-   24 Stunden, wie am Mac).
+   24 Stunden, wie am Mac). Nahm die Zwischenablage den Text nicht, kopiert
+   ihn die App beim Öffnen, solange iOS sie nicht beendet hat und seitdem
+   nichts anderes kopiert wurde.
+
+Die App ist immer im dunklen Schema „Nacht“ mit grünem Blink, wie die
+Live-Aktivität. „Starten, ohne die App zu öffnen“ ist abgehakt, sobald der
+Kurzbefehl einmal lief, denn iOS verrät nicht, ob er eingerichtet ist. Das
+Rückseiten-Tippen bietet nur eigene Kurzbefehle an; darum legt man einmal
+einen eigenen Kurzbefehl an: Aktion „Diktieren“, darunter „In Zwischenablage
+kopieren“ mit „Nur lokal“. Ob der Kurzbefehl den Text kopiert hat, sieht die
+App nicht; darum behält sie die Aufnahme und bietet sie nach dem nächsten
+Diktat unter „Nochmal senden“ an, bis sie nach 24 Stunden verfällt.
 
 Datenschutz: [PRIVACY.md](../PRIVACY.md#iphone-app).
 
@@ -64,9 +80,16 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
 
 ## Grenzen der ersten Beta
 
-- Der Start im Hintergrund und das Schreiben in die Zwischenablage aus dem
-  Hintergrund sind auf dem iPhone noch nicht geprüft; das ist der erste
-  Prüfpunkt ([ROADMAP](../ROADMAP.md#track-ios)).
+- Der Start im Hintergrund scheiterte beim ersten iPhone-Test am 12. Oktober
+  („Die Aufnahme konnte nicht starten“). Seitdem nimmt die App im Hintergrund
+  so auf, dass sie mit anderer Wiedergabe mischt (die wird leiser), nennt bei
+  einem Fehlschlag Schritt und Fehlercode und holt die App ab iOS 26 sonst
+  nach vorn. Am 13. Oktober nahm der Kurzbefehl per Doppeltippen so im
+  Hintergrund auf, aber iOS ließ die App den Text nicht in die Zwischenablage
+  legen (Einfügen brachte ihn nicht). Mit dem Schritt „In Zwischenablage
+  kopieren“ im Kurzbefehl ließ er sich einfügen. Dass der Start die
+  Zwischenablage nicht mehr leert, ist am Gerät noch nicht geprüft
+  ([ROADMAP](../ROADMAP.md#track-ios)).
 - Kein Kontrollzentrum-Schalter, keine Erkennung auf dem Gerät, kein
   Vokabular und keine feste Sprache; die Sprache erkennt der Dienst.
 - Das Datenschutz-Manifest gibt Audio und Text als für die App-Funktion

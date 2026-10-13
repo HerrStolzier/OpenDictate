@@ -17,12 +17,18 @@ heutige Abnahme oder Freigabe. Der aktuelle belegte Stand je Plattform steht in
 
 | Datum | Bericht | Titel |
 | --- | --- | --- |
+| 12.10.2026 | [2026-10-12-build12.md](../release-plans/evidence/2026-10-12-build12.md) | Build 12: notarisiert, als Update installiert, Diktat über lokalen Server |
+| 11.10.2026 | [2026-10-11-build11.md](../release-plans/evidence/2026-10-11-build11.md) | Build 11: notarisiert, als Update installiert, ein Diktat |
+| 11.10.2026 | [2026-10-11-build10.md](../release-plans/evidence/2026-10-11-build10.md) | Build 10: notarisiert, als Update installiert, ein Diktat |
+| 08.10.2026 | [2026-10-08-build9.md](../release-plans/evidence/2026-10-08-build9.md) | Build 9: notarisiert, als Update installiert, Diktat mit Übersetzung |
+| 08.10.2026 | [2026-10-08-plan2-teil-b.md](../release-plans/evidence/2026-10-08-plan2-teil-b.md) | Plan 2, Teil B: Build 8 installiert und live geprüft |
 | 08.10.2026 | [roadmap-neuordnung-2026-10-08.md](../roadmap-neuordnung-2026-10-08.md) | Roadmap-Neuordnung · 8. Oktober 2026 |
 | 05.10.2026 | [linux-live-2026-10-05-bis-07.md](../linux-live-2026-10-05-bis-07.md) | Linux: Live-Nachweise vom 5. bis 7. Oktober 2026 |
 | 02.10.2026 | [roadmap-neuordnung-2026-10-02.md](../roadmap-neuordnung-2026-10-02.md) | Roadmap-Neuordnung · 2. Oktober 2026 |
 | 02.10.2026 | [2026-10-02-plan2-build8-final.md](../release-plans/evidence/2026-10-02-plan2-build8-final.md) | Plan 2: Build 8 notarisiert, finales Paket geprüft |
 | 02.10.2026 | [plan4-aenderungen-2026-10-02.md](../plan4-aenderungen-2026-10-02.md) | Drei Änderungen vor dem Mac-Release (Plan 4) |
 | 30.09.2026 | [linux-ci-fixture-race-2026-09-30.md](../linux-ci-fixture-race-2026-09-30.md) | Linux-CI: getrennte HTTP-Testdateien |
+| 30.09.2026 | [ios-prototype-candidate-2026-09-30.json](../ios-prototype-candidate-2026-09-30.json) | iOS-Prototyp: Kandidaten-Metadaten |
 | 30.09.2026 | [ios-device-2026-09-30.md](../ios-device-2026-09-30.md) | iPhone-Test: begrenzter synthetischer Textpfad bestanden |
 | 29.09.2026 | [ios-simulator-2026-09-29.md](../ios-simulator-2026-09-29.md) | iOS-Simulator: Neustart ohne Behebung, Test bereinigt |
 | 29.09.2026 | [ios-keyboard-e2e-2026-09-29.md](../ios-keyboard-e2e-2026-09-29.md) | iOS-Tastatur: synthetischer Safari-Pfad bestanden |
@@ -32,6 +38,7 @@ heutige Abnahme oder Freigabe. Der aktuelle belegte Stand je Plattform steht in
 | 28.09.2026 | [platform-audit-2026-09-28.md](../platform-audit-2026-09-28.md) | Geräteprüfung Linux und Windows · 28. September 2026 |
 | 28.09.2026 | [ios-simulator-2026-09-28.md](../ios-simulator-2026-09-28.md) | iOS-Simulator: abgegrenzter Nachweis vom 28. September 2026 |
 | 28.09.2026 | [code-reduction-2026-09-28.md](../code-reduction-2026-09-28.md) | Code reduction verification · 28 September 2026 |
+| 25.09.2026 | [test-audit-2026-09-25/](../test-audit-2026-09-25/README.md) | Swift test reduction and coverage comparison |
 | 25.09.2026 | [test-audit-2026-09-25-register.md](../test-audit-2026-09-25-register.md) | Test-audit register · 25 September 2026 |
 | 25.09.2026 | [2026-09-25-plan2-vorbereitung.md](../release-plans/evidence/2026-09-25-plan2-vorbereitung.md) | Plan 2: Vorbereitung am 25. September 2026 |
 | 24.09.2026 | [2026-09-24-plan1-fortsetzung.md](../release-plans/evidence/2026-09-24-plan1-fortsetzung.md) | Plan 1: Fortsetzung am 24. September 2026 |
@@ -58,6 +65,7 @@ heutige Abnahme oder Freigabe. Der aktuelle belegte Stand je Plattform steht in
 | 07.09.2026 | [live-acceptance-2026-09-07.md](../live-acceptance-2026-09-07.md) | OpenDictate Live-Abnahme – 2026-09-07 |
 
 Nicht datierte Pläne und Referenzen (`compatibility-matrix.md`, `development.md`,
-`linux-build-plan.md`, `windows-plan.md`, `ios-direction.md`, `performance-decisions.md`,
+`linux-build-plan.md`, `linux-live-translation-plan.md`, `windows-plan.md`, `ios-direction.md`,
+`ios-konzept.md`, `lokales-modell.md`, `mac-details.md`, `performance-decisions.md`,
 `audio-quality-fixtures.md`, `accessibility-signing.md`, `test-signal-audit.md`) sind
 aktuelle Quellen und stehen nicht in dieser Liste.

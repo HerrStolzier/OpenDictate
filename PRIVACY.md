@@ -260,14 +260,19 @@ Screen and in the Dynamic Island shows that a recording is running.
   general clipboard marked "local only", so iOS does not share it with your
   other devices through Universal Clipboard. Control characters and invisible
   text-direction marks are removed from the service's answer first. The app
-  does not read the clipboard.
+  does not read the clipboard. While the app is in the background, iOS
+  refuses it the clipboard; there the shortcut's own "Copy to Clipboard" step
+  copies the text the app returns to it, and that step's "Local Only" option
+  decides whether Universal Clipboard shares it.
 - **Last text:** kept only in memory while the app runs, for "Copy again";
   it is gone when iOS ends the app.
 - **Failed recordings:** a recording whose text did not reach the clipboard
-  stays in the app's own container, under the same rule as on the Mac: at most
-  the five newest, none older than 24 hours, checked whenever the list is
-  read. The folder is excluded from backups. As on the Mac, each kept
-  recording gets an authentication tag (HMAC-SHA256 with a key in the
+  stays in the app's own container. That includes a text the app returned to
+  the shortcut while iOS refused it the clipboard, because the app cannot
+  tell whether the shortcut copied it. Kept recordings stay under the same
+  rule as on the Mac: at most the five newest, none older than 24 hours,
+  checked whenever the list is read. The folder is excluded from backups. As
+  on the Mac, each kept recording gets an authentication tag (HMAC-SHA256 with a key in the
   Keychain); "Send again" offers only recordings with a valid tag and uploads
   exactly the bytes it checked. A recording shorter than one second is kept
   the same way. A recording cut off because iOS ended the app during it is
@@ -284,11 +289,17 @@ https://support.opendictate.app/kontakt. The privacy policy at
 https://support.opendictate.app/datenschutz names the same details with the
 legal bases.
 
-OpenDictate itself never contacts support and sends no logs, diagnostics or
-recordings there. A request contains only what you type into the contact form
-or write in an e-mail to the support address. Do not include your OpenAI API
-key; values that look like one (`sk-…`) are removed from the subject, name
-and message before the request is stored.
+OpenDictate sends nothing to support on its own: no logs, diagnostics or
+recordings. A request contains only what you type into the contact form or
+write in an e-mail to the support address. The form can also carry a short
+report for "Fehler melden" (app version, system, last error and a log excerpt,
+never text, audio or the key; see [Fehler melden](docs/fehler-melden.md)). An
+app only opens the form with it in your browser. The report sits after the
+`#` in the address, which browsers never send to a server, so it reaches
+support only when you send the form; until then you see it, can edit or delete
+it. No app offers this yet. Do not include your OpenAI API key; values that look like one (`sk-…`) are
+removed from the subject, name, message and report before the request is
+stored.
 
 Requests are handled by a small support service on Cloudflare Workers,
 operated by the developer. It stores the e-mail address, the optional name,
@@ -298,6 +309,12 @@ service does not store attachments. Mail to the support address passes through
 Cloudflare Email Routing, and replies are sent from the support service through
 Cloudflare Email Service. Requests are not copied to another mailbox; the
 developer only gets a notice with the ticket number, without its content.
+
+The support service writes short technical lines to Cloudflare Workers Logs:
+for each new request its ticket number and channel, and when storing a request
+fails, the failing step and the kind of error (mail addresses are masked). A
+failure also sends the developer a notice without content. Logs of individual visits with IP addresses are off.
+Cloudflare deletes these lines after at most 7 days.
 
 Against spam, the form uses a hidden field, an origin check and daily limits.
 For the per-sender limit the IP address is kept only as a hash combined with

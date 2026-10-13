@@ -12,13 +12,13 @@
         }
       }
     },
-    "Starts a dictation. Run it again to stop; the text is then on the clipboard.": {
+    "Starts a dictation. Run it again to stop; it then returns the text for “Copy to Clipboard”.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Startet ein Diktat. Führ die Aktion nochmal aus, um es zu beenden. Der Text liegt dann in der Zwischenablage."
+            "value": "Startet ein Diktat. Führ die Aktion nochmal aus, um es zu beenden. Sie gibt dann den Text für „In Zwischenablage kopieren“ weiter."
           }
         }
       }
