@@ -1,7 +1,7 @@
 # OpenDictate für Windows: Entwicklungsstand
 
-Dieses Verzeichnis enthält einen versionierten Quellsnapshot des Windows-
-Prototyps. Basti hat am 28. September 2026 **öffentliche Verteilung als Ziel**
+Dieses Verzeichnis enthält die Windows-App von OpenDictate (Beta, noch nicht
+veröffentlicht). Basti hat am 28. September 2026 **öffentliche Verteilung als Ziel**
 gewählt. Es gibt noch kein Windows-Release, keinen Produktinstaller, keine
 Signatur und keine Freigabe zur Veröffentlichung. Der nächste Releasepfad steht
 im [Windows-Releaseplan](RELEASE-PLAN.md). Die Herkunft des ersten Imports steht
@@ -12,18 +12,21 @@ dann im entpackten `windows/` `sha256sum -c SOURCE-SHA256SUMS`.
 
 ## Aktueller technischer Stand
 
-- Die App nutzt WPF und WinForms auf .NET 10. Das WPF-Projekt zielt auf
-  `net10.0-windows10.0.19041.0`; `global.json` verlangt SDK `10.0.401` mit
-  `latestPatch`. `Directory.Build.props` aktiviert Nullable-Checks,
-  Warnungen als Fehler und deterministische Compileroptionen.
+- Die App (`OpenDictate.App`) nutzt WPF und WinForms auf .NET 10 und zielt auf
+  `net10.0-windows`, nur x64; Kern und Provider zielen auf `net10.0`.
+  `global.json` verlangt SDK `10.0.401` mit `latestPatch`.
+  `Directory.Build.props` aktiviert Nullable-Checks, Warnungen als Fehler und
+  deterministische Compileroptionen.
 - `NAudio.Wasapi` 3.1.0 ist die einzige direkte Paketabhängigkeit der App.
   Eine `packages.lock.json`, ein geprüfter `dotnet publish`-Pfad und ein
   Installerprojekt sind nicht vorhanden. `Deterministic=true` allein belegt
   keinen bitgleichen Release-Build.
-- Das App-Manifest fordert normale Benutzerrechte (`asInvoker`). Der
-  Browser-Host und die Extension sind Entwicklungs-/Testkomponenten. Die
-  installierbare Browserprobe beschränkt Seitenzugriff auf `127.0.0.1`; sie
-  begründet keine allgemeine Browserunterstützung.
+- Das App-Manifest fordert normale Benutzerrechte (`asInvoker`).
+- Das frühere Prüffenster (`OpenDictate.Prototype`) mit Einfügen in Editor-
+  und Browserfelder, der Browser-Host und die Test-Erweiterung wurden am
+  13. Oktober entfernt: Der Weg über die Zwischenablage ersetzt sie, und sie
+  wären nur weiter gebaut und geprüft worden, ohne je ausgeliefert zu werden.
+  Ihr Stand bleibt im Import-Commit `9bf554e` und in der Git-Geschichte.
 
 ## Einstellungen, Übersetzung und eigener Server (11. Oktober 2026)
 
@@ -35,24 +38,23 @@ dann im entpackten `windows/` `sha256sum -c SOURCE-SHA256SUMS`.
 - Einstellungen liegen ohne Geheimnis in `%APPDATA%\OpenDictate\settings.json`.
   Eine beschädigte Datei wird abgelehnt und nicht überschrieben. Die
   Server-Adresse ist die Basis-URL mit `/v1`. Ohne Eintrag gilt
-  `OPENAI_BASE_URL`, wenn gesetzt (das Prüffenster nennt dann das Ziel), sonst
+  `OPENAI_BASE_URL`, wenn gesetzt (die Einstellungen nennen dann das Ziel), sonst
   OpenAI; ein gespeicherter Eintrag gewinnt. `http://` geht nur für
   diesen Computer, und dorthin geht kein Schlüssel. Ein eigener Server nimmt
   freie Modellnamen, OpenAI nur die bekannten.
 - Meldungen erscheinen auf Deutsch oder Englisch nach der Anzeigesprache von
   Windows und enthalten nie die Antwort des Servers; eine Netzwerkmeldung zum
   eigenen Server nennt nur dessen Host.
-- Im Prüffenster stehen die Felder im Bereich „Sprache, Übersetzung und
-  eigener Server“. Die Provider-Prüfungen laufen jetzt mit
-  `OpenDictate.Checks` (auch auf Linux und im Windows-Job der CI);
-  `OpenDictate.WindowsChecks` enthält nur noch die 13 Schutzprüfungen.
+- Die Provider-Prüfungen laufen mit `OpenDictate.Checks` (auch auf Linux und
+  im Windows-Job der CI); `OpenDictate.WindowsChecks` enthält die 14
+  Schutzprüfungen.
 - Kein echtes Diktat, keine Anfrage an OpenAI oder an ein lokales Modell; den
   aktuellen Prüfstand nennt der Abschnitt „Beta-App“.
 
 ## Beta-App (11. Oktober 2026)
 
 `OpenDictate.App` (Programmname `OpenDictate.exe`) ist die App für die
-Windows-Beta; das Prüffenster `OpenDictate.Prototype` bleibt Entwicklerwerkzeug.
+Windows-Beta.
 
 - Die App lebt im Infobereich der Taskleiste: Diktat starten oder beenden (dann
   nur Zwischenablage), Letzten Text kopieren, Letzte Aufnahme nochmal senden
@@ -75,7 +77,14 @@ Windows-Beta; das Prüffenster `OpenDictate.Prototype` bleibt Entwicklerwerkzeug
   Zeilenumbruch wird nicht in Konsolen (Windows Terminal, cmd, PowerShell und
   andere) eingefügt, weil ein Zeilenumbruch die diktierte Zeile als Befehl
   ausführen würde; er bleibt in der Zwischenablage. Abschaltbar mit
-  „Automatisch einfügen“.
+  „Automatisch einfügen“. Strg+V wird als Scancode im Tastaturlayout des
+  Zielfensters gesendet, weil manche Spiele nur diesen lesen; ob jedes Spiel
+  es annimmt, ist erst live prüfbar.
+- Grenze: In ein Programm, das mit Adminrechten läuft, lässt Windows eine
+  normale App nicht tippen; das Strg+V verpufft dort, ohne dass die App es
+  merkt, und die Anzeige kann trotzdem „Eingefügt“ zeigen. Der Text liegt
+  dann in der Zwischenablage und lässt sich von Hand einfügen. Ob das Kürzel
+  in einem solchen Fenster überhaupt ankommt, ist live noch offen.
 - Die kleine Anzeige oben auf dem Bildschirm zeigt Hört zu (mit Zeit und
   Pegel), Schreibt, Eingefügt, Kopiert oder Hoppla mit dem Grund und, wenn die
   Aufnahme gesichert ist, „Nochmal senden“. Sie nimmt nie den Fokus. Farben,
@@ -91,12 +100,16 @@ Windows-Beta; das Prüffenster `OpenDictate.Prototype` bleibt Entwicklerwerkzeug
   vor dem Senden als geschützte Kopie unter `%LOCALAPPDATA%\OpenDictate\Recovery`
   gesichert (höchstens fünf, 24 Stunden); erst danach verschwindet das
   Original. Kürzer als eine halbe Sekunde wird nicht von selbst gesendet und
-  lässt sich nicht nochmal senden, bleibt aber gesichert.
-- Geprüft am 11. Oktober nur offline auf Linux mit .NET SDK 10.0.401: 60 von
-  60 Prüfungen (darunter 20 für Kürzel, Auslöser, Einfügeregel, Einstellungen
-  und Anzeige), Beta-App, Prüffenster, Browser-Host und Schutzprüfer bauen ohne
-  Warnung. Nicht gestartet: Hook, Mikrofon, Anzeige, Strg+V und Autostart sind
-  erst mit einem Windows-PC prüfbar (Windows-Plan, Schritt 7).
+  lässt sich nicht nochmal senden, bleibt aber gesichert. Bricht die Aufnahme
+  ab, weil das Mikrofon wegfällt, wird das Aufgenommene ebenso gesichert und
+  lässt sich nochmal senden. Hält ein anderes Programm (etwa ein Virenscanner)
+  eine alte Sicherung offen, bleibt sie bis zum nächsten Aufräumen liegen; das
+  neue Diktat scheitert daran nicht, und angeboten werden nur die fünf neuesten.
+- Geprüft am 13. Oktober nur offline auf Linux mit .NET SDK 10.0.401: 53 von
+  53 Prüfungen (7 Kern-, 9 Ablauf-, 17 Provider- und 20 Kürzel-/App-Prüfungen),
+  Beta-App und Schutzprüfer bauen ohne Warnung. Nicht gestartet: Hook,
+  Mikrofon, Anzeige, Strg+V, Autostart und die 14 Schutzprüfungen sind erst
+  mit einem Windows-PC prüfbar (Windows-Plan, Schritt 7).
 
 ## Heutige Offline-Prüfung, 28. September 2026
 
@@ -129,14 +142,13 @@ beliebiger Editoren, Browser oder Webseiten.
 
 Das vorhandene Skript:
 
-1. zeigt die SDK-Version an und führt `OpenDictate.Checks` aus (14 Kern-/Bridge-,
-   neun Ablauf-, 17 Provider- und 20 Kürzel-/App-Checks),
-2. baut `OpenDictate.App` und `OpenDictate.Prototype`,
-3. baut `OpenDictate.BrowserHost`,
-4. baut `OpenDictate.WindowsChecks`.
+1. zeigt die SDK-Version an und führt `OpenDictate.Checks` aus (7 Kern-,
+   9 Ablauf-, 17 Provider- und 20 Kürzel-/App-Checks),
+2. baut `OpenDictate.App`,
+3. baut `OpenDictate.WindowsChecks`.
 
 Es **führt `OpenDictate.WindowsChecks` nicht aus**. Ein erfolgreicher Skript-
-lauf würde daher die 13 Credential-Manager-/Recovery-Prüfungen nicht belegen.
+lauf würde daher die 14 Credential-Manager-/Recovery-Prüfungen nicht belegen.
 Das Skript startet und installiert die App nicht; echte Aufnahme und
 Provideraufruf gehören nicht zu seinen Prüfungen. Das Bauen kann NuGet-Restore
 benötigen, falls die Abhängigkeit lokal noch nicht vorhanden ist. Das Skript

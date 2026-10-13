@@ -150,7 +150,7 @@ internal sealed class DictationController : IDisposable
     {
         Guid? saved = null;
         var clipboard = ClipboardPaste.Result.ClipboardOnly;
-        bool tooShort = false;
+        bool tooShort = false, interrupted = false;
         retryable = null;
         var result = await flow.RunAsync(async token =>
         {
@@ -179,18 +179,25 @@ internal sealed class DictationController : IDisposable
                 tooShort = true;
                 throw new UserFacingException(TooShortMessage);
             }
-            catch (Exception)
-            {
-                throw new UserFacingException(UiText.T(
-                    "Die Aufnahme wurde unterbrochen. Was aufgenommen wurde, liegt im Aufnahmeordner.",
-                    "The recording was interrupted. What was recorded is in the recordings folder."));
-            }
+            // A lost microphone ends the recording early. What arrived is sealed
+            // like any recording, so it is encrypted, can be sent again and
+            // goes after 24 hours instead of staying in the recordings folder.
+            catch (Exception) { interrupted = true; }
             finally { audio = null; clock.Stop(); elapsed.Stop(); StateChanged?.Invoke(); }
-            if (!token.IsCancellationRequested)
+            if (!token.IsCancellationRequested && !interrupted)
                 indicator.Show(IndicatorPhase.Writing, IndicatorText.Detail(IndicatorPhase.Writing, translating: settings.TargetLanguage is not null));
             RecoveredRecording recording;
             // A cancelled dictation is sealed too: cancelling keeps the audio.
-            try { recording = await Task.Run(() => ProtectedJournal.Seal(current.Journal, store)); }
+            // An interrupted capture never wrote its WAV; it is exported from the
+            // raw original here, which stays if that fails.
+            try
+            {
+                recording = await Task.Run(() =>
+                {
+                    if (interrupted && !File.Exists(current.Journal.WavePath)) current.Journal.ExportWave();
+                    return ProtectedJournal.Seal(current.Journal, store);
+                });
+            }
             catch (Exception)
             {
                 throw new UserFacingException(UiText.T(
@@ -203,6 +210,8 @@ internal sealed class DictationController : IDisposable
             // Kept for 24 hours like every recording, but never sent; a
             // resend refuses it as well.
             if (recording.Wave.Length - 44 < MinimumAudioBytes) { tooShort = true; throw new UserFacingException(TooShortMessage); }
+            if (interrupted)
+                throw new UserFacingException(UiText.T("Die Aufnahme wurde unterbrochen.", "The recording was interrupted."));
             return recording.Wave;
         }, (wave, token) => TranscribeAsync(server, wave, key, settings, token), async (text, _) =>
         {
