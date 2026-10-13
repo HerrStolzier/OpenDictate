@@ -226,7 +226,9 @@ geschlossen ([Richtung](docs/ios-direction.md)).
 3. Apples Spracherkennung auf dem Gerät (SpeechAnalyzer, ab iOS 26) als
    kostenlose Option ausprobieren und am iPhone mit OpenAI vergleichen
    (entschieden am 13. Oktober). Reicht die Qualität nicht, folgt ein
-   Whisper-Modell in der App (WhisperKit).
+   Whisper-Modell in der App (WhisperKit). Stand 13. Oktober: als Einstellung
+   „Erkennung: Auf dem iPhone“ gebaut (Sprache des iPhones, Modell einmal in
+   den Einstellungen laden); am Gerät und im Vergleich noch nicht geprüft.
 4. TestFlight-Beta. Hochladen und Tester einladen erst mit Bastis Go.
    Abhängigkeiten: Apple-Developer-Mitgliedschaft (vorhanden, Verlängerung
    September 2027), ein Zertifikat „Apple Distribution“ (am Mac noch nicht

@@ -10,7 +10,10 @@ struct ContentView: View {
     @State private var microphone = Recorder.permission
     @State private var hasKey = KeychainStore.apiKey() != nil
     @State private var activitiesEnabled = ActivityAuthorizationInfo().areActivitiesEnabled
+    // Read by `needsKey` through `AppSettings`; stored here so a change redraws.
     @AppStorage(AppSettings.serverAddressKey) private var serverAddress = ""
+    @AppStorage(AppSettings.recognitionKey) private var recognition = ""
+    @AppStorage(AppSettings.translationTargetKey) private var translationTarget = ""
     @AppStorage(AppSettings.shortcutUsedKey) private var shortcutUsed = false
     @Environment(\.scenePhase) private var scenePhase
 
@@ -166,7 +169,7 @@ struct ContentView: View {
 
     // MARK: Setup
 
-    private var needsKey: Bool { !hasKey && !(AppSettings.endpoint?.isLoopback ?? false) }
+    private var needsKey: Bool { !hasKey && AppSettings.needsAPIKey }
 
     private var setup: some View {
         VStack(alignment: .leading, spacing: DesignMetric.space4) {
@@ -178,9 +181,9 @@ struct ContentView: View {
                 case .granted:
                     EmptyView()
                 case .denied:
-                    Button(L10n.pick("Allow in Settings", "In Einstellungen erlauben"), action: openSettings)
+                    setupButton(L10n.pick("Allow in Settings", "In Einstellungen erlauben"), action: openSettings)
                 default:
-                    Button(L10n.pick("Allow microphone", "Mikrofon erlauben")) {
+                    setupButton(L10n.pick("Allow microphone", "Mikrofon erlauben")) {
                         Task {
                             _ = await Recorder.requestPermission()
                             refresh()
@@ -194,12 +197,12 @@ struct ContentView: View {
                         L10n.pick(
                             "iOS stops a background recording without them.",
                             "Ohne sie beendet iOS eine Aufnahme im Hintergrund."))
-                    Button(L10n.pick("Turn on in Settings", "In Einstellungen einschalten"), action: openSettings)
+                    setupButton(L10n.pick("Turn on in Settings", "In Einstellungen einschalten"), action: openSettings)
                 }
             }
             step(done: !needsKey, L10n.pick("OpenAI API key", "OpenAI-API-Schlüssel")) {
                 if needsKey {
-                    Button(L10n.pick("Set up API key", "API-Schlüssel einrichten")) { showsSettings = true }
+                    setupButton(L10n.pick("Set up API key", "API-Schlüssel einrichten")) { showsSettings = true }
                 }
             }
             step(done: shortcutUsed, L10n.pick("Start without opening the app", "Starten, ohne die App zu öffnen")) {
@@ -209,10 +212,12 @@ struct ContentView: View {
                 Text(
                     L10n.pick(
                         "1. Shortcuts app → + → Add Action → OpenDictate → “Dictate”. "
-                            + "Below it add “Copy to Clipboard” with “Local Only” on. "
+                            + "Below it add “Copy to Clipboard” with “Local Only” on; "
+                            + "leave “Show When Run” off. "
                             + "Name the shortcut “Dictate”, then Done.",
                         "1. Kurzbefehle-App → + → Aktion hinzufügen → OpenDictate → „Diktieren“. "
-                            + "Darunter „In Zwischenablage kopieren“ mit „Nur lokal“ hinzufügen. "
+                            + "Darunter „In Zwischenablage kopieren“ mit „Nur lokal“ hinzufügen; "
+                            + "„Beim Ausführen öffnen“ bleibt aus. "
                             + "Nenne den Kurzbefehl „Diktieren“, dann Fertig."))
                 Text(
                     DeviceTrigger.hasActionButton
@@ -237,6 +242,13 @@ struct ContentView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: DesignMetric.radiusCard).fill(Color(design: .surface, theme: theme)))
+    }
+
+    /// The checklist's text color would otherwise hide that these are buttons.
+    private func setupButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(title, action: action)
+            .font(BrandFont.mono(15, semibold: true))
+            .foregroundStyle(Color(design: .signal, theme: theme))
     }
 
     private func step(done: Bool, _ title: String, @ViewBuilder content: () -> some View) -> some View {
