@@ -28,8 +28,10 @@ Die internen Plan-1-Grenzen werden hier nicht als bestandene Tests ausgegeben. V
 3. Signatur, Entitlements, Ticket und Gatekeeper-Bewertung an der **aus dem
    endgültigen ZIP entpackten** App prüfen. Den Downloadweg mit Quarantäne
    simulieren und den ersten Start des entpackten Pakets auf dem vorhandenen
-   Mac prüfen. Für macOS 14 gelten nur native CI-Tests und Bundle-Build;
-   eine interaktive Installation auf macOS 14 wird nicht behauptet.
+   Mac prüfen. Für macOS 14 galten bis Oktober 2026 native CI-Tests und
+   Bundle-Build; ab dem 2. November 2026 gibt es keinen gehosteten
+   macOS-14-Runner mehr, dann prüft die CI nur die älteste Xcode-16-Toolchain.
+   Eine interaktive Installation auf macOS 14 wird nicht behauptet.
 4. Den Wechsel von einer älteren lokalen OpenDictate-Installation zu diesem
    Developer-ID-Build kontrolliert prüfen: bestehende Aufnahmen erhalten,
    Keychain-Zugriff und macOS-Berechtigungen tatsächlich beobachten,
