@@ -343,8 +343,8 @@ stub. The key comes in from any trusted source through a pipe
   are refused.
 - Below 1 second, or without a 50 ms window above −45 dBFS, nothing is
   uploaded. The recording is kept with a mark: plain `retry` passes it over,
-  `retry --skipped` sends the last such recording anyway, and it makes room first when more than
-  five are kept. Detected speech keeps a 0.25-second margin; only savings of 0.35
+  and `retry --skipped` sends the last such recording anyway. It counts toward
+  the five newest kept recordings like any other. Detected speech keeps a 0.25-second margin; only savings of 0.35
   seconds or more produce a trimmed upload WAV. The 90-second limit stays on.
 - With a target language set, the transcript is then translated via
   `/chat/completions` of the same server and only the translation is delivered. If the

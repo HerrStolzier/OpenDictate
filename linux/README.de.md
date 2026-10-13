@@ -349,9 +349,9 @@ Quelle per Pipe (`trusted-secret-command | opendictate secrets set-api-key`).
   wechselt auf `processing`; weitere Starts während `starting`, `processing`
   oder `delivering` werden abgelehnt.
 - Unter 1 Sekunde oder ohne 50-ms-Fenster oberhalb −45 dBFS erfolgt kein Upload.
-  Die Aufnahme wird mit Vermerk gesichert: `retry` übergeht sie,
-  `retry --skipped` sendet die letzte solche Aufnahme trotzdem, und sind mehr als fünf gesichert,
-  weicht sie zuerst.
+  Die Aufnahme wird mit Vermerk gesichert: `retry` übergeht sie, und
+  `retry --skipped` sendet die letzte solche Aufnahme trotzdem. Sie zählt wie
+  jede andere zu den fünf neuesten gesicherten Aufnahmen.
   Erkannte Sprache erhält 0,25 Sekunden Rand; nur Einsparungen ab 0,35 Sekunden
   erzeugen eine zugeschnittene Upload-WAV. Das 90-Sekunden-Limit bleibt aktiv.
 - Mit gesetzter Zielsprache wird das Transkript danach über

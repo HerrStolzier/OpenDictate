@@ -21,7 +21,7 @@ struct Sidecar {
     size: u64,
     mac: String,
     /// Set for a recording that was too short or silent to be sent. Plain
-    /// `retry` passes it over, and it is removed before any other one.
+    /// `retry` passes it over; the retention limits treat it like any other.
     #[serde(default, skip_serializing_if = "is_false")]
     skipped: bool,
 }
@@ -153,12 +153,11 @@ pub fn delete(entry: &Entry) -> Result<(), String> {
 pub fn prune(recovery_dir: &Path, key: &[u8]) -> Result<(), String> {
     let mut entries = authenticated_entries(recovery_dir, key)?;
     let now = unix_timestamp_secs();
-    // Skipped recordings make room first, so they never push out a real one.
     entries.sort_by(|left, right| {
-        left.0
-            .skipped
-            .cmp(&right.0.skipped)
-            .then_with(|| right.0.created.cmp(&left.0.created))
+        right
+            .0
+            .created
+            .cmp(&left.0.created)
             .then_with(|| right.0.audio_path.cmp(&left.0.audio_path))
     });
     for (index, (entry, _)) in entries.into_iter().enumerate() {
@@ -602,7 +601,7 @@ mod tests {
     }
 
     #[test]
-    fn skipped_recordings_make_room_before_real_ones() {
+    fn skipped_recordings_count_toward_the_five_newest() {
         let (_, recovery_dir) = fixture("skipped-prune");
         let key = [6u8; 32];
         let now = unix_timestamp_secs();
@@ -617,8 +616,9 @@ mod tests {
         }
         let skipped = keep(&recovery_dir, "short.wav", now, true, &key);
         prune(&recovery_dir, &key).unwrap();
-        assert!(!skipped.exists());
-        assert!(recovery_dir.join("real-0.wav").exists());
+        assert!(skipped.exists());
+        assert!(!recovery_dir.join("real-0.wav").exists());
+        assert!(recovery_dir.join("real-1.wav").exists());
         let _ = fs::remove_dir_all(recovery_dir.parent().unwrap());
     }
 }

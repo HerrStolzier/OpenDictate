@@ -222,9 +222,10 @@ Audio is removed only after a non-empty transcript, or its non-empty
 translation when a target language is set, reaches the clipboard. With
 auto-insert on, audio is kept for retry if the clipboard no longer holds
 exactly that text before the paste. If the microphone fails during a
-recording, the audio captured until then is kept for retry the same way. When more than five are kept, marked short
-or silent recordings are removed first. Kept recordings past the limits are
-also removed after any later dictation, not only at the next failure or retry.
+recording, the audio captured until then is kept for retry the same way. Marked
+short or silent recordings count toward the same five newest. Kept recordings
+past the limits are also removed after any later dictation, not only at the
+next failure or retry.
 The mark is part of the authenticated proof.
 
 The operations log under `$XDG_STATE_HOME/opendictate/operations.log` records

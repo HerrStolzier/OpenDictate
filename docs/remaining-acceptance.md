@@ -73,8 +73,8 @@ frische Ersteinrichtung des Schlüssels.
 Seit der Gesamtprüfung vom 13. Oktober meldet ein Mikrofon, das während der
 Aufnahme ausfällt, das per Benachrichtigung und sichert den Ton bis dahin für
 `retry`; zu kurze oder stille Aufnahmen werden mit Vermerk gesichert, den
-`retry` übergeht (`retry --skipped` sendet die letzte davon) und die bei mehr als fünf
-zuerst weichen, und abgelaufene Sicherungen verschwinden nach jedem Diktat. Geprüft nur mit
+`retry` übergeht (`retry --skipped` sendet die letzte davon), und abgelaufene
+Sicherungen verschwinden nach jedem Diktat. Geprüft nur mit
 Unit-Tests (auch Stereo-Abmischung und Formatwandlung), nicht mit einem echt
 abgezogenen Mikrofon.
 Eine alte Testaufnahme vom 7. Oktober liegt noch im Recovery-Ordner auf

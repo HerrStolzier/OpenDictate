@@ -976,7 +976,7 @@ fn process_new_recording(
         }
         Ok(Some(skipped)) => {
             // Kept like any other recording, but marked: plain `retry` passes
-            // it over, and it makes room before any real one.
+            // it over, and only `retry --skipped` sends it.
             let preservation = preserve_recording(path, true);
             log_ops(&format!(
                 "recording-skipped preserved={}",
