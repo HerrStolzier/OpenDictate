@@ -159,7 +159,7 @@ fn run(args: Vec<String>) -> Result<(), String> {
 fn toggle() -> Result<(), String> {
     // Held until this call returns: a second `toggle` before the worker has
     // even bound its socket is refused instead of starting another worker.
-    let _lock = lock_toggle()?;
+    let _lock = lock_toggle()?.ok_or_else(starting)?;
     let socket = paths::socket_path().map_err(path_error)?;
     let state_path = paths::state_path().map_err(path_error)?;
     match state::read(&state_path, &socket) {
@@ -192,7 +192,9 @@ fn toggle() -> Result<(), String> {
     }
 }
 
-fn lock_toggle() -> Result<File, String> {
+/// Takes the lock shared by `toggle` and `retry`; `None` while another
+/// command holds it.
+fn lock_toggle() -> Result<Option<File>, String> {
     let file = OpenOptions::new()
         .create(true)
         .truncate(false)
@@ -202,15 +204,15 @@ fn lock_toggle() -> Result<File, String> {
         .map_err(path_error)?;
     // SAFETY: flock only reads the descriptor, which `file` keeps open.
     if unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) } != 0 {
-        return Err(match io::Error::last_os_error().kind() {
-            io::ErrorKind::WouldBlock => starting(),
-            _ => tr!(
+        return match io::Error::last_os_error().kind() {
+            io::ErrorKind::WouldBlock => Ok(None),
+            _ => Err(tr!(
                 "Aufnahme konnte nicht starten.",
                 "Recording could not start."
-            ),
-        });
+            )),
+        };
     }
-    Ok(file)
+    Ok(Some(file))
 }
 
 fn starting() -> String {
@@ -1009,6 +1011,15 @@ fn process_new_recording(
 }
 
 fn retry(skipped: bool) -> Result<(), String> {
+    // Same lock as `toggle`, held until the socket and the Processing state
+    // are in place: a retry cannot take the socket from a worker that
+    // `toggle` is starting, and a later `toggle` sees Processing.
+    let toggle_lock = lock_toggle()?.ok_or_else(|| {
+        tr!(
+            "OpenDictate ist gerade beschäftigt. Versuch es gleich nochmal.",
+            "OpenDictate is busy right now. Try again in a moment."
+        )
+    })?;
     let socket = paths::socket_path().map_err(path_error)?;
     let _listener = ipc::bind_socket(&socket).map_err(|error| {
         if error.kind() == io::ErrorKind::AddrInUse {
@@ -1032,6 +1043,7 @@ fn retry(skipped: bool) -> Result<(), String> {
         state::State::Processing,
     )
     .map_err(path_error)?;
+    drop(toggle_lock);
     let auth = keyring::recording_auth()?;
     let recovery_dir = paths::recovery_dir().map_err(path_error)?;
     recovery::prune(&recovery_dir, &auth)?;
