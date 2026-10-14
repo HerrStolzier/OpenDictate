@@ -71,7 +71,7 @@ impl Transcriber {
                 "Recording has an invalid size."
             ));
         }
-        let boundary = format!("OpenDictateBoundary{}", std::process::id());
+        let boundary = new_boundary()?;
         let body = multipart_body(&boundary, audio, settings);
         let mut request = self
             .agent
@@ -109,6 +109,15 @@ impl Transcriber {
 fn request_timeout(response_budget: Duration, upload_bytes: usize) -> Duration {
     let upload_seconds = (upload_bytes as u64).div_ceil(SLOW_UPLINK_BYTES_PER_SECOND);
     response_budget + Duration::from_secs(upload_seconds)
+}
+
+/// A multipart boundary from 16 random bytes, so neither the audio nor a
+/// field value can contain it by chance or by design.
+fn new_boundary() -> Result<String, String> {
+    Ok(format!(
+        "OpenDictateBoundary{}",
+        crate::keyring::random_hex(16)?
+    ))
 }
 
 fn multipart_body(boundary: &str, audio: &[u8], settings: &Settings) -> Vec<u8> {
@@ -248,7 +257,24 @@ mod tests {
         assert!(request.contains("name=\"model\""));
         assert!(request.contains("gpt-transcribe"));
         assert!(request.contains("recording.wav"));
+        let boundary = request
+            .split("boundary=")
+            .nth(1)
+            .and_then(|rest| rest.split("\r\n").next())
+            .unwrap();
+        assert!(request.contains(&format!("--{boundary}--\r\n")));
         crate::test_support::remove_temp_file(&path);
+    }
+
+    #[test]
+    fn boundary_carries_sixteen_random_bytes() {
+        let first = new_boundary().unwrap();
+        let random = first.strip_prefix("OpenDictateBoundary").unwrap();
+        assert_eq!(random.len(), 32);
+        assert!(random
+            .chars()
+            .all(|character| character.is_ascii_hexdigit()));
+        assert_ne!(first, new_boundary().unwrap());
     }
 
     #[test]
