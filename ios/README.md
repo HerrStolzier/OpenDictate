@@ -52,6 +52,9 @@ selbst (siehe Grenzen).
    an den Kurzbefehl zurück, dessen Schritt „In Zwischenablage kopieren“ ihn
    ablegt. Beim Start gibt sie nichts zurück, damit dieser Schritt die
    Zwischenablage nicht leert. Die Live-Aktivität zeigt kurz „Kopiert“.
+   Tippt man danach in ein Textfeld, schlägt die iOS-Tastatur den Text oben
+   als „Einsetzen von Kurzbefehle“ vor; ein Tipp setzt ihn ein (am iPhone
+   gesehen am 14. Oktober 2026; wie lange iOS den Vorschlag zeigt, ist offen).
    Endet die Aufnahme im Hintergrund ohne den Kurzbefehl (Stopp in der
    Live-Aktivität, Anruf, 90-Sekunden-Grenze), zeigt sie „Fertig“: Wer den
    Kurzbefehl innerhalb von fünf Minuten nochmal startet, bekommt diesen Text
