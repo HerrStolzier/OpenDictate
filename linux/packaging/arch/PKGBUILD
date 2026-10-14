@@ -52,6 +52,8 @@ check() {
 package() {
   install -Dm0755 "$srcdir/target/release/opendictate" "$pkgdir/usr/bin/opendictate"
   install -Dm0644 "$_repo/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm0644 "$_repo/THIRD_PARTY_NOTICES.md" \
+    "$pkgdir/usr/share/licenses/$pkgname/THIRD_PARTY_NOTICES.md"
   # Repository-relative links in the installed guides point to GitHub instead.
   install -dm0755 "$pkgdir/usr/share/doc/$pkgname"
   local _guide

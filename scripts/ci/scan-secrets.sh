@@ -54,10 +54,27 @@ if [[ -n "$base" && "$base" == "$head" ]]; then
   echo 'Secret-scan base and head resolve to the same commit; refusing an empty range.' >&2
   exit 1
 fi
+# A range scan takes its allowed fingerprints from the base commit, so the
+# scanned commits cannot allow their own findings. Without a base the full
+# history is scanned with the checkout's file. Gitleaks also reads
+# `.gitleaksignore` and `.gitleaks.toml` from the directory it scans, so it
+# gets the Git directory instead of the working tree.
+git_dir="$(git rev-parse --path-format=absolute --git-common-dir)"
+ignore_path="$tool_dir/gitleaksignore"
 if [[ -n "$base" ]]; then
   log_opts="${base}..${head} --diff-merges=first-parent"
+  if git cat-file -e "${base}:.gitleaksignore" 2>/dev/null; then
+    git show "${base}:.gitleaksignore" > "$ignore_path"
+  else
+    : > "$ignore_path"
+  fi
 else
   log_opts="${head} --diff-merges=first-parent"
+  if [[ -f .gitleaksignore ]]; then
+    cp .gitleaksignore "$ignore_path"
+  else
+    : > "$ignore_path"
+  fi
 fi
 
 # Gitleaks scans commit patches locally; it never validates or contacts providers.
@@ -65,7 +82,7 @@ fi
 report_path="$tool_dir/findings.json"
 unset GITLEAKS_CONFIG GITLEAKS_CONFIG_TOML
 if "$gitleaks_bin" git \
-  --gitleaks-ignore-path="$ROOT/.gitleaksignore" \
+  --gitleaks-ignore-path="$ignore_path" \
   --log-opts="$log_opts" \
   --report-format=json \
   --report-path="$report_path" \
@@ -74,7 +91,7 @@ if "$gitleaks_bin" git \
   --no-color \
   --log-level=error \
   --timeout=300 \
-  "$ROOT"; then
+  "$git_dir"; then
   scan_status=0
 else
   scan_status=$?

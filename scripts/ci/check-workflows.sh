@@ -39,6 +39,14 @@ case "$(uname -s)/$(uname -m)" in
   *) echo "Unsupported actionlint host: $(uname -s)/$(uname -m)." >&2; exit 1 ;;
 esac
 
+if ! command -v curl >/dev/null || ! command -v tar >/dev/null || ! command -v python3 >/dev/null; then
+  echo 'curl, tar and Python 3 with venv (python3-venv on Debian/Ubuntu) are required to fetch the pinned temporary actionlint and zizmor.' >&2
+  exit 1
+fi
+tool_dir="$(mktemp -d "${TMPDIR:-/tmp}/opendictate-workflow-lint.XXXXXX")"
+cleanup() { python3 -c 'import shutil, sys; shutil.rmtree(sys.argv[1])' "$tool_dir"; }
+trap cleanup EXIT
+
 if command -v actionlint >/dev/null; then
   actionlint_bin="$(command -v actionlint)"
   if ! "$actionlint_bin" -version | grep -Fq "${actionlint_version}"; then
@@ -46,13 +54,6 @@ if command -v actionlint >/dev/null; then
     exit 1
   fi
 else
-  if ! command -v curl >/dev/null || ! command -v tar >/dev/null || ! command -v python3 >/dev/null; then
-    echo 'curl, tar and Python 3 are required to fetch the pinned temporary actionlint binary.' >&2
-    exit 1
-  fi
-  tool_dir="$(mktemp -d "${TMPDIR:-/tmp}/opendictate-actionlint.XXXXXX")"
-  cleanup() { python3 -c 'import shutil, sys; shutil.rmtree(sys.argv[1])' "$tool_dir"; }
-  trap cleanup EXIT
   asset="actionlint_${actionlint_version}_${actionlint_os}_${actionlint_arch}.tar.gz"
   archive="$tool_dir/$asset"
   url="https://github.com/rhysd/actionlint/releases/download/v${actionlint_version}/${asset}"
@@ -67,3 +68,24 @@ else
 fi
 
 "$actionlint_bin" -color .github/workflows/*.yml
+
+# zizmor audits the workflows for security problems such as template
+# injection, broad permissions and dangerous triggers. The wheel is pinned by
+# version and SHA-256 (macOS and glibc Linux, arm64 and x86_64) and installed
+# into a temporary virtual environment; --offline skips audits that call GitHub.
+zizmor_version='1.30.1'
+zizmor_hashes=(
+  17fda74e15fe41a6aa354ea4cf71fc7ff3cd025cda6584bb6d7466b3f1d00fe6 # macosx_10_12_x86_64
+  f9eb092f089e35fa9fb3b70aeec0a19eca7dacf2ab161f1d50b18351895f085c # macosx_11_0_arm64
+  92906f448365672ebb657fb50d36f997290a3aaba8cac723214741ea9054845d # manylinux_2_24_aarch64
+  eee12266b793cb87ad4a7e3af2e72404f8a63e3de5eb099b80bf7b1cfd232a8e # manylinux_2_28_x86_64
+)
+{
+  printf 'zizmor==%s' "$zizmor_version"
+  printf ' --hash=sha256:%s' "${zizmor_hashes[@]}"
+  printf '\n'
+} > "$tool_dir/zizmor-requirements.txt"
+python3 -m venv "$tool_dir/zizmor-venv"
+"$tool_dir/zizmor-venv/bin/python" -m pip install --quiet --disable-pip-version-check \
+  --require-hashes --only-binary=:all: --no-deps -r "$tool_dir/zizmor-requirements.txt"
+"$tool_dir/zizmor-venv/bin/zizmor" --offline --no-progress --config .github/zizmor.yml .github/workflows
