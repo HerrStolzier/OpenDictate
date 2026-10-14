@@ -18,9 +18,14 @@ dann im entpackten `windows/` `sha256sum -c SOURCE-SHA256SUMS`.
   `Directory.Build.props` aktiviert Nullable-Checks, Warnungen als Fehler und
   deterministische Compileroptionen.
 - `NAudio.Wasapi` 3.1.0 ist die einzige direkte Paketabhängigkeit der App.
-  Eine `packages.lock.json`, ein geprüfter `dotnet publish`-Pfad und ein
-  Installerprojekt sind nicht vorhanden. `Deterministic=true` allein belegt
-  keinen bitgleichen Release-Build.
+  Jedes Projekt hat eine `packages.lock.json` mit Versionen und
+  Inhalts-Hashes aller Pakete; `nuget.config` erlaubt nur nuget.org als
+  Quelle. Die CI stellt die Pakete mit `dotnet restore --locked-mode` her und
+  bricht ab, wenn ein Paket von der Sperrdatei abweicht. Nach einer Änderung an
+  den Paketen die Sperrdateien mit `dotnet restore` neu erzeugen und mit
+  einchecken. Ein geprüfter `dotnet publish`-Pfad und ein Installerprojekt
+  sind nicht vorhanden. `Deterministic=true` allein belegt keinen bitgleichen
+  Release-Build.
 - Das App-Manifest fordert normale Benutzerrechte (`asInvoker`).
 - Das frühere Prüffenster (`OpenDictate.Prototype`) mit Einfügen in Editor-
   und Browserfelder, der Browser-Host und die Test-Erweiterung wurden am

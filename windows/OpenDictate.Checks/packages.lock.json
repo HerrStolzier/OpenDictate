@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "opendictate.core": {
+        "type": "Project"
+      },
+      "opendictate.provider": {
+        "type": "Project",
+        "dependencies": {
+          "OpenDictate.Core": "[1.0.0, )"
+        }
+      }
+    }
+  }
+}
