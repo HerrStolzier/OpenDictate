@@ -29,6 +29,12 @@ enum KeychainBridge {
 
     private static let appCertificate: Data? = selfCertificate()
 
+    /// How long one request may take before the helper is terminated and the
+    /// request fails. Generous, because the helper may be waiting for the user
+    /// to answer a macOS Keychain prompt; it only stops a hung helper from
+    /// blocking its caller forever.
+    static let timeout: TimeInterval = 60
+
     static var isActive: Bool {
         Bundle.main.bundleIdentifier == "local.opendictate.app"
             && Bundle.main.executableURL?.lastPathComponent == "OpenDictate"
@@ -53,6 +59,8 @@ enum KeychainBridge {
         process.environment = [:]
         do {
             try process.run()
+            let watchdog = HelperWatchdog(process, timeout: timeout)
+            defer { _ = watchdog.finish() }
             guard let certificate = appCertificate,
                 let identity = runningIdentity(pid: process.processIdentifier),
                 identity.identifier == "OpenDictateKeychainHelper",
@@ -76,6 +84,10 @@ enum KeychainBridge {
             }
             let reply = output.fileHandleForReading.readDataToEndOfFile()
             process.waitUntilExit()
+            if watchdog.finish() {
+                AppLog.write("Keychain helper did not answer within \(Int(timeout)) s and was terminated")
+                return (errSecNotAvailable, nil)
+            }
             guard process.terminationStatus == 0,
                 reply.count <= 16_384,
                 let response = try? JSONDecoder().decode(Response.self, from: reply),
@@ -185,5 +197,52 @@ enum KeychainBridge {
             let certificate = (values[kSecCodeInfoCertificates as String] as? [SecCertificate])?.first
         else { return nil }
         return (identifier, SecCertificateCopyData(certificate) as Data)
+    }
+}
+
+/// Terminates a helper that does not answer in time. The caller blocks on the
+/// helper's output and exit, so without this a hung helper would block it
+/// forever. A helper that ignores SIGTERM gets SIGKILL after `killDelay`.
+final class HelperWatchdog: @unchecked Sendable {
+    // Both properties are guarded by `lock`.
+    private let lock = NSLock()
+    private var process: Process?
+    private var didTerminate = false
+    private let killDelay: TimeInterval
+
+    init(_ process: Process, timeout: TimeInterval, killDelay: TimeInterval = 5) {
+        self.process = process
+        self.killDelay = killDelay
+        DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + timeout) { [self] in
+            terminateIfRunning()
+        }
+    }
+
+    private func terminateIfRunning() {
+        lock.lock()
+        defer { lock.unlock() }
+        guard let process, process.isRunning else { return }
+        didTerminate = true
+        process.terminate()
+        DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + killDelay) { [self] in
+            killIfRunning()
+        }
+    }
+
+    private func killIfRunning() {
+        lock.lock()
+        defer { lock.unlock() }
+        // `finish()` clears `process` only after the caller saw the exit, so a
+        // process still held here has not been reaped and its PID is its own.
+        guard let process, process.isRunning else { return }
+        kill(process.processIdentifier, SIGKILL)
+    }
+
+    /// Disarms the watchdog; true when it had to terminate the helper.
+    func finish() -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        process = nil
+        return didTerminate
     }
 }
