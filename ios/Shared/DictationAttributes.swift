@@ -19,6 +19,11 @@ struct DictationAttributes: ActivityAttributes {
         var endsAt: Date
         /// One short sentence after the dictation, already in the user's language.
         var detail: String?
+        /// While writing: Parakeet first sets up its model, once after an install or update.
+        var setsUpModel = false
+
+        /// The sentence under the state word.
+        var shownDetail: String? { setsUpModel ? L10n.modelLoadsDetail : detail }
 
         var pose: BlinkPose {
             switch phase {
@@ -28,5 +33,21 @@ struct DictationAttributes: ActivityAttributes {
             case .oops: IndicatorPhase.oops.pose
             }
         }
+    }
+}
+
+extension DictationAttributes.ContentState {
+    private enum CodingKeys: String, CodingKey {
+        case phase, startedAt, endsAt, detail, setsUpModel
+    }
+
+    /// An activity started by an earlier version of the app has no `setsUpModel`.
+    init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        phase = try values.decode(Phase.self, forKey: .phase)
+        startedAt = try values.decode(Date.self, forKey: .startedAt)
+        endsAt = try values.decode(Date.self, forKey: .endsAt)
+        detail = try values.decodeIfPresent(String.self, forKey: .detail)
+        setsUpModel = try values.decodeIfPresent(Bool.self, forKey: .setsUpModel) ?? false
     }
 }

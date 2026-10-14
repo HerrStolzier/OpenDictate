@@ -52,6 +52,8 @@ struct ContentView: View {
             guard phase == .active else { return }
             refresh()
             runner.copyUncopied()
+            // Loading takes a moment, the first time after an install or update much longer.
+            if AppSettings.recognition == .parakeet, ParakeetTranscriber.isInstalled { ParakeetTranscriber.prepare() }
         }
         .task { await runner.reachServer() }
     }
