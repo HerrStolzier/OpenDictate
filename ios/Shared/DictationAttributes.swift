@@ -35,3 +35,19 @@ struct DictationAttributes: ActivityAttributes {
         }
     }
 }
+
+extension DictationAttributes.ContentState {
+    private enum CodingKeys: String, CodingKey {
+        case phase, startedAt, endsAt, detail, setsUpModel
+    }
+
+    /// An activity started by an earlier version of the app has no `setsUpModel`.
+    init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        phase = try values.decode(Phase.self, forKey: .phase)
+        startedAt = try values.decode(Date.self, forKey: .startedAt)
+        endsAt = try values.decode(Date.self, forKey: .endsAt)
+        detail = try values.decodeIfPresent(String.self, forKey: .detail)
+        setsUpModel = try values.decodeIfPresent(Bool.self, forKey: .setsUpModel) ?? false
+    }
+}
