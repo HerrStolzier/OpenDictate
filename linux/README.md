@@ -202,14 +202,20 @@ opendictate settings server off              # back to OpenAI
 - `https://` works for any address. Plain `http://` only for this computer
   (`localhost`, `127.0.0.1`, `[::1]`). Addresses with credentials, `?` or `#`
   are rejected.
+- A server on this computer is only private on a computer you use alone:
+  another local user could start a program on the same port first and would
+  then receive your recordings and texts.
 - **API key:** an address on this computer gets no key and needs none. Any
-  other server gets your stored key (useful for OpenAI-compatible providers);
-  only use servers you trust with it.
+  other server gets your stored key (useful for OpenAI-compatible providers),
+  even if that key was made for OpenAI; only use servers you trust with it.
 - Model names are free-form with a custom server; with OpenAI only the known
   transcription models are accepted. `settings server off` resets a model
   OpenAI does not offer.
 - Alternatively the environment variable `OPENAI_BASE_URL` sets the address;
   a stored address wins. Hyprland must see the variable, not just your shell.
+  Whoever can set this variable for your session redirects your recordings,
+  texts and, for an `https://` address not on this computer, your API key to
+  that server.
 - Local models on the CPU are slow, so OpenDictate waits up to 2 minutes for a
   custom server (plus upload time) instead of 15 seconds.
 - The log names only the server's host, never its path or a key.
@@ -355,7 +361,10 @@ stub. The key comes in from any trusted source through a pipe
   error; `retry` translates again. Tried live on omarchy on 5 October
   ([plan with evidence](../docs/linux-live-translation-plan.md)).
 - A non-empty transcript is written only to the Wayland clipboard. The
-  recording may be removed only after the copy succeeded.
+  recording may be removed only after the copy succeeded. A clipboard history
+  manager (for example cliphist, clipman or the one in your desktop shell)
+  keeps its own copy of every transcript; OpenDictate cannot prevent or
+  remove that.
 - Auto-paste (on by default, `settings insert off` turns it off): at start the
   active Hyprland window is captured. After copying, the CLI checks that
   exactly this window is still in front and the clipboard still holds the
@@ -391,7 +400,9 @@ stub. The key comes in from any trusted source through a pipe
   read or logged.
 
 State lives in `$XDG_STATE_HOME/opendictate/` (else
-`~/.local/state/opendictate/`), settings in `$XDG_CONFIG_HOME/opendictate/`.
+`~/.local/state/opendictate/`), settings in `$XDG_CONFIG_HOME/opendictate/`
+(else `~/.config/opendictate/`). Empty or relative `XDG_*` values are ignored;
+without an absolute `HOME` OpenDictate stops with a message.
 App, pending and recovery folders are real directories with mode `0700`; audio
 files and proofs `0600`.
 

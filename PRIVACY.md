@@ -192,7 +192,9 @@ window captured at recording start is still frontmost, sends that window a
 paste shortcut via `hyprctl`. Control characters and invisible text-direction
 marks are removed from the returned text first. Text with a line break is not
 pasted into known terminals; it stays in the clipboard. Retry never pastes
-automatically. The optional
+automatically. A clipboard history manager on Wayland (such as cliphist or
+clipman) keeps its own copy of every text copied via `wl-copy`; OpenDictate
+cannot prevent or remove that copy. The optional
 bar module (Omarchy shell or Waybar) prints only the state and translation setting, never text.
 
 With a custom server (`settings server`, or `OPENAI_BASE_URL` when no address
@@ -201,7 +203,11 @@ server's `/audio/transcriptions` and `/chat/completions` instead of OpenAI;
 nothing goes to OpenAI then. Plain `http://` is accepted only for loopback
 addresses (`localhost`, `127.0.0.1`, `[::1]`), which never receive the API key.
 Any other custom server is reached over HTTPS and receives the stored API key
-as a bearer token. Addresses with credentials, a query or a fragment are
+as a bearer token, even when that key was created for OpenAI. `OPENAI_BASE_URL` set in
+the session therefore redirects the audio, the transcript and, for a
+non-loopback HTTPS address, the API key to that host. A loopback server is
+only private on a single-user machine: another local user could bind the port
+first and would receive the audio and text. Addresses with credentials, a query or a fragment are
 rejected. `opendictate setup` checks a key or server once by requesting the
 server's model list (`/models`), which sends no audio or text.
 
