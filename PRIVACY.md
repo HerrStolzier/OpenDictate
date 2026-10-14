@@ -303,7 +303,9 @@ Screen and in the Dynamic Island shows that a recording is running.
   Keychain); "Send again" offers only recordings with a valid tag and uploads
   exactly the bytes it checked. A recording shorter than one second is kept
   without a tag, because it is too short to send, and expires under the same
-  rule. A recording cut off because iOS ended the app during it is
+  rule. A recording with nothing louder than room noise is not sent; it is
+  kept with a tag, so "Send again" can still send it on purpose, as on the
+  Mac. A recording cut off because iOS ended the app during it is
   kept at the next start without a tag, so it is never sent again, and
   expires under the same rule.
 - **No log, no telemetry:** the iPhone app writes no log file and sends

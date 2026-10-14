@@ -16,6 +16,8 @@ enum DictationFailure: Error, Equatable {
     case recordingFailed(String?)
     case recordingUnreadable
     case tooShort
+    /// Nothing louder than room noise, so nothing was sent.
+    case tooQuiet
     case nothingRecognized
     case emptyTranslation
     case clipboardFailed
@@ -83,6 +85,11 @@ enum DictationFailure: Error, Equatable {
             L10n.pick("The recording could not be read.", "Die Aufnahme konnte nicht gelesen werden.")
         case .tooShort:
             L10n.pick("The recording was too short.", "Die Aufnahme war zu kurz.")
+        case .tooQuiet:
+            L10n.pick(
+                "The recording was too quiet. Check the microphone and speak a little closer. Nothing was sent.",
+                "Die Aufnahme war zu leise. Prüfe das Mikrofon und sprich etwas näher hinein. "
+                    + "Es wurde nichts gesendet.")
         case .nothingRecognized:
             L10n.pick("No speech was recognized.", "Es wurde keine Sprache erkannt.")
         case .emptyTranslation:

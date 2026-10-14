@@ -97,10 +97,19 @@ final class OpenDictateUITests: XCTestCase {
         allowPasteIfAsked()
         snapshot("Notiz mit eingefügtem Text", of: notes)
         let pasted = body.value as? String ?? ""
-        // Empty the note and leave it, so Notes drops it instead of keeping it.
+        // Empty the note and leave it. Notes may still list it, so delete it
+        // too; only an empty, untitled note matches, never one with content.
         body.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: pasted.count))
         let back = notes.navigationBars.buttons.firstMatch
         if back.exists { back.tap() }
+        let empty = notes.cells.matching(
+            NSPredicate(format: "label BEGINSWITH 'Neue Notiz' AND label CONTAINS 'Kein zusätzlicher Text'")
+        ).firstMatch
+        if empty.waitForExistence(timeout: 3) {
+            empty.swipeLeft()
+            let delete = notes.buttons["Löschen"].firstMatch
+            if delete.waitForExistence(timeout: 3) { delete.tap() }
+        }
         snapshot("Notizen nach dem Aufräumen", of: notes)
         assertContains(pasted, keywords)
     }

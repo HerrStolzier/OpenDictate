@@ -354,11 +354,21 @@ dem Mikrofon auf, der Text kam an. Ebenso bestand `testShortcutPastesIntoNotes`:
 Der eigene Kurzbefehl „Diktieren“ legte den Text ab, und er ließ sich in eine
 neue Notiz einsetzen. Beide Tests liefen mit der Erkennung über den Dienst,
 ohne Übersetzung. Einmal fragte die Kurzbefehle-App, ob „Diktieren“ seinen
-Text ausgeben darf. Das Leeren der Test-Notiz kam erst danach dazu und ist am
-Gerät noch nicht gelaufen.
+Text ausgeben darf.
+
+Am 14. Oktober liefen mit `33dc985` (Übergabe an den Kurzbefehl nach einem
+Stopp im Hintergrund, Unit-Tests) am Mac Mini Bau und Formatprüfung ohne
+Fehler und Warnungen, alle 16 Unit-Tests aus `ios/UnitTests` im Simulator und
+`testScreens` grün. Auf dem iPhone 15 (per Kabel) bestanden danach beide
+Live-Tests. Ein erster Lauf mit stummem Mac-Lautsprecher zeigte, dass OpenAI
+bei Stille „you“ zurückgab und die App es kopierte; seitdem sendet die App
+eine stille Aufnahme nicht (am Gerät noch nicht gelaufen). Die geleerte
+Test-Notiz blieb in Notizen stehen; der Test löscht sie seitdem (am Gerät
+noch nicht gelaufen).
 
 **Offen / bekannte Grenzen:** Start ohne Leeren der Zwischenablage und die
-Änderungen nach `4993214` am Gerät, die Erkennung „Auf dem iPhone“ (Apples
+Änderungen nach `4993214` am Gerät, die Übergabe nach einem Stopp im
+Hintergrund (Live-Aktivität, Anruf, 90-Sekunden-Grenze) am Gerät, die Erkennung „Auf dem iPhone“ (Apples
 Spracherkennung, ab iOS 26) am Gerät und im Vergleich mit OpenAI, die
 Übersetzung „Auf dem iPhone“ (ab iOS 26) am Gerät, Abfrage
 „Lokales Netzwerk“, Abbruch-/Unterbrechungsfälle, Dateischutz am Gerät, Verteilung über TestFlight,
@@ -366,7 +376,7 @@ Barrierefreiheit, wann die Kurzbefehle-App vor der Ausgabe fragt (auch beim
 Doppeltippen?). Das Doppeltippen auf die Rückseite prüft Basti selbst; alles
 andere am Gerät laufen die UI-Tests.
 
-**Letzter Nachweis:** 13. Oktober 2026.
+**Letzter Nachweis:** 14. Oktober 2026.
 
 ## Android
 

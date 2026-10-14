@@ -266,9 +266,11 @@ swift format lint --strict --configuration .swift-format --recursive ios/UITests
 ```
 
 The unit tests in `ios/UnitTests` check kept recordings (tag, expiry, five
-newest), the settings a dictation reads, and the requests it builds. They run
+newest), the silence check, the settings a dictation reads, and the requests it builds. They run
 inside the app and change its settings for a moment, so run them only in the
-simulator. It is created once with
+simulator, and signed as Xcode does by default: with
+`CODE_SIGNING_ALLOWED=NO` the app has no Keychain, and the tests for kept
+recordings skip themselves. The simulator is created once with
 `xcrun simctl create "OpenDictate iOS Beta" "iPhone 17"`:
 
 ```bash

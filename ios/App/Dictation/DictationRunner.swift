@@ -167,6 +167,9 @@ final class DictationRunner {
         let kept = store.keep(recording.url, retryable: !tooShort)
         guard !tooShort else { throw await fail(.tooShort) }
         await updateActivity(.writing)
+        // Not sent, but kept for a deliberate "Send again", as on the Mac.
+        let heardSpeech = await Task.detached { SpeechCheck.heardSpeech(at: kept) }.value
+        guard heardSpeech else { throw await fail(.tooQuiet) }
         guard let audio = try? Data(contentsOf: kept) else { throw await fail(.recordingUnreadable) }
         return try await deliver(audio, keptAt: kept, configuration: configuration, forShortcut: forShortcut)
     }

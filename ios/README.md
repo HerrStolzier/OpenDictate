@@ -40,7 +40,11 @@ selbst (siehe Grenzen).
 2. Nochmal auslösen, Stopp in der Live-Aktivität, ein Anruf oder die
    90-Sekunden-Grenze beenden die Aufnahme. Unter einer Sekunde ist „zu kurz“;
    so eine Aufnahme bleibt gesichert, wird aber nicht zum Nochmal-Senden
-   angeboten.
+   angeboten. Ist nichts lauter als Raumrauschen (wie am Mac: kein
+   50-ms-Abschnitt über -45 dBFS), geht die Aufnahme nicht raus, denn bei
+   Stille erfinden Dienste gern ein Wort wie „you“. Die App zeigt „Die
+   Aufnahme war zu leise“ wie am Mac und bietet die Aufnahme zum
+   Nochmal-Senden an.
 3. Die Aufnahme geht an OpenAI oder den eigenen Server, oder Apples
    Spracherkennung schreibt sie auf dem iPhone (Einstellung „Erkennung“, siehe
    unten); mit Zielsprache folgt die Übersetzung. Ist die App vorn, kopiert sie den Text selbst. Im
@@ -125,6 +129,9 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
   kopieren“ im Kurzbefehl ließ er sich einfügen. Dass der Start die
   Zwischenablage nicht mehr leert, ist am Gerät noch nicht geprüft
   ([ROADMAP](../ROADMAP.md#track-ios)).
+- Wer sehr leise oder weit weg spricht, bekommt „Die Aufnahme war zu leise“;
+  die Aufnahme geht dann erst mit „Nochmal senden“ raus. Die Schwelle ist die
+  des Macs und am iPhone noch nicht mit echter Sprache gemessen.
 - Kein Kontrollzentrum-Schalter, kein Vokabular und keine feste Sprache; die
   Sprache erkennt der Dienst. Die Erkennung auf dem iPhone nutzt die Sprache
   des iPhones und ist am Gerät noch nicht geprüft; ob sie im Hintergrund nach
