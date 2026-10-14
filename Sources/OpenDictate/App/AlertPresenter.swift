@@ -66,16 +66,17 @@ enum AlertPresenter {
         var translationModel: String
     }
 
-    /// Address and model names for a server other than OpenAI. Empty
-    /// address means OpenAI; empty model fields restore the defaults.
+    /// Address and model names of the own server. An empty address removes
+    /// it and selects OpenAI; empty model fields restore the defaults.
     static func promptForCustomServer(initialValue: CustomServer) -> CustomServer? {
         let alert = NSAlert()
         alert.messageText = "Eigener Server"
         alert.informativeText =
             "Statt OpenAI kannst du einen eigenen Server mit derselben Schnittstelle nutzen, etwa ein Modell "
             + "auf diesem Mac (http://127.0.0.1:8080/v1). Server auf diesem Mac bekommen keinen Schlüssel, "
-            + "andere brauchen https:// und bekommen deinen API-Schlüssel. Ohne Adresse nutzt OpenDictate OpenAI. "
-            + "Getestet haben wir nur OpenAI."
+            + "andere brauchen https:// und bekommen deinen API-Schlüssel. Die Modelle gelten nur für diesen Server. "
+            + "Unter „Dienst“ wechselst du jederzeit zwischen OpenAI und deinem Server, die Adresse bleibt "
+            + "gespeichert. Ohne Adresse nutzt OpenDictate OpenAI."
         alert.addButton(withTitle: "Speichern")
         alert.addButton(withTitle: "Abbrechen")
         func field(_ label: String, _ value: String, placeholder: String) -> (NSTextField, NSStackView) {

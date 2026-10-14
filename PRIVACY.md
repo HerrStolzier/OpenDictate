@@ -42,8 +42,11 @@ audio and text only to this Mac; what that local server does with them is up to
 its own configuration. Any other server must use HTTPS and receives the saved
 API key. HTTP redirects are not followed, so requests go only to the configured address.
 An address that is not allowed stops the dictation; it never falls back to
-OpenAI. The log records only the server's host name, never the path or
-key.
+OpenAI. **Dienst** chooses between OpenAI and a saved server; the app never
+switches by itself. When the own server does not take a dictation, a recording
+goes to OpenAI only after the user picks **Mit OpenAI senden** and confirms it,
+and only that one recording. The log records only the server's host name,
+never the path or key.
 
 The OpenAI API key is stored as a generic password in the macOS Keychain under
 service `OpenDictate` and account `OPENAI_API_KEY_APP`. OpenDictate does not support

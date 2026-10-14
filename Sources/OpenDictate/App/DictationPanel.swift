@@ -24,6 +24,7 @@ final class DictationPanel: NSWindowController {
     private(set) var display: Display = .ready
     private var busy = false
     private var showingText = false
+    private var retryTarget = RetryTarget.openAI
     private var keyViews: [NSView] = []
     private let content = PanelSurface()
     private let iconSurface = PanelSurface(raised: true)
@@ -196,14 +197,25 @@ final class DictationPanel: NSWindowController {
         showForInteraction()
     }
 
-    func confirmRetry(description: String) {
+    /// Where a confirmed resend goes.
+    enum RetryTarget {
+        case openAI, server
+        /// OpenAI for this one recording, after the own server did not take it.
+        case openAIInstead
+    }
+
+    func confirmRetry(description: String, target: RetryTarget) {
         showingText = false
-        set(
-            .retry,
-            detail: description
-                + "\nDie Aufnahme geht nochmal an deinen Dienst – bei OpenAI kostet das wieder. "
-                + "Den Text bekommst du zum Kopieren."
-        )
+        retryTarget = target
+        let destination: String =
+            switch target {
+            case .openAI: "Die Aufnahme geht nochmal an OpenAI und kostet dort wieder."
+            case .server: "Die Aufnahme geht nochmal an deinen eigenen Server."
+            case .openAIInstead:
+                "Diesmal geht die Aufnahme an OpenAI statt an deinen eigenen Server und kostet dort. "
+                    + "Danach schreibt wieder dein Server."
+            }
+        set(.retry, detail: description + "\n" + destination + " Den Text bekommst du zum Kopieren.")
         showForInteraction()
     }
 
@@ -383,7 +395,7 @@ final class DictationPanel: NSWindowController {
         case .manual: primary.title = "Text kopieren"
         case .unconfirmed: primary.title = showingText ? "Text kopieren" : "Text ansehen"
         case .failure: primary.title = "Gesicherte Aufnahmen"
-        case .retry: primary.title = "Nochmal senden"
+        case .retry: primary.title = retryTarget == .openAIInstead ? "Mit OpenAI senden" : "Nochmal senden"
         case .processing, .cancelling: break
         }
         secondary.title = display == .retry ? "Zurück" : busy ? "Abbrechen" : "Neues Diktat"

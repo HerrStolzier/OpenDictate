@@ -126,9 +126,12 @@ die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleiner
 5. Für den nächsten Mac-Kandidaten (Bastis Wünsche vom 13. Oktober, noch
    nicht gebaut):
    - Im Menü und in den Einstellungen ist sichtbar, wer gerade transkribiert,
-     und es gibt eine Wahl „OpenAI / Eigener Server“. Heute sieht man das
-     nicht: Die Einstellungen zeigen das OpenAI-Modell auch dann, wenn der
-     eigene Server schreibt, und einen Schalter dafür gibt es nicht.
+     und es gibt eine Wahl „OpenAI / Eigener Server“. Gebaut am 14. Oktober,
+     noch nicht live geprüft: „Dienst“ schaltet um und behält die Server-Adresse,
+     beide Seiten haben eigene Modelle. Antwortet der eigene Server nicht,
+     bietet die Anzeige „Mit OpenAI senden“ für diese eine Aufnahme an; die
+     App wechselt nie von selbst (Bastis Fund nach dem Neustart des Mac mini
+     am 14. Oktober). Live-Test mit dem nächsten Kandidaten.
    - Die Übersetzung läuft auch lokal, ohne OpenAI. Sie braucht dafür einen
      eigenen Weg, weil der lokale whisper.cpp-Server nur transkribiert.
      Vorgesehen ist Apples Übersetzung auf dem Gerät (Translation, offline und

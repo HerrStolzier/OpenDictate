@@ -27,10 +27,14 @@ struct TranscriptionOptions: Sendable {
         self.translationModel = translationModel
     }
 
-    static func current() throws -> Self {
+    /// Options for the chosen service, or for `service` when the user picked
+    /// another one for a single resend.
+    static func current(service: Settings.Service? = nil) throws -> Self {
+        let settings = Config.settings
+        let service = service ?? settings.service
         // An invalid configured address stops the dictation; falling back to
         // OpenAI would send audio where the user chose not to.
-        guard let endpoint = Config.settings.endpoint else { throw OpenDictateError.invalidServerAddress }
+        guard let endpoint = settings.endpoint(for: service) else { throw OpenDictateError.invalidServerAddress }
         let key: String?
         if endpoint.isLoopback {
             key = nil
@@ -38,12 +42,12 @@ struct TranscriptionOptions: Sendable {
             guard let stored = Config.apiKey else { throw OpenDictateError.missingAPIKey }
             key = stored
         }
-        let model = Config.model
+        let model = settings.model(for: service)
         guard model.isUsableForUpload else { throw OpenDictateError.unusableTranscriptionModel }
         return Self(
             apiKey: key, model: model, language: Config.language, prompt: Config.prompt,
-            translationTarget: Config.settings.translationTarget,
-            translationModel: Config.settings.translationModel, endpoint: endpoint)
+            translationTarget: settings.translationTarget,
+            translationModel: settings.translationModel(for: service), endpoint: endpoint)
     }
 
     /// Sets the bearer header only when a key belongs to this request.

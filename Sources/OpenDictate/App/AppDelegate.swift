@@ -19,8 +19,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private struct Attempt {
         /// File name of the authenticated recording this attempt kept or retried.
         var recording: String?
+        /// The own server wrote this attempt. If it fails, the resend offer
+        /// names OpenAI instead, and only for this one recording.
+        var viaServer = false
     }
     private var pendingRetryFilename: String?
+    /// Set when the confirmation offers OpenAI for this resend only.
+    private var pendingRetryService: Settings.Service?
     private let hotKey = HotKeyManager()
     private var modifierMonitor: ModifierKeyMonitor?
     /// Listens only while the first-launch question checks a single key.
@@ -128,9 +133,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppLog.write("App launched from \(Bundle.main.bundlePath)")
         AppLog.write("Build identity: \(AppVersionInfo().summary)")
-        AppLog.write("Transcription model: \(Config.model.rawValue) (from \(Config.settings.modelSource))")
+        let settings = Config.settings
+        settings.migrateServiceChoice()
+        let modelSource = settings.service == .openAI ? settings.modelSource : "own server settings"
+        AppLog.write("Transcription model: \(Config.model.rawValue) (from \(modelSource))")
         AppLog.write(
-            "Translation: \(Config.settings.translationTarget ?? "off") (model \(Config.settings.translationModel))")
+            "Translation: \(settings.translationTarget ?? "off") "
+                + "(model \(settings.translationModel(for: settings.service)))")
         AppLog.write("Service: \(Self.serviceDescription)")
         verifyHotKeyConstants()
         BrandFonts.register()
@@ -204,8 +213,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         indicator.onRetry = { [weak self] in
             guard let self, lifecycle.acceptsActions, let entry = retryCandidate else { return }
-            proposeRetry(filename: entry.filename)
+            proposeRetry(filename: entry.filename, service: offersOpenAI ? .openAI : nil)
         }
+    }
+
+    /// The own server did not take the latest attempt, so its recording may
+    /// go to OpenAI once, never without the user's click.
+    private var offersOpenAI: Bool {
+        attempt?.viaServer == true && Config.settings.service == .server && retryCandidate != nil
+    }
+
+    private func updateRetryOffer() {
+        indicator.retryTitle = offersOpenAI ? "Mit OpenAI senden" : "Nochmal senden"
+        indicator.canRetry = retryCandidate != nil
     }
 
     /// The kept recording of the latest failed attempt, if it can be sent again.
@@ -240,23 +260,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard let self, lifecycle.acceptsActions else { return }
             lifecycle.cancelPreparation()
             pendingRetryFilename = nil
+            pendingRetryService = nil
             menuBar?.showRecordings()
         }
         dictationPanel.onRetry = { [weak self] in
             guard let self, flow.state.canRetry, let filename = pendingRetryFilename,
                 let operation = lifecycle.beginOperation()
             else { return }
+            let service = pendingRetryService
             pendingRetryFilename = nil
-            Task { @MainActor in await retryLastRecording(filename: filename, operation: operation) }
+            pendingRetryService = nil
+            Task { @MainActor in
+                await retryLastRecording(filename: filename, service: service, operation: operation)
+            }
         }
     }
 
-    private func proposeRetry(filename: String? = nil) {
+    /// `service` overrides the chosen service for this resend only.
+    private func proposeRetry(filename: String? = nil, service: Settings.Service? = nil) {
         guard flow.state.canRetry, lifecycle.canBeginOperation,
             let entry = savedRecordings.first(where: { $0.retryable && (filename == nil || $0.filename == filename) })
         else { return }
         pendingRetryFilename = entry.filename
-        dictationPanel.confirmRetry(description: entry.created.formatted(date: .abbreviated, time: .shortened))
+        pendingRetryService = service
+        dictationPanel.confirmRetry(
+            description: entry.created.formatted(date: .abbreviated, time: .shortened),
+            target: service == .openAI ? .openAIInstead : Config.settings.service == .openAI ? .openAI : .server)
     }
 
     // MARK: - Hotkey
@@ -492,7 +521,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 previousApplication = target
                 if try flow.start() {
                     pendingRetryFilename = nil
-                    attempt = Attempt()
+                    pendingRetryService = nil
+                    attempt = Attempt(viaServer: !options.endpoint.isOpenAI)
                     indicator.setTranslating(options.translationTarget != nil)
                     scheduleAutoStop()
                 }
@@ -520,7 +550,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             snapshotTask = nil
             guard !Task.isCancelled, !lifecycle.isTerminating else { return }
             savedRecordings = recordings
-            indicator.canRetry = retryCandidate != nil
+            updateRetryOffer()
             menuBar?.refresh()
             if snapshotNeedsRefresh {
                 snapshotNeedsRefresh = false
@@ -529,11 +559,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func retryLastRecording(filename: String, operation: AppLifecycle.Operation) async {
+    private func retryLastRecording(
+        filename: String, service: Settings.Service?, operation: AppLifecycle.Operation
+    ) async {
         defer { lifecycle.finish(operation) }
         guard lifecycle.isCurrent(operation), !Task.isCancelled, flow.state.canRetry else { return }
-        guard hasUsableServer() else { return }
-        let loadedOptions = await loadOptions()
+        // A resend the user sent to OpenAI does not depend on the own server's address.
+        guard service == .openAI || hasUsableServer() else { return }
+        let loadedOptions = await loadOptions(service: service)
         guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
         guard let options = usableOptions(loadedOptions, for: operation) else { return }
         let target = currentFrontmostApplication()
@@ -549,7 +582,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             requestOptions = options
             previousApplication = target
             if flow.retry(payload) {
-                attempt = Attempt(recording: filename)
+                if service == .openAI { AppLog.write("Saved recording resent to OpenAI once") }
+                attempt = Attempt(recording: filename, viaServer: !options.endpoint.isOpenAI)
                 indicator.canRetry = false
                 indicator.setTranslating(options.translationTarget != nil)
             }
@@ -583,12 +617,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Reads the key once per attempt. The Keychain helper is a separate
     /// process, so the read runs off the main actor.
-    private func loadOptions() async -> Result<TranscriptionOptions, any Error> {
+    private func loadOptions(service: Settings.Service? = nil) async -> Result<TranscriptionOptions, any Error> {
         // A pending launch check must not overwrite what this attempt finds.
         apiKeyPresenceTask?.cancel()
         apiKeyPresenceTask = nil
         return await Task.detached(priority: .userInitiated) {
-            Result<TranscriptionOptions, any Error> { try TranscriptionOptions.current() }
+            Result<TranscriptionOptions, any Error> { try TranscriptionOptions.current(service: service) }
         }.value
     }
 
@@ -718,6 +752,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         snapshotTask = nil
         snapshotNeedsRefresh = false
         pendingRetryFilename = nil
+        pendingRetryService = nil
         recorder.onUnexpectedStop = nil
         stopModifierMonitor()
     }
@@ -809,6 +844,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             apiKeyNeedsSetup = false
             menuBar?.updateStatus("API-Schlüssel gespeichert")
             if settingUp { dictationPanel.updateAPIKeySetup(needsSetup: false) }
+            // A resend that stopped for the missing key can be offered again.
+            updateRetryOffer()
             AppLog.write("API key saved to Keychain")
             if case .savedWithLegacyCleanupPending(let status) = result {
                 AppLog.write("API key legacy cleanup pending: \(status)")
@@ -885,8 +922,9 @@ extension AppDelegate: MenuBarControllerDelegate {
         let settings = Config.settings
         let current = AlertPresenter.CustomServer(
             address: settings.serverAddress ?? "",
-            transcriptionModel: settings.model == .default ? "" : settings.model.rawValue,
-            translationModel: settings.translationModel == Translation.defaultModel ? "" : settings.translationModel)
+            transcriptionModel: settings.serverModel == .default ? "" : settings.serverModel.rawValue,
+            translationModel: settings.serverTranslationModel == Translation.defaultModel
+                ? "" : settings.serverTranslationModel)
         guard let value = AlertPresenter.promptForCustomServer(initialValue: current), lifecycle.isCurrent(operation)
         else { return }
         // Validate everything before saving anything, so a typo keeps the
@@ -901,14 +939,29 @@ extension AppDelegate: MenuBarControllerDelegate {
             updateStatus("Eigener Server nicht gespeichert: nur https:// oder http:// auf diesem Mac")
             return
         }
-        settings.model =
+        settings.serverModel =
             value.transcriptionModel.isEmpty ? .default : TranscriptionModel(rawValue: value.transcriptionModel)
-        settings.translationModel = value.translationModel
-        AppLog.write("Service changed to \(Self.serviceDescription); model \(settings.model.rawValue)")
+        settings.serverTranslationModel = value.translationModel
+        let status: String
+        if settings.service == .server {
+            status = "Eigener Server gespeichert, er schreibt jetzt"
+        } else if settings.serverAddress == nil {
+            status = "OpenAI als Dienst gespeichert"
+        } else {
+            status = "Eigener Server gespeichert, es schreibt weiter OpenAI"
+        }
+        applyServiceChange(status: status)
+    }
+
+    /// Follow-up after the service, its address or its models changed.
+    private func applyServiceChange(status: String) {
+        AppLog.write("Service changed to \(Self.serviceDescription); model \(Config.model.rawValue)")
         warnAboutUnusableModelIfNeeded()
-        updateStatus(
-            settings.endpoint?.isOpenAI == true ? "OpenAI als Dienst gespeichert" : "Eigener Server gespeichert")
+        // The offer to send to OpenAI instead only makes sense while the own server writes.
+        updateRetryOffer()
+        updateStatus(status)
         checkAPIKeyRequirement()
+        if menuBar?.hasVisibleSettings == true { menuBar?.showSettings() }
     }
 
     /// Re-evaluates the setup reminder after the server changed; the
@@ -940,6 +993,7 @@ extension AppDelegate: MenuBarControllerDelegate {
     func menuBarDidCancel(discard: Bool) {
         lifecycle.cancelDictation {
             pendingRetryFilename = nil
+            pendingRetryService = nil
             flow.cancel(discardRecording: discard)
         }
     }
@@ -1085,11 +1139,25 @@ extension AppDelegate: MenuBarControllerDelegate {
         }
     }
 
+    /// The model menu lists OpenAI models; the own server's model is set
+    /// with its address.
     func menuBarDidSelect(model: TranscriptionModel) {
         guard lifecycle.canBeginOperation, flow.state == .idle else { return }
-        guard model != Config.model else { return }
+        guard model != Config.settings.model else { return }
         Config.settings.model = model
         AppLog.write("Transcription model changed to \(model.rawValue)")
+    }
+
+    func menuBarDidSelect(service: Settings.Service) {
+        guard flow.state == .idle, let operation = lifecycle.beginOperation() else { return }
+        defer { lifecycle.finish(operation) }
+        let settings = Config.settings
+        guard service != settings.service else { return }
+        guard settings.select(service) else {
+            updateStatus("Richte zuerst unter Erweitert → Eigener Server eine Adresse ein")
+            return
+        }
+        applyServiceChange(status: service == .openAI ? "OpenAI schreibt jetzt" : "Dein eigener Server schreibt jetzt")
     }
 
     func menuBarDidSelect(language: String?) {
@@ -1123,7 +1191,12 @@ extension AppDelegate: MenuBarControllerDelegate {
         return apiKeyNeedsSetup ? "Einrichten" : "Bereit"
     }
     var menuBarTrigger: RecordingTrigger { Config.trigger }
-    var menuBarModel: TranscriptionModel { Config.model }
+    var menuBarModel: TranscriptionModel { Config.settings.model }
+    var menuBarService: Settings.Service { Config.settings.service }
+    /// Host of the own server for the menu; nil while none is set up.
+    var menuBarServerHost: String? {
+        Config.settings.serverAddress.map { ServiceEndpoint($0)?.host ?? "ungültige Adresse" }
+    }
     var menuBarLanguage: String? { Config.language }
     var menuBarTranslationTarget: String? { Config.settings.translationTarget }
 }

@@ -38,6 +38,10 @@ final class DictationIndicator {
     var canRetry = false {
         didSet { if canRetry != oldValue, phase == .oops { present() } }
     }
+    /// Title of the resend button; it names OpenAI when that is the offer.
+    var retryTitle = "Nochmal senden" {
+        didSet { if retryTitle != oldValue, canRetry, phase == .oops { present() } }
+    }
 
     private(set) var phase: IndicatorPhase = .closed
     private(set) var placement: IndicatorPlacement = .hidden
@@ -152,6 +156,7 @@ final class DictationIndicator {
         }
         view.target = target
         view.placement = placement
+        view.retryTitle = retryTitle
         view.canRetry = canRetry
         view.onRetry = { [weak self] in self?.onRetry?() }
         view.onClose = { [weak self] in self?.dismiss() }
@@ -314,6 +319,14 @@ final class IndicatorView: NSView {
     var placement: IndicatorPlacement = .menuBar
     var canRetry = false {
         didSet { needsLayout = true }
+    }
+    var retryTitle = "Nochmal senden" {
+        didSet {
+            guard retryTitle != oldValue else { return }
+            retryButton.title = retryTitle
+            retryButton.setAccessibilityLabel(retryTitle)
+            needsLayout = true
+        }
     }
     var onRetry: (() -> Void)?
     var onClose: (() -> Void)?
