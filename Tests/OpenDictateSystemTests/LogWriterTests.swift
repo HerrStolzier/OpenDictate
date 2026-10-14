@@ -31,4 +31,39 @@ struct LogWriterTests {
         let permissions = try FileManager.default.attributesOfItem(atPath: url.path)[.posixPermissions] as? NSNumber
         #expect(permissions?.intValue == 0o600)
     }
+
+    @Test func restrictsAReadableLogThatRotates() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let url = dir.appendingPathComponent("log")
+        let previous = url.appendingPathExtension("previous")
+        let writer = LogWriter(url: url, maximumBytes: 500)
+        writer.write("first")
+        writer.flush()
+        // An active log that is readable by others when it rotates.
+        try Data(repeating: 65, count: 490).write(to: url)
+        try FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: url.path)
+        writer.write("second")
+        writer.flush()
+        #expect(try Data(contentsOf: previous) == Data(repeating: 65, count: 490))
+        for path in [url.path, previous.path] {
+            let permissions = try FileManager.default.attributesOfItem(atPath: path)[.posixPermissions] as? NSNumber
+            #expect(permissions?.intValue == 0o600)
+        }
+    }
+
+    @Test func restrictsAnExistingPreviousLogOnce() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let url = dir.appendingPathComponent("log")
+        let previous = url.appendingPathExtension("previous")
+        let readable: [FileAttributeKey: Any] = [.posixPermissions: 0o644]
+        #expect(FileManager.default.createFile(atPath: previous.path, contents: nil, attributes: readable))
+        let writer = LogWriter(url: url)
+        writer.write("record")
+        writer.flush()
+        let attributes = try FileManager.default.attributesOfItem(atPath: previous.path)
+        #expect((attributes[.posixPermissions] as? NSNumber)?.intValue == 0o600)
+    }
 }

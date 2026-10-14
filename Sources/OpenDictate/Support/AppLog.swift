@@ -28,6 +28,9 @@ final class LogWriter: @unchecked Sendable {
     private let maximumBytes: Int
     // Confined to queue, including timestamp formatting.
     private let formatter = ISO8601DateFormatter()
+    // Confined to queue. The previous file is restricted once per launch and
+    // after every rotation, so an older readable copy never stays readable.
+    private var previousRestricted = false
 
     init(url: URL, maximumBytes: Int = 1_048_576) {
         self.url = url
@@ -44,10 +47,17 @@ final class LogWriter: @unchecked Sendable {
                 let manager = FileManager.default
                 try manager.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
                 let count = (try? manager.attributesOfItem(atPath: url.path)[.size] as? NSNumber)?.intValue ?? 0
+                let previous = url.appendingPathExtension("previous")
                 if count + line.utf8.count > maximumBytes {
-                    let previous = url.appendingPathExtension("previous")
                     if manager.fileExists(atPath: previous.path) { try manager.removeItem(at: previous) }
                     if manager.fileExists(atPath: url.path) { try manager.moveItem(at: url, to: previous) }
+                    previousRestricted = false
+                }
+                if !previousRestricted {
+                    if manager.fileExists(atPath: previous.path) {
+                        try? manager.setAttributes([.posixPermissions: 0o600], ofItemAtPath: previous.path)
+                    }
+                    previousRestricted = true
                 }
                 if !manager.fileExists(atPath: url.path) {
                     manager.createFile(atPath: url.path, contents: nil, attributes: [.posixPermissions: 0o600])
