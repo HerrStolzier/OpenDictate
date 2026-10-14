@@ -193,6 +193,15 @@ bash scripts/ci/check-linux.sh
 The script runs formatting, locked tests, locked Clippy and a locked release
 build. On Ubuntu, CI installs `libasound2-dev` and `pkg-config` first.
 
+After a change to `linux/Cargo.lock`, check the crate list in
+`THIRD_PARTY_NOTICES.md` and regenerate it without `--check` if it differs
+(it reads the lockfile and never changes it; the Linux CI job runs the check
+after its build, offline from the downloaded crates):
+
+```bash
+python3 scripts/third-party-rust.py --check --offline
+```
+
 For changes to the Arch package (`linux/packaging/arch/PKGBUILD`), run on an
 Arch host as a normal user, from that directory:
 
