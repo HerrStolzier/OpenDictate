@@ -8,13 +8,14 @@ namespace OpenDictate.Core;
 public sealed class PcmJournal : IDisposable
 {
     public const int SampleRate = 16000;
+    public const string FormatFileName = "format.txt", RawFileName = "audio.pcm", WaveFileName = "audio.wav";
     private readonly FileStream stream;
     private bool closed;
     private long bytes;
 
     public string DirectoryPath { get; }
-    public string RawPath => Path.Combine(DirectoryPath, "audio.pcm");
-    public string WavePath => Path.Combine(DirectoryPath, "audio.wav");
+    public string RawPath => Path.Combine(DirectoryPath, RawFileName);
+    public string WavePath => Path.Combine(DirectoryPath, WaveFileName);
     public long BytesWritten => bytes;
 
     public PcmJournal(string privateRoot)
@@ -23,7 +24,7 @@ public sealed class PcmJournal : IDisposable
         Directory.CreateDirectory(DirectoryPath);
         // This metadata is sufficient to recover complete samples after an
         // interrupted process, without a mutable WAV header or filename guess.
-        using (var metadata = new FileStream(Path.Combine(DirectoryPath, "format.txt"),
+        using (var metadata = new FileStream(Path.Combine(DirectoryPath, FormatFileName),
                    FileMode.CreateNew, FileAccess.Write, FileShare.Read))
         {
             metadata.Write("OpenDictate prototype PCM\nSampleRate=16000\nChannels=1\nBitsPerSample=16\nEndian=Little\n"u8);

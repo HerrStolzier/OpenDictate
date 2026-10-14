@@ -97,6 +97,7 @@ internal sealed class TrayApp
         // continuation of the app belongs to the WPF dispatcher.
         SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext(dispatcher));
         _ = ReportShortcutAsync();
+        _ = Task.Run(DictationController.RemoveExpiredJournals);
         if (!stored.ShortcutConfirmed) OpenSettings();
     }
 

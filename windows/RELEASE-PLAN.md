@@ -61,7 +61,10 @@ Installation, Beschaffung eines Zertifikats oder echte Provider-/Mikrofonprobe.
    OpenAI oder an den eingetragenen eigenen Server; ist eine Übersetzung
    eingestellt, geht danach das Transkript an denselben Server. Ein Server auf
    diesem Computer bekommt keinen Schlüssel.
-   Die öffentliche Aufbewahrungsregel für lokale Originale ist offen. Im
+   Ein Original, das nach einem Absturz oder einer gescheiterten Sicherung
+   im Aufnahmeordner liegen bleibt, löscht die App beim nächsten Start, sobald
+   es 24 Stunden alt ist; nur Ordner mit ausschließlich eigenen Journaldateien,
+   jede Datei über einen geprüften, exklusiven Handle. Im
    verbundenen Ablauf wird eine geschützte
    Recoverykopie mit DPAPI erstellt, gelesen und bytegenau bestätigt; erst danach
    entfernt der Aufrufpfad die genau geöffneten Originaldateien. Die

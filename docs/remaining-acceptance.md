@@ -302,10 +302,11 @@ Ebenfalls seit 11. Oktober gibt es die Beta-App `OpenDictate.App`
 Strg+Win halten oder rechte Strg, Einfügen per Zwischenablage und Strg+V nur ins
 erfasste Fenster, Diktatanzeige, Begrüßung mit Kürzeltest. Am 13. Oktober
 wurden das alte Prüffenster, der Browser-Host und die Test-Erweiterung
-entfernt; seitdem bestanden 53 Offline-Prüfungen (davon 20 für Kürzel,
-Auslöser, Einfügeregel, Einstellungen und Anzeige) und beide Builds auf
-Linux. Die 14 Schutzprüfungen und die App selbst liefen noch nicht auf
-Windows.
+entfernt. Seit 14. Oktober löscht die App beim Start liegengebliebene
+Originale im Aufnahmeordner, sobald sie 24 Stunden alt sind; seitdem bestanden
+54 Offline-Prüfungen (davon 20 für Kürzel, Auslöser, Einfügeregel,
+Einstellungen und Anzeige) und beide Builds auf Linux. Die 15 Schutzprüfungen
+und die App selbst liefen noch nicht auf Windows.
 
 **Offen / bekannte Grenzen:** Kein echtes Diktat, keine Provideranfrage, auch
 nicht gegen ein lokales Modell; die Beta-App lief noch nie auf Windows (Hook,
@@ -316,7 +317,7 @@ Adminrechten lässt Windows nicht einfügen, und die Anzeige erkennt das nicht
 reproduzierbare Paketierung, keine Signatur, kein Installer; Update- und
 Deinstallationsweg; Pflichtprogramme nicht festgelegt.
 
-**Letzter Nachweis:** 13. Oktober 2026 (offline).
+**Letzter Nachweis:** 14. Oktober 2026 (offline).
 
 ## iOS
 

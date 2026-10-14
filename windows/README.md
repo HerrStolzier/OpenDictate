@@ -99,16 +99,19 @@ Windows-Beta.
 - Aufnahmen entstehen unter `%LOCALAPPDATA%\OpenDictate\Recordings` und werden
   vor dem Senden als geschützte Kopie unter `%LOCALAPPDATA%\OpenDictate\Recovery`
   gesichert (höchstens fünf, 24 Stunden); erst danach verschwindet das
-  Original. Kürzer als eine halbe Sekunde wird nicht von selbst gesendet und
+  Original. Bleibt ein Original im Aufnahmeordner liegen, weil die App vorher
+  endete oder die Sicherung scheiterte, löscht die App es beim nächsten Start,
+  sobald es 24 Stunden alt ist, nie früher; ein Ordner mit fremden Dateien
+  bleibt unangetastet. Kürzer als eine halbe Sekunde wird nicht von selbst gesendet und
   lässt sich nicht nochmal senden, bleibt aber gesichert. Bricht die Aufnahme
   ab, weil das Mikrofon wegfällt, wird das Aufgenommene ebenso gesichert und
   lässt sich nochmal senden. Hält ein anderes Programm (etwa ein Virenscanner)
   eine alte Sicherung offen, bleibt sie bis zum nächsten Aufräumen liegen; das
   neue Diktat scheitert daran nicht, und angeboten werden nur die fünf neuesten.
-- Geprüft am 13. Oktober nur offline auf Linux mit .NET SDK 10.0.401: 53 von
-  53 Prüfungen (7 Kern-, 9 Ablauf-, 17 Provider- und 20 Kürzel-/App-Prüfungen),
+- Geprüft am 14. Oktober nur offline auf Linux mit .NET SDK 10.0.401: 54 von
+  54 Prüfungen (8 Kern-, 9 Ablauf-, 17 Provider- und 20 Kürzel-/App-Prüfungen),
   Beta-App und Schutzprüfer bauen ohne Warnung. Nicht gestartet: Hook,
-  Mikrofon, Anzeige, Strg+V, Autostart und die 14 Schutzprüfungen sind erst
+  Mikrofon, Anzeige, Strg+V, Autostart und die 15 Schutzprüfungen sind erst
   mit einem Windows-PC prüfbar (Windows-Plan, Schritt 7).
 
 ## Heutige Offline-Prüfung, 28. September 2026
@@ -142,13 +145,13 @@ beliebiger Editoren, Browser oder Webseiten.
 
 Das vorhandene Skript:
 
-1. zeigt die SDK-Version an und führt `OpenDictate.Checks` aus (7 Kern-,
+1. zeigt die SDK-Version an und führt `OpenDictate.Checks` aus (8 Kern-,
    9 Ablauf-, 17 Provider- und 20 Kürzel-/App-Checks),
 2. baut `OpenDictate.App`,
 3. baut `OpenDictate.WindowsChecks`.
 
 Es **führt `OpenDictate.WindowsChecks` nicht aus**. Ein erfolgreicher Skript-
-lauf würde daher die 14 Credential-Manager-/Recovery-Prüfungen nicht belegen.
+lauf würde daher die 15 Credential-Manager-/Recovery-Prüfungen nicht belegen.
 Das Skript startet und installiert die App nicht; echte Aufnahme und
 Provideraufruf gehören nicht zu seinen Prüfungen. Das Bauen kann NuGet-Restore
 benötigen, falls die Abhängigkeit lokal noch nicht vorhanden ist. Das Skript
