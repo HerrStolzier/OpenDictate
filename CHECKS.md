@@ -386,8 +386,12 @@ commit:
    (`commit:file:rule:line`) from its failed scan.
 2. Add that fingerprint to `.gitleaksignore` in a separate pull request.
    Auto-Merge leaves it to Claude because the file is guarded; Claude merges it.
-3. Re-run the scan of the first pull request without rebasing it (a rebase
-   changes the commit and so the fingerprint); it now reads the new base.
+3. Give the first pull request a new event without rebasing it (a rebase
+   changes the commit and so the fingerprint): push a further commit or close
+   and reopen it. The new event scans against the new base; a re-run of the
+   old run would not, because it keeps the base of its original event. Avoid
+   merging `main` into it: the merge commit would report allowed findings
+   from `main` again under its own fingerprint.
 4. A squash merge creates a new commit on `main`, so its push scan reports the
    finding again under the new commit's fingerprint. Add that one the same way.
 
