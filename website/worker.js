@@ -4,9 +4,9 @@
 // KV namespace and served from there. Visitors never contact GitHub.
 // Update COMMIT and FILES with `python3 scripts/website-worker.py <commit>`.
 
-const COMMIT = "f887c31799bfe93a8dd9b40cf5518c89129688b9";
+const COMMIT = "1eca133b603e076c294775721661ff3f87d6409a";
 const FILES = {
-  "/anleitungen.html": "c3193420e41421ea97d0256a5c05e53f",
+  "/anleitungen.html": "f0fc73214b7c7898ea3a48b0a887be4e",
   "/apple-touch-icon.png": "017aca3eeebd83164aedace3bca37977",
   "/blink-32.svg": "8f8d4b92a787c76c86e3fbd372ba7f4d",
   "/fonts/Geist-Regular.woff2": "be82b88cfc92b5d4d697141631cf1607",
@@ -15,12 +15,12 @@ const FILES = {
   "/fonts/GeistMono-SemiBold.woff2": "9fc2d14841f1a53d23541c63643c9910",
   "/fonts/GeistPixel-Regular.woff2": "70b4b492ee459c69c61cedfa05380e54",
   "/fonts/OFL.txt": "1781d2806a07d91c4edf4740b88449fa",
-  "/index.html": "3040a804d63650edb69ca505b4d6324d",
+  "/index.html": "8e520ca92137034d6d8a55f757ddfa9f",
   "/og.png": "a2c85a77e0fbea4381edc54218f36570",
   "/robots.txt": "3fb85fe309acd473d6be9a95d46879e4",
-  "/site.js": "6d37da3136c9362002ed92de0a1f240d",
+  "/site.js": "0dc557499ab3cc82a36f11270e57ee6d",
   "/sitemap.xml": "c1b89893fc3d0284f52d8c675934bbcf",
-  "/style.css": "ab911a411d55f8223cc1e3c7791a82a8",
+  "/style.css": "fe7a4185f65bfe7fb9fce61887886c66",
   "/tokens.css": "ded977b1cea80720ca8fb091c7ba90ec",
   "/videos/blink-01-so-diktierst-du-schleife.mp4": "d9f77f553aa7cca24b65c548cd574b13",
   "/videos/blink-01-so-diktierst-du.jpg": "da67768f4d06536978cf9eaa9b6eb6ab",
@@ -70,14 +70,20 @@ const KINDS = {
   vtt: ["text/vtt; charset=utf-8", 300],
 };
 
+// Styles come only from style.css and the CSSOM in site.js; no style attributes.
+// Every opendictate.app host in use (the site, www, support) answers over HTTPS,
+// so HSTS covers the subdomains; preload is not requested.
 const SECURITY = {
   "content-security-policy":
-    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; " +
-    "font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'",
+    "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; " +
+    "font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; " +
+    "upgrade-insecure-requests",
+  "cross-origin-opener-policy": "same-origin",
+  "cross-origin-resource-policy": "same-site",
   "x-content-type-options": "nosniff",
   "referrer-policy": "strict-origin-when-cross-origin",
   "permissions-policy": "camera=(), microphone=(), geolocation=()",
-  "strict-transport-security": "max-age=31536000",
+  "strict-transport-security": "max-age=63072000; includeSubDomains",
 };
 
 const loaded = new Map();

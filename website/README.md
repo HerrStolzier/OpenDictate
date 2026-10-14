@@ -20,9 +20,27 @@ HEAD und liefert auf Anfrage Teilstücke einer Datei (`Range`), weil Safari
 Videos nur so abspielt. Im KV-Speicher steht zu jeder Datei der geprüfte
 Fingerabdruck als Metadaten, damit der Worker die Videos nicht bei jedem Abruf
 neu durchrechnen muss. `README.md`, `worker.js` und `wrangler.toml` gehören nicht zur Seite.
+
+Strengere Kopfzeilen (seit 14. Oktober 2026 im Repository, gelten erst ab dem
+nächsten Ausrollen des Workers): Die CSP erlaubt keine `style`-Attribute mehr
+(`style-src 'self'` ohne `'unsafe-inline'`) und verlangt
+`upgrade-insecure-requests`. Größen und Verzögerungen setzt `site.js` darum
+über `element.style`, nie als Attribut im HTML. Dazu kommen
+`Cross-Origin-Opener-Policy: same-origin` und
+`Cross-Origin-Resource-Policy: same-site`; Seiten unter opendictate.app (etwa
+support.opendictate.app) dürfen Bilder und Videos einbinden, fremde Seiten
+nicht. HSTS gilt im Worker zwei Jahre und für alle Subdomains (`www` und
+`support` antworteten am 14. Oktober über HTTPS); für die HSTS-Preload-Liste
+ist die Seite bewusst nicht angemeldet, das bräuchte Bastis Entscheidung.
+Beobachtung per `curl -I` am 14. Oktober: Die Cloudflare-Zone setzt selbst
+HSTS (ein Jahr mit Subdomains) und ersetzte damit den Wert des Workers; für
+zwei Jahre muss die Zoneneinstellung mitziehen.
 Der Worker selbst hat keine automatischen Tests; `scripts/website-worker.py`
 prüft nur, dass Commit und Fingerabdrücke zusammenpassen, und ein Test hält die
-Dateitypen in `worker.js` und im Skript gleich.
+Dateitypen in `worker.js` und im Skript gleich. In einem Klon mit voller
+Geschichte schlägt der Test fehl, wenn der festgelegte Commit nicht in der
+Geschichte von `HEAD` liegt; in flachen CI-Klonen wird diese Prüfung
+übersprungen.
 
 Cloudflare Web Analytics ist für die ganze Domain ausgeschaltet. Cloudflare
 schaltet es bei kostenlosen Domains von selbst ein und fügt dann ein Zählskript
@@ -34,7 +52,9 @@ das Skript im Browser ohnehin blockieren.
 Neue Fassung ausrollen, nachdem die Änderung auf `main` ist:
 
 1. `python3 scripts/website-worker.py <commit>` trägt den Commit und die
-   Fingerabdrücke in `worker.js` ein; `--check` prüft sie.
+   Fingerabdrücke in `worker.js` ein; `--check` prüft sie. Der Commit muss
+   auf `main` liegen: Nach einem Squash-Merge gibt es den Commit des Zweigs
+   dort nicht mehr, also danach auf den Merge-Commit neu festlegen.
 2. `worker.js` deployen, am Mac mit `npx wrangler deploy` in diesem Ordner
    oder über Cloudflares API, und nur mit Bastis Wort.
 3. Ausgelieferte Seite prüfen: Seite, Schriften, kein Zählskript.

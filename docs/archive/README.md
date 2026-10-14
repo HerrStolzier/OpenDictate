@@ -12,6 +12,7 @@ heutige Abnahme oder Freigabe. Der aktuelle belegte Stand je Plattform steht in
 | --- | --- |
 | [uebergabe-chronik-bis-2026-10-07.md](uebergabe-chronik-bis-2026-10-07.md) | Die frühere Übergabedatei als Chronik vom 7. September bis 7. Oktober 2026. |
 | [APPROVALS.md](APPROVALS.md) | Freigabe-Register bis 2. Oktober 2026; gewährt nichts mehr. |
+| [windows-import-9bf554e-SHA256SUMS](windows-import-9bf554e-SHA256SUMS) | Prüfsummen der 42 Dateien des Windows-Imports vom 28. September 2026 (Commit `9bf554e`, früher `windows/SOURCE-SHA256SUMS`); passt nur zu diesem Commit ([Herkunft](../../windows/PROVENANCE.md)). |
 
 ## Datierte Berichte
 

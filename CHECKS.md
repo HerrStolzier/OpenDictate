@@ -220,9 +220,9 @@ and check scope. On Windows, from the repository root:
 ./windows/scripts/check.ps1
 ```
 
-This runs 53 core, flow, provider and shortcut checks (the provider checks read
+This runs 54 core, flow, provider and shortcut checks (the provider checks read
 `fixtures/provider/`) and builds the beta app and the Windows protection
-checker. It does not execute the 14 protection checks. After
+checker. It does not execute the 15 protection checks. After
 specific authorization for synthetic files and an isolated dummy Credential
 Manager entry, run those from a separate test copy in the signed-in Windows
 desktop with normal user privileges:
@@ -235,7 +235,7 @@ Verify deletion of the dummy credential and owned test files afterwards.
 SSH Session 0 is not equivalent to an interactive desktop credential test.
 Neither command proves live dictation, installation or public release readiness.
 
-Without a Windows computer, the same 53 checks and the builds run on Linux
+Without a Windows computer, the same 54 checks and the builds run on Linux
 with .NET SDK 10.0.401:
 
 ```bash
@@ -243,6 +243,15 @@ dotnet run --project windows/OpenDictate.Checks -c Release
 dotnet build windows/OpenDictate.App -c Release -p:EnableWindowsTargeting=true
 dotnet build windows/OpenDictate.WindowsChecks -c Release -p:EnableWindowsTargeting=true
 ```
+
+NuGet packages are pinned in each project's `packages.lock.json` and come only
+from nuget.org (`windows/nuget.config`). Windows CI restores with
+`dotnet restore <project> --locked-mode` and fails when a package differs from
+the lock file. After changing a package reference, regenerate the lock files
+with `dotnet restore windows/OpenDictate.App -p:EnableWindowsTargeting=true`
+(likewise for `OpenDictate.Checks` and `OpenDictate.WindowsChecks`) and commit
+them; the lock files carry no runtime-specific entries, so Linux and Windows
+produce the same files.
 
 After a change to `design/tokens.json`, `scripts/design-tokens.py` also
 regenerates `windows/OpenDictate.Core/DesignTokens.cs`; after a change to the
