@@ -66,7 +66,8 @@ public enum OpenDictateError: LocalizedError {
             return "Die Übersetzung kam leer zurück. Der Originaltext wird nicht eingefügt."
         case .invalidServerAddress:
             return
-                "Die Server-Adresse ist ungültig. Trage sie unter Einstellungen → Erweitert → Eigener Server neu ein."
+                "Die Server-Adresse ist ungültig. Trag sie unter Einstellungen → Erweitert → Eigener Server neu ein "
+                + "oder wähl unter „Dienst“ OpenAI."
         case .translationNotConfigured:
             return "Zielsprache oder Übersetzungsmodell ist ungültig. Wähle die Übersetzung in den Einstellungen neu."
         }

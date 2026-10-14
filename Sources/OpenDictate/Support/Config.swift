@@ -10,7 +10,8 @@ enum Config {
         environment: ProcessInfo.processInfo.environment
     )
 
-    static var model: TranscriptionModel { settings.model }
+    /// The model of the service that writes now.
+    static var model: TranscriptionModel { settings.model(for: settings.service) }
     static var language: String? { settings.language }
     static var prompt: String? { settings.prompt }
     static var trigger: RecordingTrigger { settings.trigger }

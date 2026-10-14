@@ -24,6 +24,7 @@ protocol MenuBarControllerDelegate: AnyObject {
     func menuBarDidTriggerSetAPIKey()
     func menuBarDidSelect(trigger: RecordingTrigger)
     func menuBarDidSelect(model: TranscriptionModel)
+    func menuBarDidSelect(service: Settings.Service)
     func menuBarDidSelect(language: String?)
     func menuBarDidSelect(translationTarget: String?)
     func menuBarDidSelect(indicatorStyle: IndicatorStyle)
@@ -34,6 +35,9 @@ protocol MenuBarControllerDelegate: AnyObject {
     var menuBarStateWord: String { get }
     var menuBarTrigger: RecordingTrigger { get }
     var menuBarModel: TranscriptionModel { get }
+    var menuBarService: Settings.Service { get }
+    /// Host of the own server; nil while none is set up.
+    var menuBarServerHost: String? { get }
     var menuBarLanguage: String? { get }
     var menuBarTranslationTarget: String? { get }
 }
@@ -77,6 +81,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private var deleteRecordingsMenuItem: NSMenuItem?
     private var shortcutMenuItem: NSMenuItem?
     private var modelMenuItem: NSMenuItem?
+    private var serviceMenuItem: NSMenuItem?
     private var languageMenuItem: NSMenuItem?
     private var translationMenuItem: NSMenuItem?
     private var indicatorStyleMenuItem: NSMenuItem?
@@ -112,6 +117,12 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         let customShortcut = makeActionItem("Eigenes Tastenkürzel …", action: #selector(configureShortcut))
         shortcutItem.submenu?.addItem(.separator())
         shortcutItem.submenu?.addItem(customShortcut)
+
+        let serviceItem = NSMenuItem(title: "Dienst", action: nil, keyEquivalent: "")
+        serviceItem.submenu = makeServiceSubmenu()
+        serviceItem.identifier = NSUserInterfaceItemIdentifier("service")
+        menu.addItem(serviceItem)
+        self.serviceMenuItem = serviceItem
 
         let modelItem = NSMenuItem(title: "Modell", action: nil, keyEquivalent: "")
         modelItem.submenu = makeModelSubmenu()
@@ -271,6 +282,12 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             item.isEnabled = state == .idle
         }
         dailyMenu.addItem(translation)
+        if delegate.menuBarServerHost != nil {
+            let service = NSMenuItem(title: Self.serviceTitle(delegate.menuBarService), action: nil, keyEquivalent: "")
+            service.submenu = makeServiceSubmenu()
+            markServices(in: service.submenu, enabled: state == .idle)
+            dailyMenu.addItem(service)
+        }
         dailyMenu.addItem(.separator())
         let settings = makeActionItem("Einstellungen …", action: #selector(openSettings))
         settings.keyEquivalent = ","
@@ -398,10 +415,14 @@ final class MenuBarController: NSObject, NSMenuDelegate {
 
     private func refreshActions() {
         let state = delegate?.menuBarState ?? .idle
-        for id in ["shortcut", "language", "translation", "model", "apiKey", "vocabulary", "customServer", "autoPaste"]
-        {
+        for id in [
+            "shortcut", "language", "translation", "service", "model", "apiKey", "vocabulary", "customServer",
+            "autoPaste"
+        ] {
             settingsMenu?.items.first { $0.identifier?.rawValue == id }?.isEnabled = state == .idle
         }
+        // The list holds OpenAI models; the own server's model is set with its address.
+        if delegate?.menuBarService == .server { modelMenuItem?.isEnabled = false }
         recordingMenuItem?.title = state == .recording ? "Diktat beenden" : "Diktat starten"
         recordingMenuItem?.isEnabled = state == .idle || state == .recording
         cancelMenuItem?.isEnabled = state != .idle
@@ -491,6 +512,40 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         return submenu
     }
 
+    private func makeServiceSubmenu() -> NSMenu {
+        let submenu = NSMenu()
+        submenu.delegate = self
+        submenu.autoenablesItems = false
+        for service in Settings.Service.allCases {
+            let item = makeActionItem("", action: #selector(selectService(_:)))
+            item.representedObject = service.rawValue
+            submenu.addItem(item)
+        }
+        return submenu
+    }
+
+    private static func serviceTitle(_ service: Settings.Service) -> String {
+        "Dienst: " + (service == .openAI ? "OpenAI" : "Eigener Server")
+    }
+
+    /// Titles, check mark and availability of the service choices. The own
+    /// server can be chosen only once it has an address.
+    private func markServices(in submenu: NSMenu?, enabled: Bool) {
+        guard let delegate else { return }
+        let host = delegate.menuBarServerHost
+        for item in submenu?.items ?? [] {
+            guard let raw = item.representedObject as? String, let service = Settings.Service(rawValue: raw) else {
+                continue
+            }
+            switch service {
+            case .openAI: item.title = "OpenAI"
+            case .server: item.title = host.map { "Eigener Server (\($0))" } ?? "Eigener Server (nicht eingerichtet)"
+            }
+            item.state = service == delegate.menuBarService ? .on : .off
+            item.isEnabled = enabled && (service == .openAI || host != nil)
+        }
+    }
+
     private func makeLanguageSubmenu() -> NSMenu {
         let submenu = NSMenu()
         submenu.delegate = self
@@ -546,8 +601,12 @@ final class MenuBarController: NSObject, NSMenuDelegate {
             item.state = index.map { RecordingTrigger.menuChoices[$0] == trigger } == true ? .on : .off
         }
 
+        let service = delegate.menuBarService
+        serviceMenuItem?.title = Self.serviceTitle(service)
+        markServices(in: serviceMenuItem?.submenu, enabled: true)
+
         let model = delegate.menuBarModel
-        modelMenuItem?.title = "Modell: \(model.rawValue)"
+        modelMenuItem?.title = service == .openAI ? "Modell: \(model.rawValue)" : "Modell: siehe Eigener Server"
         for item in modelMenuItem?.submenu?.items ?? [] {
             item.state = (item.representedObject as? String) == model.rawValue ? .on : .off
         }
@@ -668,6 +727,15 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         guard let raw = sender.representedObject as? String else { return }
         delegate?.menuBarDidSelect(model: TranscriptionModel(rawValue: raw))
         refreshSelections()
+        if settingsWindow.window?.isVisible == true { showSettings() }
+    }
+
+    @objc private func selectService(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String, let service = Settings.Service(rawValue: raw) else {
+            return
+        }
+        delegate?.menuBarDidSelect(service: service)
+        refresh()
         if settingsWindow.window?.isVisible == true { showSettings() }
     }
 

@@ -85,12 +85,40 @@ struct DictationIndicatorSystemTests {
         controller.menuNeedsUpdate(controller.dailyMenu)
         #expect(controller.dailyMenu.items.map(label).contains("Abbrechen (Aufnahme bleibt)"))
     }
+
+    @Test func dailyMenuShowsWhoWritesOnceAServerIsSetUp() throws {
+        let delegate = MenuDelegateStub()
+        delegate.service = .server
+        delegate.serverHost = "127.0.0.1"
+        let controller = MenuBarController(delegate: delegate)
+        controller.menuNeedsUpdate(controller.dailyMenu)
+        let service = try #require(controller.dailyMenu.items.first { $0.title.hasPrefix("Dienst:") })
+        #expect(service.title == "Dienst: Eigener Server")
+        let choices = try #require(service.submenu?.items)
+        #expect(choices.map(\.title) == ["OpenAI", "Eigener Server (127.0.0.1)"])
+        #expect(choices.map(\.state) == [.off, .on])
+        #expect(choices.allSatisfy { $0.isEnabled })
+
+        let openAI = try #require(choices.first)
+        let action = try #require(openAI.action)
+        NSApp.sendAction(action, to: openAI.target, from: openAI)
+        #expect(delegate.selectedServices == [.openAI])
+
+        // While a dictation runs, the choice waits; the next one uses it.
+        delegate.state = .processing
+        controller.menuNeedsUpdate(controller.dailyMenu)
+        let busy = try #require(controller.dailyMenu.items.first { $0.title.hasPrefix("Dienst:") })
+        #expect(busy.submenu?.items.allSatisfy { !$0.isEnabled } == true)
+    }
 }
 
 @MainActor
 private final class MenuDelegateStub: MenuBarControllerDelegate {
     var state = DictationState.idle
     var needsSetup = false
+    var service = Settings.Service.openAI
+    var serverHost: String?
+    var selectedServices: [Settings.Service] = []
 
     func menuBarDidConfigureShortcut() {}
     func menuBarDidConfigureVocabulary() {}
@@ -112,6 +140,7 @@ private final class MenuDelegateStub: MenuBarControllerDelegate {
     func menuBarDidTriggerSetAPIKey() {}
     func menuBarDidSelect(trigger: RecordingTrigger) {}
     func menuBarDidSelect(model: TranscriptionModel) {}
+    func menuBarDidSelect(service: Settings.Service) { selectedServices.append(service) }
     func menuBarDidSelect(language: String?) {}
     func menuBarDidSelect(translationTarget: String?) {}
     func menuBarDidSelect(indicatorStyle: IndicatorStyle) {}
@@ -120,6 +149,8 @@ private final class MenuDelegateStub: MenuBarControllerDelegate {
     var menuBarStateWord: String { "Bereit" }
     var menuBarTrigger: RecordingTrigger { .default }
     var menuBarModel: TranscriptionModel { .default }
+    var menuBarService: Settings.Service { service }
+    var menuBarServerHost: String? { serverHost }
     var menuBarLanguage: String? { nil }
     var menuBarTranslationTarget: String? { nil }
 }

@@ -174,6 +174,148 @@ struct SettingsTests {
         #expect(s.translationModel == Translation.defaultModel)
     }
 
+    // MARK: - Service choice
+
+    @Test("Switching to OpenAI keeps the own server, and switching back needs no new entry")
+    func switchingKeepsTheServer() {
+        let s = settings()
+        #expect(s.setServerAddress("http://127.0.0.1:8080/v1"))
+        s.serverModel = TranscriptionModel(rawValue: "Systran/faster-whisper-small")
+        s.model = .gpt4oMiniTranscribe
+        #expect(s.service == .server)
+        #expect(s.endpoint?.isLoopback == true)
+        #expect(s.model(for: s.service).rawValue == "Systran/faster-whisper-small")
+
+        #expect(s.select(.openAI))
+        #expect(s.endpoint == .openAI)
+        #expect(s.model(for: s.service) == .gpt4oMiniTranscribe)
+        #expect(s.serverAddress == "http://127.0.0.1:8080/v1")
+
+        #expect(s.select(.server))
+        #expect(s.endpoint?.isLoopback == true)
+        #expect(s.model(for: s.service).rawValue == "Systran/faster-whisper-small")
+    }
+
+    @Test("Editing the server while OpenAI writes does not switch back to it")
+    func editingTheServerKeepsTheChoice() {
+        let s = settings()
+        s.setServerAddress("http://127.0.0.1:8080/v1")
+        s.select(.openAI)
+        #expect(s.setServerAddress("http://127.0.0.1:9000/v1"))
+        #expect(s.service == .openAI)
+        #expect(s.serverAddress == "http://127.0.0.1:9000/v1")
+    }
+
+    @Test("A single resend to OpenAI leaves the own server chosen")
+    func singleResendToOpenAI() {
+        let s = settings()
+        s.setServerAddress("http://127.0.0.1:8080/v1")
+        s.serverModel = TranscriptionModel(rawValue: "local-model")
+        s.model = .gpt4oMiniTranscribe
+        #expect(s.endpoint(for: .openAI) == .openAI)
+        #expect(s.model(for: .openAI) == .gpt4oMiniTranscribe)
+        #expect(s.translationModel(for: .openAI) == Translation.defaultModel)
+        #expect(s.service == .server)
+    }
+
+    @Test("The own server can be chosen only once it has an address")
+    func serverNeedsAnAddress() {
+        let s = settings()
+        #expect(s.service == .openAI)
+        #expect(!s.select(.server))
+        #expect(s.service == .openAI)
+        #expect(s.endpoint == .openAI)
+    }
+
+    @Test("An address from OPENAI_BASE_URL selects the server until OpenAI is chosen")
+    func environmentAddressSelectsTheServer() {
+        let s = settings(env: ["OPENAI_BASE_URL": "http://127.0.0.1:8080/v1"])
+        #expect(s.service == .server)
+        #expect(s.select(.openAI))
+        #expect(s.endpoint == .openAI)
+        #expect(s.serverAddress == "http://127.0.0.1:8080/v1")
+    }
+
+    @Test("Emptying the address removes the server and selects OpenAI")
+    func emptyAddressSelectsOpenAI() {
+        let s = settings()
+        s.setServerAddress("https://example.com/v1")
+        #expect(s.service == .server)
+        s.setServerAddress("")
+        #expect(s.service == .openAI)
+        #expect(s.serverAddress == nil)
+        #expect(!s.select(.server))
+    }
+
+    @Test("The own server's translation model is separate from OpenAI's")
+    func serverTranslationModelIsSeparate() {
+        let s = settings()
+        s.serverTranslationModel = "llama3:8b"
+        #expect(s.translationModel(for: .server) == "llama3:8b")
+        #expect(s.translationModel(for: .openAI) == Translation.defaultModel)
+        s.serverTranslationModel = ""
+        #expect(s.translationModel(for: .server) == Translation.defaultModel)
+    }
+
+    @Test("Model names saved for a server by older builds move to the server once")
+    func migrationMovesServerModels() {
+        let store = MemoryStore([
+            "serverAddress": "http://127.0.0.1:8080/v1", "transcriptionModel": "Systran/faster-whisper-small",
+            "translationModel": "llama3:8b"
+        ])
+        let s = Settings(store: store, environment: [:])
+        s.migrateServiceChoice()
+        #expect(s.service == .server)
+        #expect(s.serverModel.rawValue == "Systran/faster-whisper-small")
+        #expect(s.serverTranslationModel == "llama3:8b")
+        #expect(s.model == .default)
+        #expect(s.translationModel == Translation.defaultModel)
+        #expect(s.select(.openAI))
+        // Running again must not touch a choice the user has made since.
+        s.migrateServiceChoice()
+        #expect(s.service == .openAI)
+        #expect(s.serverModel.rawValue == "Systran/faster-whisper-small")
+    }
+
+    @Test("A model saved with a server from OPENAI_BASE_URL moves to the server too")
+    func migrationCoversEnvironmentServers() {
+        let s = settings(
+            stored: ["transcriptionModel": "Systran/faster-whisper-small"],
+            env: ["OPENAI_BASE_URL": "http://127.0.0.1:8080/v1"])
+        s.migrateServiceChoice()
+        #expect(s.service == .server)
+        #expect(s.serverModel.rawValue == "Systran/faster-whisper-small")
+        #expect(s.model == .default)
+    }
+
+    @Test("The default server model can be restored over OPENAI_TRANSCRIBE_MODEL")
+    func defaultServerModelBeatsEnvironment() {
+        let s = settings(env: ["OPENAI_TRANSCRIBE_MODEL": "whisper-1"])
+        #expect(s.serverModel == .whisper1)
+        s.serverModel = .default
+        #expect(s.serverModel == .default)
+    }
+
+    @Test("A known OpenAI model saved with a server stays for OpenAI too")
+    func migrationKeepsAKnownOpenAIModel() {
+        let s = settings(stored: ["serverAddress": "https://example.com/v1", "transcriptionModel": "whisper-1"])
+        s.migrateServiceChoice()
+        #expect(s.model == .whisper1)
+        #expect(s.serverModel == .whisper1)
+    }
+
+    @Test("Without a stored server the migration changes nothing")
+    func migrationWithoutServerIsANoOp() {
+        // A stored empty address wins over OPENAI_BASE_URL.
+        let s = settings(
+            stored: ["serverAddress": "", "transcriptionModel": "whisper-1"],
+            env: ["OPENAI_BASE_URL": "http://127.0.0.1:8080/v1"])
+        s.migrateServiceChoice()
+        #expect(s.service == .openAI)
+        #expect(s.model == .whisper1)
+        #expect(s.serverModel == .default)
+    }
+
     // MARK: - Reset
 
     @Test("Resetting clears every stored preference and hands control back to the environment")
@@ -192,6 +334,8 @@ struct SettingsTests {
         s.translationTarget = "fr"
         s.indicatorStyle = .off
         s.setServerAddress("http://127.0.0.1:8080/v1")
+        s.serverModel = TranscriptionModel(rawValue: "local-model")
+        s.serverTranslationModel = "llama3:8b"
         s.resetToEnvironment()
         #expect(s.model == .whisper1)
         #expect(s.language == "de")
@@ -202,6 +346,10 @@ struct SettingsTests {
         #expect(s.translationTarget == nil)
         #expect(s.indicatorStyle == .floating)
         #expect(s.endpoint == .openAI)
+        #expect(s.service == .openAI)
+        // The environment model applies to the own server too, as before the split.
+        #expect(s.serverModel == .whisper1)
+        #expect(s.serverTranslationModel == Translation.defaultModel)
     }
 
 }
