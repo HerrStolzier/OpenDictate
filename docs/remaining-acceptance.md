@@ -374,7 +374,10 @@ ohne Anfrage an OpenAI. Der Aufräumschritt löschte dabei die erste leere
 „Neue Notiz“, hätte also auch eine eigene leere Notiz treffen können; seitdem
 schreibt der Test eine nur für diesen Lauf erzeugte Zahl in seine Notiz und
 löscht nur die Notiz mit dieser Zahl (am Gerät noch nicht gelaufen). Gelöschte
-Test-Notizen landen in „Zuletzt gelöscht“.
+Test-Notizen landen in „Zuletzt gelöscht“. Von Hand bestand mit `e843fb5` auch
+das Doppeltippen auf die Rückseite: Aufnahme im Hintergrund, der Kurzbefehl
+kopierte den Text, und die Tastatur bot ihn in WhatsApp oben als „Einsetzen
+von Kurzbefehle“ an (iPhone 15, iOS 27.0.1).
 
 **Offen / bekannte Grenzen:** Start ohne Leeren der Zwischenablage und die
 Änderungen nach `4993214` am Gerät, die Übergabe nach einem Stopp im
