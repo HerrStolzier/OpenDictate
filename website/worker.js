@@ -70,14 +70,20 @@ const KINDS = {
   vtt: ["text/vtt; charset=utf-8", 300],
 };
 
+// Styles come only from style.css and the CSSOM in site.js; no style attributes.
+// Every opendictate.app host in use (the site, www, support) answers over HTTPS,
+// so HSTS covers the subdomains; preload is not requested.
 const SECURITY = {
   "content-security-policy":
-    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; " +
-    "font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'",
+    "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; " +
+    "font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; " +
+    "upgrade-insecure-requests",
+  "cross-origin-opener-policy": "same-origin",
+  "cross-origin-resource-policy": "same-site",
   "x-content-type-options": "nosniff",
   "referrer-policy": "strict-origin-when-cross-origin",
   "permissions-policy": "camera=(), microphone=(), geolocation=()",
-  "strict-transport-security": "max-age=31536000",
+  "strict-transport-security": "max-age=63072000; includeSubDomains",
 };
 
 const loaded = new Map();

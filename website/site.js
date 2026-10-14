@@ -122,7 +122,7 @@
       l.cells.forEach(function (c) {
         var a = ANIM[c.ch];
         out += '<rect x="' + c.x + '" y="' + c.y + '" width="' + c.w + '" height="1" class="od-px-' + c.ch + (a ? ' ' + a[0] : '') + '"' +
-          (a && a[1] ? ' style="animation-delay:' + a[1] + 's"' : '') + '></rect>';
+          (a && a[1] ? ' data-delay="' + a[1] + 's"' : '') + '></rect>';
       });
       out += '</g>';
     });
@@ -134,7 +134,7 @@
   var B32LEGS = [[12, 21, 2, 6, 'K'], [18, 21, 2, 6, 'K'], [9, 26, 5, 2, 'W'], [9, 28, 5, 1, 'G'], [18, 26, 5, 2, 'W'], [18, 28, 5, 1, 'G']];
   function cells(list) { return list.map(function (c) { return '<rect x="' + c[0] + '" y="' + c[1] + '" width="' + c[2] + '" height="' + c[3] + '" class="od-px-' + c[4] + '"></rect>'; }).join(''); }
   function wordmark(size, still) {
-    return '<span class="od-wordmark' + (still ? ' od-still' : '') + '" style="font-size:' + size + 'px" role="img" aria-label="opendictate">' +
+    return '<span class="od-wordmark' + (still ? ' od-still' : '') + '" data-font-size="' + size + '" role="img" aria-label="opendictate">' +
       '<span aria-hidden="true">opendictate</span><svg class="od-wordmark-blink" viewBox="9 1 14 29" aria-hidden="true" shape-rendering="crispEdges">' +
       '<g class="od-a-body">' + cells(B32) + '</g>' + cells(B32LEGS) + '</svg></span>';
   }
@@ -181,7 +181,7 @@
         var on = j < lv;
         var tone = !on ? 'off' : (j >= 8 ? 'peak' : (j >= 6 ? 'warn' : 'on'));
         var top = on && j === lv - 1;
-        out += '<rect x="' + i * 11 + '" y="' + (9 - j) * 11 + '" width="8" height="8" class="od-meter-' + tone + (top ? ' od-a-flicker" style="animation-delay:' + i * 60 + 'ms' : '') + '"></rect>';
+        out += '<rect x="' + i * 11 + '" y="' + (9 - j) * 11 + '" width="8" height="8" class="od-meter-' + tone + (top ? ' od-a-flicker" data-delay="' + i * 60 + 'ms' : '') + '"></rect>';
       }
     });
     var w = DEMO_LEVELS.length * 11 - 3;
@@ -209,8 +209,15 @@
     }
     return '';
   }
+  // The CSP allows no style attributes in markup, so inserted components carry
+  // their delays and sizes as data and get them through the CSSOM here.
+  function insert(el, html) {
+    el.innerHTML = html;
+    Array.prototype.forEach.call(el.querySelectorAll('[data-delay]'), function (n) { n.style.animationDelay = n.dataset.delay; });
+    Array.prototype.forEach.call(el.querySelectorAll('[data-font-size]'), function (n) { n.style.fontSize = n.dataset.fontSize + 'px'; });
+  }
   function mount(root) {
-    Array.prototype.forEach.call((root || document).querySelectorAll('[data-od]'), function (el) { el.innerHTML = render(el); });
+    Array.prototype.forEach.call((root || document).querySelectorAll('[data-od]'), function (el) { insert(el, render(el)); });
   }
 
   /* ---------- Dithering (8 x 8 Bayer matrix, 3 px cells) ---------- */
@@ -298,7 +305,7 @@
       if (phase !== shown) {
         shown = phase;
         hud.classList.toggle('is-open', phase !== 'bereit');
-        hudBlink.innerHTML = blink(phase, 100, true);
+        insert(hudBlink, blink(phase, 100, true));
         word.textContent = HUD[phase].word;
         recIcon.hidden = phase !== 'hoert';
         rec.hidden = phase !== 'hoert';
@@ -354,14 +361,14 @@
     var mover = track && track.querySelector('.run-blink');
     if (!mover) return;
     var x = 0, target = 0, dir = 1, running = false, queued = false, frame = 0, last = 0;
-    mover.innerHTML = blink('bereit', 100, true);
+    insert(mover, blink('bereit', 100, true));
     // Reduced motion keeps the runner still at the start of the track.
     if (reduce) return;
     function span() { return Math.max(0, track.clientWidth - 88 - 52); }
     function place() { mover.style.transform = 'translateX(' + Math.round(x) + 'px) scaleX(' + dir + ')'; }
     function stand() {
       frame = 0; last = 0;
-      if (running) { running = false; mover.innerHTML = blink('bereit', 100, true); }
+      if (running) { running = false; insert(mover, blink('bereit', 100, true)); }
     }
     // Blink runs towards the scroll target instead of jumping, at most one track width per 0.6 s.
     // He only runs while the whole track is on screen: partly hidden at either edge he stands still, fully
@@ -374,7 +381,7 @@
       var heading = d < 0 ? -1 : 1;
       last = now;
       dir = heading;
-      if (!running) { running = true; mover.innerHTML = blink('schreibt', 100, true); }
+      if (!running) { running = true; insert(mover, blink('schreibt', 100, true)); }
       x = Math.abs(d) <= reach ? target : x + (d > 0 ? reach : -reach);
       place();
       if (x !== target) { frame = requestAnimationFrame(step); return; }
