@@ -33,8 +33,11 @@ whitespace check compares the checked-out commit with its first parent
 (`git diff --check HEAD^ HEAD`); on pull requests this covers the merge diff
 against the base branch. Local `git diff --check` checks uncommitted edits.
 
-Pull requests that change only Markdown files, `docs/**` or `website/**` skip
-the Swift, Linux and Windows jobs: a small `changes` job in each of these workflows runs
+Pull requests that change only Markdown files, `docs/**` or static website
+content (pages, styles, text, subtitles, images, videos and fonts under
+`website/`) skip the Swift, Linux and Windows jobs; `website/worker.js`,
+`website/site.js`, `website/wrangler.toml` and any other website file type
+count as code. A small `changes` job in each of these workflows runs
 `scripts/ci/docs-only-change.sh` against the merge commit's first parent, and
 the heavy jobs are skipped by condition. Skipped jobs satisfy the required
 checks on `main`. Any other path, an empty diff or a failed detection runs the
@@ -398,7 +401,7 @@ The rationale for the retained and removed isolated tests is recorded in
 [`docs/test-signal-audit.md`](docs/test-signal-audit.md).
 
 - `swift test -Xswiftc -warnings-as-errors`: offline logic, lifecycle, HTTP stubs, recovery, logging and synthetic audio-file tests, with compiler warnings treated as failures. Optional benchmark and live API test are skipped by default.
-- `python3 -m unittest discover ...`: offline regression tests for the transcript evaluator and process sampler, including output-file preservation, and for the design-token generator (generated files under `design/generated/` and the Swift and C# copies must match `design/tokens.json`), for `scripts/website-worker.py` (the website Worker's file hashes must match its pinned commit), and for which paths make Auto-Merge (`.github/scripts/auto_merge.py`) leave a pull request to Claude: anything under `.github/`, `scripts/ci/` or `.claude/`, plus `CLAUDE.md`, `AGENTS.md`, `.gitleaksignore` and `.gitattributes`, because a pull request must not merge itself when it changes the checks or rules that judge it. CI clones only two commits, so it skips that pin check; run `python3 scripts/website-worker.py --check` locally before deploying the Worker; a change to `website/worker.js` alone counts as documentation-only and skips the Python tests in CI entirely.
+- `python3 -m unittest discover ...`: offline regression tests for the transcript evaluator and process sampler, including output-file preservation, and for the design-token generator (generated files under `design/generated/` and the Swift and C# copies must match `design/tokens.json`), for `scripts/website-worker.py` (the website Worker's file hashes must match its pinned commit), and for which paths make Auto-Merge (`.github/scripts/auto_merge.py`) leave a pull request to Claude: anything under `.github/`, `scripts/ci/` or `.claude/`, plus `CLAUDE.md`, `AGENTS.md`, `.gitleaksignore` and `.gitattributes`, because a pull request must not merge itself when it changes the checks or rules that judge it. CI clones only two commits, so it skips that pin check; run `python3 scripts/website-worker.py --check` locally before deploying the Worker; a change to `website/worker.js` runs the full jobs, so these Python tests run with it.
 - `swift format lint --strict --configuration .swift-format --recursive Sources Tests Package.swift`: project formatting; lint warnings cause a failed check.
 - `./scripts/build-app.sh`: release bundle, Plist, signature and Hardened Runtime verification. Does not launch/install it.
 - `git diff --check` and `bash -n` for all scripts listed above before handoff.
