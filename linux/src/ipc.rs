@@ -103,9 +103,7 @@ mod tests {
 
     #[test]
     fn stop_command_returns_the_stream() {
-        let dir = std::env::temp_dir().join(format!("opendictate-ipc-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&dir);
-        std::fs::create_dir_all(&dir).unwrap();
+        let dir = crate::test_support::unique_temp_dir("ipc");
         let path = dir.join("spike.sock");
         let listener = UnixListener::bind(&path).unwrap();
         listener.set_nonblocking(true).unwrap();

@@ -111,12 +111,8 @@ impl Target {
     }
 }
 
-pub fn hypr_dir() -> PathBuf {
-    std::env::var_os("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".config")))
-        .unwrap_or_else(|| PathBuf::from(".config"))
-        .join("hypr")
+pub fn hypr_dir() -> std::io::Result<PathBuf> {
+    Ok(crate::paths::config_home()?.join("hypr"))
 }
 
 /// A path for messages, with the home folder shortened to `~`.
@@ -640,9 +636,7 @@ bind = , F9, exec, opendictate toggle
 
     #[test]
     fn install_keeps_a_backup_and_detects_the_omarchy_file() {
-        let dir = std::env::temp_dir().join(format!("opendictate-hypr-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&dir);
-        fs::create_dir_all(&dir).unwrap();
+        let dir = crate::test_support::unique_temp_dir("hypr");
         assert_eq!(detect(&dir), None);
         fs::write(dir.join("hyprland.conf"), "source = ~/x.conf\n").unwrap();
         assert_eq!(detect(&dir).unwrap().style, Style::Classic);
@@ -667,8 +661,7 @@ bind = , F9, exec, opendictate toggle
 
     #[test]
     fn install_and_restore_replace_the_file_behind_a_symlink() {
-        let dir = std::env::temp_dir().join(format!("opendictate-link-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&dir);
+        let dir = crate::test_support::unique_temp_dir("link");
         fs::create_dir_all(dir.join("dotfiles")).unwrap();
         let real = dir.join("dotfiles").join("bindings.conf");
         let original = "bind = SUPER, RETURN, exec, kitty\nbind = , F9, exec, opendictate toggle\n";

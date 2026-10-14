@@ -228,10 +228,7 @@ mod tests {
     }
 
     fn audio_file(case: &str) -> std::path::PathBuf {
-        let path = std::env::temp_dir().join(format!(
-            "opendictate-http-{}-{case}.wav",
-            std::process::id()
-        ));
+        let path = crate::test_support::unique_temp_dir(&format!("http-{case}")).join("audio.wav");
         std::fs::write(&path, b"RIFF-test-audio").unwrap();
         path
     }
@@ -251,7 +248,7 @@ mod tests {
         assert!(request.contains("name=\"model\""));
         assert!(request.contains("gpt-transcribe"));
         assert!(request.contains("recording.wav"));
-        let _ = std::fs::remove_file(path);
+        crate::test_support::remove_temp_file(&path);
     }
 
     #[test]
@@ -264,7 +261,7 @@ mod tests {
         assert!(error.contains("ungültig"));
         assert!(!error.contains("private"));
         server.join().unwrap();
-        let _ = std::fs::remove_file(path);
+        crate::test_support::remove_temp_file(&path);
     }
 
     /// The provider contract shared with macOS and Windows
@@ -331,7 +328,7 @@ mod tests {
             assert!(position("response_format") < position("languages[]"));
             assert!(position("languages[]") < position("file"));
             assert!(request.contains("filename=\"recording.wav\"\r\nContent-Type: audio/wav"));
-            let _ = std::fs::remove_file(path);
+            crate::test_support::remove_temp_file(&path);
         }
 
         #[test]
@@ -356,7 +353,7 @@ mod tests {
                 let provider_text = provider["error"]["message"].as_str().unwrap();
                 assert!(!error.contains(provider_text), "{file} leaks: {error}");
                 server.join().unwrap();
-                let _ = std::fs::remove_file(path);
+                crate::test_support::remove_temp_file(&path);
             }
         }
     }
@@ -384,7 +381,7 @@ mod tests {
         assert!(error.contains("Keine Verbindung"));
         assert!(started.elapsed() < Duration::from_secs(5));
         server.join().unwrap();
-        let _ = std::fs::remove_file(path);
+        crate::test_support::remove_temp_file(&path);
     }
 
     #[test]
@@ -406,7 +403,7 @@ mod tests {
         assert!(!request.to_ascii_lowercase().contains("authorization"));
         assert!(!request.contains("test-key"));
         assert!(request.contains("Systran/faster-whisper-small"));
-        let _ = std::fs::remove_file(path);
+        crate::test_support::remove_temp_file(&path);
     }
 
     #[test]

@@ -20,6 +20,8 @@ mod window;
 
 #[cfg(test)]
 mod test_http;
+#[cfg(test)]
+mod test_support;
 
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, IsTerminal, Read, Write};
@@ -556,7 +558,7 @@ fn settings_translation_model(model: &str) -> Result<(), String> {
 fn shortcut_status() -> Result<(), String> {
     let binds = shortcut::active_binds();
     let current = shortcut::current(binds.as_deref());
-    let config = match shortcut::detect(&shortcut::hypr_dir()) {
+    let config = match shortcut::detect(&shortcut::hypr_dir().map_err(path_error)?) {
         Some(target) => format!(
             "{} ({})",
             shortcut::display_path(&target.path),

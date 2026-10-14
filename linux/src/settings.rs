@@ -265,9 +265,7 @@ mod tests {
 
     #[test]
     fn settings_round_trip_without_a_secret() {
-        let dir = std::env::temp_dir().join(format!("opendictate-settings-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&dir);
-        fs::create_dir_all(&dir).unwrap();
+        let dir = crate::test_support::unique_temp_dir("settings");
         let path = dir.join("settings.json");
         let settings = Settings {
             model: "gpt-4o-mini-transcribe".to_string(),
@@ -287,12 +285,7 @@ mod tests {
 
     #[test]
     fn settings_without_translation_fields_load_untranslated() {
-        let dir = std::env::temp_dir().join(format!(
-            "opendictate-settings-legacy-{}",
-            std::process::id()
-        ));
-        let _ = fs::remove_dir_all(&dir);
-        fs::create_dir_all(&dir).unwrap();
+        let dir = crate::test_support::unique_temp_dir("settings-legacy");
         let path = dir.join("settings.json");
         fs::write(&path, r#"{"model":"gpt-transcribe","language":"de"}"#).unwrap();
         let settings = Settings::load(&path).unwrap();
@@ -324,12 +317,7 @@ mod tests {
 
     #[test]
     fn an_invalid_stored_server_is_rejected_on_load() {
-        let dir = std::env::temp_dir().join(format!(
-            "opendictate-settings-server-{}",
-            std::process::id()
-        ));
-        let _ = fs::remove_dir_all(&dir);
-        fs::create_dir_all(&dir).unwrap();
+        let dir = crate::test_support::unique_temp_dir("settings-server");
         let path = dir.join("settings.json");
         fs::write(
             &path,

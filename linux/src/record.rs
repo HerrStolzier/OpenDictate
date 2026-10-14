@@ -529,10 +529,7 @@ mod tests {
             sample_format: SampleFormat::Int,
         };
         for (frames, kept) in [(0, false), (1, true)] {
-            let path = std::env::temp_dir().join(format!(
-                "opendictate-failed-start-{}-{frames}.wav",
-                std::process::id()
-            ));
+            let path = temp_wav(&format!("failed-start-{frames}"));
             let mut writer = WavWriter::create(&path, spec).unwrap();
             for _ in 0..frames {
                 writer.write_sample(0i16).unwrap();
@@ -546,40 +543,36 @@ mod tests {
             discard_if_silent(&capture, &path);
             assert_eq!(path.exists(), kept);
             drop(capture);
-            let _ = std::fs::remove_file(&path);
+            crate::test_support::remove_temp_file(&path);
         }
     }
 
     #[test]
     fn silence_fixture_is_a_valid_wav() {
-        let path =
-            std::env::temp_dir().join(format!("opendictate-silence-{}.wav", std::process::id()));
+        let path = temp_wav("silence");
         write_silence_fixture(&path, 16_000, 160).unwrap();
         let reader = hound::WavReader::open(&path).unwrap();
         assert_eq!(reader.spec().channels, 1);
         assert_eq!(reader.spec().sample_rate, 16_000);
         assert_eq!(reader.duration(), 160);
-        let _ = std::fs::remove_file(&path);
+        crate::test_support::remove_temp_file(&path);
     }
 
     #[test]
     fn short_and_silent_recordings_are_not_uploadable() {
-        let short =
-            std::env::temp_dir().join(format!("opendictate-short-{}.wav", std::process::id()));
+        let short = temp_wav("short");
         write_silence_fixture(&short, 16_000, 8_000).unwrap();
         assert!(skipped(&short).contains("Zu kurz"));
-        let silent =
-            std::env::temp_dir().join(format!("opendictate-silent-{}.wav", std::process::id()));
+        let silent = temp_wav("silent");
         write_silence_fixture(&silent, 16_000, 32_000).unwrap();
         assert!(skipped(&silent).contains("Keine Sprache"));
-        let _ = std::fs::remove_file(short);
-        let _ = std::fs::remove_file(silent);
+        crate::test_support::remove_temp_file(&short);
+        crate::test_support::remove_temp_file(&silent);
     }
 
     #[test]
     fn speech_is_padded_and_trimmed_when_saving_is_material() {
-        let path =
-            std::env::temp_dir().join(format!("opendictate-speech-{}.wav", std::process::id()));
+        let path = temp_wav("speech");
         let spec = WavSpec {
             channels: 1,
             sample_rate: 16_000,
@@ -604,7 +597,7 @@ mod tests {
         assert_eq!(reader.duration(), 24_000);
         drop(prepared);
         assert!(!path.with_extension("upload.wav").exists());
-        let _ = std::fs::remove_file(path);
+        crate::test_support::remove_temp_file(&path);
     }
 
     fn skipped(path: &Path) -> String {
@@ -638,8 +631,9 @@ mod tests {
             .unwrap()
     }
 
+    /// A WAV path inside a fresh directory of its own.
     fn temp_wav(name: &str) -> PathBuf {
-        std::env::temp_dir().join(format!("opendictate-{name}-{}.wav", std::process::id()))
+        crate::test_support::unique_temp_dir(name).join(format!("{name}.wav"))
     }
 
     #[test]
@@ -649,7 +643,7 @@ mod tests {
         write_i16(&capture, &[100, 300, -200, -400, i16::MAX, i16::MAX, 7]);
         assert_eq!(capture.lock().unwrap().frames, 3);
         assert_eq!(written(&capture, &path), [200, -300, i16::MAX]);
-        let _ = std::fs::remove_file(path);
+        crate::test_support::remove_temp_file(&path);
     }
 
     #[test]
@@ -661,7 +655,7 @@ mod tests {
             written(&capture, &path),
             [0, 16_384, i16::MAX, -i16::MAX, i16::MAX, i16::MIN]
         );
-        let _ = std::fs::remove_file(path);
+        crate::test_support::remove_temp_file(&path);
     }
 
     #[test]
@@ -670,7 +664,7 @@ mod tests {
         let capture = capture_into(&path, 1);
         write_u16(&capture, &[0, 32_768, u16::MAX]);
         assert_eq!(written(&capture, &path), [i16::MIN, 0, i16::MAX]);
-        let _ = std::fs::remove_file(path);
+        crate::test_support::remove_temp_file(&path);
     }
 
     #[test]
@@ -686,7 +680,7 @@ mod tests {
             assert!(chunk[1] >= i16::MAX - 1, "{chunk:?}");
             assert!(chunk[2] <= i16::MIN + 1, "{chunk:?}");
         }
-        let _ = std::fs::remove_file(path);
+        crate::test_support::remove_temp_file(&path);
     }
 
     #[test]
@@ -700,7 +694,7 @@ mod tests {
         assert!(error.message.contains("unterbrochen"));
         let reader = hound::WavReader::open(&path).unwrap();
         assert_eq!(reader.duration(), 3);
-        let _ = std::fs::remove_file(path);
+        crate::test_support::remove_temp_file(&path);
     }
 
     #[test]
@@ -709,6 +703,6 @@ mod tests {
         let capture = capture_into(&path, 1);
         set_error(&capture, cpal::ErrorKind::DeviceNotAvailable.into());
         assert!(!finish(&capture).unwrap_err().complete);
-        let _ = std::fs::remove_file(path);
+        crate::test_support::remove_temp_file(&path);
     }
 }

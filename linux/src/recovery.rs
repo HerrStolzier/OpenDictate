@@ -414,11 +414,7 @@ mod tests {
     }
 
     fn fixture(name: &str) -> (PathBuf, PathBuf) {
-        let root = std::env::temp_dir().join(format!(
-            "opendictate-recovery-{name}-{}",
-            std::process::id()
-        ));
-        let _ = fs::remove_dir_all(&root);
+        let root = crate::test_support::unique_temp_dir(&format!("recovery-{name}"));
         let pending = root.join("pending");
         let recovery = root.join("recovery");
         fs::create_dir_all(&pending).unwrap();
