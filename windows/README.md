@@ -5,10 +5,13 @@ veröffentlicht). Basti hat am 28. September 2026 **öffentliche Verteilung als 
 gewählt. Es gibt noch kein Windows-Release, keinen Produktinstaller, keine
 Signatur und keine Freigabe zur Veröffentlichung. Der nächste Releasepfad steht
 im [Windows-Releaseplan](RELEASE-PLAN.md). Die Herkunft des ersten Imports steht
-in [PROVENANCE.md](PROVENANCE.md). [SOURCE-SHA256SUMS](SOURCE-SHA256SUMS) gilt
-nur für diesen Import (Commit `9bf554e`), nicht für den heutigen Stand. Prüfen
-lässt es sich so: `git archive 9bf554e windows | tar -x -C <leerer Ordner>`,
-dann im entpackten `windows/` `sha256sum -c SOURCE-SHA256SUMS`.
+in [PROVENANCE.md](PROVENANCE.md). Die Prüfsummen dieses Imports liegen seit
+14. Oktober 2026 im Archiv
+([windows-import-9bf554e-SHA256SUMS](../docs/archive/windows-import-9bf554e-SHA256SUMS));
+sie gelten nur für den Import (Commit `9bf554e`), nicht für den heutigen Stand.
+Prüfen lässt es sich so: `git archive 9bf554e windows | tar -x -C <leerer Ordner>`,
+dann im entpackten `windows/` `sha256sum -c SOURCE-SHA256SUMS` (die Datei liegt
+dort noch unter ihrem alten Namen).
 
 ## Aktueller technischer Stand
 

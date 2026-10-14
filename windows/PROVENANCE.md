@@ -33,13 +33,15 @@ Arbeitskopie diese Prüfsummen:
 Die ursprüngliche `README.md` hatte vor der Neufassung SHA-256
 `09142b3351a27f0e9f71f7f0b70075fd556bca0c758612d41f33622f5a6cd0f2`.
 Sie wurde durch eine aktuelle Statusbeschreibung ersetzt; ihr neuer Snapshot-
-Hash steht in [SOURCE-SHA256SUMS](SOURCE-SHA256SUMS). Die vier oben genannten
+Hash steht im Importmanifest (siehe unten). Die vier oben genannten
 Zusatzdateien sind lokal geprüft, aber nicht als Teil des Windows-PC-Abgleichs
 ausgewiesen.
 
 ## Prüfumfang und Ausschlüsse
 
-`SOURCE-SHA256SUMS` bindet alle 42 aufgenommenen Projektdateien einschließlich
+Das Importmanifest `SOURCE-SHA256SUMS` (seit 14. Oktober 2026 als
+[windows-import-9bf554e-SHA256SUMS](../docs/archive/windows-import-9bf554e-SHA256SUMS) archiviert, weil es nicht mehr zum
+heutigen Stand passt) bindet alle 42 aufgenommenen Projektdateien einschließlich
 der neuen README an diesen Snapshot. Darin sind auch die 37 Dateien enthalten,
 deren Hashes zusätzlich gegen das Windows-Archiv verglichen wurden. Die
 Prüfsummendatei selbst sowie diese Provenienz- und Releaseplan-Dokumente sind
@@ -56,7 +58,7 @@ Signierschlüssel oder ein Browserprofil wurde nicht übernommen.
 
 ## Entwicklung nach dem Snapshot
 
-`SOURCE-SHA256SUMS` bleibt das historische Importmanifest des unveränderten
+Das archivierte Manifest bleibt das historische Importmanifest des unveränderten
 Windows-Snapshots aus dem retained Merge-Commit `9bf554ea7d2c48b87022469ddb4d6a36a5cf7cd0`.
 Spätere, normal versionierte Änderungen unter `windows/` ändern die aktuellen
 Dateien, ohne dieses Herkunftsmanifest umzuschreiben. Für den ursprünglichen
