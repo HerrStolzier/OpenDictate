@@ -47,7 +47,9 @@ selbst (siehe Grenzen).
    Nochmal-Senden an.
 3. Die Aufnahme geht an OpenAI oder den eigenen Server, oder Apples
    Spracherkennung oder Parakeet schreibt sie auf dem iPhone (Einstellung
-   „Erkennung“, siehe unten); mit Zielsprache folgt die Übersetzung. Ist die App vorn, kopiert sie den Text selbst. Im
+   „Erkennung“, siehe unten); mit Zielsprache folgt die Übersetzung. Ist die App vorn, kopiert sie den Text selbst, nur
+   lokal und mit Ablaufzeit: Nach zehn Minuten nimmt iOS ihn wieder aus der
+   Zwischenablage („Nochmal kopieren“ legt ihn erneut ab). Im
    Hintergrund verweigert iOS ihr die Zwischenablage; dann gibt sie den Text
    an den Kurzbefehl zurück, dessen Schritt „In Zwischenablage kopieren“ ihn
    ablegt. Beim Start gibt sie nichts zurück, damit dieser Schritt die

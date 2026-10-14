@@ -307,12 +307,14 @@ Screen and in the Dynamic Island shows that a recording is running.
   request header to the configured service.
 - **Clipboard:** the finished text (or its translation) is written to the
   general clipboard marked "local only", so iOS does not share it with your
-  other devices through Universal Clipboard. Control characters and invisible
+  other devices through Universal Clipboard, and with an expiry: iOS removes
+  it from the clipboard after ten minutes. "Copy again" copies it once more
+  while the app runs. Control characters and invisible
   text-direction marks are removed from the service's answer first. The app
   does not read the clipboard. While the app is in the background, iOS
   refuses it the clipboard; there the shortcut's own "Copy to Clipboard" step
   copies the text the app returns to it, and that step's "Local Only" option
-  decides whether Universal Clipboard shares it.
+  decides whether Universal Clipboard shares it; that copy has no expiry.
 - **Last text:** kept only in memory while the app runs, for "Copy again";
   it is gone when iOS ends the app.
 - **Failed recordings:** a recording whose text did not reach the clipboard
