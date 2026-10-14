@@ -110,7 +110,8 @@ Dinge:
    bei US-Tastaturlayout, die rechte Alt-Taste allein. Es zeigt, welche Tasten
    Hyprland schon belegt, und trägt die Zeile nach Rückfrage in deine
    Hyprland-Konfiguration ein, mit einer Sicherung neben der Datei
-   (`….opendictate-backup-…`). Bei Omarchy ist das
+   (`….opendictate-backup-…`; die drei neuesten bleiben, ältere werden
+   entfernt). Bei Omarchy ist das
    `~/.config/hypr/bindings.lua`; eine reine Lua-Konfiguration bekommt nur die
    Zeile zum Kopieren. Übernimmt Hyprland die neue Zeile nicht, stellt setup
    die Datei wieder her, und das bisherige Kürzel gilt weiter.

@@ -207,7 +207,8 @@ server's model list (`/models`), which sends no audio or text.
 
 `opendictate setup` and `opendictate shortcut set` can add one bind line for
 `opendictate toggle` to the user's Hyprland config after a backup copy of the
-file; nothing else in the config is read for other purposes or changed.
+file; nothing else in the config is read for other purposes or changed. The
+three newest backup copies next to the file are kept, older ones are removed.
 
 Secret Service items use attributes `service=opendictate` and `key=api-key` or
 `recording-auth`. The API key is accepted only on stdin. A probe item can be

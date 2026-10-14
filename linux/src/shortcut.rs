@@ -13,6 +13,8 @@ use crate::i18n::t;
 
 const COMMAND: &str = "opendictate toggle";
 const MARKER: &str = "OpenDictate: start and stop dictation (opendictate setup)";
+/// Config backups kept next to a file, the one just made included.
+const KEEP_BACKUPS: usize = 3;
 
 /// Hyprland's modifier bits in `hyprctl binds -j`.
 const MOD_ALT: u64 = 8;
@@ -359,11 +361,49 @@ pub fn install(choice: Choice, target: &Target) -> Result<Installed, String> {
             display_path(&target.path)
         ));
     }
+    prune_backups(&backup);
     Ok(Installed {
         backup,
         replaced,
         written: updated,
     })
+}
+
+/// Keeps `current` and the newest other backups of the same file, up to
+/// `KEEP_BACKUPS` in all, and removes older ones. These are copies of the
+/// Hyprland config, never recordings. Only regular files are removed.
+fn prune_backups(current: &Path) {
+    let (Some(dir), Some(name)) = (current.parent(), current.file_name()) else {
+        return;
+    };
+    let Some(prefix) = name
+        .to_str()
+        .and_then(|name| name.rsplit_once(".opendictate-backup-"))
+        .map(|(file, _)| format!("{file}.opendictate-backup-"))
+    else {
+        return;
+    };
+    let Ok(entries) = fs::read_dir(dir) else {
+        return;
+    };
+    let mut older: Vec<(u64, PathBuf)> = entries
+        .flatten()
+        .filter(|entry| entry.path() != current)
+        .filter(|entry| entry.file_type().is_ok_and(|kind| kind.is_file()))
+        .filter_map(|entry| {
+            let stamp = entry
+                .file_name()
+                .to_str()?
+                .strip_prefix(&prefix)?
+                .parse::<u64>()
+                .ok()?;
+            Some((stamp, entry.path()))
+        })
+        .collect();
+    older.sort_by(|left, right| right.cmp(left));
+    for (_, path) in older.into_iter().skip(KEEP_BACKUPS - 1) {
+        let _ = fs::remove_file(path);
+    }
 }
 
 /// Puts the config from before `install` back, for a bind Hyprland did not
@@ -701,6 +741,49 @@ bind = , F9, exec, opendictate toggle
             .filter(|name| name.starts_with('.'))
             .collect();
         assert!(leftovers.is_empty(), "{leftovers:?}");
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn install_keeps_only_the_newest_backups() {
+        let dir = crate::test_support::unique_temp_dir("hypr-backups");
+        let path = dir.join("bindings.conf");
+        fs::write(&path, "bind = SUPER, RETURN, exec, kitty\n").unwrap();
+        for stamp in [10, 20, 30, 40] {
+            fs::write(
+                dir.join(format!("bindings.conf.opendictate-backup-{stamp}")),
+                "",
+            )
+            .unwrap();
+        }
+        fs::write(dir.join("hyprland.conf.opendictate-backup-1"), "").unwrap();
+        fs::write(dir.join("bindings.conf.opendictate-backup-x"), "").unwrap();
+        let target = Target {
+            path: path.clone(),
+            style: Style::Classic,
+        };
+        let installed = install(Choice::SuperD, &target).unwrap();
+        let mut left: Vec<String> = fs::read_dir(&dir)
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+            .filter(|name| name.contains(".opendictate-backup-"))
+            .collect();
+        left.sort();
+        let current = installed
+            .backup
+            .file_name()
+            .unwrap()
+            .to_string_lossy()
+            .into_owned();
+        let mut expected = vec![
+            current,
+            "bindings.conf.opendictate-backup-30".to_string(),
+            "bindings.conf.opendictate-backup-40".to_string(),
+            "bindings.conf.opendictate-backup-x".to_string(),
+            "hyprland.conf.opendictate-backup-1".to_string(),
+        ];
+        expected.sort();
+        assert_eq!(left, expected);
         let _ = fs::remove_dir_all(&dir);
     }
 }

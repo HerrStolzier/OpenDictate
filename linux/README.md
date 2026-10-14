@@ -106,7 +106,8 @@ stay behind; they are in `~/.config/opendictate/` and
 2. Which shortcut starts and stops a dictation: Super+D, F9, or, on a US
    keyboard layout, the right Alt key alone. It shows which keys Hyprland
    already uses and writes the line into your Hyprland config, after asking
-   and with a backup next to the file (`….opendictate-backup-…`). For Omarchy
+   and with a backup next to the file (`….opendictate-backup-…`; the three
+   newest stay, older ones are removed). For Omarchy
    that is `~/.config/hypr/bindings.lua`; a plain Lua config only gets the line
    to copy. If Hyprland does not take the new line, setup puts the file back
    as it was, so the previous shortcut keeps working.
