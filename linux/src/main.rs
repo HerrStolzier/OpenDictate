@@ -892,13 +892,7 @@ fn worker() -> Result<(), String> {
         return Err(error);
     }
     log_ops("recording-started");
-    let event =
-        ipc::wait_for_stop(&listener, Instant::now() + record::MAX_RECORDING).map_err(|_| {
-            tr!(
-                "Aufnahme konnte nicht beendet werden.",
-                "Recording could not be stopped."
-            )
-        })?;
+    let event = ipc::wait_for_stop(&listener, Instant::now() + record::MAX_RECORDING, &log_ops);
     state_guard
         .set(state::State::Processing)
         .map_err(path_error)?;
