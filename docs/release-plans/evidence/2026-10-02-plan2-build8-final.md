@@ -22,10 +22,10 @@ Migration und Diktat sind **nicht** enthalten.
 ## Ausgangsbundle
 
 Nicht neu gebaut. Das eingereichte ZIP aus dem Build-8-Artefaktordner
-`/Users/basti/.codex/artifacts/opendictate/0.1.0-build-8-b786d4c-20260928/`
+`~/.codex/artifacts/opendictate/0.1.0-build-8-b786d4c-20260928/`
 hat weiterhin den SHA-256 `cee6fcc5…b199a82` und besteht `unzip -t`. Es wurde
 mit `ditto -x -k` nach
-`/Users/basti/.codex/artifacts/opendictate/0.1.0-build-8-b786d4c-stapled-20261002/`
+`~/.codex/artifacts/opendictate/0.1.0-build-8-b786d4c-stapled-20261002/`
 entpackt. CDHashes von App und Helper stimmen mit dem Apple-Log überein.
 
 ## Ticket
@@ -49,17 +49,17 @@ wieder entfernt.
 
 ```text
 $ scripts/package-release-app.sh …/stapled-20261002/OpenDictate.app \
-    /Users/basti/.codex/artifacts/opendictate/0.1.0-build-8-b786d4c-release-20261002 K5AF446C3N
+    ~/.codex/artifacts/opendictate/0.1.0-build-8-b786d4c-release-20261002 K5AF446C3N
 Verified Developer ID team, matching app/helper signatures, timestamps, arm64, Hardened Runtime and microphone entitlement.
 The validate action worked!
 …/OpenDictate.app: accepted
 source=Notarized Developer ID
 … (dieselben Prüfungen am entpackten Staging-ZIP bestanden)
-Verified private release candidate: /Users/basti/.codex/artifacts/opendictate/0.1.0-build-8-b786d4c-release-20261002
+Verified private release candidate: ~/.codex/artifacts/opendictate/0.1.0-build-8-b786d4c-release-20261002
 ```
 
 - Finales ZIP (außerhalb des Repositorys):
-  `/Users/basti/.codex/artifacts/opendictate/0.1.0-build-8-b786d4c-release-20261002/OpenDictate-0.1.0-build-8-arm64-b786d4ccd75462b902d3a1439c247bd1a5aeeca8.zip`
+  `~/.codex/artifacts/opendictate/0.1.0-build-8-b786d4c-release-20261002/OpenDictate-0.1.0-build-8-arm64-b786d4ccd75462b902d3a1439c247bd1a5aeeca8.zip`
 - Größe: **3.488.918 Bytes**.
 - SHA-256: `2e994cd853d95fb5cf29c4da51e2ae2acd743a1867baae5151a9bd381e335768`.
 - `manifest.json` daneben: Version `0.1.0`, Build `8`, `arm64`, Quellrevision

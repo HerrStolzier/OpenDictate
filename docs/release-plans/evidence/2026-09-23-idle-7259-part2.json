@@ -1,7 +1,7 @@
 {
   "average_cpu_percent": 0.017,
   "cpu_delta_seconds": 0.05,
-  "executable": "/Users/basti/Applications/OpenDictate.app/Contents/MacOS/OpenDictate",
+  "executable": "~/Applications/OpenDictate.app/Contents/MacOS/OpenDictate",
   "interval_seconds": 1.0,
   "limitations": [
     "RSS is sampled current resident memory, so peaks between samples are not observed.",

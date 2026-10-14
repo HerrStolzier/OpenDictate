@@ -179,7 +179,7 @@ Die damalige [Testbereinigung](../test-signal-audit.md) entfernte 22
 schwach aussagekräftige oder redundante Testfunktionen. Die damalige
 Swift-Suite mit 138 Testfunktionen (vier Opt-in-Tests übersprungen) sowie die
 acht Python-Tests bestanden lokal; die zwei Rust-Testlöschungen
-wurden separat auf `omarchy` gegen exakt `ab839fd5ab64ff69cc5a126e859f804b473b59a5`
+wurden separat auf Bastis Linux-Rechner gegen exakt `ab839fd5ab64ff69cc5a126e859f804b473b59a5`
 geprüft: 23 Rust-Tests, Formatter, Clippy mit `-D warnings` und Release-Build
 bestanden offline. Der isolierte Quellbaum aus allen 17 committed `linux/`
 Dateien stimmte per SHA-256 überein und wurde nach dem Lauf entfernt; das

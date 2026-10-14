@@ -20,7 +20,7 @@ unverändert. Es wurden keine Tests hinzugefügt oder entfernt.
 - Basis: `f38f521b4f7d70dc837f65d5ebae941abf9e2d61`.
 - SHA-256 von `linux/src/transcribe.rs` nach der Korrektur:
   `b633729305c2dc4c9c6426f527d4b52ded0324c8635b56ededa826ff2cad1064`.
-- Linux-Rechner `omarchy`, Rust und Cargo 1.98.1, ALSA 1.2.16.1.
+- Bastis Linux-Rechner (Omarchy), Rust und Cargo 1.98.1, ALSA 1.2.16.1.
   `RUSTUP_AUTO_INSTALL=0` und `CARGO_NET_OFFLINE=true`; keine Installation.
 - Nur eine eigene temporäre Repository-Kopie und künstliche Loopback-HTTP-Daten.
   Kein Mikrofon, externer Provider oder Zugangsdaten-Schreibzugriff.
