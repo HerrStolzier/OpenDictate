@@ -233,7 +233,8 @@ given server works is exactly the feedback we are looking for.
   with `wpctl status` that a source is listed under Audio → Sources and
   marked as default (`*`); plug in or select the microphone and try again.
 - The log `~/.local/state/opendictate/operations.log` contains steps and
-  timings, but never your text, your key or audio.
+  timings, but never your text, your key or audio. Only you can read it; above
+  1 MiB it moves to `operations.log.1`, and only that one older file is kept.
 - Please report bugs and wishes as a
   [GitHub issue](https://github.com/HerrStolzier/OpenDictate/issues/new?template=linux-beta-feedback.md),
   with `opendictate version`, the Hyprland version (`hyprctl version`), the

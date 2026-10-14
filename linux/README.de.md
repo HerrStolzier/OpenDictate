@@ -241,7 +241,9 @@ bestimmter Server funktioniert, ist genau die Rückmeldung, die uns hilft.
   Standard (`*`) markiert ist; Mikrofon anstecken oder wählen und erneut
   versuchen.
 - Das Protokoll `~/.local/state/opendictate/operations.log` enthält Abläufe und
-  Zeiten, aber nie deinen Text, deinen Schlüssel oder Audio.
+  Zeiten, aber nie deinen Text, deinen Schlüssel oder Audio. Nur du kannst es
+  lesen; ab 1 MiB wandert es nach `operations.log.1`, und nur diese eine ältere
+  Datei bleibt.
 - Fehler und Wünsche bitte als
   [GitHub Issue](https://github.com/HerrStolzier/OpenDictate/issues/new?template=linux-beta-feedback.md) melden,
   mit `opendictate version`, Hyprland-Version (`hyprctl version`), dem

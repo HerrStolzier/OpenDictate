@@ -239,7 +239,9 @@ The mark is part of the authenticated proof.
 The operations log under `$XDG_STATE_HOME/opendictate/operations.log` records
 bounded events, durations, the captured window class and, with a custom server,
 that server's host name (never its path). It must not contain API
-keys, transcript text, window titles or audio contents. Live Linux transcription
+keys, transcript text, window titles or audio contents. The log is owner-only
+(`0600`); above 1 MiB it is renamed to `operations.log.1`, replacing the
+previous one, so at most two log files exist. Live Linux transcription
 and translation requests were exercised on one attended test system on
 5 October 2026; the Linux beta published on 11 October 2026 is not a finished
 product.

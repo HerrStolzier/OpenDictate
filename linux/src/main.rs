@@ -226,10 +226,7 @@ fn start_worker() -> Result<(), String> {
     let exe = std::env::current_exe()
         .map_err(|_| tr!("Programmdatei nicht gefunden.", "Program file not found."))?;
     let log = paths::worker_log_path().map_err(path_error)?;
-    let log_file = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&log)
+    let log_file = open_operations_log(&log)
         .map_err(|_| tr!("Protokoll nicht schreibbar.", "Log is not writable."))?;
     let mut command = Command::new(exe);
     command
@@ -1219,10 +1216,34 @@ fn log_ops(event: &str) {
     let Ok(path) = paths::worker_log_path() else {
         return;
     };
-    let Ok(mut file) = OpenOptions::new().create(true).append(true).open(path) else {
+    let Ok(mut file) = open_operations_log(&path) else {
         return;
     };
     let _ = writeln!(file, "{event}");
+}
+
+/// Above this size the operations log moves to `operations.log.1`, replacing
+/// the previous one, so at most two bounded files exist.
+const OPERATIONS_LOG_LIMIT: u64 = 1_024 * 1_024;
+
+/// Opens the operations log for appending, owner-only (also when an older
+/// version created it with a wider mode) and never through a symbolic link.
+fn open_operations_log(path: &Path) -> io::Result<File> {
+    use std::os::unix::fs::PermissionsExt;
+
+    if fs::symlink_metadata(path).is_ok_and(|metadata| metadata.len() > OPERATIONS_LOG_LIMIT) {
+        let mut rotated = path.as_os_str().to_owned();
+        rotated.push(".1");
+        fs::rename(path, rotated)?;
+    }
+    let file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .mode(0o600)
+        .custom_flags(libc::O_NOFOLLOW)
+        .open(path)?;
+    file.set_permissions(fs::Permissions::from_mode(0o600))?;
+    Ok(file)
 }
 
 fn path_error(error: io::Error) -> String {
@@ -1267,5 +1288,43 @@ mod tests {
     fn version_is_a_command() {
         assert!(run(vec!["version".to_string()]).is_ok());
         assert!(run(vec!["--version".to_string()]).is_ok());
+    }
+
+    #[test]
+    fn operations_log_is_owner_only_and_rotates_once() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let dir = test_support::unique_temp_dir("operations-log");
+        let log = dir.join("operations.log");
+        let rotated = dir.join("operations.log.1");
+        fs::write(&log, b"old\n").unwrap();
+        fs::set_permissions(&log, fs::Permissions::from_mode(0o644)).unwrap();
+        writeln!(open_operations_log(&log).unwrap(), "event").unwrap();
+        let mode = fs::metadata(&log).unwrap().permissions().mode() & 0o777;
+        assert_eq!(mode, 0o600);
+        assert_eq!(fs::read_to_string(&log).unwrap(), "old\nevent\n");
+        assert!(!rotated.exists());
+
+        fs::write(&rotated, b"older").unwrap();
+        fs::write(&log, vec![b'x'; OPERATIONS_LOG_LIMIT as usize + 1]).unwrap();
+        writeln!(open_operations_log(&log).unwrap(), "fresh").unwrap();
+        assert_eq!(fs::read_to_string(&log).unwrap(), "fresh\n");
+        assert_eq!(
+            fs::metadata(&rotated).unwrap().len(),
+            OPERATIONS_LOG_LIMIT + 1
+        );
+        let mode = fs::metadata(&log).unwrap().permissions().mode() & 0o777;
+        assert_eq!(mode, 0o600);
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn operations_log_is_not_opened_through_a_link() {
+        let dir = test_support::unique_temp_dir("operations-log-link");
+        let target = dir.join("elsewhere");
+        fs::write(&target, b"").unwrap();
+        std::os::unix::fs::symlink(&target, dir.join("operations.log")).unwrap();
+        assert!(open_operations_log(&dir.join("operations.log")).is_err());
+        let _ = fs::remove_dir_all(&dir);
     }
 }
