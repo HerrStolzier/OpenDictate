@@ -97,7 +97,7 @@ struct DictationIndicatorSystemTests {
         let choices = try #require(service.submenu?.items)
         #expect(choices.map(\.title) == ["OpenAI", "Eigener Server (127.0.0.1)"])
         #expect(choices.map(\.state) == [.off, .on])
-        #expect(choices.allSatisfy(\.isEnabled))
+        #expect(choices.allSatisfy { $0.isEnabled })
 
         let openAI = try #require(choices.first)
         let action = try #require(openAI.action)
