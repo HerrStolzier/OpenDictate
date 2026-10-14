@@ -92,7 +92,7 @@ Face, bei offener App; es liegt danach im Container der App, nicht im Backup.
 Ein Diktat lädt nie selbst nach; ohne Modell startet es nicht. Meldet ein
 Diktat, dass Parakeet nicht geklappt hat, lädt „Modell neu laden“ es frisch. Während der Aufnahme lädt die
 App das Modell schon in den Speicher, weil der erste Start nach dem Öffnen
-einige Sekunden braucht. Übersetzen geht dabei über „Übersetzen mit“ wie bei
+dauert (am iPhone 15 rund 18 Sekunden, siehe Grenzen). Übersetzen geht dabei über „Übersetzen mit“ wie bei
 den anderen Erkennungen.
 Übersetzen geht genauso auf dem iPhone („Übersetzen mit: Auf dem iPhone“, ab
 iOS 26): Apples `TranslationSession` übersetzt offline, nachdem die App die
@@ -152,11 +152,12 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
   des iPhones und ist am Gerät noch nicht geprüft; ob sie im Hintergrund nach
   dem Doppeltippen schreibt und wie gut sie gegen OpenAI abschneidet, zeigt
   erst der Vergleich am iPhone.
-- Parakeet ist eine Probe: Ob es nach dem Doppeltippen im Hintergrund
-  schreibt (iOS lässt dort nur CPU und Neural Engine zu und gibt rund 30
-  Sekunden), wie lange der erste Start dauert und wie gut es gegen OpenAI und
-  Apple abschneidet, ist am iPhone noch nicht gemessen. Für eine
-  Veröffentlichung ist offen, woher alle Nutzer das Modell laden.
+- Parakeet ist eine Probe. Am 14. Oktober schrieb es am iPhone 15 auch über
+  den Kurzbefehl im Hintergrund. Nach einem Neustart der App lädt es das
+  Modell aber neu, und ein kurzes Diktat wartete dann 18 bis 19 Sekunden auf
+  den Text statt gut einer Sekunde. Wie gut es gegen OpenAI und Apple
+  abschneidet, ist noch nicht verglichen. Für eine Veröffentlichung ist offen,
+  woher alle Nutzer das Modell laden.
 - Das Datenschutz-Manifest gibt Audio und Text als für die App-Funktion
   erfasst und mit der Person verknüpft an (kein Tracking), weil der gewählte
   Dienst beides eine Zeit lang aufbewahren und dem Konto hinter dem
