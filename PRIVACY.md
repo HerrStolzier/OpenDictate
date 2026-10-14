@@ -82,7 +82,9 @@ script only directs users to the app dialog and performs no Keychain operation.
 The transcript is written as plain text to the macOS general clipboard. Any
 local application with clipboard access may be able to read it. Control
 characters and invisible text-direction marks are removed from the provider's
-answer before it is copied; line breaks and tabs stay.
+answer before it is copied; line breaks and tabs stay. Unicode line and
+paragraph separators (U+2028, U+2029) become ordinary line breaks, so the
+terminal rule below applies to them too.
 
 OpenDictate leaves the transcript on the general clipboard until another write
 replaces it. The item carries the `org.nspasteboard.ConcealedType` marker, so

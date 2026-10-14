@@ -17,6 +17,15 @@ struct TranscriptTextTests {
         #expect(!TranscriptText.isMultiline("a b"))
     }
 
+    @Test("Unicode line and paragraph separators become line breaks, so terminals do not get them pasted")
+    func unicodeSeparatorsBecomeLineBreaks() {
+        #expect(TranscriptText.sanitize("ls\u{2028}rm -rf x\u{2029}ende") == "ls\nrm -rf x\nende")
+        #expect(TranscriptText.sanitize("\u{2029}eins\u{2028}") == "eins")
+        let pasted = TranscriptText.sanitize("ls\u{2028}rm -rf x")
+        #expect(TranscriptText.isMultiline(pasted))
+        #expect(!AutoPastePolicy.allowsPaste(of: pasted, intoBundleIdentifier: "com.apple.Terminal"))
+    }
+
     @Test("Segment line breaks from a local server become spaces; tabs and emoji stay")
     func segmentBreaksBecomeSpaces() {
         let whisper = " Das habe ich alles mit dem lokalen Modell?\n Diktiert.\n Das ist ja der Oberhammer.\n"

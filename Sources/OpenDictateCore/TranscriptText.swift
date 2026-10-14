@@ -3,14 +3,16 @@ import Foundation
 /// A transcript is text the user wants to type, never a stream of key codes.
 /// Control characters and invisible direction marks are removed before the
 /// text reaches the clipboard, so a provider response cannot carry escape
-/// sequences or hidden characters into the target. Line breaks and tabs stay.
+/// sequences or hidden characters into the target. Line breaks and tabs stay;
+/// the Unicode line and paragraph separators become plain line breaks, so the
+/// terminal guard sees them as the line breaks a target may treat them as.
 public enum TranscriptText {
     public static func sanitize(_ text: String) -> String {
         var cleaned = String.UnicodeScalarView()
         var previousWasCarriageReturn = false
         for scalar in text.unicodeScalars {
             defer { previousWasCarriageReturn = scalar == "\r" }
-            if scalar == "\r" {
+            if scalar == "\r" || scalar == "\u{2028}" || scalar == "\u{2029}" {
                 cleaned.append("\n")
             } else if scalar == "\n" {
                 if !previousWasCarriageReturn { cleaned.append(scalar) }
