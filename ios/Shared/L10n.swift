@@ -29,6 +29,9 @@ enum L10n {
     static let handOverDetail = pick(
         "Run your shortcut again or open OpenDictate, then the text is on the clipboard.",
         "Starte deinen Kurzbefehl nochmal oder öffne OpenDictate, dann liegt der Text in der Zwischenablage.")
+    static let modelLoadsDetail = pick(
+        "Parakeet is loading its model, which takes about 20 seconds right after the app starts.",
+        "Parakeet lädt sein Modell; direkt nach dem Start der App dauert das etwa 20 Sekunden.")
     static let keptDetail = pick(
         "Recording kept. Open OpenDictate to send it again.",
         "Aufnahme gesichert. Öffne OpenDictate, um sie nochmal zu senden.")

@@ -90,10 +90,12 @@ erkennt das Modell selbst (25 europäische Sprachen). Das Modell (etwa 500 MB,
 CC BY 4.0) lädt man einmal in den Einstellungen („Modell laden“) von Hugging
 Face, bei offener App; es liegt danach im Container der App, nicht im Backup.
 Ein Diktat lädt nie selbst nach; ohne Modell startet es nicht. Meldet ein
-Diktat, dass Parakeet nicht geklappt hat, lädt „Modell neu laden“ es frisch. Während der Aufnahme lädt die
-App das Modell schon in den Speicher, weil der erste Start nach dem Öffnen
-dauert (am iPhone 15 rund 18 Sekunden, siehe Grenzen). Übersetzen geht dabei über „Übersetzen mit“ wie bei
-den anderen Erkennungen.
+Diktat, dass Parakeet nicht geklappt hat, lädt „Modell neu laden“ es frisch.
+Das erste Laden nach einem Start der App dauert (am iPhone 15 rund 18
+Sekunden, siehe Grenzen). Darum lädt die App das Modell schon beim Öffnen und
+während der Aufnahme in den Speicher, und die Live-Aktivität sagt, wenn es
+noch lädt. Übersetzen geht dabei über „Übersetzen mit“ wie bei den anderen
+Erkennungen.
 Übersetzen geht genauso auf dem iPhone („Übersetzen mit: Auf dem iPhone“, ab
 iOS 26): Apples `TranslationSession` übersetzt offline, nachdem die App die
 Sprache des Textes auf dem Gerät erkannt hat. Die Sprachen lädt man einmal mit
@@ -155,9 +157,10 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
 - Parakeet ist eine Probe. Am 14. Oktober schrieb es am iPhone 15 auch über
   den Kurzbefehl im Hintergrund. Nach einem Neustart der App lädt es das
   Modell aber neu, und ein kurzes Diktat wartete dann 18 bis 19 Sekunden auf
-  den Text statt gut einer Sekunde. Wie gut es gegen OpenAI und Apple
-  abschneidet, ist noch nicht verglichen. Für eine Veröffentlichung ist offen,
-  woher alle Nutzer das Modell laden.
+  den Text statt gut einer Sekunde.
+  Im ersten Alltagstest war es gut, aber nicht so genau wie OpenAI; ein
+  Vergleich mit festen Sätzen fehlt noch. Für eine Veröffentlichung ist
+  offen, woher alle Nutzer das Modell laden.
 - Das Datenschutz-Manifest gibt Audio und Text als für die App-Funktion
   erfasst und mit der Person verknüpft an (kein Tracking), weil der gewählte
   Dienst beides eine Zeit lang aufbewahren und dem Konto hinter dem

@@ -17,6 +17,11 @@ enum ParakeetTranscriber {
         Task { _ = try? await LoadedModel.shared.manager() }
     }
 
+    /// Whether a dictation would get its text without loading the model first.
+    static func isLoaded() async -> Bool {
+        await LoadedModel.shared.isLoaded
+    }
+
     /// Transcribes the authenticated bytes of a kept recording. Never
     /// downloads: a missing model fails, and the recording stays for "Send again".
     static func transcribe(_ audio: Data) async throws -> String {
@@ -118,9 +123,11 @@ final class ParakeetModel {
 private actor LoadedModel {
     static let shared = LoadedModel()
     private var loading: Task<AsrManager, Error>?
+    private(set) var isLoaded = false
 
     func manager() async throws -> AsrManager {
         if let loading, let manager = try? await loading.value { return manager }
+        isLoaded = false
         let task = Task {
             // FluidAudio would otherwise download a missing or broken file
             // again, even during a dictation in the background.
@@ -133,10 +140,13 @@ private actor LoadedModel {
             return manager
         }
         loading = task
-        return try await task.value
+        let manager = try await task.value
+        if loading == task { isLoaded = true }
+        return manager
     }
 
     func forget() {
         loading = nil
+        isLoaded = false
     }
 }

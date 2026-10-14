@@ -171,7 +171,10 @@ final class DictationRunner {
         let tooShort = recording.duration < Self.minimumDuration
         let kept = store.keep(recording.url, retryable: !tooShort)
         guard !tooShort else { throw await fail(.tooShort) }
-        await updateActivity(.writing)
+        // After a launch Parakeet first loads its model, which takes a while.
+        var loadsModel = false
+        if configuration.recognition == .parakeet { loadsModel = await !ParakeetTranscriber.isLoaded() }
+        await updateActivity(.writing, detail: loadsModel ? L10n.modelLoadsDetail : nil)
         // Not sent, but kept for a deliberate "Send again", as on the Mac.
         let heardSpeech = await Task.detached { SpeechCheck.heardSpeech(at: kept) }.value
         guard heardSpeech else { throw await fail(.tooQuiet) }
@@ -390,8 +393,8 @@ final class DictationRunner {
 
     /// "Writing" turns stale after the longest possible request, in case iOS
     /// suspends the app before it could end the activity.
-    private func updateActivity(_ phase: DictationAttributes.ContentState.Phase) async {
-        await activity?.update(ActivityContent(state: state(phase), staleDate: Date() + 150))
+    private func updateActivity(_ phase: DictationAttributes.ContentState.Phase, detail: String? = nil) async {
+        await activity?.update(ActivityContent(state: state(phase, detail: detail), staleDate: Date() + 150))
     }
 
     private func endActivity(

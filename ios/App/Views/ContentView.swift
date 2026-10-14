@@ -52,6 +52,8 @@ struct ContentView: View {
             guard phase == .active else { return }
             refresh()
             runner.copyUncopied()
+            // The first load after a launch takes seconds; do it before a dictation needs it.
+            if AppSettings.recognition == .parakeet, ParakeetTranscriber.isInstalled { ParakeetTranscriber.prepare() }
         }
         .task { await runner.reachServer() }
     }
