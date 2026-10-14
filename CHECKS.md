@@ -382,8 +382,13 @@ commit:
 A `gitleaks:allow` comment on the line itself still suppresses a finding
 without this detour; it is visible in review and should stay the exception.
 
-Dependabot groups weekly updates for the repository's Actions, Cargo and NuGet
-manifests, with at most three open update pull requests per ecosystem.
+Dependabot groups weekly updates for the repository's Actions, Cargo, NuGet
+(every project under `windows/`) and Swift (the iPhone app's
+`Package.resolved` in its Xcode project) dependencies and proposes .NET SDK
+updates for `windows/global.json`, with at most three open update pull
+requests per ecosystem. Auto-Merge skips these pull requests because Dependabot is
+not the repository owner; a Claude session or a manual review handles them
+(see [SECURITY.md](SECURITY.md)).
 
 ## Shared provider fixtures
 
