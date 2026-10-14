@@ -178,7 +178,7 @@ To keep your bill small, OpenDictate:
 Optional environment variables. A choice made in the menu wins over these, so the
 menu is not silently ignored for anyone who exports them:
 
-- `OPENAI_TRANSCRIBE_MODEL`, default `gpt-transcribe`. Set `gpt-4o-mini-transcribe` (approx. $0.003/min, billed by tokens) to trade accuracy for cost. Setting `gpt-live-transcribe` is caught at launch with a warning: it targets the realtime endpoint, not this upload flow.
+- `OPENAI_TRANSCRIBE_MODEL`, default `gpt-transcribe`. Set `gpt-4o-mini-transcribe` (approx. $0.003/min, billed by tokens) to trade accuracy for cost. Setting `gpt-live-transcribe` is caught at launch with a warning: it targets the realtime endpoint, not this upload flow. A name with characters other than ASCII letters, digits and `- . _ / :` (as on the iPhone) is caught the same way and is never sent.
 - `OPENAI_TRANSCRIBE_LANGUAGE`, for example `de`
 - `OPENAI_TRANSCRIBE_PROMPT`, for vocabulary hints. The in-app vocabulary setting overrides this value.
 - `OPENAI_BASE_URL`, the server address as in the OpenAI SDKs, for example

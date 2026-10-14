@@ -21,6 +21,21 @@ struct TranscriptionModelTests {
         #expect(future.pricePerMinuteUSD == nil)
     }
 
+    @Test("A malformed name is rejected without repeating it, like on the iPhone")
+    func malformedNameRejected() {
+        for name in ["", "gpt transcribe", "gpt-transcribe\r\nX-Injected: 1", "a\"b", "../model", "modell-ä"] {
+            let model = TranscriptionModel(rawValue: name)
+            #expect(!model.isUsableForUpload)
+            let reason = model.uploadRejectionReason
+            #expect(reason?.contains("ungültig") == true)
+            #expect(reason?.contains("gpt-transcribe") == true)
+            if !name.isEmpty { #expect(reason?.contains(name) == false) }
+        }
+        for name in ["Systran/faster-whisper-small", "llama3:8b", "whisper-1"] {
+            #expect(TranscriptionModel(rawValue: name).isUsableForUpload)
+        }
+    }
+
     @Test("Only the token-billed mini model shows an approximate price")
     func miniModelPriceIsApproximate() {
         #expect(TranscriptionModel.gpt4oMiniTranscribe.isPriceApproximate)

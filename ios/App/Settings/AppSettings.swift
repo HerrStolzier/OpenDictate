@@ -89,7 +89,7 @@ struct DictationConfiguration: Sendable {
         }
         let modelName = AppSettings.string(AppSettings.transcriptionModelKey)
         let model = modelName.isEmpty ? TranscriptionModel.default : TranscriptionModel(rawValue: modelName)
-        if recognition == .service, !ModelName.isValid(model.rawValue) || !model.isUsableForUpload {
+        if recognition == .service, !model.isUsableForUpload {
             throw DictationFailure.invalidModel
         }
         let translationModelName = AppSettings.string(AppSettings.translationModelKey)
