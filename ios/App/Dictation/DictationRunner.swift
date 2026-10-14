@@ -19,6 +19,8 @@ final class DictationRunner {
     /// Same limits as the Mac app.
     static let limit: TimeInterval = 90
     static let minimumDuration: TimeInterval = 1
+    /// How long a text finished in the background waits for the shortcut.
+    static let handOverTime: TimeInterval = 5 * 60
 
     enum Phase: Equatable {
         case ready
@@ -38,6 +40,10 @@ final class DictationRunner {
     @ObservationIgnored private var missedClipboard: Int?
     /// Newest kept recording, for "Send again".
     private(set) var retryable: RecordingRetention.Entry?
+    /// Until when the next run of the shortcut returns `lastText` instead of
+    /// starting a dictation: set when a stop in the background (the time
+    /// limit, a call, the Live Activity's button) left a text nobody copied.
+    @ObservationIgnored private var handOverUntil: Date?
 
     var isBusy: Bool {
         switch phase {
@@ -87,9 +93,21 @@ final class DictationRunner {
             return text.isEmpty ? nil : text
         case .writing: return nil
         case .ready, .copied, .oops:
+            if let text = await handOver() { return text }
             try await start()
             return nil
         }
+    }
+
+    /// The text a stop in the background left, for the shortcut's copy step.
+    /// Its recording stays until a copy is certain, as after any shortcut stop.
+    private func handOver() async -> String? {
+        guard let until = handOverUntil else { return nil }
+        handOverUntil = nil
+        guard Date() < until, uncopiedRecording != nil, let lastText else { return nil }
+        phase = .copied
+        await Self.endShownActivities()
+        return lastText
     }
 
     func start() async throws {
@@ -143,10 +161,15 @@ final class DictationRunner {
         guard let recording = recorder.stop() else { return "" }
         self.configuration = nil
         phase = .writing
-        // Even a too short recording is the only copy of what was said.
-        let kept = store.keep(recording.url)
-        guard recording.duration >= Self.minimumDuration else { throw await fail(.tooShort) }
+        // Even a too short recording is the only copy of what was said. It is
+        // kept, but too short to send, so not offered for "Send again".
+        let tooShort = recording.duration < Self.minimumDuration
+        let kept = store.keep(recording.url, retryable: !tooShort)
+        guard !tooShort else { throw await fail(.tooShort) }
         await updateActivity(.writing)
+        // Not sent, but kept for a deliberate "Send again", as on the Mac.
+        let heardSpeech = await Task.detached { SpeechCheck.heardSpeech(at: kept) }.value
+        guard heardSpeech else { throw await fail(.tooQuiet) }
         guard let audio = try? Data(contentsOf: kept) else { throw await fail(.recordingUnreadable) }
         return try await deliver(audio, keptAt: kept, configuration: configuration, forShortcut: forShortcut)
     }
@@ -173,6 +196,11 @@ final class DictationRunner {
                 throw DictationFailure.recordingUnreadable
             }
             phase = .writing
+            if handOverUntil != nil {
+                handOverUntil = nil
+                // The "Done" activity is about the text this replaces.
+                await Self.endShownActivities()
+            }
             try await deliver(audio, keptAt: entry.url, configuration: configuration)
         } catch {
             phase = .oops(DictationFailure(error).message)
@@ -211,6 +239,11 @@ final class DictationRunner {
         do {
             try Self.copy(lastText)
             phase = .copied
+            if handOverUntil != nil {
+                handOverUntil = nil
+                // The "Done" activity asks for a copy that just happened.
+                Task { await Self.endShownActivities() }
+            }
             // The text is delivered now; its recording need not be sent again.
             if let uncopiedRecording {
                 store.remove(uncopiedRecording)
@@ -231,24 +264,16 @@ final class DictationRunner {
         _ audio: Data, keptAt url: URL, configuration: DictationConfiguration, forShortcut: Bool = false
     ) async throws -> String {
         do {
-            var text: String
-            switch configuration.recognition {
-            case .service: text = try await client.transcribe(audio, configuration: configuration)
-            case .onDevice: text = try await OnDeviceTranscriber.transcribe(audio)
-            }
-            guard !text.isEmpty else { throw DictationFailure.nothingRecognized }
-            if let target = configuration.translationTarget {
-                switch configuration.translationEngine {
-                case .service: text = try await client.translate(text, into: target, configuration: configuration)
-                case .onDevice: text = try await OnDeviceTranslator.translate(text, into: target)
-                }
-                guard !text.isEmpty else { throw DictationFailure.emptyTranslation }
-            }
+            // Its own task: when Shortcuts gives up waiting, the requests still
+            // finish, and the cancelled caller below hands the text over.
+            let job = Task { try await self.write(audio, configuration: configuration) }
+            let text = try await job.value
             // A text the app could not copy itself may not have reached the
             // clipboard; once this one replaces it, its recording is offered
             // for "Send again", because the app cannot tell.
             lastText = text
             uncopiedRecording = nil
+            handOverUntil = nil
             do {
                 try Self.copy(text)
             } catch {
@@ -256,13 +281,21 @@ final class DictationRunner {
                 // shortcut has no copy step and the text lives only here.
                 uncopiedRecording = url
                 missedClipboard = UIPasteboard.general.changeCount
-                guard forShortcut else {
+                retryable = pendingRetry()
+                // Unless Shortcuts gave up waiting, it copies the text itself.
+                if forShortcut, !Task.isCancelled {
+                    phase = .copied
+                    await endActivity(.copied, detail: L10n.shortcutCopiesDetail, after: 4)
+                    return text
+                }
+                guard UIApplication.shared.applicationState != .active else {
                     _ = await fail(.clipboardFailed)
                     return text
                 }
-                retryable = pendingRetry()
+                // In the background only the shortcut or the open app can copy.
+                handOverUntil = Date() + Self.handOverTime
                 phase = .copied
-                await endActivity(.copied, detail: L10n.shortcutCopiesDetail, after: 4)
+                await endActivity(.done, detail: L10n.handOverDetail, after: Self.handOverTime)
                 return text
             }
             store.remove(url)
@@ -275,11 +308,30 @@ final class DictationRunner {
         }
     }
 
+    private func write(_ audio: Data, configuration: DictationConfiguration) async throws -> String {
+        var text: String
+        switch configuration.recognition {
+        case .service: text = try await client.transcribe(audio, configuration: configuration)
+        case .onDevice: text = try await OnDeviceTranscriber.transcribe(audio)
+        }
+        guard !text.isEmpty else { throw DictationFailure.nothingRecognized }
+        if let target = configuration.translationTarget {
+            switch configuration.translationEngine {
+            case .service: text = try await client.translate(text, into: target, configuration: configuration)
+            case .onDevice: text = try await OnDeviceTranslator.translate(text, into: target)
+            }
+            guard !text.isEmpty else { throw DictationFailure.emptyTranslation }
+        }
+        return text
+    }
+
     private func fail(_ failure: DictationFailure) async -> DictationFailure {
         retryable = pendingRetry()
         phase = .oops(failure.message)
         // A text that missed the clipboard is waiting in the app; no need to send it again.
-        let pointsToRetry = retryable != nil && failure != .clipboardFailed
+        // A too short recording is not offered; another one may be, but this
+        // message is about this dictation.
+        let pointsToRetry = retryable != nil && failure != .clipboardFailed && failure != .tooShort
         let detail = pointsToRetry ? failure.message + " " + L10n.keptDetail : failure.message
         await endActivity(.oops, detail: detail, after: 10)
         return failure
@@ -319,7 +371,10 @@ final class DictationRunner {
         startedAt = date
         do {
             activity = try Activity.request(
-                attributes: DictationAttributes(), content: ActivityContent(state: state(.listening), staleDate: nil))
+                attributes: DictationAttributes(),
+                // Stale once the recording limit passed without an update,
+                // e.g. when iOS ended the app while it listened.
+                content: ActivityContent(state: state(.listening), staleDate: date + Self.limit + 30))
         } catch {
             throw DictationFailure.liveActivityFailed
         }
@@ -339,6 +394,13 @@ final class DictationRunner {
         await activity.end(
             ActivityContent(state: state(phase, detail: detail), staleDate: nil),
             dismissalPolicy: .after(Date() + seconds))
+    }
+
+    /// Also those whose dismissal was only scheduled.
+    private static func endShownActivities() async {
+        for activity in Activity<DictationAttributes>.activities {
+            await activity.end(nil, dismissalPolicy: .immediate)
+        }
     }
 
     private func endActivityNow() async {

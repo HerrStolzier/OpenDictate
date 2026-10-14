@@ -15,9 +15,11 @@ struct PendingRecordings: Sendable {
     /// without a tag, so no audio is deleted unsent and none is sent unchecked.
     let activeDirectory: URL
 
-    init() {
+    /// `base` is the app's Application Support folder; tests pass their own.
+    init(base: URL? = nil) {
         let base =
-            (try? FileManager.default.url(
+            base
+            ?? (try? FileManager.default.url(
                 for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true))
             ?? FileManager.default.temporaryDirectory
         keptDirectory = base.appendingPathComponent("Recordings/Kept", isDirectory: true)

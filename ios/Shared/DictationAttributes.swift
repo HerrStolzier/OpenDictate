@@ -8,7 +8,8 @@ import OpenDictateCore
 struct DictationAttributes: ActivityAttributes {
     struct ContentState: Codable, Hashable, Sendable {
         enum Phase: String, Codable, Hashable, Sendable {
-            case listening, writing, copied, oops
+            /// `done`: the text is ready, but only the shortcut or the open app can copy it.
+            case listening, writing, copied, done, oops
         }
 
         var phase: Phase
@@ -23,7 +24,7 @@ struct DictationAttributes: ActivityAttributes {
             switch phase {
             case .listening: IndicatorPhase.listening.pose
             case .writing: IndicatorPhase.writing.pose
-            case .copied: IndicatorPhase.copied.pose
+            case .copied, .done: IndicatorPhase.copied.pose
             case .oops: IndicatorPhase.oops.pose
             }
         }

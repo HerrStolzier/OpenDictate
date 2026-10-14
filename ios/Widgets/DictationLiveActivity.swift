@@ -15,7 +15,7 @@ struct OpenDictateWidgets: WidgetBundle {
 struct DictationLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: DictationAttributes.self) { context in
-            LockScreenView(state: context.state)
+            LockScreenView(state: context.state, stale: context.isStale)
                 .activityBackgroundTint(Color(design: .bg))
                 .activitySystemActionForegroundColor(Color(design: .ink))
         } dynamicIsland: { context in
@@ -28,7 +28,7 @@ struct DictationLiveActivity: Widget {
                     StateLine(state: context.state)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    if context.state.phase == .listening { StopButton(compact: true) }
+                    if context.state.phase == .listening, !context.isStale { StopButton(compact: true) }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     if let detail = context.state.detail {
@@ -69,6 +69,7 @@ private enum CompactSymbol {
         case .listening: "mic.fill"
         case .writing: "ellipsis"
         case .copied: "checkmark"
+        case .done: "doc.on.clipboard"
         case .oops: "exclamationmark"
         }
     }
@@ -76,6 +77,8 @@ private enum CompactSymbol {
 
 private struct LockScreenView: View {
     let state: DictationAttributes.ContentState
+    /// Past the recording limit without an update: nothing is listening anymore.
+    let stale: Bool
 
     var body: some View {
         HStack(spacing: DesignMetric.space4) {
@@ -91,7 +94,7 @@ private struct LockScreenView: View {
                 }
             }
             Spacer(minLength: 0)
-            if state.phase == .listening { StopButton(compact: false) }
+            if state.phase == .listening, !stale { StopButton(compact: false) }
         }
         .padding(DesignMetric.space4)
     }
