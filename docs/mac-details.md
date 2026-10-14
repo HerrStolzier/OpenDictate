@@ -220,7 +220,10 @@ moves them to the server once.
   with its own model names.
 - **Other servers need `https://`** and receive your saved API key, for
   example a Groq key. Plain `http://` to another computer is rejected, so audio
-  and keys never travel unencrypted over a network.
+  and keys never travel unencrypted over a network. Enter only servers you
+  trust. The address is stored in the app's preferences, not in the Keychain,
+  so any program running under your account could change it (for example with
+  `defaults write`); see [PRIVACY.md](../PRIVACY.md#data-sent-to-openai-or-your-own-server).
 - Redirects are not followed, so audio and text go only to the address you
   entered, never on to another host.
 - If the saved or `OPENAI_BASE_URL` address is not allowed, dictation stops

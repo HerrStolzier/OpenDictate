@@ -176,7 +176,9 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
   API-Schlüssel zuordnen kann. Die Angaben im App Store
   werden beim TestFlight-Schritt noch einmal geprüft.
 - Ein eigener Server im Heimnetz braucht `https://`; `http://` gilt nur für
-  einen Server auf dem iPhone selbst. Dazu braucht er die iOS-Freigabe
+  einen Server auf dem iPhone selbst. Jeder Server außerhalb des iPhones
+  bekommt den gespeicherten API-Schlüssel mit; trag nur Server ein, denen du
+  vertraust. Dazu braucht er die iOS-Freigabe
   „Lokales Netzwerk“, die die App beim Öffnen anfragt; aus dem Hintergrund
   fragt iOS nicht (am Gerät noch nicht gesehen).
 

@@ -48,6 +48,13 @@ goes to OpenAI only after the user picks **Mit OpenAI senden** and confirms it,
 and only that one recording. The log records only the server's host name,
 never the path or key.
 
+Because every server outside this Mac receives the saved API key along with
+the audio and text, use only servers you trust. The server address is an
+ordinary app setting in the user's preferences (`UserDefaults`), not in the
+Keychain: any program running under your user account could change it, for
+example with `defaults write`, and send later dictations and the key
+elsewhere.
+
 The OpenAI API key is stored as a generic password in the macOS Keychain under
 service `OpenDictate` and account `OPENAI_API_KEY_APP`. OpenDictate does not support
 supplying the key through a command-line argument or environment variable.
@@ -263,7 +270,8 @@ Screen and in the Dynamic Island shows that a recording is running.
   target the transcript goes to `/v1/chat/completions`. With a custom server
   ("Eigener Server") the requests go to that address instead; only `https://`
   is accepted, or `http://` for a server on the iPhone itself, which gets no
-  API key. Redirects are not followed. The chosen service may keep audio and
+  API key. Any other server receives the stored API key, so use only servers
+  you trust. Redirects are not followed. The chosen service may keep audio and
   text for a while under its own terms (OpenAI, for example, for abuse
   monitoring) and can link them to the account behind the API key; the app's
   privacy manifest therefore declares both as collected for app functionality
