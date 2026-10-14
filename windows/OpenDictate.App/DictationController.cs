@@ -63,6 +63,14 @@ internal sealed class DictationController : IDisposable
 
     internal static RecoveryStore OpenRecovery() => new(RecoveryRoot);
 
+    // Plaintext journals left by a crash or a failed seal go after 24 hours,
+    // like every kept recording. Runs off the UI thread at startup.
+    internal static void RemoveExpiredJournals()
+    {
+        try { ProtectedJournal.RemoveExpired(RecordingRoot, DateTimeOffset.UtcNow); }
+        catch (Exception) { /* Kept; tried again at the next start. */ }
+    }
+
     private static ShortcutGesture NewGesture(ShortcutKey key) => new(key, Native.IsDown);
 
     // Called only after the new choice was saved, so a failed save keeps the
@@ -201,8 +209,8 @@ internal sealed class DictationController : IDisposable
             catch (Exception)
             {
                 throw new UserFacingException(UiText.T(
-                    "Die Aufnahme ließ sich nicht verschlüsselt sichern. Das Original liegt im Aufnahmeordner.",
-                    "The recording could not be saved encrypted. The original is in the recordings folder."));
+                    "Die Aufnahme ließ sich nicht verschlüsselt sichern. Das Original liegt 24 Stunden im Aufnahmeordner.",
+                    "The recording could not be saved encrypted. The original stays in the recordings folder for 24 hours."));
             }
             saved = recording.Entry.Id;
             RemoveEmptyJournal(current.Journal);
@@ -309,7 +317,7 @@ internal sealed class DictationController : IDisposable
     {
         try
         {
-            File.Delete(Path.Combine(journal.DirectoryPath, "format.txt"));
+            File.Delete(Path.Combine(journal.DirectoryPath, PcmJournal.FormatFileName));
             Directory.Delete(journal.DirectoryPath, recursive: false);
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException) { }

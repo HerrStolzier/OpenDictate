@@ -1,8 +1,6 @@
 using System;
 using System.Buffers.Binary;
 using System.IO;
-using System.Security.AccessControl;
-using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using NAudio.Wave;
@@ -26,7 +24,7 @@ public sealed class AudioSession
 
     public AudioSession(string root)
     {
-        EnsurePrivateRoot(root);
+        PrivateDirectory.Ensure(root);
         recorder = new WasapiRecorderBuilder().WithFormat(new WaveFormat(PcmJournal.SampleRate, 16, 1)).Build();
         if (recorder.WaveFormat.SampleRate != PcmJournal.SampleRate || recorder.WaveFormat.Channels != 1 ||
             recorder.WaveFormat.BitsPerSample != 16 || recorder.WaveFormat.Encoding != WaveFormatEncoding.Pcm)
@@ -69,25 +67,6 @@ public sealed class AudioSession
             catch (Exception error) { completion.TrySetException(error); }
             finally { recorder.Dispose(); }
         };
-    }
-
-    public static void EnsurePrivateRoot(string directory)
-    {
-        var security = new DirectorySecurity();
-        var owner = WindowsIdentity.GetCurrent().User ?? throw new InvalidOperationException("No Windows user.");
-        security.SetOwner(owner);
-        security.SetAccessRuleProtection(true, false);
-        foreach (var sid in new[] { owner, new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null) })
-            security.AddAccessRule(new FileSystemAccessRule(sid, FileSystemRights.FullControl,
-                InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit, PropagationFlags.None, AccessControlType.Allow));
-        Directory.CreateDirectory(Path.GetDirectoryName(directory)!);
-        var root = new DirectoryInfo(directory);
-        if (!root.Exists) FileSystemAclExtensions.Create(root, security);
-        // Exists caches missing-directory metadata; ACL creation does not refresh it.
-        root.Refresh();
-        if (!root.Exists) throw new IOException("Recording directory unavailable.");
-        if ((root.Attributes & FileAttributes.ReparsePoint) != 0) throw new IOException("Unexpected recording directory link.");
-        FileSystemAclExtensions.SetAccessControl(root, security);
     }
 
     public void Start()
