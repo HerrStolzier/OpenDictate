@@ -145,7 +145,8 @@ see [PRIVACY.md](../PRIVACY.md#last-transcript-and-temporary-originals). A retry
 the file only after a non-empty transcript has reached the clipboard. Clipboard
 failures preserve the audio on disk and the last transcript in memory. Use
 `Gesicherte Aufnahmen löschen …` to delete the app's managed retained or legacy
-recordings. Temporary originals are outside that action.
+recordings. Temporary originals are outside that action; at launch the app
+deletes the ones that are at least 24 hours old, never younger ones.
 
 Recordings classified as too short or too quiet are retained for a deliberate manual retry. These heuristics do not prove that no speech exists; they never trigger an automatic upload.
 An empty recording, where the microphone delivered no audio at all, has nothing to resend: the app says so

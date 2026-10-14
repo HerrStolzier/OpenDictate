@@ -205,6 +205,39 @@ struct FailedRecordingStoreTests {
         #expect(messages.last == "Pruned 1 expired failed recording(s)")
     }
 
+    @Test("Temporary originals are removed at 24 hours, never earlier, and other files stay")
+    func expiredTemporaryOriginalsAreRemoved() throws {
+        let fixture = try Fixture()
+        let now = Date()
+        let old = fixture.directory.appendingPathComponent("opendictate-\(UUID().uuidString).m4a")
+        let oldTrimmed = fixture.directory.appendingPathComponent("opendictate-trimmed-\(UUID().uuidString).m4a")
+        let recent = fixture.directory.appendingPathComponent("opendictate-\(UUID().uuidString).m4a")
+        let foreign = fixture.directory.appendingPathComponent("opendictate-notes.m4a")
+        let link = fixture.directory.appendingPathComponent("opendictate-\(UUID().uuidString).m4a")
+        for url in [old, oldTrimmed, recent, foreign] {
+            try Data("fixture".utf8).write(to: url)
+        }
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: foreign)
+        let past = now.addingTimeInterval(-RecordingRetention.maximumAge - 60)
+        for url in [old, oldTrimmed, foreign] {
+            try FileManager.default.setAttributes(
+                [.creationDate: past, .modificationDate: past], ofItemAtPath: url.path)
+        }
+        var messages: [String] = []
+
+        let removed = FailedRecordingStore.removeExpiredTemporaryOriginals(now: now, in: fixture.directory) {
+            messages.append($0)
+        }
+        #expect(removed == 2)
+
+        #expect(!FileManager.default.fileExists(atPath: old.path))
+        #expect(!FileManager.default.fileExists(atPath: oldTrimmed.path))
+        #expect(FileManager.default.fileExists(atPath: recent.path))
+        #expect(FileManager.default.fileExists(atPath: foreign.path))
+        #expect((try? FileManager.default.destinationOfSymbolicLink(atPath: link.path)) != nil)
+        #expect(messages == ["Removed 2 temporary recording(s) older than 24 hours"])
+    }
+
     private func timestamp(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")

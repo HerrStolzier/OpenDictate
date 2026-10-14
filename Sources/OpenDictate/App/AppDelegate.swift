@@ -178,6 +178,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         refreshSavedRecordings()
+        Task.detached(priority: .utility) { FailedRecordingStore.removeExpiredTemporaryOriginals() }
         warnAboutUnusableModelIfNeeded()
         activateTrigger(Config.trigger, announce: true)
         checkAPIKeySetupAtLaunch()
