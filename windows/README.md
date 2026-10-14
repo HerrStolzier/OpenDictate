@@ -5,10 +5,13 @@ veröffentlicht). Basti hat am 28. September 2026 **öffentliche Verteilung als 
 gewählt. Es gibt noch kein Windows-Release, keinen Produktinstaller, keine
 Signatur und keine Freigabe zur Veröffentlichung. Der nächste Releasepfad steht
 im [Windows-Releaseplan](RELEASE-PLAN.md). Die Herkunft des ersten Imports steht
-in [PROVENANCE.md](PROVENANCE.md). [SOURCE-SHA256SUMS](SOURCE-SHA256SUMS) gilt
-nur für diesen Import (Commit `9bf554e`), nicht für den heutigen Stand. Prüfen
-lässt es sich so: `git archive 9bf554e windows | tar -x -C <leerer Ordner>`,
-dann im entpackten `windows/` `sha256sum -c SOURCE-SHA256SUMS`.
+in [PROVENANCE.md](PROVENANCE.md). Die Prüfsummen dieses Imports liegen seit
+14. Oktober 2026 im Archiv
+([windows-import-9bf554e-SHA256SUMS](../docs/archive/windows-import-9bf554e-SHA256SUMS));
+sie gelten nur für den Import (Commit `9bf554e`), nicht für den heutigen Stand.
+Prüfen lässt es sich so: `git archive 9bf554e windows | tar -x -C <leerer Ordner>`,
+dann im entpackten `windows/` `sha256sum -c SOURCE-SHA256SUMS` (die Datei liegt
+dort noch unter ihrem alten Namen).
 
 ## Aktueller technischer Stand
 
@@ -18,9 +21,14 @@ dann im entpackten `windows/` `sha256sum -c SOURCE-SHA256SUMS`.
   `Directory.Build.props` aktiviert Nullable-Checks, Warnungen als Fehler und
   deterministische Compileroptionen.
 - `NAudio.Wasapi` 3.1.0 ist die einzige direkte Paketabhängigkeit der App.
-  Eine `packages.lock.json`, ein geprüfter `dotnet publish`-Pfad und ein
-  Installerprojekt sind nicht vorhanden. `Deterministic=true` allein belegt
-  keinen bitgleichen Release-Build.
+  Jedes Projekt hat eine `packages.lock.json` mit Versionen und
+  Inhalts-Hashes aller Pakete; `nuget.config` erlaubt nur nuget.org als
+  Quelle. Die CI stellt die Pakete mit `dotnet restore --locked-mode` her und
+  bricht ab, wenn ein Paket von der Sperrdatei abweicht. Nach einer Änderung an
+  den Paketen die Sperrdateien mit `dotnet restore` neu erzeugen und mit
+  einchecken. Ein geprüfter `dotnet publish`-Pfad und ein Installerprojekt
+  sind nicht vorhanden. `Deterministic=true` allein belegt keinen bitgleichen
+  Release-Build.
 - Das App-Manifest fordert normale Benutzerrechte (`asInvoker`).
 - Das frühere Prüffenster (`OpenDictate.Prototype`) mit Einfügen in Editor-
   und Browserfelder, der Browser-Host und die Test-Erweiterung wurden am
@@ -40,8 +48,11 @@ dann im entpackten `windows/` `sha256sum -c SOURCE-SHA256SUMS`.
   Server-Adresse ist die Basis-URL mit `/v1`. Ohne Eintrag gilt
   `OPENAI_BASE_URL`, wenn gesetzt (die Einstellungen nennen dann das Ziel), sonst
   OpenAI; ein gespeicherter Eintrag gewinnt. `http://` geht nur für
-  diesen Computer, und dorthin geht kein Schlüssel. Ein eigener Server nimmt
-  freie Modellnamen, OpenAI nur die bekannten.
+  diesen Computer, und dorthin geht kein Schlüssel. Jeder andere eigene
+  Server, auch einer aus `OPENAI_BASE_URL`, bekommt den gespeicherten
+  OpenAI-Schlüssel als Bearer-Token. Trag darum nur Server ein, denen du
+  vertraust. Ein eigener Server nimmt freie Modellnamen, OpenAI nur die
+  bekannten.
 - Meldungen erscheinen auf Deutsch oder Englisch nach der Anzeigesprache von
   Windows und enthalten nie die Antwort des Servers; eine Netzwerkmeldung zum
   eigenen Server nennt nur dessen Host.
@@ -69,7 +80,9 @@ Windows-Beta.
   jede Taste unverändert weiter. Damit beim Loslassen von Strg+Win kein
   Startmenü aufgeht, sendet die App einmal die unbelegte Taste `0xE8`.
 - Einfügen: Der Text kommt in die Zwischenablage, markiert als nicht für den
-  Zwischenablage-Verlauf und die Cloud-Zwischenablage bestimmt. Steuerzeichen
+  Zwischenablage-Verlauf und die Cloud-Zwischenablage bestimmt. Dort bleibt er,
+  bis etwas anderes kopiert wird; Programme, die die Zwischenablage mitlesen,
+  sehen ihn. Steuerzeichen
   aus der Antwort des Dienstes werden vorher entfernt. Strg+V folgt nur in das
   Fenster, das beim Start vorne war, wenn es noch vorne ist, alle
   Zusatztasten losgelassen sind und die Zwischenablage noch den Text hält;
@@ -99,16 +112,19 @@ Windows-Beta.
 - Aufnahmen entstehen unter `%LOCALAPPDATA%\OpenDictate\Recordings` und werden
   vor dem Senden als geschützte Kopie unter `%LOCALAPPDATA%\OpenDictate\Recovery`
   gesichert (höchstens fünf, 24 Stunden); erst danach verschwindet das
-  Original. Kürzer als eine halbe Sekunde wird nicht von selbst gesendet und
+  Original. Bleibt ein Original im Aufnahmeordner liegen, weil die App vorher
+  endete oder die Sicherung scheiterte, löscht die App es beim nächsten Start,
+  sobald es 24 Stunden alt ist, nie früher; ein Ordner mit fremden Dateien
+  bleibt unangetastet. Kürzer als eine halbe Sekunde wird nicht von selbst gesendet und
   lässt sich nicht nochmal senden, bleibt aber gesichert. Bricht die Aufnahme
   ab, weil das Mikrofon wegfällt, wird das Aufgenommene ebenso gesichert und
   lässt sich nochmal senden. Hält ein anderes Programm (etwa ein Virenscanner)
   eine alte Sicherung offen, bleibt sie bis zum nächsten Aufräumen liegen; das
   neue Diktat scheitert daran nicht, und angeboten werden nur die fünf neuesten.
-- Geprüft am 13. Oktober nur offline auf Linux mit .NET SDK 10.0.401: 53 von
-  53 Prüfungen (7 Kern-, 9 Ablauf-, 17 Provider- und 20 Kürzel-/App-Prüfungen),
+- Geprüft am 14. Oktober nur offline auf Linux mit .NET SDK 10.0.401: 54 von
+  54 Prüfungen (8 Kern-, 9 Ablauf-, 17 Provider- und 20 Kürzel-/App-Prüfungen),
   Beta-App und Schutzprüfer bauen ohne Warnung. Nicht gestartet: Hook,
-  Mikrofon, Anzeige, Strg+V, Autostart und die 14 Schutzprüfungen sind erst
+  Mikrofon, Anzeige, Strg+V, Autostart und die 15 Schutzprüfungen sind erst
   mit einem Windows-PC prüfbar (Windows-Plan, Schritt 7).
 
 ## Heutige Offline-Prüfung, 28. September 2026
@@ -142,13 +158,13 @@ beliebiger Editoren, Browser oder Webseiten.
 
 Das vorhandene Skript:
 
-1. zeigt die SDK-Version an und führt `OpenDictate.Checks` aus (7 Kern-,
+1. zeigt die SDK-Version an und führt `OpenDictate.Checks` aus (8 Kern-,
    9 Ablauf-, 17 Provider- und 20 Kürzel-/App-Checks),
 2. baut `OpenDictate.App`,
 3. baut `OpenDictate.WindowsChecks`.
 
 Es **führt `OpenDictate.WindowsChecks` nicht aus**. Ein erfolgreicher Skript-
-lauf würde daher die 14 Credential-Manager-/Recovery-Prüfungen nicht belegen.
+lauf würde daher die 15 Credential-Manager-/Recovery-Prüfungen nicht belegen.
 Das Skript startet und installiert die App nicht; echte Aufnahme und
 Provideraufruf gehören nicht zu seinen Prüfungen. Das Bauen kann NuGet-Restore
 benötigen, falls die Abhängigkeit lokal noch nicht vorhanden ist. Das Skript

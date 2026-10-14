@@ -109,6 +109,25 @@ try
             (_, _) => { deliveries++; return Task.FromResult(TextDelivery.Completed); }).GetAwaiter().GetResult();
         Check(result.Outcome == DictationOutcome.Failed && requests == 0 && deliveries == 0 && File.Exists(journal.RawPath));
     });
+    Test("Startup removes only leftover journals at least 24 hours old", () =>
+    {
+        string folder = Path.Combine(root, "leftovers"); Directory.CreateDirectory(folder);
+        var past = DateTime.UtcNow.AddHours(-25);
+        void Age(string directory, params string[] except)
+        {
+            foreach (string file in Directory.GetFiles(directory).Where(file => !except.Contains(Path.GetFileName(file))))
+            { File.SetCreationTimeUtc(file, past); File.SetLastWriteTimeUtc(file, past); }
+            Directory.SetCreationTimeUtc(directory, past); Directory.SetLastWriteTimeUtc(directory, past);
+        }
+        PcmJournal Leftover() { var left = new PcmJournal(folder); left.Append([1, 2, 3, 4]); left.ExportWave(); left.Close(); return left; }
+        var expired = Leftover(); Age(expired.DirectoryPath);
+        var young = Leftover();
+        var touched = Leftover(); Age(touched.DirectoryPath, PcmJournal.WaveFileName);
+        string foreign = Path.Combine(folder, Guid.NewGuid().ToString("N")); Directory.CreateDirectory(foreign);
+        File.WriteAllText(Path.Combine(foreign, "notes.txt"), "synthetic"); Age(foreign);
+        Check(ProtectedJournal.RemoveExpired(folder, DateTimeOffset.UtcNow) == 1 && !Directory.Exists(expired.DirectoryPath));
+        Check(File.Exists(young.RawPath) && File.Exists(touched.RawPath) && File.Exists(Path.Combine(foreign, "notes.txt")));
+    });
     Test("Credential Manager isolated dummy entry round trip", () =>
     {
         var store = new CredentialStore("OpenDictate.Windows.Test." + Guid.NewGuid().ToString("N"));

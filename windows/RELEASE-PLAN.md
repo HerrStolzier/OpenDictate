@@ -11,7 +11,7 @@ Installation, Beschaffung eines Zertifikats oder echte Provider-/Mikrofonprobe.
 | --- | --- | --- |
 | App | WPF und WinForms; `net10.0-windows`, nur x64. Das Manifest fordert `asInvoker`. | Unterstützte Windows-Versionen und Mindestbuild festlegen und installieren/abnehmen. Das TFM allein ist keine Kompatibilitätszusage. |
 | Bibliotheken und Prüfprogramme | `OpenDictate.Windows` und der Schutzprüfer `net10.0-windows`; Kern, Provider und Offline-Prüfungen `net10.0`. `global.json` nennt .NET SDK 10.0.401 und `latestPatch`. | Laufzeitmodell des öffentlichen Pakets festlegen (mitgelieferte Laufzeit oder vorausgesetzte). |
-| Abhängigkeiten | `NAudio.Wasapi` 3.1.0 ist direkte App-Abhängigkeit. Nullable-Prüfung, Warnungen als Fehler und `Deterministic=true` sind gesetzt. | NuGet-Abhängigkeitsgraph sperren und Build aus sauberem Checkout reproduzierbar belegen. Es gibt keine `packages.lock.json`; `Deterministic=true` beweist keine bitgleichen Artefakte. |
+| Abhängigkeiten | `NAudio.Wasapi` 3.1.0 ist direkte App-Abhängigkeit. Nullable-Prüfung, Warnungen als Fehler und `Deterministic=true` sind gesetzt. Seit 14. Oktober 2026 ist der NuGet-Abhängigkeitsgraph gesperrt: `packages.lock.json` je Projekt, nur nuget.org als Quelle (`nuget.config` mit Paketquellen-Zuordnung), CI-Restore mit `--locked-mode`. | Build aus sauberem Checkout reproduzierbar belegen; `Deterministic=true` beweist keine bitgleichen Artefakte. |
 | Build | Die Beta-App baut auf Linux und im Windows-Job der CI ohne Warnungen; auf einem Windows-PC wurde sie noch nicht gebaut. | `dotnet publish`, vollständige Artefaktliste, Hashprüfung und sauberen Offline-Wiederholungsbuild festlegen. |
 | Installation | Kein Windows-Produktinstaller und keine öffentliche Paketdefinition vorhanden. | Installerformat, Upgrade-/Rollbackverhalten, Deinstallation und Supportpfad entscheiden. |
 | Signatur | Keine Release-Signatur oder ausgewählte Signieridentität belegt. | Authenticode-Signatur, vertrauenswürdiger Zeitstempel und Verifikation des endgültigen Pakets. Zertifikatbeschaffung braucht eine eigene Freigabe. |
@@ -24,8 +24,9 @@ Installation, Beschaffung eines Zertifikats oder echte Provider-/Mikrofonprobe.
    Programme oder Spiele. In Programme mit Adminrechten lässt Windows nicht
    einfügen; die App erkennt das nicht, der Text bleibt in der Zwischenablage.
 2. **Build reproduzierbar machen.** Sauberen Snapshot und Commit identifizieren,
-   .NET SDK/Windows-Referenzpakete festlegen, NuGet-Abhängigkeiten sperren,
-   Restore- und Buildkommandos dokumentieren und zwei Builds vergleichen.
+   .NET SDK/Windows-Referenzpakete festlegen (NuGet-Abhängigkeiten sind seit
+   14. Oktober gesperrt), Restore- und Buildkommandos dokumentieren und zwei
+   Builds vergleichen.
    Keine ungesperrte Netzwerkwiederherstellung im abschließenden Offline-Gate.
    Manifest-, Assembly- und Produktversion müssen übereinstimmen.
 3. **Paketformat auswählen.** Erst nach Support- und Laufzeitentscheidung
@@ -60,8 +61,13 @@ Installation, Beschaffung eines Zertifikats oder echte Provider-/Mikrofonprobe.
    Geheimnis in `%APPDATA%\OpenDictate\settings.json`. Die Aufnahme geht an
    OpenAI oder an den eingetragenen eigenen Server; ist eine Übersetzung
    eingestellt, geht danach das Transkript an denselben Server. Ein Server auf
-   diesem Computer bekommt keinen Schlüssel.
-   Die öffentliche Aufbewahrungsregel für lokale Originale ist offen. Im
+   diesem Computer bekommt keinen Schlüssel; jeder andere eigene Server, auch
+   einer aus `OPENAI_BASE_URL`, bekommt den gespeicherten OpenAI-Schlüssel als
+   Bearer-Token. Nur vertrauenswürdige Server eintragen.
+   Ein Original, das nach einem Absturz oder einer gescheiterten Sicherung
+   im Aufnahmeordner liegen bleibt, löscht die App beim nächsten Start, sobald
+   es 24 Stunden alt ist; nur Ordner mit ausschließlich eigenen Journaldateien,
+   jede Datei über einen geprüften, exklusiven Handle. Im
    verbundenen Ablauf wird eine geschützte
    Recoverykopie mit DPAPI erstellt, gelesen und bytegenau bestätigt; erst danach
    entfernt der Aufrufpfad die genau geöffneten Originaldateien. Die

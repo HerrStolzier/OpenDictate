@@ -59,6 +59,9 @@
 
 /* ---------- Wordmark ---------- */
 .od-wordmark { display: inline-block; font-family: var(--font-pixel); font-weight: 400; color: var(--ink); line-height: 1.3; white-space: nowrap; }
+/* Sizes of the static wordmark before site.js replaces it (no style attributes under the CSP). */
+.od-wordmark-26 { font-size: 26px; }
+.od-wordmark-20 { font-size: 20px; }
 .od-wordmark-blink { width: .532em; height: 1.102em; vertical-align: -.342em; margin-left: .076em; }
 
 /* ---------- Button: stepped pixel corners on a background layer, so the focus ring is never clipped ---------- */
