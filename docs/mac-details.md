@@ -262,7 +262,10 @@ it stays on the clipboard. A single line is pasted there as elsewhere, and
 OpenDictate does not send a separate Return. Use clipboard-only mode for targets
 where automatic Paste is unwanted, especially password fields. OpenDictate no
 longer inspects whether the focused control is protected or read-only. The transcript remains on the clipboard for
-manual recovery. Candidate-specific acceptance is tracked in
+manual recovery; OpenDictate does not put the previous clipboard contents back.
+It is marked for clipboard managers as concealed and auto-generated
+(nspasteboard.org), and with Handoff on, Universal Clipboard can offer it on
+your other Apple devices like anything you copy. Candidate-specific acceptance is tracked in
 [remaining acceptance](remaining-acceptance.md).
 
 The indicator shows the elapsed time and counts down the last ten seconds
