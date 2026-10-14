@@ -342,8 +342,11 @@ SHA-256, and scans only the selected Git commit range. CI passes the pull
 request base SHA and checked-out `github.sha` (the merge result), or the push
 before/after SHAs. Merge commits are scanned against their first parent so
 changes resolved during a merge are included.
+A range scan reads `.gitleaksignore` from the base commit, so a pull request
+cannot allow its own findings; Gitleaks scans the Git directory, so neither a
+`.gitleaksignore` nor a `.gitleaks.toml` in the checked-out tree takes effect.
 With no arguments, the local script scans the full history reachable from
-current `HEAD`. Gitleaks redacts findings in output and does not contact
+current `HEAD` with the checkout's `.gitleaksignore`. Gitleaks redacts findings in output and does not contact
 providers to validate credentials.
 The scanner keeps its redacted JSON report in its private temporary directory,
 then prints only rule, file, line, commit and fingerprint metadata; it omits
@@ -359,6 +362,22 @@ manifest key](https://developer.chrome.com/docs/extensions/reference/manifest/ke
 The findings were suppressed by commit, path, rule and line fingerprint, not
 by excluding files or directories ([Gitleaks fingerprint ignores](https://github.com/gitleaks/gitleaks#additional-configuration)).
 New or changed findings remain visible and fail the scan.
+
+To allow a new false positive, keep the ignore file and the finding in separate
+pull requests, because a range scan reads `.gitleaksignore` from the base
+commit:
+
+1. Open the pull request with the finding and take the fingerprint
+   (`commit:file:rule:line`) from its failed scan.
+2. Add that fingerprint to `.gitleaksignore` in a separate pull request.
+   Auto-Merge leaves it to Claude because the file is guarded; Claude merges it.
+3. Re-run the scan of the first pull request without rebasing it (a rebase
+   changes the commit and so the fingerprint); it now reads the new base.
+4. A squash merge creates a new commit on `main`, so its push scan reports the
+   finding again under the new commit's fingerprint. Add that one the same way.
+
+A `gitleaks:allow` comment on the line itself still suppresses a finding
+without this detour; it is visible in review and should stay the exception.
 
 Dependabot groups weekly updates for the repository's Actions, Cargo and NuGet
 manifests, with at most three open update pull requests per ecosystem.
