@@ -71,7 +71,7 @@ impl Transcriber {
                 "Recording has an invalid size."
             ));
         }
-        let boundary = format!("OpenDictateBoundary{}", std::process::id());
+        let boundary = new_boundary()?;
         let body = multipart_body(&boundary, audio, settings);
         let mut request = self
             .agent
@@ -109,6 +109,15 @@ impl Transcriber {
 fn request_timeout(response_budget: Duration, upload_bytes: usize) -> Duration {
     let upload_seconds = (upload_bytes as u64).div_ceil(SLOW_UPLINK_BYTES_PER_SECOND);
     response_budget + Duration::from_secs(upload_seconds)
+}
+
+/// A multipart boundary from 16 random bytes, so neither the audio nor a
+/// field value can contain it by chance or by design.
+fn new_boundary() -> Result<String, String> {
+    Ok(format!(
+        "OpenDictateBoundary{}",
+        crate::keyring::random_hex(16)?
+    ))
 }
 
 fn multipart_body(boundary: &str, audio: &[u8], settings: &Settings) -> Vec<u8> {
@@ -228,10 +237,7 @@ mod tests {
     }
 
     fn audio_file(case: &str) -> std::path::PathBuf {
-        let path = std::env::temp_dir().join(format!(
-            "opendictate-http-{}-{case}.wav",
-            std::process::id()
-        ));
+        let path = crate::test_support::unique_temp_dir(&format!("http-{case}")).join("audio.wav");
         std::fs::write(&path, b"RIFF-test-audio").unwrap();
         path
     }
@@ -251,7 +257,24 @@ mod tests {
         assert!(request.contains("name=\"model\""));
         assert!(request.contains("gpt-transcribe"));
         assert!(request.contains("recording.wav"));
-        let _ = std::fs::remove_file(path);
+        let boundary = request
+            .split("boundary=")
+            .nth(1)
+            .and_then(|rest| rest.split("\r\n").next())
+            .unwrap();
+        assert!(request.contains(&format!("--{boundary}--\r\n")));
+        crate::test_support::remove_temp_file(&path);
+    }
+
+    #[test]
+    fn boundary_carries_sixteen_random_bytes() {
+        let first = new_boundary().unwrap();
+        let random = first.strip_prefix("OpenDictateBoundary").unwrap();
+        assert_eq!(random.len(), 32);
+        assert!(random
+            .chars()
+            .all(|character| character.is_ascii_hexdigit()));
+        assert_ne!(first, new_boundary().unwrap());
     }
 
     #[test]
@@ -264,7 +287,7 @@ mod tests {
         assert!(error.contains("ungültig"));
         assert!(!error.contains("private"));
         server.join().unwrap();
-        let _ = std::fs::remove_file(path);
+        crate::test_support::remove_temp_file(&path);
     }
 
     /// The provider contract shared with macOS and Windows
@@ -331,7 +354,7 @@ mod tests {
             assert!(position("response_format") < position("languages[]"));
             assert!(position("languages[]") < position("file"));
             assert!(request.contains("filename=\"recording.wav\"\r\nContent-Type: audio/wav"));
-            let _ = std::fs::remove_file(path);
+            crate::test_support::remove_temp_file(&path);
         }
 
         #[test]
@@ -356,7 +379,7 @@ mod tests {
                 let provider_text = provider["error"]["message"].as_str().unwrap();
                 assert!(!error.contains(provider_text), "{file} leaks: {error}");
                 server.join().unwrap();
-                let _ = std::fs::remove_file(path);
+                crate::test_support::remove_temp_file(&path);
             }
         }
     }
@@ -384,7 +407,7 @@ mod tests {
         assert!(error.contains("Keine Verbindung"));
         assert!(started.elapsed() < Duration::from_secs(5));
         server.join().unwrap();
-        let _ = std::fs::remove_file(path);
+        crate::test_support::remove_temp_file(&path);
     }
 
     #[test]
@@ -406,7 +429,7 @@ mod tests {
         assert!(!request.to_ascii_lowercase().contains("authorization"));
         assert!(!request.contains("test-key"));
         assert!(request.contains("Systran/faster-whisper-small"));
-        let _ = std::fs::remove_file(path);
+        crate::test_support::remove_temp_file(&path);
     }
 
     #[test]

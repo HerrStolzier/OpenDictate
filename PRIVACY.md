@@ -206,7 +206,9 @@ window captured at recording start is still frontmost, sends that window a
 paste shortcut via `hyprctl`. Control characters and invisible text-direction
 marks are removed from the returned text first. Text with a line break is not
 pasted into known terminals; it stays in the clipboard. Retry never pastes
-automatically. The optional
+automatically. A clipboard history manager on Wayland (such as cliphist or
+clipman) keeps its own copy of every text copied via `wl-copy`; OpenDictate
+cannot prevent or remove that copy. The optional
 bar module (Omarchy shell or Waybar) prints only the state and translation setting, never text.
 
 With a custom server (`settings server`, or `OPENAI_BASE_URL` when no address
@@ -215,13 +217,18 @@ server's `/audio/transcriptions` and `/chat/completions` instead of OpenAI;
 nothing goes to OpenAI then. Plain `http://` is accepted only for loopback
 addresses (`localhost`, `127.0.0.1`, `[::1]`), which never receive the API key.
 Any other custom server is reached over HTTPS and receives the stored API key
-as a bearer token. Addresses with credentials, a query or a fragment are
+as a bearer token, even when that key was created for OpenAI. `OPENAI_BASE_URL` set in
+the session therefore redirects the audio, the transcript and, for a
+non-loopback HTTPS address, the API key to that host. A loopback server is
+only private on a single-user machine: another local user could bind the port
+first and would receive the audio and text. Addresses with credentials, a query or a fragment are
 rejected. `opendictate setup` checks a key or server once by requesting the
 server's model list (`/models`), which sends no audio or text.
 
 `opendictate setup` and `opendictate shortcut set` can add one bind line for
 `opendictate toggle` to the user's Hyprland config after a backup copy of the
-file; nothing else in the config is read for other purposes or changed.
+file; nothing else in the config is read for other purposes or changed. The
+three newest backup copies next to the file are kept, older ones are removed.
 
 Secret Service items use attributes `service=opendictate` and `key=api-key` or
 `recording-auth`. The API key is accepted only on stdin. A probe item can be
@@ -237,6 +244,9 @@ is authenticated with HMAC-SHA256 using a device-local Secret Service value and
 binds the file name, creation time and exact bytes. Retry uploads only bytes that
 authenticate at access time. Managed authenticated recovery is limited to five
 files and 24 hours; unknown or modified files are not uploaded automatically.
+An original that stays in the pending folder because its recovery copy could
+not be made is never uploaded automatically and is removed at the first
+recording start after it is 24 hours old.
 Audio is removed only after a non-empty transcript, or its non-empty
 translation when a target language is set, reaches the clipboard. With
 auto-insert on, audio is kept for retry if the clipboard no longer holds
@@ -250,7 +260,9 @@ The mark is part of the authenticated proof.
 The operations log under `$XDG_STATE_HOME/opendictate/operations.log` records
 bounded events, durations, the captured window class and, with a custom server,
 that server's host name (never its path). It must not contain API
-keys, transcript text, window titles or audio contents. Live Linux transcription
+keys, transcript text, window titles or audio contents. The log is owner-only
+(`0600`); above 1 MiB it is renamed to `operations.log.1`, replacing the
+previous one, so at most two log files exist. Live Linux transcription
 and translation requests were exercised on one attended test system on
 5 October 2026; the Linux beta published on 11 October 2026 is not a finished
 product.

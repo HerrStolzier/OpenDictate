@@ -34,8 +34,9 @@ angekommen ist. Normalerweise legt OpenDictate dafür eine gesicherte Kopie an:
 `opendictate retry` sendet sie nochmal, aufbewahrt werden höchstens fünf
 solcher Kopien für 24 Stunden. Gelingt diese Kopie nicht (zum Beispiel weil der
 Schlüsselbund gesperrt ist), bleibt die Originaldatei unter
-`~/.local/state/opendictate/pending/` liegen; `retry` greift dann nicht, und die
-Datei wird auch nicht automatisch gelöscht. Fällt das Mikrofon während der
+`~/.local/state/opendictate/pending/` liegen; `retry` greift dann nicht. Auch
+diese Datei hält die 24-Stunden-Grenze ein: Die nächste Aufnahme danach räumt
+sie weg. Fällt das Mikrofon während der
 Aufnahme aus oder wird abgezogen, bekommst du eine Benachrichtigung, und der Ton
 bis dahin wird genauso für `retry` gesichert. Eine zu kurze oder stille Aufnahme
 wird nicht gesendet; sie wird auch gesichert, aber `retry` übergeht sie
@@ -109,7 +110,8 @@ Dinge:
    bei US-Tastaturlayout, die rechte Alt-Taste allein. Es zeigt, welche Tasten
    Hyprland schon belegt, und trägt die Zeile nach Rückfrage in deine
    Hyprland-Konfiguration ein, mit einer Sicherung neben der Datei
-   (`….opendictate-backup-…`). Bei Omarchy ist das
+   (`….opendictate-backup-…`; die drei neuesten bleiben, ältere werden
+   entfernt). Bei Omarchy ist das
    `~/.config/hypr/bindings.lua`; eine reine Lua-Konfiguration bekommt nur die
    Zeile zum Kopieren. Übernimmt Hyprland die neue Zeile nicht, stellt setup
    die Datei wieder her, und das bisherige Kürzel gilt weiter.
@@ -204,16 +206,21 @@ opendictate settings server off              # zurück zu OpenAI
 - `https://` geht für jede Adresse, einfaches `http://` nur für diesen Rechner
   (`localhost`, `127.0.0.1`, `[::1]`). Adressen mit Zugangsdaten, `?` oder `#`
   werden abgelehnt.
+- Ein Server auf diesem Rechner bleibt nur privat, wenn du den Rechner allein
+  nutzt: Ein anderer lokaler Nutzer könnte zuerst ein Programm auf demselben
+  Port starten und bekäme dann deine Aufnahmen und Texte.
 - **API-Schlüssel:** Eine Adresse auf diesem Rechner bekommt keinen Schlüssel
   und braucht keinen. Jeder andere Server bekommt deinen gespeicherten
-  Schlüssel (praktisch für OpenAI-kompatible Anbieter); nutze nur Server, denen
-  du ihn anvertraust.
+  Schlüssel (praktisch für OpenAI-kompatible Anbieter), auch wenn er für OpenAI
+  gedacht ist; nutze nur Server, denen du ihn anvertraust.
 - Mit eigenem Server sind Modellnamen frei, mit OpenAI gelten nur die bekannten
   Transkriptionsmodelle. `settings server off` setzt ein Modell zurück, das
   OpenAI nicht anbietet.
 - Alternativ setzt die Umgebungsvariable `OPENAI_BASE_URL` die Adresse; eine
   gespeicherte Adresse hat Vorrang. Hyprland muss die Variable sehen, nicht
-  nur deine Shell.
+  nur deine Shell. Wer diese Variable für deine Sitzung setzen kann, leitet
+  deine Aufnahmen, Texte und, bei einer `https://`-Adresse außerhalb dieses
+  Rechners, deinen API-Schlüssel an diesen Server um.
 - Lokale Modelle auf dem Prozessor sind langsam, deshalb wartet OpenDictate
   bei einem eigenen Server bis zu 2 Minuten (plus Upload-Zeit) statt
   15 Sekunden.
@@ -240,7 +247,9 @@ bestimmter Server funktioniert, ist genau die Rückmeldung, die uns hilft.
   Standard (`*`) markiert ist; Mikrofon anstecken oder wählen und erneut
   versuchen.
 - Das Protokoll `~/.local/state/opendictate/operations.log` enthält Abläufe und
-  Zeiten, aber nie deinen Text, deinen Schlüssel oder Audio.
+  Zeiten, aber nie deinen Text, deinen Schlüssel oder Audio. Nur du kannst es
+  lesen; ab 1 MiB wandert es nach `operations.log.1`, und nur diese eine ältere
+  Datei bleibt.
 - Fehler und Wünsche bitte als
   [GitHub Issue](https://github.com/HerrStolzier/OpenDictate/issues/new?template=linux-beta-feedback.md) melden,
   mit `opendictate version`, Hyprland-Version (`hyprctl version`), dem
@@ -361,7 +370,9 @@ Quelle per Pipe (`trusted-secret-command | opendictate secrets set-api-key`).
   erprobt ([Plan mit Nachweis](../docs/linux-live-translation-plan.md)).
 - Ein nichtleeres Transkript wird ausschließlich in die Wayland-Zwischenablage
   geschrieben. Erst nach erfolgreichem Copy darf die zugehörige Aufnahme
-  entfernt werden.
+  entfernt werden. Ein Verlauf für die Zwischenablage (etwa cliphist, clipman
+  oder der deiner Desktop-Shell) behält eine eigene Kopie jedes Transkripts;
+  das kann OpenDictate weder verhindern noch löschen.
 - Auto-Einfügen (Standard an, `settings insert off` schaltet es ab): Beim
   Start wird das aktive Hyprland-Fenster erfasst. Nach dem Kopieren prüft das
   CLI, dass genau dieses Fenster noch vorne ist und die Zwischenablage noch den
@@ -404,7 +415,9 @@ Quelle per Pipe (`trusted-secret-command | opendictate secrets set-api-key`).
 
 Zustand liegt unter `$XDG_STATE_HOME/opendictate/` (sonst
 `~/.local/state/opendictate/`), Einstellungen unter
-`$XDG_CONFIG_HOME/opendictate/`. Anwendungs-, Pending- und Recovery-Verzeichnisse
+`$XDG_CONFIG_HOME/opendictate/` (sonst `~/.config/opendictate/`). Leere oder
+relative `XDG_*`-Werte werden ignoriert; ohne absolutes `HOME` bricht
+OpenDictate mit einer Meldung ab. Anwendungs-, Pending- und Recovery-Verzeichnisse
 sind echte Verzeichnisse mit Modus `0700`; Audiodateien und Nachweise `0600`.
 
 ### Noch offen

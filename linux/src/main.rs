@@ -20,6 +20,8 @@ mod window;
 
 #[cfg(test)]
 mod test_http;
+#[cfg(test)]
+mod test_support;
 
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, IsTerminal, Read, Write};
@@ -157,7 +159,7 @@ fn run(args: Vec<String>) -> Result<(), String> {
 fn toggle() -> Result<(), String> {
     // Held until this call returns: a second `toggle` before the worker has
     // even bound its socket is refused instead of starting another worker.
-    let _lock = lock_toggle()?;
+    let _lock = lock_toggle()?.ok_or_else(starting)?;
     let socket = paths::socket_path().map_err(path_error)?;
     let state_path = paths::state_path().map_err(path_error)?;
     match state::read(&state_path, &socket) {
@@ -190,7 +192,9 @@ fn toggle() -> Result<(), String> {
     }
 }
 
-fn lock_toggle() -> Result<File, String> {
+/// Takes the lock shared by `toggle` and `retry`; `None` while another
+/// command holds it.
+fn lock_toggle() -> Result<Option<File>, String> {
     let file = OpenOptions::new()
         .create(true)
         .truncate(false)
@@ -200,15 +204,15 @@ fn lock_toggle() -> Result<File, String> {
         .map_err(path_error)?;
     // SAFETY: flock only reads the descriptor, which `file` keeps open.
     if unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) } != 0 {
-        return Err(match io::Error::last_os_error().kind() {
-            io::ErrorKind::WouldBlock => starting(),
-            _ => tr!(
+        return match io::Error::last_os_error().kind() {
+            io::ErrorKind::WouldBlock => Ok(None),
+            _ => Err(tr!(
                 "Aufnahme konnte nicht starten.",
                 "Recording could not start."
-            ),
-        });
+            )),
+        };
     }
-    Ok(file)
+    Ok(Some(file))
 }
 
 fn starting() -> String {
@@ -222,10 +226,7 @@ fn start_worker() -> Result<(), String> {
     let exe = std::env::current_exe()
         .map_err(|_| tr!("Programmdatei nicht gefunden.", "Program file not found."))?;
     let log = paths::worker_log_path().map_err(path_error)?;
-    let log_file = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&log)
+    let log_file = open_operations_log(&log)
         .map_err(|_| tr!("Protokoll nicht schreibbar.", "Log is not writable."))?;
     let mut command = Command::new(exe);
     command
@@ -556,7 +557,7 @@ fn settings_translation_model(model: &str) -> Result<(), String> {
 fn shortcut_status() -> Result<(), String> {
     let binds = shortcut::active_binds();
     let current = shortcut::current(binds.as_deref());
-    let config = match shortcut::detect(&shortcut::hypr_dir()) {
+    let config = match shortcut::detect(&shortcut::hypr_dir().map_err(path_error)?) {
         Some(target) => format!(
             "{} ({})",
             shortcut::display_path(&target.path),
@@ -890,13 +891,8 @@ fn worker() -> Result<(), String> {
         return Err(error);
     }
     log_ops("recording-started");
-    let event =
-        ipc::wait_for_stop(&listener, Instant::now() + record::MAX_RECORDING).map_err(|_| {
-            tr!(
-                "Aufnahme konnte nicht beendet werden.",
-                "Recording could not be stopped."
-            )
-        })?;
+    prune_stale_pending();
+    let event = ipc::wait_for_stop(&listener, Instant::now() + record::MAX_RECORDING, &log_ops);
     state_guard
         .set(state::State::Processing)
         .map_err(path_error)?;
@@ -1013,6 +1009,15 @@ fn process_new_recording(
 }
 
 fn retry(skipped: bool) -> Result<(), String> {
+    // Same lock as `toggle`, held until the socket and the Processing state
+    // are in place: a retry cannot take the socket from a worker that
+    // `toggle` is starting, and a later `toggle` sees Processing.
+    let toggle_lock = lock_toggle()?.ok_or_else(|| {
+        tr!(
+            "OpenDictate ist gerade beschäftigt. Versuch es gleich nochmal.",
+            "OpenDictate is busy right now. Try again in a moment."
+        )
+    })?;
     let socket = paths::socket_path().map_err(path_error)?;
     let _listener = ipc::bind_socket(&socket).map_err(|error| {
         if error.kind() == io::ErrorKind::AddrInUse {
@@ -1036,6 +1041,7 @@ fn retry(skipped: bool) -> Result<(), String> {
         state::State::Processing,
     )
     .map_err(path_error)?;
+    drop(toggle_lock);
     let auth = keyring::recording_auth()?;
     let recovery_dir = paths::recovery_dir().map_err(path_error)?;
     recovery::prune(&recovery_dir, &auth)?;
@@ -1151,6 +1157,18 @@ fn prune_kept_recordings() {
     }
 }
 
+/// Removes pending audio past the 24-hour limit; its secured copy could not
+/// be made, so `retry` would never send it. Best effort.
+fn prune_stale_pending() {
+    let Ok(pending_dir) = paths::pending_dir() else {
+        return;
+    };
+    let removed = recovery::prune_stale_pending(&pending_dir);
+    if removed > 0 {
+        log_ops(&format!("pending-pruned files={removed}"));
+    }
+}
+
 fn preserve_recording(path: &Path, skipped: bool) -> Result<(), String> {
     if !path.exists() {
         return Ok(());
@@ -1198,10 +1216,34 @@ fn log_ops(event: &str) {
     let Ok(path) = paths::worker_log_path() else {
         return;
     };
-    let Ok(mut file) = OpenOptions::new().create(true).append(true).open(path) else {
+    let Ok(mut file) = open_operations_log(&path) else {
         return;
     };
     let _ = writeln!(file, "{event}");
+}
+
+/// Above this size the operations log moves to `operations.log.1`, replacing
+/// the previous one, so at most two bounded files exist.
+const OPERATIONS_LOG_LIMIT: u64 = 1_024 * 1_024;
+
+/// Opens the operations log for appending, owner-only (also when an older
+/// version created it with a wider mode) and never through a symbolic link.
+fn open_operations_log(path: &Path) -> io::Result<File> {
+    use std::os::unix::fs::PermissionsExt;
+
+    if fs::symlink_metadata(path).is_ok_and(|metadata| metadata.len() > OPERATIONS_LOG_LIMIT) {
+        let mut rotated = path.as_os_str().to_owned();
+        rotated.push(".1");
+        fs::rename(path, rotated)?;
+    }
+    let file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .mode(0o600)
+        .custom_flags(libc::O_NOFOLLOW)
+        .open(path)?;
+    file.set_permissions(fs::Permissions::from_mode(0o600))?;
+    Ok(file)
 }
 
 fn path_error(error: io::Error) -> String {
@@ -1246,5 +1288,43 @@ mod tests {
     fn version_is_a_command() {
         assert!(run(vec!["version".to_string()]).is_ok());
         assert!(run(vec!["--version".to_string()]).is_ok());
+    }
+
+    #[test]
+    fn operations_log_is_owner_only_and_rotates_once() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let dir = test_support::unique_temp_dir("operations-log");
+        let log = dir.join("operations.log");
+        let rotated = dir.join("operations.log.1");
+        fs::write(&log, b"old\n").unwrap();
+        fs::set_permissions(&log, fs::Permissions::from_mode(0o644)).unwrap();
+        writeln!(open_operations_log(&log).unwrap(), "event").unwrap();
+        let mode = fs::metadata(&log).unwrap().permissions().mode() & 0o777;
+        assert_eq!(mode, 0o600);
+        assert_eq!(fs::read_to_string(&log).unwrap(), "old\nevent\n");
+        assert!(!rotated.exists());
+
+        fs::write(&rotated, b"older").unwrap();
+        fs::write(&log, vec![b'x'; OPERATIONS_LOG_LIMIT as usize + 1]).unwrap();
+        writeln!(open_operations_log(&log).unwrap(), "fresh").unwrap();
+        assert_eq!(fs::read_to_string(&log).unwrap(), "fresh\n");
+        assert_eq!(
+            fs::metadata(&rotated).unwrap().len(),
+            OPERATIONS_LOG_LIMIT + 1
+        );
+        let mode = fs::metadata(&log).unwrap().permissions().mode() & 0o777;
+        assert_eq!(mode, 0o600);
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn operations_log_is_not_opened_through_a_link() {
+        let dir = test_support::unique_temp_dir("operations-log-link");
+        let target = dir.join("elsewhere");
+        fs::write(&target, b"").unwrap();
+        std::os::unix::fs::symlink(&target, dir.join("operations.log")).unwrap();
+        assert!(open_operations_log(&dir.join("operations.log")).is_err());
+        let _ = fs::remove_dir_all(&dir);
     }
 }

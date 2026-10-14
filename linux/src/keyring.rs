@@ -192,7 +192,7 @@ fn clear(key: &str) -> Result<(), String> {
     }
 }
 
-fn random_hex(bytes: usize) -> Result<String, String> {
+pub fn random_hex(bytes: usize) -> Result<String, String> {
     let mut buf = vec![0u8; bytes];
     std::fs::File::open("/dev/urandom")
         .and_then(|mut file| file.read_exact(&mut buf))

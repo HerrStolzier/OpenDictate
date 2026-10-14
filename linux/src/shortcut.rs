@@ -13,6 +13,8 @@ use crate::i18n::t;
 
 const COMMAND: &str = "opendictate toggle";
 const MARKER: &str = "OpenDictate: start and stop dictation (opendictate setup)";
+/// Config backups kept next to a file, the one just made included.
+const KEEP_BACKUPS: usize = 3;
 
 /// Hyprland's modifier bits in `hyprctl binds -j`.
 const MOD_ALT: u64 = 8;
@@ -111,12 +113,8 @@ impl Target {
     }
 }
 
-pub fn hypr_dir() -> PathBuf {
-    std::env::var_os("XDG_CONFIG_HOME")
-        .map(PathBuf::from)
-        .or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".config")))
-        .unwrap_or_else(|| PathBuf::from(".config"))
-        .join("hypr")
+pub fn hypr_dir() -> std::io::Result<PathBuf> {
+    Ok(crate::paths::config_home()?.join("hypr"))
 }
 
 /// A path for messages, with the home folder shortened to `~`.
@@ -368,6 +366,51 @@ pub fn install(choice: Choice, target: &Target) -> Result<Installed, String> {
         replaced,
         written: updated,
     })
+}
+
+impl Installed {
+    /// Called once Hyprland took the bind (or will at its next start): only
+    /// then are older backups dropped, so a rolled-back change loses none.
+    pub fn prune_older_backups(&self) {
+        prune_backups(&self.backup);
+    }
+}
+
+/// Keeps `current` and the newest other backups of the same file, up to
+/// `KEEP_BACKUPS` in all, and removes older ones. These are copies of the
+/// Hyprland config, never recordings. Only regular files are removed.
+fn prune_backups(current: &Path) {
+    let (Some(dir), Some(name)) = (current.parent(), current.file_name()) else {
+        return;
+    };
+    let Some(prefix) = name
+        .to_str()
+        .and_then(|name| name.rsplit_once(".opendictate-backup-"))
+        .map(|(file, _)| format!("{file}.opendictate-backup-"))
+    else {
+        return;
+    };
+    let Ok(entries) = fs::read_dir(dir) else {
+        return;
+    };
+    let mut older: Vec<(u64, PathBuf)> = entries
+        .flatten()
+        .filter(|entry| entry.path() != current)
+        .filter(|entry| entry.file_type().is_ok_and(|kind| kind.is_file()))
+        .filter_map(|entry| {
+            let stamp = entry
+                .file_name()
+                .to_str()?
+                .strip_prefix(&prefix)?
+                .parse::<u64>()
+                .ok()?;
+            Some((stamp, entry.path()))
+        })
+        .collect();
+    older.sort_by(|left, right| right.cmp(left));
+    for (_, path) in older.into_iter().skip(KEEP_BACKUPS - 1) {
+        let _ = fs::remove_file(path);
+    }
 }
 
 /// Puts the config from before `install` back, for a bind Hyprland did not
@@ -640,9 +683,7 @@ bind = , F9, exec, opendictate toggle
 
     #[test]
     fn install_keeps_a_backup_and_detects_the_omarchy_file() {
-        let dir = std::env::temp_dir().join(format!("opendictate-hypr-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&dir);
-        fs::create_dir_all(&dir).unwrap();
+        let dir = crate::test_support::unique_temp_dir("hypr");
         assert_eq!(detect(&dir), None);
         fs::write(dir.join("hyprland.conf"), "source = ~/x.conf\n").unwrap();
         assert_eq!(detect(&dir).unwrap().style, Style::Classic);
@@ -667,8 +708,7 @@ bind = , F9, exec, opendictate toggle
 
     #[test]
     fn install_and_restore_replace_the_file_behind_a_symlink() {
-        let dir = std::env::temp_dir().join(format!("opendictate-link-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&dir);
+        let dir = crate::test_support::unique_temp_dir("link");
         fs::create_dir_all(dir.join("dotfiles")).unwrap();
         let real = dir.join("dotfiles").join("bindings.conf");
         let original = "bind = SUPER, RETURN, exec, kitty\nbind = , F9, exec, opendictate toggle\n";
@@ -708,6 +748,63 @@ bind = , F9, exec, opendictate toggle
             .filter(|name| name.starts_with('.'))
             .collect();
         assert!(leftovers.is_empty(), "{leftovers:?}");
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn pruning_leaves_only_the_newest_backups() {
+        let dir = crate::test_support::unique_temp_dir("hypr-backups");
+        let path = dir.join("bindings.conf");
+        fs::write(&path, "bind = SUPER, RETURN, exec, kitty\n").unwrap();
+        for stamp in [10, 20, 30, 40] {
+            fs::write(
+                dir.join(format!("bindings.conf.opendictate-backup-{stamp}")),
+                "",
+            )
+            .unwrap();
+        }
+        fs::write(dir.join("hyprland.conf.opendictate-backup-1"), "").unwrap();
+        fs::write(dir.join("bindings.conf.opendictate-backup-x"), "").unwrap();
+        let target = Target {
+            path: path.clone(),
+            style: Style::Classic,
+        };
+        let installed = install(Choice::SuperD, &target).unwrap();
+        let count = || {
+            fs::read_dir(&dir)
+                .unwrap()
+                .filter(|entry| {
+                    let name = entry.as_ref().unwrap().file_name();
+                    name.to_string_lossy()
+                        .starts_with("bindings.conf.opendictate-backup-")
+                })
+                .count()
+        };
+        // A bind Hyprland may still reject keeps every earlier backup.
+        assert_eq!(count(), 6);
+        installed.prune_older_backups();
+        assert_eq!(count(), 4);
+        let mut left: Vec<String> = fs::read_dir(&dir)
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+            .filter(|name| name.contains(".opendictate-backup-"))
+            .collect();
+        left.sort();
+        let current = installed
+            .backup
+            .file_name()
+            .unwrap()
+            .to_string_lossy()
+            .into_owned();
+        let mut expected = vec![
+            current,
+            "bindings.conf.opendictate-backup-30".to_string(),
+            "bindings.conf.opendictate-backup-40".to_string(),
+            "bindings.conf.opendictate-backup-x".to_string(),
+            "hyprland.conf.opendictate-backup-1".to_string(),
+        ];
+        expected.sort();
+        assert_eq!(left, expected);
         let _ = fs::remove_dir_all(&dir);
     }
 }

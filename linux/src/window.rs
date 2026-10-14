@@ -1,5 +1,7 @@
 use std::process::{Command, Stdio};
 
+use serde::Deserialize;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TargetWindow {
     pub address: String,
@@ -18,38 +20,21 @@ pub fn active_window() -> Option<TargetWindow> {
     parse_active_window(&String::from_utf8_lossy(&output.stdout))
 }
 
-fn parse_active_window(json: &str) -> Option<TargetWindow> {
-    let address = json_string_field(json, "address")?;
-    let class = json_string_field(json, "class").unwrap_or_default();
-    if address.is_empty() {
-        return None;
-    }
-    Some(TargetWindow { address, class })
+/// The two fields used from `hyprctl activewindow -j`. Other fields, such as
+/// the window title, are skipped while parsing and never kept.
+#[derive(Deserialize)]
+struct ActiveWindow {
+    address: Option<String>,
+    class: Option<String>,
 }
 
-fn json_string_field(json: &str, field: &str) -> Option<String> {
-    let needle = format!("\"{field}\"");
-    let rest = json.split(&needle).nth(1)?;
-    let rest = rest.trim_start_matches([' ', ':']);
-    let rest = rest.trim_start();
-    if !rest.starts_with('"') {
-        return None;
-    }
-    let mut value = String::new();
-    let mut escaped = false;
-    for character in rest.chars().skip(1) {
-        if escaped {
-            value.push(character);
-            escaped = false;
-            continue;
-        }
-        match character {
-            '\\' => escaped = true,
-            '"' => break,
-            other => value.push(other),
-        }
-    }
-    Some(value)
+fn parse_active_window(json: &str) -> Option<TargetWindow> {
+    let window: ActiveWindow = serde_json::from_str(json).ok()?;
+    let address = window.address.filter(|address| !address.is_empty())?;
+    Some(TargetWindow {
+        address,
+        class: window.class.unwrap_or_default(),
+    })
 }
 
 #[cfg(test)]
@@ -66,5 +51,19 @@ mod tests {
         let window = parse_active_window(json).unwrap();
         assert_eq!(window.address, "0xabc");
         assert_eq!(window.class, "foot");
+    }
+
+    #[test]
+    fn parse_reads_escapes_and_rejects_missing_windows() {
+        let window = parse_active_window(r#"{"class":"a\"b","address":"0x1"}"#).unwrap();
+        assert_eq!(window.class, "a\"b");
+        assert_eq!(window.address, "0x1");
+        assert_eq!(
+            parse_active_window(r#"{"address":"0x2"}"#).unwrap().class,
+            ""
+        );
+        assert!(parse_active_window("{}").is_none());
+        assert!(parse_active_window(r#"{"address":""}"#).is_none());
+        assert!(parse_active_window("Invalid").is_none());
     }
 }
