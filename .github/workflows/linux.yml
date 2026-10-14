@@ -49,3 +49,5 @@ jobs:
         run: rustup toolchain install 1.98.1 --profile minimal --component rustfmt --component clippy
       - name: Run offline Linux checks and release build
         run: bash scripts/ci/check-linux.sh
+      - name: Check the Rust crate list in THIRD_PARTY_NOTICES.md
+        run: python3 scripts/third-party-rust.py --check --offline

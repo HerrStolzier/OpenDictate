@@ -33,8 +33,11 @@ whitespace check compares the checked-out commit with its first parent
 (`git diff --check HEAD^ HEAD`); on pull requests this covers the merge diff
 against the base branch. Local `git diff --check` checks uncommitted edits.
 
-Pull requests that change only Markdown files, `docs/**` or `website/**` skip
-the Swift, Linux and Windows jobs: a small `changes` job in each of these workflows runs
+Pull requests that change only Markdown files, `docs/**` or static website
+content (pages, styles, text, subtitles, images, videos and fonts under
+`website/`) skip the Swift, Linux and Windows jobs; `website/worker.js`,
+`website/site.js`, `website/wrangler.toml` and any other website file type
+count as code. A small `changes` job in each of these workflows runs
 `scripts/ci/docs-only-change.sh` against the merge commit's first parent, and
 the heavy jobs are skipped by condition. Skipped jobs satisfy the required
 checks on `main`. Any other path, an empty diff or a failed detection runs the
@@ -189,6 +192,15 @@ bash scripts/ci/check-linux.sh
 
 The script runs formatting, locked tests, locked Clippy and a locked release
 build. On Ubuntu, CI installs `libasound2-dev` and `pkg-config` first.
+
+After a change to `linux/Cargo.lock`, check the crate list in
+`THIRD_PARTY_NOTICES.md` and regenerate it without `--check` if it differs
+(it reads the lockfile and never changes it; the Linux CI job runs the check
+after its build, offline from the downloaded crates):
+
+```bash
+python3 scripts/third-party-rust.py --check --offline
+```
 
 For changes to the Arch package (`linux/packaging/arch/PKGBUILD`), run on an
 Arch host as a normal user, from that directory:
@@ -345,14 +357,20 @@ bash scripts/ci/scan-secrets.sh [base-commit] [head-commit]
 ```
 
 Workflow lint downloads pinned actionlint 1.7.12 to a temporary directory and
-checks every external action reference for a full commit SHA. The secret scan
+checks every external action reference for a full commit SHA. It then installs
+zizmor 1.30.1, pinned by SHA-256, into a temporary virtual environment and runs
+its offline security audit of the workflows; `.github/zizmor.yml` records the
+one accepted finding (Auto-Merge's `workflow_run` trigger) and why. The secret scan
 downloads Gitleaks 8.30.1 to a temporary directory, verifies its published
 SHA-256, and scans only the selected Git commit range. CI passes the pull
 request base SHA and checked-out `github.sha` (the merge result), or the push
 before/after SHAs. Merge commits are scanned against their first parent so
 changes resolved during a merge are included.
+A range scan reads `.gitleaksignore` from the base commit, so a pull request
+cannot allow its own findings; Gitleaks scans the Git directory, so neither a
+`.gitleaksignore` nor a `.gitleaks.toml` in the checked-out tree takes effect.
 With no arguments, the local script scans the full history reachable from
-current `HEAD`. Gitleaks redacts findings in output and does not contact
+current `HEAD` with the checkout's `.gitleaksignore`. Gitleaks redacts findings in output and does not contact
 providers to validate credentials.
 The scanner keeps its redacted JSON report in its private temporary directory,
 then prints only rule, file, line, commit and fingerprint metadata; it omits
@@ -369,8 +387,33 @@ The findings were suppressed by commit, path, rule and line fingerprint, not
 by excluding files or directories ([Gitleaks fingerprint ignores](https://github.com/gitleaks/gitleaks#additional-configuration)).
 New or changed findings remain visible and fail the scan.
 
-Dependabot groups weekly updates for the repository's Actions, Cargo and NuGet
-manifests, with at most three open update pull requests per ecosystem.
+To allow a new false positive, keep the ignore file and the finding in separate
+pull requests, because a range scan reads `.gitleaksignore` from the base
+commit:
+
+1. Open the pull request with the finding and take the fingerprint
+   (`commit:file:rule:line`) from its failed scan.
+2. Add that fingerprint to `.gitleaksignore` in a separate pull request.
+   Auto-Merge leaves it to Claude because the file is guarded; Claude merges it.
+3. Give the first pull request a new event without rebasing it (a rebase
+   changes the commit and so the fingerprint): push a further commit or close
+   and reopen it. The new event scans against the new base; a re-run of the
+   old run would not, because it keeps the base of its original event. Avoid
+   merging `main` into it: the merge commit would report allowed findings
+   from `main` again under its own fingerprint.
+4. A squash merge creates a new commit on `main`, so its push scan reports the
+   finding again under the new commit's fingerprint. Add that one the same way.
+
+A `gitleaks:allow` comment on the line itself still suppresses a finding
+without this detour; it is visible in review and should stay the exception.
+
+Dependabot groups weekly updates for the repository's Actions, Cargo, NuGet
+(every project under `windows/`) and Swift (the iPhone app's
+`Package.resolved` in its Xcode project) dependencies and proposes .NET SDK
+updates for `windows/global.json`, with at most three open update pull
+requests per ecosystem. Auto-Merge skips these pull requests because Dependabot is
+not the repository owner; a Claude session or a manual review handles them
+(see [SECURITY.md](SECURITY.md)).
 
 ## Shared provider fixtures
 
@@ -388,7 +431,7 @@ The rationale for the retained and removed isolated tests is recorded in
 [`docs/test-signal-audit.md`](docs/test-signal-audit.md).
 
 - `swift test -Xswiftc -warnings-as-errors`: offline logic, lifecycle, HTTP stubs, recovery, logging and synthetic audio-file tests, with compiler warnings treated as failures. Optional benchmark and live API test are skipped by default.
-- `python3 -m unittest discover ...`: offline regression tests for the transcript evaluator and process sampler, including output-file preservation, and for the design-token generator (generated files under `design/generated/` and the Swift and C# copies must match `design/tokens.json`), and for `scripts/website-worker.py` (the website Worker's file hashes must match its pinned commit). CI clones only two commits, so it skips that pin check; run `python3 scripts/website-worker.py --check` locally before deploying the Worker; a change to `website/worker.js` alone counts as documentation-only and skips the Python tests in CI entirely.
+- `python3 -m unittest discover ...`: offline regression tests for the transcript evaluator and process sampler, including output-file preservation, and for the design-token generator (generated files under `design/generated/` and the Swift and C# copies must match `design/tokens.json`), for `scripts/website-worker.py` (the website Worker's file hashes must match its pinned commit), and for which paths make Auto-Merge (`.github/scripts/auto_merge.py`) leave a pull request to Claude: anything under `.github/`, `scripts/ci/` or `.claude/`, plus `CLAUDE.md`, `AGENTS.md`, `.gitleaksignore` and `.gitattributes`, because a pull request must not merge itself when it changes the checks or rules that judge it. CI clones only two commits, so it skips that pin check; run `python3 scripts/website-worker.py --check` locally before deploying the Worker; a change to `website/worker.js` runs the full jobs, so these Python tests run with it.
 - `swift format lint --strict --configuration .swift-format --recursive Sources Tests Package.swift`: project formatting; lint warnings cause a failed check.
 - `./scripts/build-app.sh`: release bundle, Plist, signature and Hardened Runtime verification. Does not launch/install it.
 - `git diff --check` and `bash -n` for all scripts listed above before handoff.

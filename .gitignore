@@ -2,7 +2,7 @@
 .build/
 .swiftpm/
 DerivedData/
-*.xcuserdata/
+xcuserdata/
 *.xcuserstate
 linux/target/
 
@@ -12,6 +12,12 @@ linux/target/
 !.env.example
 *.pem
 *.key
+*.p12
+*.p8
+*.cer
+*.mobileprovision
+.dev.vars
+.wrangler/
 *.local
 CLAUDE.local.md
 __pycache__/

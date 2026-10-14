@@ -31,7 +31,7 @@ Windows-Job der CI offline geprüft; die Live-Abnahme kommt am Ende.
 | 7. Live-Abnahme: Installation, ein echtes Diktat in den Editor und in den Spielchat im Vollbild, Kürzel | nein, braucht einen Windows-PC | offen |
 | 8. Beta: Pre-Release oder Store-Testgruppe, Issue-Vorlage | Veröffentlichen nur mit Bastis Go | offen |
 
-Schritt 7 läuft auf Bastis Windows-PC `xmg` (am 28. September per SSH
+Schritt 7 läuft auf Bastis Windows-PC (am 28. September per SSH
 erreichbar, [Geräteprüfung](platform-audit-2026-09-28.md); am 11. Oktober von
 Basti als vorhanden bestätigt), mit seinem Go und angeschlossenem Mikrofon.
 Zu prüfen sind dort vor allem, was ohne Gerät nicht geht: Hook und beide

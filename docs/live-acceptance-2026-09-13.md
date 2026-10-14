@@ -25,7 +25,7 @@ Keine erneute pauschale Testserie: Der Quellstand blieb unverändert und seine 9
 Die installierte Benutzer-App wurde inzwischen bewusst aktualisiert. Frühere
 Aussagen oben zur nicht ersetzten App beziehen sich auf die damaligen Schritte.
 
-- Fester Startort: `/Users/basti/Applications/OpenDictate.app`. Sicherung der vorherigen
+- Fester Startort: `~/Applications/OpenDictate.app`. Sicherung der vorherigen
   Fassung: `outputs/backups/OpenDictate-vor-Alltagsfassung.app` im Aufgabenordner.
   Die regulären Dateien der Sicherung wurden vor dem Austausch byteweise geprüft.
 - Installiertes Release-Programm SHA-256:

@@ -7,8 +7,8 @@ verwendet; keine Zugangsdaten oder Dienstkonfiguration geändert.
 
 ## Linux
 
-- Rechner `omarchy`: Linux 7.2.5-3-omarchy, Rust/Cargo 1.98.1.
-- Vorhandener Checkout `/home/basti/Desktop/projekte-grok/OpenDictate`:
+- Bastis Linux-Rechner (Omarchy): Linux 7.2.5-3-omarchy, Rust/Cargo 1.98.1.
+- Vorhandener Checkout `~/Desktop/projekte-grok/OpenDictate`:
   sauber auf `68ef919b550eedb982e71405bb4d4d6bb9c27e93`. Der dortige lokale
   `origin/main` ist kein Nachweis des heutigen GitHub-Stands.
 - Gegenüber der aktuellen Audit-Basis `5b95535` unterscheidet sich der Rust-Code
@@ -28,7 +28,7 @@ Linux Phase 1 bleibt daher trotz bestandener Offline-Prüfungen offen.
 
 ## Windows
 
-- Anmeldung auf `xmg` bestätigt; .NET SDK 10.0.401 vorhanden.
+- Anmeldung auf Bastis Windows-PC bestätigt; .NET SDK 10.0.401 vorhanden.
 - Der Quellbaum unter
   `%LOCALAPPDATA%\OpenDictateBuild\Prototype-80cbffd838c4` bezeichnet das
   Quellarchiv `80cbffd838c45b5198406283d242f810ddae2df1e1d5785de01fada2629b78b4`.
@@ -60,7 +60,7 @@ heutige Offline-Prüfung und historische sichtbare Abnahme.
 ## Nachweise und Grenze
 
 Lokale Nachweise liegen unter
-`/Users/basti/.codex/artifacts/opendictate/code-reduction-20260928/`:
+`~/.codex/artifacts/opendictate/code-reduction-20260928/`:
 `linux-checks.log`, `linux-replay-command.txt`, `linux-cleanup.log`,
 `windows-checks.log`, `windows-source-inventory.json`, `windows-cleanup.log`
 und das Hilfsskript `remote_windows.py`.

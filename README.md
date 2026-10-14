@@ -59,7 +59,8 @@ The app's menus are in German for now.
 
 Everything else, from the settings to your own server and what happens to a
 failed recording, is in [the details](docs/mac-details.md). How your audio and
-text travel is in [PRIVACY.md](PRIVACY.md).
+text travel is in [PRIVACY.md](PRIVACY.md). Found a security problem? Please
+report it privately as described in [SECURITY.md](SECURITY.md) (German).
 
 ## Using your own server
 

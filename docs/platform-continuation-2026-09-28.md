@@ -8,7 +8,7 @@ in [ROADMAP](../ROADMAP.md), der aktuelle Übergabestand in
 ## Windows: vorhandene Schutzprüfungen abgeschlossen
 
 Der vorhandene Prototyp wurde unverändert in einer eigenen temporären Kopie
-auf `xmg` geprüft. Die 37 zuvor verglichenen Quell-/Projekt-/Skriptdateien
+auf Bastis Windows-PC geprüft. Die 37 zuvor verglichenen Quell-/Projekt-/Skriptdateien
 stimmen weiterhin mit dem lokalen Hashinventar überein. Zusätzlich zu den
 bereits bestandenen 23 Kern-/Ablaufprüfungen bestanden **18/18 Schutzprüfungen**
 im angemeldeten Desktop, mit normalen Benutzerrechten: insgesamt 41/41.
@@ -43,7 +43,7 @@ als öffentliche Downloadartefakte ausgegeben.
 ## Linux: isolierter Kandidat und Schlüsselvorbereitung
 
 Aus `1f895537e9b36d962eb1425113423da377e95b1b` wurde ausschließlich `linux/`
-in eine eigene temporäre Kopie auf `omarchy` übertragen und mit
+in eine eigene temporäre Kopie auf Bastis Linux-Rechner übertragen und mit
 `cargo build --offline --locked --release` gebaut. Das bestehende
 Linux-Checkout blieb unverändert. Binär-SHA-256:
 `0b6122eb5ccfc6d942cdb1eb9ba4161b29cf330ee06142285ae2e500a950a849`.
