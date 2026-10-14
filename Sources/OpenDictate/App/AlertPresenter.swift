@@ -114,17 +114,31 @@ enum AlertPresenter {
             translationModel: trimmed(translation))
     }
 
-    static func promptForAPIKey(initialValue: String?) -> String? {
+    /// Shows only the masked form of a stored key (see `APIKeyEntry`); the key
+    /// itself never goes back into a text field.
+    static func promptForAPIKey(stored: APIKeyEntry.Stored) -> String? {
         let alert = NSAlert()
         alert.messageText = "OpenAI-API-Schlüssel einrichten"
         alert.informativeText =
             "Füge deinen API-Schlüssel von OpenAI ein. Die Kosten rechnet OpenAI direkt mit dir ab. "
             + "Der Schlüssel bleibt im macOS-Schlüsselbund."
+        switch stored {
+        case .missing:
+            break
+        case .readable(let hint):
+            alert.informativeText +=
+                "\n\nGespeichert ist der Schlüssel \(hint). Lässt du das Feld leer, bleibt er unverändert."
+        case .unreadable:
+            alert.informativeText +=
+                "\n\nIm Schlüsselbund liegt schon ein Schlüssel, OpenDictate konnte ihn aber gerade nicht lesen. "
+                + "Lässt du das Feld leer, bleibt er unverändert."
+        }
         alert.alertStyle = .informational
         alert.addButton(withTitle: "Speichern")
         alert.addButton(withTitle: "Abbrechen")
 
-        let inputView = APIKeyInputView(initialValue: initialValue)
+        let inputView = APIKeyInputView(
+            storedHint: stored == .unreadable ? "der gespeicherte Schlüssel" : stored.hint)
         alert.accessoryView = inputView
 
         guard alert.runModal() == .alertFirstButtonReturn else {

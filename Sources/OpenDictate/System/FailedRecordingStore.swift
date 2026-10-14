@@ -146,6 +146,39 @@ enum FailedRecordingStore {
         return removed
     }
 
+    /// Removes recording originals that a crash or a failed recovery copy left
+    /// in the temporary directory, once they reach the recovery age limit.
+    /// Younger ones stay: they may be the only copy of a dictation.
+    @discardableResult
+    static func removeExpiredTemporaryOriginals(
+        now: Date = Date(), in directoryURL: URL = FileManager.default.temporaryDirectory,
+        log: (String) -> Void = AppLog.write
+    ) -> Int {
+        let keys: [URLResourceKey] = [
+            .isRegularFileKey, .isSymbolicLinkKey, .contentModificationDateKey, .creationDateKey
+        ]
+        let contents =
+            (try? FileManager.default.contentsOfDirectory(
+                at: directoryURL, includingPropertiesForKeys: keys, options: [.skipsHiddenFiles])) ?? []
+        let entries = contents.compactMap { url -> RecordingRetention.Entry? in
+            guard TemporaryRecordings.isRecordingName(url.lastPathComponent),
+                let values = try? url.resourceValues(forKeys: Set(keys)),
+                values.isRegularFile == true, values.isSymbolicLink != true,
+                // The later of both dates, so a file is never judged older than it is.
+                let newest = [values.creationDate, values.contentModificationDate].compactMap({ $0 }).max()
+            else { return nil }
+            return RecordingRetention.Entry(url: url, created: newest)
+        }
+        var removed = 0
+        for entry in TemporaryRecordings.expired(from: entries, now: now) where unlinkFile(entry.url) {
+            removed += 1
+        }
+        if removed > 0 {
+            log("Removed \(removed) temporary recording(s) older than 24 hours")
+        }
+        return removed
+    }
+
     static func candidateAudioURLs(in directoryURL: URL? = nil) -> [URL] {
         let directoryURL = directoryURL ?? directory
         let contents =

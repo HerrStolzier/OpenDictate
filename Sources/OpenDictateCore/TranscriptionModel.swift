@@ -25,10 +25,12 @@ public struct TranscriptionModel: RawRepresentable, Sendable, Equatable, Hashabl
     /// Models that will not work against `POST /v1/audio/transcriptions`.
     public static let realtimeOnly: Set<TranscriptionModel> = [.gptLiveTranscribe]
 
-    /// False only for models this build knows are realtime-only. Unknown
+    /// False for models this build knows are realtime-only and for names that
+    /// `ModelName` rejects, such as ones with spaces, quotes or line breaks from
+    /// `OPENAI_TRANSCRIBE_MODEL` or a hand-edited setting. Other unknown
     /// identifiers are assumed usable so new models need no code change.
     public var isUsableForUpload: Bool {
-        !Self.realtimeOnly.contains(self)
+        ModelName.isValid(rawValue) && !Self.realtimeOnly.contains(self)
     }
 
     /// USD per minute of audio, for the models this build knows about.
@@ -52,6 +54,11 @@ public struct TranscriptionModel: RawRepresentable, Sendable, Equatable, Hashabl
     /// User-facing (German) reason this model cannot be used for the record-then-upload flow, or nil.
     public var uploadRejectionReason: String? {
         guard !isUsableForUpload else { return nil }
+        // An invalid name is not repeated: it may hold line breaks or control characters.
+        guard ModelName.isValid(rawValue) else {
+            return "Der eingestellte Modellname ist ungültig. Erlaubt sind Buchstaben, Ziffern und - . _ / :. "
+                + "Ohne OPENAI_TRANSCRIBE_MODEL nutzt OpenDictate wieder \(Self.default.rawValue)."
+        }
         return "„\(rawValue)“ ist ein Echtzeitmodell und funktioniert mit OpenDictate nicht. "
             + "Wähl in den Einstellungen ein anderes Modell. "
             + "Ohne OPENAI_TRANSCRIBE_MODEL nutzt OpenDictate wieder \(Self.default.rawValue)."

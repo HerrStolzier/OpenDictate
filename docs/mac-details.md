@@ -9,7 +9,14 @@ what happens when something fails, your own server, and the permissions.
 
 The API key is stored in the macOS Keychain. Never put it in a command, environment
 variable, checked-in file or log. If the key is missing or wrong, the app tells you
-what to do; the key dialog supports normal macOS editing shortcuts.
+what to do; the key dialog supports normal macOS editing shortcuts. The dialog
+never shows a saved key again: it names it only by its start and last four
+characters (such as `sk-…abcd`), and saving with an empty field keeps it. If
+the saved key cannot be read right now, the dialog says so, and an empty field
+still keeps it.
+Keychain reads and writes run in the background, so the menu stays responsive;
+if the helper does not answer within 60 seconds, the request fails and you can
+try again.
 If macOS asks whether **OpenDictateKeychainHelper** may access an existing
 Keychain item, verify the request and choose **Always Allow** for that item.
 The helper is installed once in OpenDictate's Application Support directory and
@@ -145,7 +152,8 @@ see [PRIVACY.md](../PRIVACY.md#last-transcript-and-temporary-originals). A retry
 the file only after a non-empty transcript has reached the clipboard. Clipboard
 failures preserve the audio on disk and the last transcript in memory. Use
 `Gesicherte Aufnahmen löschen …` to delete the app's managed retained or legacy
-recordings. Temporary originals are outside that action.
+recordings. Temporary originals are outside that action; at launch the app
+deletes the ones that are at least 24 hours old, never younger ones.
 
 Recordings classified as too short or too quiet are retained for a deliberate manual retry. These heuristics do not prove that no speech exists; they never trigger an automatic upload.
 An empty recording, where the microphone delivered no audio at all, has nothing to resend: the app says so
@@ -178,7 +186,7 @@ To keep your bill small, OpenDictate:
 Optional environment variables. A choice made in the menu wins over these, so the
 menu is not silently ignored for anyone who exports them:
 
-- `OPENAI_TRANSCRIBE_MODEL`, default `gpt-transcribe`. Set `gpt-4o-mini-transcribe` (approx. $0.003/min, billed by tokens) to trade accuracy for cost. Setting `gpt-live-transcribe` is caught at launch with a warning: it targets the realtime endpoint, not this upload flow.
+- `OPENAI_TRANSCRIBE_MODEL`, default `gpt-transcribe`. Set `gpt-4o-mini-transcribe` (approx. $0.003/min, billed by tokens) to trade accuracy for cost. Setting `gpt-live-transcribe` is caught at launch with a warning: it targets the realtime endpoint, not this upload flow. A name with characters other than ASCII letters, digits and `- . _ / :` (as on the iPhone) is caught the same way and is never sent.
 - `OPENAI_TRANSCRIBE_LANGUAGE`, for example `de`
 - `OPENAI_TRANSCRIBE_PROMPT`, for vocabulary hints. The in-app vocabulary setting overrides this value.
 - `OPENAI_BASE_URL`, the server address as in the OpenAI SDKs, for example
@@ -212,7 +220,10 @@ moves them to the server once.
   with its own model names.
 - **Other servers need `https://`** and receive your saved API key, for
   example a Groq key. Plain `http://` to another computer is rejected, so audio
-  and keys never travel unencrypted over a network.
+  and keys never travel unencrypted over a network. Enter only servers you
+  trust. The address is stored in the app's preferences, not in the Keychain,
+  so any program running under your account could change it (for example with
+  `defaults write`); see [PRIVACY.md](../PRIVACY.md#data-sent-to-openai-or-your-own-server).
 - Redirects are not followed, so audio and text go only to the address you
   entered, never on to another host.
 - If the saved or `OPENAI_BASE_URL` address is not allowed, dictation stops
@@ -254,7 +265,10 @@ it stays on the clipboard. A single line is pasted there as elsewhere, and
 OpenDictate does not send a separate Return. Use clipboard-only mode for targets
 where automatic Paste is unwanted, especially password fields. OpenDictate no
 longer inspects whether the focused control is protected or read-only. The transcript remains on the clipboard for
-manual recovery. Candidate-specific acceptance is tracked in
+manual recovery; OpenDictate does not put the previous clipboard contents back.
+It is marked for clipboard managers as concealed and auto-generated
+(nspasteboard.org), and with Handoff on, Universal Clipboard can offer it on
+your other Apple devices like anything you copy. Candidate-specific acceptance is tracked in
 [remaining acceptance](remaining-acceptance.md).
 
 The indicator shows the elapsed time and counts down the last ten seconds

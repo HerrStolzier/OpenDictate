@@ -47,7 +47,9 @@ selbst (siehe Grenzen).
    Nochmal-Senden an.
 3. Die Aufnahme geht an OpenAI oder den eigenen Server, oder Apples
    Spracherkennung oder Parakeet schreibt sie auf dem iPhone (Einstellung
-   „Erkennung“, siehe unten); mit Zielsprache folgt die Übersetzung. Ist die App vorn, kopiert sie den Text selbst. Im
+   „Erkennung“, siehe unten); mit Zielsprache folgt die Übersetzung. Ist die App vorn, kopiert sie den Text selbst, nur
+   lokal und mit Ablaufzeit: Nach zehn Minuten nimmt iOS ihn wieder aus der
+   Zwischenablage („Nochmal kopieren“ legt ihn erneut ab). Im
    Hintergrund verweigert iOS ihr die Zwischenablage; dann gibt sie den Text
    an den Kurzbefehl zurück, dessen Schritt „In Zwischenablage kopieren“ ihn
    ablegt. Beim Start gibt sie nichts zurück, damit dieser Schritt die
@@ -174,7 +176,9 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
   API-Schlüssel zuordnen kann. Die Angaben im App Store
   werden beim TestFlight-Schritt noch einmal geprüft.
 - Ein eigener Server im Heimnetz braucht `https://`; `http://` gilt nur für
-  einen Server auf dem iPhone selbst. Dazu braucht er die iOS-Freigabe
+  einen Server auf dem iPhone selbst. Jeder Server außerhalb des iPhones
+  bekommt den gespeicherten API-Schlüssel mit; trag nur Server ein, denen du
+  vertraust. Dazu braucht er die iOS-Freigabe
   „Lokales Netzwerk“, die die App beim Öffnen anfragt; aus dem Hintergrund
   fragt iOS nicht (am Gerät noch nicht gesehen).
 

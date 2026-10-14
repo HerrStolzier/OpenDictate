@@ -35,15 +35,36 @@ enum KeychainAPIKeyStore {
         return operations.presence(legacyItem) == errSecItemNotFound
     }
 
+    /// What the Keychain holds. `unreadable` covers an item that exists but
+    /// could not be read (denied, locked, helper timeout or malformed data),
+    /// so callers never treat it like a missing key.
+    enum StoredKey: Equatable, Sendable {
+        case present(String)
+        case missing
+        case unreadable
+    }
+
     static func read(using operations: Operations = .live) -> String? {
+        guard case .present(let key) = stored(using: operations) else { return nil }
+        return key
+    }
+
+    static func stored(using operations: Operations = .live) -> StoredKey {
         let result = operations.read(item)
-        guard case .missing = result else { return key(from: result) }
-        guard let legacyKey = key(from: operations.read(legacyItem)) else { return nil }
+        guard case .missing = result else { return storedKey(from: result) }
+        let legacy = storedKey(from: operations.read(legacyItem))
+        guard case .present(let legacyKey) = legacy else { return legacy }
         // A legacy item may still trust /usr/bin/security. Move the key to the
         // app's own item now; the legacy copy is removed only after that worked,
         // and a failed move keeps the key usable from where it is.
         _ = try? save(legacyKey, using: operations)
-        return legacyKey
+        return legacy
+    }
+
+    private static func storedKey(from result: KeychainItem.ReadResult) -> StoredKey {
+        if case .missing = result { return .missing }
+        guard let key = key(from: result) else { return .unreadable }
+        return .present(key)
     }
 
     private static func key(from result: KeychainItem.ReadResult) -> String? {

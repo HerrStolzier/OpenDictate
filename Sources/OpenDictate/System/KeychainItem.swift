@@ -92,6 +92,13 @@ struct KeychainItem {
         return SecItemDelete(baseQuery as CFDictionary)
     }
 
+    /// Deliberately the file-based login Keychain, without
+    /// `kSecUseDataProtectionKeychain`: the data protection Keychain needs a
+    /// `keychain-access-groups` entitlement, which a Developer ID app only gets
+    /// with a provisioning profile, and OpenDictate ships without one. Items
+    /// are therefore guarded by the file-based Keychain's access list (the
+    /// stable helper's signature) and keep the default accessibility, except
+    /// where a store passes its own to `add`.
     private var baseQuery: [String: Any] {
         [
             kSecClass as String: kSecClassGenericPassword,

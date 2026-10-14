@@ -353,12 +353,19 @@ final class DictationRunner {
         store.newest(excluding: uncopiedRecording)
     }
 
+    /// Long enough to paste the text by hand, short enough that it does not
+    /// linger on the clipboard for the rest of the day.
+    private static let clipboardLifetime: TimeInterval = 10 * 60
+
     /// The setter reports nothing; an unchanged count means iOS refused the
     /// write. Reading the count, unlike the contents, shows no paste prompt.
-    /// "Local only" keeps the text off Universal Clipboard and other devices.
+    /// "Local only" keeps the text off Universal Clipboard and other devices;
+    /// iOS removes it again after `clipboardLifetime`.
     private static func copy(_ text: String) throws {
         let before = UIPasteboard.general.changeCount
-        UIPasteboard.general.setItems([[UTType.utf8PlainText.identifier: text]], options: [.localOnly: true])
+        UIPasteboard.general.setItems(
+            [[UTType.utf8PlainText.identifier: text]],
+            options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(clipboardLifetime)])
         guard UIPasteboard.general.changeCount != before else { throw DictationFailure.clipboardFailed }
     }
 
