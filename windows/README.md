@@ -48,8 +48,11 @@ dort noch unter ihrem alten Namen).
   Server-Adresse ist die Basis-URL mit `/v1`. Ohne Eintrag gilt
   `OPENAI_BASE_URL`, wenn gesetzt (die Einstellungen nennen dann das Ziel), sonst
   OpenAI; ein gespeicherter Eintrag gewinnt. `http://` geht nur für
-  diesen Computer, und dorthin geht kein Schlüssel. Ein eigener Server nimmt
-  freie Modellnamen, OpenAI nur die bekannten.
+  diesen Computer, und dorthin geht kein Schlüssel. Jeder andere eigene
+  Server, auch einer aus `OPENAI_BASE_URL`, bekommt den gespeicherten
+  OpenAI-Schlüssel als Bearer-Token. Trag darum nur Server ein, denen du
+  vertraust. Ein eigener Server nimmt freie Modellnamen, OpenAI nur die
+  bekannten.
 - Meldungen erscheinen auf Deutsch oder Englisch nach der Anzeigesprache von
   Windows und enthalten nie die Antwort des Servers; eine Netzwerkmeldung zum
   eigenen Server nennt nur dessen Host.
@@ -77,7 +80,9 @@ Windows-Beta.
   jede Taste unverändert weiter. Damit beim Loslassen von Strg+Win kein
   Startmenü aufgeht, sendet die App einmal die unbelegte Taste `0xE8`.
 - Einfügen: Der Text kommt in die Zwischenablage, markiert als nicht für den
-  Zwischenablage-Verlauf und die Cloud-Zwischenablage bestimmt. Steuerzeichen
+  Zwischenablage-Verlauf und die Cloud-Zwischenablage bestimmt. Dort bleibt er,
+  bis etwas anderes kopiert wird; Programme, die die Zwischenablage mitlesen,
+  sehen ihn. Steuerzeichen
   aus der Antwort des Dienstes werden vorher entfernt. Strg+V folgt nur in das
   Fenster, das beim Start vorne war, wenn es noch vorne ist, alle
   Zusatztasten losgelassen sind und die Zwischenablage noch den Text hält;
