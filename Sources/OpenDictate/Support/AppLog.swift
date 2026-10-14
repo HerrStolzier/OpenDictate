@@ -54,6 +54,9 @@ final class LogWriter: @unchecked Sendable {
                 }
                 let handle = try FileHandle(forWritingTo: url)
                 defer { try? handle.close() }
+                // A log created by an earlier version or another tool may be
+                // readable by others; restrict it like a new one.
+                _ = fchmod(handle.fileDescriptor, 0o600)
                 try handle.seekToEnd()
                 try handle.write(contentsOf: Data(line.utf8))
             } catch { NSLog("OpenDictate log unavailable") }

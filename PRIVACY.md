@@ -173,7 +173,7 @@ eligible for upload. They remain available to the explicit delete action.
 bundle version, build and source identity, bundle and audio paths, selected model,
 translation setting, input-device and application names,
 durations, levels, status, and error descriptions. It does not intentionally log
-API keys, transcript text, or audio contents. Logging is serialized and rotated at approximately 1 MiB, keeping one previous file. No timed log expiry is implemented.
+API keys, transcript text, or audio contents. Logging is serialized and rotated at approximately 1 MiB, keeping one previous file. The log is readable only by the current user (permissions 0600); an existing log from an earlier version is restricted on the next write. No timed log expiry is implemented.
 
 ## Last transcript and temporary originals
 

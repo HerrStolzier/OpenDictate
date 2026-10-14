@@ -18,4 +18,17 @@ struct LogWriterTests {
         #expect(active.utf8.count <= 500 && previous.utf8.count <= 500)
         #expect(active.split(separator: "\n").allSatisfy { $0.hasPrefix("[") && $0.contains("] record-") })
     }
+
+    @Test func restrictsAnExistingLogToTheOwner() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let url = dir.appendingPathComponent("log")
+        #expect(FileManager.default.createFile(atPath: url.path, contents: nil, attributes: [.posixPermissions: 0o644]))
+        let writer = LogWriter(url: url)
+        writer.write("record")
+        writer.flush()
+        let permissions = try FileManager.default.attributesOfItem(atPath: url.path)[.posixPermissions] as? NSNumber
+        #expect(permissions?.intValue == 0o600)
+    }
 }
