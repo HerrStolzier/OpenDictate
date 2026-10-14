@@ -18,15 +18,6 @@ public enum OpenDictateError: LocalizedError {
     case translationNotConfigured
     case invalidServerAddress
 
-    public var isSkippedRecording: Bool {
-        switch self {
-        case .noSpeechDetected, .recordingTooShort:
-            return true
-        default:
-            return false
-        }
-    }
-
     /// User-facing messages deliberately exclude raw provider and framework errors.
     public static func userMessage(for error: Error) -> String {
         if let error = error as? OpenDictateError { return error.errorDescription ?? "Versuch es nochmal." }
@@ -61,7 +52,7 @@ public enum OpenDictateError: LocalizedError {
         case .noActiveRecording:
             return "Es läuft keine Aufnahme. Starte zuerst ein neues Diktat."
         case .noAudioFile:
-            return "Die Aufnahme konnte nicht gespeichert werden. Prüfe das Mikrofon und starte ein neues Diktat."
+            return "Die Aufnahme ist leer. Prüfe das Mikrofon und starte ein neues Diktat."
         case .noSpeechDetected:
             return
                 "Die Aufnahme war zu leise. Prüfe das Mikrofon und sprich etwas näher hinein. Es wurde nichts gesendet."

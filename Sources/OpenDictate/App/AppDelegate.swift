@@ -65,6 +65,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     if attempt?.recording == nil { attempt?.recording = kept.lastPathComponent }
                     return true
                 },
+                isEmpty: { (try? FileManager.default.attributesOfItem(atPath: $0.path))?[.size] as? Int == 0 },
                 removeRetry: { _ = FailedRecordingStore.remove($0) },
                 clean: { try? FileManager.default.removeItem(at: $0) },
                 copy: { [unowned self] in pasteboard.copy($0) },
@@ -472,11 +473,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         attempt = nil
         indicator.canRetry = false
         guard hasUsableServer() else { return }
-        guard hasAPIKey(for: operation) else { return }
-        guard Config.model.isUsableForUpload else {
-            warnAboutUnusableModelIfNeeded()
-            return
-        }
+        let loadedOptions = await loadOptions()
+        guard lifecycle.isCurrent(operation), !Task.isCancelled, flow.state.canStart else { return }
+        guard let options = usableOptions(loadedOptions, for: operation) else { return }
         let permitted = await AudioRecorder.requestPermission()
         guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
         guard permitted else {
@@ -487,7 +486,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         do {
-            let options = try TranscriptionOptions.current()
             try lifecycle.commit(operation) {
                 guard flow.state.canStart else { return }
                 requestOptions = options
@@ -535,7 +533,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         defer { lifecycle.finish(operation) }
         guard lifecycle.isCurrent(operation), !Task.isCancelled, flow.state.canRetry else { return }
         guard hasUsableServer() else { return }
-        guard hasAPIKey(for: operation) else { return }
+        let loadedOptions = await loadOptions()
+        guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
+        guard let options = usableOptions(loadedOptions, for: operation) else { return }
         let target = currentFrontmostApplication()
         let loaded = await recordingLibrary.load(filename: filename)
         guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
@@ -544,21 +544,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             refreshSavedRecordings()
             return
         }
-        do {
-            let options = try TranscriptionOptions.current()
-            lifecycle.commit(operation) {
-                guard flow.state.canRetry else { return }
-                requestOptions = options
-                previousApplication = target
-                if flow.retry(payload) {
-                    attempt = Attempt(recording: filename)
-                    indicator.canRetry = false
-                    indicator.setTranslating(options.translationTarget != nil)
-                }
+        lifecycle.commit(operation) {
+            guard flow.state.canRetry else { return }
+            requestOptions = options
+            previousApplication = target
+            if flow.retry(payload) {
+                attempt = Attempt(recording: filename)
+                indicator.canRetry = false
+                indicator.setTranslating(options.translationTarget != nil)
             }
-        } catch {
-            guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
-            updateStatus(OpenDictateError.userMessage(for: error))
         }
     }
 
@@ -587,10 +581,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return false
     }
 
-    private func hasAPIKey(for operation: AppLifecycle.Operation) -> Bool {
+    /// Reads the key once per attempt. The Keychain helper is a separate
+    /// process, so the read runs off the main actor.
+    private func loadOptions() async -> Result<TranscriptionOptions, any Error> {
+        // A pending launch check must not overwrite what this attempt finds.
         apiKeyPresenceTask?.cancel()
         apiKeyPresenceTask = nil
-        let available = !Self.needsAPIKey || Config.apiKey != nil
+        return await Task.detached(priority: .userInitiated) {
+            Result<TranscriptionOptions, any Error> { try TranscriptionOptions.current() }
+        }.value
+    }
+
+    /// Shows what the user must fix before this attempt can run; nil stops it.
+    private func usableOptions(
+        _ loaded: Result<TranscriptionOptions, any Error>, for operation: AppLifecycle.Operation
+    ) -> TranscriptionOptions? {
+        switch loaded {
+        case .success(let options):
+            return showAPIKey(available: true, for: operation) ? options : nil
+        case .failure(let error):
+            switch error as? OpenDictateError {
+            case .missingAPIKey?:
+                _ = showAPIKey(available: false, for: operation)
+            case .unusableTranscriptionModel?:
+                // The key was read before the model was checked.
+                guard showAPIKey(available: true, for: operation) else { return nil }
+                warnAboutUnusableModelIfNeeded()
+            default:
+                guard lifecycle.isCurrent(operation) else { return nil }
+                updateStatus(OpenDictateError.userMessage(for: error))
+            }
+            return nil
+        }
+    }
+
+    private func showAPIKey(available: Bool, for operation: AppLifecycle.Operation) -> Bool {
         guard lifecycle.isCurrent(operation) else { return false }
         if available {
             if apiKeyNeedsSetup { menuBar?.updateStatus("Bereit") }

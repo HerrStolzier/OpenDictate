@@ -10,7 +10,7 @@ import Testing
 struct APIKeyPresenceTests {
     @Test func presenceQueryCannotReturnASecretOrPromptForAccess() {
         let item = KeychainItem(account: "setup-test")
-        let missing = item.isMissing { query, result in
+        let status = item.presenceStatus { query, result in
             let attributes = query as NSDictionary
             #expect(attributes[kSecReturnData as String] == nil)
             #expect(attributes[kSecValueData as String] == nil)
@@ -19,14 +19,13 @@ struct APIKeyPresenceTests {
             #expect(result == nil)
             return errSecItemNotFound
         }
-        #expect(missing)
+        #expect(status == errSecItemNotFound)
     }
 
     @Test func existingOrInaccessibleItemsDoNotTriggerFirstRunSetup() {
         let item = KeychainItem(account: "setup-test")
         for status in [errSecSuccess, errSecInteractionNotAllowed, errSecAuthFailed, errSecNotAvailable] {
-            let missing = item.isMissing { _, _ in status }
-            #expect(!missing)
+            #expect(item.presenceStatus { _, _ in status } != errSecItemNotFound)
         }
     }
 }

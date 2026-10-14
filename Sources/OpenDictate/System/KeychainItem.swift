@@ -15,14 +15,8 @@ struct KeychainItem {
 
     let account: String
 
-    /// Check only for absence, without returning secret data or requesting UI.
+    /// Checks only for presence, without returning secret data or requesting UI.
     /// A locked or inaccessible existing item must not trigger first-run setup.
-    func isMissing(
-        matching: ((CFDictionary, UnsafeMutablePointer<CFTypeRef?>?) -> OSStatus)? = nil
-    ) -> Bool {
-        presenceStatus(matching: matching) == errSecItemNotFound
-    }
-
     func presenceStatus(
         matching: ((CFDictionary, UnsafeMutablePointer<CFTypeRef?>?) -> OSStatus)? = nil
     ) -> OSStatus {

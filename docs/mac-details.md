@@ -15,6 +15,9 @@ Keychain item, verify the request and choose **Always Allow** for that item.
 The helper is installed once in OpenDictate's Application Support directory and
 kept unchanged across ordinary app updates. The API key and the recovery key
 are separate items, so each existing item may need its own initial approval.
+The app reads the recovery key when it keeps a recording, once per check of the
+list when a recording is new to it (after each launch, every listed one), and
+when you resend one. If the key could not be read, the next check asks again.
 Enter the Mac password only in the macOS dialog. Do not enable access for all
 applications. Replacing the helper or signing identity can require approval
 again; the separate code-signing private key must retain its restricted access
@@ -139,6 +142,8 @@ failures preserve the audio on disk and the last transcript in memory. Use
 recordings. Temporary originals are outside that action.
 
 Recordings classified as too short or too quiet are retained for a deliberate manual retry. These heuristics do not prove that no speech exists; they never trigger an automatic upload.
+An empty recording, where the microphone delivered no audio at all, has nothing to resend: the app says so
+and leaves the empty temporary file where it is.
 
 ## Cost
 

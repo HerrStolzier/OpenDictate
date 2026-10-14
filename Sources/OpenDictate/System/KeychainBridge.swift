@@ -62,8 +62,18 @@ enum KeychainBridge {
                 process.waitUntilExit()
                 return (errSecNotAvailable, nil)
             }
-            input.fileHandleForWriting.write(request)
-            input.fileHandleForWriting.closeFile()
+            // A helper that exits before reading its request must cost only
+            // this request: no SIGPIPE and no Objective-C exception.
+            let writer = input.fileHandleForWriting
+            _ = fcntl(writer.fileDescriptor, F_SETNOSIGPIPE, 1)
+            do {
+                try writer.write(contentsOf: request)
+                try writer.close()
+            } catch {
+                try? writer.close()
+                process.waitUntilExit()
+                return (errSecNotAvailable, nil)
+            }
             let reply = output.fileHandleForReading.readDataToEndOfFile()
             process.waitUntilExit()
             guard process.terminationStatus == 0,

@@ -7,7 +7,7 @@ import Testing
 
 @Suite("Recovery access expiry")
 struct RecoveryExpiryTests {
-    @Test func exactExpiryAndFallbackToNextValidCandidate() throws {
+    @Test func exactExpiryAndUnauthenticatedCandidate() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -24,9 +24,8 @@ struct RecoveryExpiryTests {
         #expect(FailedRecordingStore.payload(at: url, now: created.addingTimeInterval(86401), key: key) == nil)
         let invalid = directory.appendingPathComponent("2026-09-06T11-00-00Z-ABCD1234.m4a")
         try Data([9]).write(to: invalid)
-        let newest = FailedRecordingStore.newest(now: created.addingTimeInterval(7200), in: directory, key: key)
-        #expect(newest?.url.lastPathComponent == name)
-        #expect(newest?.data == bytes)
+        #expect(FailedRecordingStore.payload(at: invalid, now: created.addingTimeInterval(7200), key: key) == nil)
+        #expect(FailedRecordingStore.payload(at: url, now: created.addingTimeInterval(7200), key: key)?.data == bytes)
     }
     @Test func pruningOnlyRemovesSidecarsForAbsentAudio() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
