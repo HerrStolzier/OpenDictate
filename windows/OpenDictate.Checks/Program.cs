@@ -52,7 +52,21 @@ var tests = new (string Name, Action Run)[]
         using var journal = new PcmJournal(root); journal.Append([1, 2]);
         Throws<ArgumentException>(() => journal.Append([3])); journal.Close();
         Check(File.ReadAllBytes(journal.RawPath).SequenceEqual(new byte[] {1, 2}));
-    }))
+    })),
+    ("Leftover journals go only after 24 hours and only with nothing but journal files", () =>
+    {
+        var now = DateTimeOffset.UtcNow; string id = Guid.NewGuid().ToString("N");
+        string[] files = ["format.txt", "audio.pcm", "audio.wav"];
+        DateTimeOffset[] old = [now.AddHours(-30), now.AddHours(-24)];
+        Check(LeftoverJournal.MayRemove(id, files, old, now) && LeftoverJournal.MayRemove(id, ["FORMAT.TXT"], old, now));
+        Check(LeftoverJournal.MayRemove(id, [], old, now));
+        // The newest timestamp decides; a future or missing one keeps the folder.
+        Check(!LeftoverJournal.MayRemove(id, files, [now.AddHours(-30), now.AddHours(-23.9)], now));
+        Check(!LeftoverJournal.MayRemove(id, files, [now.AddHours(1)], now) && !LeftoverJournal.MayRemove(id, files, [], now));
+        Check(!LeftoverJournal.MayRemove("Recovery", files, old, now) && !LeftoverJournal.MayRemove(id + "x", files, old, now));
+        Check(!LeftoverJournal.MayRemove(id, [.. files, "notes.txt"], old, now));
+        Check(!LeftoverJournal.MayRemove(id, ["audio.pcm", "AUDIO.PCM"], old, now));
+    })
 };
 int failures = 0;
 foreach (var test in tests)

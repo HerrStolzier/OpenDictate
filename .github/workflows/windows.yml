@@ -42,6 +42,14 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: windows/global.json
+      - name: Restore NuGet packages exactly as locked
+        shell: pwsh
+        working-directory: windows
+        run: |
+          foreach ($project in 'OpenDictate.Checks', 'OpenDictate.App', 'OpenDictate.WindowsChecks') {
+            dotnet restore $project --locked-mode
+            if ($LASTEXITCODE -ne 0) { throw "Locked restore failed for $project." }
+          }
       - name: Run existing offline checks and builds
         shell: pwsh
         run: ./windows/scripts/check.ps1

@@ -45,11 +45,19 @@ class WebsiteWorkerTests(unittest.TestCase):
 
     def test_worker_matches_pinned_commit(self):
         commit = MODULE.COMMIT_LINE.search(MODULE.WORKER.read_text()).group(1)
-        present = subprocess.run(
-            ["git", "cat-file", "-e", f"{commit}^{{commit}}"], cwd=MODULE.ROOT, capture_output=True
-        )
-        if present.returncode != 0:
-            self.skipTest(f"pinned commit {commit} is not in this clone's history")
+        shallow = MODULE.git("rev-parse", "--is-shallow-repository").decode().strip() == "true"
+        if shallow:
+            present = subprocess.run(
+                ["git", "cat-file", "-e", f"{commit}^{{commit}}"], cwd=MODULE.ROOT, capture_output=True
+            )
+            if present.returncode != 0:
+                self.skipTest(f"pinned commit {commit} is not in this shallow clone")
+        else:
+            # With full history the pin must be part of HEAD, e.g. on main after a squash merge.
+            reachable = subprocess.run(
+                ["git", "merge-base", "--is-ancestor", commit, "HEAD"], cwd=MODULE.ROOT, capture_output=True
+            )
+            self.assertEqual(reachable.returncode, 0, f"pinned commit {commit} is not in the history of HEAD")
         self.assertEqual(MODULE.main(["--check"]), 0)
 
 

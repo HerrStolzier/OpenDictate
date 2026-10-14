@@ -7,8 +7,8 @@ namespace OpenDictate.Windows;
 
 public static class ProtectedJournal
 {
-    // Only a journal created by the current operation is passed here. Legacy
-    // directories are never enumerated, inferred, migrated or recursively deleted.
+    // Only a journal created by the current operation is passed here. Older
+    // journal folders are never migrated; RemoveExpired alone deletes them.
     public static RecoveredRecording Seal(PcmJournal journal, RecoveryStore store)
     {
         journal.Close();
@@ -26,6 +26,52 @@ public static class ProtectedJournal
         // Remove exact verified file handles, never whichever file occupies a path.
         Delete(wav); Delete(raw);
         return verified;
+    }
+    // Startup cleanup of journal folders left by an ended process or a failed
+    // seal. A folder goes only when LeftoverJournal allows it; each file is
+    // removed through its verified, exclusive handle, and a link, a file in
+    // use or anything unexpected keeps the whole folder.
+    public static int RemoveExpired(string recordingRoot, DateTimeOffset now)
+    {
+        var root = new DirectoryInfo(Path.GetFullPath(recordingRoot));
+        if (!root.Exists) return 0;
+        PrivateDirectory.RejectLinks(root.FullName);
+        int removed = 0;
+        foreach (var folder in root.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
+        {
+            try { if (RemoveIfExpired(folder, now)) removed++; }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException or Win32Exception)
+            { /* Kept; tried again at the next start. */ }
+        }
+        return removed;
+    }
+    private static bool RemoveIfExpired(DirectoryInfo folder, DateTimeOffset now)
+    {
+        PrivateDirectory.RejectLinks(folder.FullName);
+        var entries = folder.GetFileSystemInfos();
+        var names = entries.Select(entry => entry.Name).ToArray();
+        var stamps = new List<DateTimeOffset> { folder.CreationTimeUtc, folder.LastWriteTimeUtc };
+        foreach (var entry in entries) { stamps.Add(entry.CreationTimeUtc); stamps.Add(entry.LastWriteTimeUtc); }
+        // A younger journal is never opened, so it cannot be disturbed.
+        if (!LeftoverJournal.MayRemove(folder.Name, names, stamps, now)) return false;
+        var files = new List<FileStream>();
+        try
+        {
+            foreach (var entry in entries) files.Add(Open(entry.FullName));
+            // Timestamps read through the exclusive handles can no longer change.
+            foreach (var file in files)
+            {
+                stamps.Add(File.GetCreationTimeUtc(file.SafeFileHandle));
+                stamps.Add(File.GetLastWriteTimeUtc(file.SafeFileHandle));
+            }
+            if (!LeftoverJournal.MayRemove(folder.Name, names, stamps, now)) return false;
+            foreach (var file in files) Delete(file);
+        }
+        finally { foreach (var file in files) file.Dispose(); }
+        // Removes only an empty folder; anything that appeared meanwhile keeps it.
+        PrivateDirectory.RejectLinks(folder.FullName);
+        folder.Delete(recursive: false);
+        return true;
     }
     private static FileStream Open(string path)
     {
