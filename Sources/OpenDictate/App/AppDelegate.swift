@@ -24,7 +24,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         var viaServer = false
     }
     private var pendingRetryFilename: String?
-    /// Set when the confirmation offers OpenAI for this resend only.
+    /// The service the confirmation named, so a switch while it is open
+    /// cannot send the recording elsewhere.
     private var pendingRetryService: Settings.Service?
     private let hotKey = HotKeyManager()
     private var modifierMonitor: ModifierKeyMonitor?
@@ -265,9 +266,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         dictationPanel.onRetry = { [weak self] in
             guard let self, flow.state.canRetry, let filename = pendingRetryFilename,
-                let operation = lifecycle.beginOperation()
+                let service = pendingRetryService, let operation = lifecycle.beginOperation()
             else { return }
-            let service = pendingRetryService
             pendingRetryFilename = nil
             pendingRetryService = nil
             Task { @MainActor in
@@ -281,11 +281,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard flow.state.canRetry, lifecycle.canBeginOperation,
             let entry = savedRecordings.first(where: { $0.retryable && (filename == nil || $0.filename == filename) })
         else { return }
+        let chosen = Config.settings.service
         pendingRetryFilename = entry.filename
-        pendingRetryService = service
+        pendingRetryService = service ?? chosen
         dictationPanel.confirmRetry(
             description: entry.created.formatted(date: .abbreviated, time: .shortened),
-            target: service == .openAI ? .openAIInstead : Config.settings.service == .openAI ? .openAI : .server)
+            target: service == .openAI ? .openAIInstead : chosen == .openAI ? .openAI : .server)
     }
 
     // MARK: - Hotkey
@@ -560,12 +561,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func retryLastRecording(
-        filename: String, service: Settings.Service?, operation: AppLifecycle.Operation
+        filename: String, service: Settings.Service, operation: AppLifecycle.Operation
     ) async {
         defer { lifecycle.finish(operation) }
         guard lifecycle.isCurrent(operation), !Task.isCancelled, flow.state.canRetry else { return }
-        // A resend the user sent to OpenAI does not depend on the own server's address.
-        guard service == .openAI || hasUsableServer() else { return }
+        guard hasUsableServer(for: service) else { return }
         let loadedOptions = await loadOptions(service: service)
         guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
         guard let options = usableOptions(loadedOptions, for: operation) else { return }
@@ -582,7 +582,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             requestOptions = options
             previousApplication = target
             if flow.retry(payload) {
-                if service == .openAI { AppLog.write("Saved recording resent to OpenAI once") }
+                if service == .openAI, Config.settings.service == .server {
+                    AppLog.write("Saved recording resent to OpenAI once")
+                }
                 attempt = Attempt(recording: filename, viaServer: !options.endpoint.isOpenAI)
                 indicator.canRetry = false
                 indicator.setTranslating(options.translationTarget != nil)
@@ -605,8 +607,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// An invalid configured address stops before the key or microphone is
     /// asked for; neither would help.
-    private func hasUsableServer() -> Bool {
-        guard Config.settings.endpoint == nil else { return true }
+    private func hasUsableServer(for service: Settings.Service? = nil) -> Bool {
+        guard Config.settings.endpoint(for: service ?? Config.settings.service) == nil else { return true }
         AppLog.write("Dictation did not start: invalid custom server address")
         let message = OpenDictateError.invalidServerAddress.errorDescription ?? ""
         updateStatus(message)

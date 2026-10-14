@@ -271,13 +271,8 @@ public final class Settings: Sendable {
             }
             return .default
         }
-        set {
-            if newValue == .default {
-                store.removeObject(forKey: Key.serverModel)
-            } else {
-                store.set(newValue.rawValue, forKey: Key.serverModel)
-            }
-        }
+        // Stored even when it is the default, so it wins over the environment.
+        set { store.set(newValue.rawValue, forKey: Key.serverModel) }
     }
 
     /// Text model the own server translates with.
@@ -309,11 +304,10 @@ public final class Settings: Sendable {
 
     /// Builds before the service choice kept the own server's model names in
     /// the OpenAI fields. Moves them once, so switching to OpenAI does not
-    /// send a local model name there. Runs only while no choice is stored.
+    /// send a local model name there. Runs only while no choice is stored and
+    /// a server is set up, saved or from `OPENAI_BASE_URL`.
     public func migrateServiceChoice() {
-        guard store.object(forKey: Key.service) == nil,
-            let address = store.object(forKey: Key.serverAddress) as? String, !address.isEmpty
-        else { return }
+        guard store.object(forKey: Key.service) == nil, serverAddress != nil else { return }
         if let stored = store.object(forKey: Key.model) as? String, !stored.isEmpty {
             store.set(stored, forKey: Key.serverModel)
             // A known OpenAI model can stay for OpenAI; anything else was the server's.

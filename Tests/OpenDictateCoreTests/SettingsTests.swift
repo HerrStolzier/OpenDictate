@@ -277,6 +277,25 @@ struct SettingsTests {
         #expect(s.serverModel.rawValue == "Systran/faster-whisper-small")
     }
 
+    @Test("A model saved with a server from OPENAI_BASE_URL moves to the server too")
+    func migrationCoversEnvironmentServers() {
+        let s = settings(
+            stored: ["transcriptionModel": "Systran/faster-whisper-small"],
+            env: ["OPENAI_BASE_URL": "http://127.0.0.1:8080/v1"])
+        s.migrateServiceChoice()
+        #expect(s.service == .server)
+        #expect(s.serverModel.rawValue == "Systran/faster-whisper-small")
+        #expect(s.model == .default)
+    }
+
+    @Test("The default server model can be restored over OPENAI_TRANSCRIBE_MODEL")
+    func defaultServerModelBeatsEnvironment() {
+        let s = settings(env: ["OPENAI_TRANSCRIBE_MODEL": "whisper-1"])
+        #expect(s.serverModel == .whisper1)
+        s.serverModel = .default
+        #expect(s.serverModel == .default)
+    }
+
     @Test("A known OpenAI model saved with a server stays for OpenAI too")
     func migrationKeepsAKnownOpenAIModel() {
         let s = settings(stored: ["serverAddress": "https://example.com/v1", "transcriptionModel": "whisper-1"])
@@ -287,7 +306,10 @@ struct SettingsTests {
 
     @Test("Without a stored server the migration changes nothing")
     func migrationWithoutServerIsANoOp() {
-        let s = settings(stored: ["serverAddress": "", "transcriptionModel": "whisper-1"])
+        // A stored empty address wins over OPENAI_BASE_URL.
+        let s = settings(
+            stored: ["serverAddress": "", "transcriptionModel": "whisper-1"],
+            env: ["OPENAI_BASE_URL": "http://127.0.0.1:8080/v1"])
         s.migrateServiceChoice()
         #expect(s.service == .openAI)
         #expect(s.model == .whisper1)
