@@ -894,6 +894,7 @@ fn worker() -> Result<(), String> {
         return Err(error);
     }
     log_ops("recording-started");
+    prune_stale_pending();
     let event = ipc::wait_for_stop(&listener, Instant::now() + record::MAX_RECORDING, &log_ops);
     state_guard
         .set(state::State::Processing)
@@ -1156,6 +1157,18 @@ fn prune_kept_recordings() {
     let pruned = keyring::recording_auth().and_then(|auth| recovery::prune(&recovery_dir, &auth));
     if pruned.is_err() {
         log_ops("recovery-prune-failed");
+    }
+}
+
+/// Removes pending audio past the 24-hour limit; its secured copy could not
+/// be made, so `retry` would never send it. Best effort.
+fn prune_stale_pending() {
+    let Ok(pending_dir) = paths::pending_dir() else {
+        return;
+    };
+    let removed = recovery::prune_stale_pending(&pending_dir);
+    if removed > 0 {
+        log_ops(&format!("pending-pruned files={removed}"));
     }
 }
 

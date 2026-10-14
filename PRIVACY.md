@@ -223,6 +223,9 @@ is authenticated with HMAC-SHA256 using a device-local Secret Service value and
 binds the file name, creation time and exact bytes. Retry uploads only bytes that
 authenticate at access time. Managed authenticated recovery is limited to five
 files and 24 hours; unknown or modified files are not uploaded automatically.
+An original that stays in the pending folder because its recovery copy could
+not be made is never uploaded automatically and is removed at the first
+recording start after it is 24 hours old.
 Audio is removed only after a non-empty transcript, or its non-empty
 translation when a target language is set, reaches the clipboard. With
 auto-insert on, audio is kept for retry if the clipboard no longer holds

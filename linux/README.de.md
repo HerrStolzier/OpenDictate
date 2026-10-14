@@ -34,8 +34,9 @@ angekommen ist. Normalerweise legt OpenDictate dafür eine gesicherte Kopie an:
 `opendictate retry` sendet sie nochmal, aufbewahrt werden höchstens fünf
 solcher Kopien für 24 Stunden. Gelingt diese Kopie nicht (zum Beispiel weil der
 Schlüsselbund gesperrt ist), bleibt die Originaldatei unter
-`~/.local/state/opendictate/pending/` liegen; `retry` greift dann nicht, und die
-Datei wird auch nicht automatisch gelöscht. Fällt das Mikrofon während der
+`~/.local/state/opendictate/pending/` liegen; `retry` greift dann nicht. Auch
+diese Datei hält die 24-Stunden-Grenze ein: Die nächste Aufnahme danach räumt
+sie weg. Fällt das Mikrofon während der
 Aufnahme aus oder wird abgezogen, bekommst du eine Benachrichtigung, und der Ton
 bis dahin wird genauso für `retry` gesichert. Eine zu kurze oder stille Aufnahme
 wird nicht gesendet; sie wird auch gesichert, aber `retry` übergeht sie

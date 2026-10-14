@@ -34,8 +34,9 @@ its text has reached the clipboard. Normally OpenDictate keeps a secured copy
 for this: `opendictate retry` sends it again, and at most five such copies are
 kept for 24 hours. If that copy cannot be made (for example because the
 keyring is locked), the original file stays in
-`~/.local/state/opendictate/pending/`; `retry` does not pick it up then, and
-the file is not deleted automatically either. If the microphone fails or is
+`~/.local/state/opendictate/pending/`; `retry` does not pick it up then. The
+24-hour limit applies to this file too: the next recording after that removes
+it. If the microphone fails or is
 unplugged during a recording, you get a notification and the audio up to that
 point is kept for `retry` the same way. A recording that is too short or
 silent is not sent; it is kept too, but plain `retry` passes it over
