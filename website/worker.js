@@ -4,7 +4,7 @@
 // KV namespace and served from there. Visitors never contact GitHub.
 // Update COMMIT and FILES with `python3 scripts/website-worker.py <commit>`.
 
-const COMMIT = "1eca133b603e076c294775721661ff3f87d6409a";
+const COMMIT = "8d0e47210b955c8db0a3c094578b2dee6b2535d1";
 const FILES = {
   "/anleitungen.html": "f0fc73214b7c7898ea3a48b0a887be4e",
   "/apple-touch-icon.png": "017aca3eeebd83164aedace3bca37977",
