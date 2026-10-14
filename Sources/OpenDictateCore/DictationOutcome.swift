@@ -2,7 +2,6 @@
 public enum DictationOutcome: Equatable, Sendable {
     case textAvailable
     case deliveryUnconfirmed
-    case deliveryUncertain
     case failed
     case cancelled
 
@@ -11,7 +10,6 @@ public enum DictationOutcome: Equatable, Sendable {
         case .empty: .failed
         case .clipboardFailed, .copied(.notAttempted): .textAvailable
         case .copied(.submitted): .deliveryUnconfirmed
-        case .copied(.uncertain): .deliveryUncertain
         }
     }
 }

@@ -15,6 +15,9 @@ Keychain item, verify the request and choose **Always Allow** for that item.
 The helper is installed once in OpenDictate's Application Support directory and
 kept unchanged across ordinary app updates. The API key and the recovery key
 are separate items, so each existing item may need its own initial approval.
+The app reads the recovery key when it keeps a recording, once per check of the
+list when a recording is new to it (after each launch, every listed one), and
+when you resend one. If the key could not be read, the next check asks again.
 Enter the Mac password only in the macOS dialog. Do not enable access for all
 applications. Replacing the helper or signing identity can require approval
 again; the separate code-signing private key must retain its restricted access
@@ -92,9 +95,15 @@ Changes apply to the next dictation, no restart needed.
   and keeps the current shortcut. If another key or a mouse click joins a hold
   after recording started, the dictation is cancelled and its audio is kept for
   a manual retry.
-- **Model** — `gpt-transcribe` or `gpt-4o-mini-transcribe`, with the per-minute
-  price next to each. The `gpt-4o-mini-transcribe` price is approximate because
-  OpenAI bills that model by tokens, not by minute.
+- **Dienst** — who writes: OpenAI or your own server. The own server can be
+  chosen once it has an address (see below); switching keeps that address and
+  applies from the next dictation. Once a server is set up, the menu behind the
+  menu bar symbol shows the same choice.
+- **Model** (Advanced) — the OpenAI model: `gpt-transcribe` or
+  `gpt-4o-mini-transcribe`, with the per-minute price next to each. The
+  `gpt-4o-mini-transcribe` price is approximate because OpenAI bills that model
+  by tokens, not by minute. While your own server writes, its model is set
+  under **Eigener Server** instead.
 - **Language** — Auto, German, or English. Auto lets the API detect it.
 - **Übersetzen** — off by default. With a target language (for example English),
   the transcript is translated by a text model (`gpt-5.4-mini` by default) and
@@ -139,6 +148,8 @@ failures preserve the audio on disk and the last transcript in memory. Use
 recordings. Temporary originals are outside that action.
 
 Recordings classified as too short or too quiet are retained for a deliberate manual retry. These heuristics do not prove that no speech exists; they never trigger an automatic upload.
+An empty recording, where the microphone delivered no audio at all, has nothing to resend: the app says so
+and leaves the empty temporary file where it is.
 
 ## Cost
 
@@ -176,9 +187,23 @@ menu is not silently ignored for anyone who exports them:
 ## Using your own server
 
 **Einstellungen → Erweitert → Eigener Server** takes a server address and,
-optionally, the model names that server uses. Leave the address empty for
-OpenAI. The address is the base URL including `/v1`; OpenDictate appends
-`/audio/transcriptions` for dictation and `/chat/completions` for translation.
+optionally, the model names that server uses. Saving a first address selects
+the server; editing a saved one keeps the current choice, so fixing the server
+while OpenAI writes does not switch back. An empty address removes it and
+selects OpenAI. The address is the base
+URL including `/v1`; OpenDictate appends `/audio/transcriptions` for dictation
+and `/chat/completions` for translation.
+
+**Dienst** switches between OpenAI and the saved server at any time, for
+example while the server is not running. The server's address and model names
+stay saved, and OpenAI keeps its own model, so neither choice changes the
+other. The app never switches on its own: if your server does not take a
+dictation, the recording is kept as after any failure, and the indicator
+offers **Mit OpenAI senden** instead of **Nochmal senden**. That button sends
+this one recording to OpenAI after a confirmation, needs your API key and costs
+there; the next dictation goes to your server again. Builds before the choice
+existed kept the server's model names in the OpenAI fields; the first start
+moves them to the server once.
 
 - **A local model is free.** A server on this Mac (`http://127.0.0.1`,
   `http://localhost` or `http://[::1]`) receives no API key, and none is
@@ -190,7 +215,7 @@ OpenAI. The address is the base URL including `/v1`; OpenDictate appends
   and keys never travel unencrypted over a network.
 - Redirects are not followed, so audio and text go only to the address you
   entered, never on to another host.
-- If an address taken from `OPENAI_BASE_URL` is not allowed, dictation stops
+- If the saved or `OPENAI_BASE_URL` address is not allowed, dictation stops
   with a message instead of falling back to OpenAI.
 - Some servers, such as whisper.cpp, end every segment at a speaking pause
   with a line break. For a server of your own, OpenDictate joins those breaks

@@ -42,8 +42,11 @@ audio and text only to this Mac; what that local server does with them is up to
 its own configuration. Any other server must use HTTPS and receives the saved
 API key. HTTP redirects are not followed, so requests go only to the configured address.
 An address that is not allowed stops the dictation; it never falls back to
-OpenAI. The log records only the server's host name, never the path or
-key.
+OpenAI. **Dienst** chooses between OpenAI and a saved server; the app never
+switches by itself. When the own server does not take a dictation, a recording
+goes to OpenAI only after the user picks **Mit OpenAI senden** and confirms it,
+and only that one recording. The log records only the server's host name,
+never the path or key.
 
 The OpenAI API key is stored as a generic password in the macOS Keychain under
 service `OpenDictate` and account `OPENAI_API_KEY_APP`. OpenDictate does not support
@@ -167,7 +170,7 @@ API keys, transcript text, or audio contents. Logging is serialized and rotated 
 
 ## Last transcript and temporary originals
 
-The most recent non-empty transcript is also held in memory until replaced, cleared from the menu or the app exits. No persistent text history is created. Temporary recording files are restricted to the current user (permissions 0600); the original recording is created with these permissions before audio is written. If restricting fails, the app logs it. If a recovery-store write fails, the original temporary audio is deliberately not deleted and its path is shown in the error status. Historical crash leftovers are not swept automatically because they may contain the only surviving recording.
+The most recent non-empty transcript is also held in memory until replaced, cleared from the menu or the app exits. No persistent text history is created. Temporary recording files are restricted to the current user (permissions 0600); the original recording is created with these permissions before audio is written. If restricting fails, the app logs it. If a recovery-store write fails, the original temporary audio is deliberately not deleted and its path is shown in the error status. An original that is empty (zero bytes, the microphone delivered no audio) holds nothing to resend; the app says the recording was empty and leaves the file where it is, like an original after a failed recovery write; it is not swept automatically. Historical crash leftovers are not swept automatically because they may contain the only surviving recording.
 
 ## Linux CLI
 

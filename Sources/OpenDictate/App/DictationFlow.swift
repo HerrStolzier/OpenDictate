@@ -12,6 +12,9 @@ final class DictationFlow {
         var transcribeFile: @MainActor (URL) async throws -> String
         var transcribeRetry: @MainActor (FailedRecordingStore.RetryPayload) async throws -> String
         var keep: @MainActor (URL) -> Bool
+        /// True only for a file known to hold no bytes. It has nothing to keep or
+        /// resend, but stays on disk like any temporary original.
+        var isEmpty: @MainActor (URL) -> Bool = { _ in false }
         var removeRetry: @MainActor (FailedRecordingStore.RetryPayload) -> Void
         var clean: @MainActor (URL) -> Void
         var copy: @MainActor (String) -> Bool
@@ -99,18 +102,22 @@ final class DictationFlow {
             state = .processing
             do {
                 let audio = try operations.stop()
-                if discardRecording || operations.keep(audio) {
+                let empty = !discardRecording && operations.isEmpty(audio)
+                if discardRecording || (!empty && operations.keep(audio)) {
                     operations.clean(audio)
-                } else {
+                } else if !empty {
                     onStatus?("Aufnahme konnte nicht gesichert werden. Sie liegt noch unter \(audio.path)")
                     onOutcome?(.failed)
                     state = .idle
                     return
                 }
-                onStatus?(
-                    discardRecording
-                        ? "Aufnahme verworfen"
-                        : "Abgebrochen – Aufnahme gesichert, du kannst sie nochmal senden")
+                if discardRecording {
+                    onStatus?("Aufnahme verworfen")
+                } else if empty {
+                    onStatus?("Abgebrochen – die Aufnahme war leer")
+                } else {
+                    onStatus?("Abgebrochen – Aufnahme gesichert, du kannst sie nochmal senden")
+                }
                 onOutcome?(.cancelled)
             } catch {
                 onStatus?(OpenDictateError.userMessage(for: error))
@@ -162,6 +169,14 @@ final class DictationFlow {
                 mayCleanOriginal = true
                 onStatus?("Aufnahme verworfen")
                 onOutcome?(.cancelled)
+            } else if operations.isEmpty(original) {
+                // No audio arrived, so there is nothing to resend. The original
+                // stays on disk; only the misleading backup warning is avoided.
+                onStatus?(
+                    Task.isCancelled
+                        ? "Abgebrochen – die Aufnahme war leer"
+                        : OpenDictateError.userMessage(for: OpenDictateError.noAudioFile))
+                onOutcome?(Task.isCancelled ? .cancelled : .failed)
             } else {
                 mayCleanOriginal = preserve(original)
                 if mayCleanOriginal {
@@ -215,8 +230,10 @@ final class DictationFlow {
             return .clipboardFailed
         }
         guard !Task.isCancelled, allowPaste else {
-            onStatus?("Text kopiert – automatisches Einfügen abgebrochen")
-            if !allowPaste { onStatus?("Nochmal gesendet – Text kopiert, nicht automatisch eingefügt") }
+            onStatus?(
+                allowPaste
+                    ? "Text kopiert – automatisches Einfügen abgebrochen"
+                    : "Nochmal gesendet – Text kopiert, nicht automatisch eingefügt")
             onOutcome?(.textAvailable)
             return .copied(.notAttempted)
         }
@@ -226,8 +243,6 @@ final class DictationFlow {
             onStatus?("Text kopiert – nicht automatisch eingefügt")
         case .submitted:
             onStatus?("Per ⌘V eingefügt – Text auch in der Zwischenablage")
-        case .uncertain:
-            onStatus?("Einfügen nicht bestätigt – schau kurz nach, der Text ist kopiert")
         }
         let result = TranscriptDelivery.copied(submission)
         onOutcome?(.delivery(result))

@@ -54,7 +54,12 @@ liegen.
    der Text etwa zweieinhalb Sekunden nach dem Loslassen da. Das ist ein
    einzelner Test, auf deinem Mac kann es anders sein.
 
-Zurück zu OpenAI: das Feld **Eigener Server** leeren.
+Zurück zu OpenAI in Build 12: das Feld **Eigener Server** leeren. Ab dem
+nächsten Mac-Build gibt es dafür **Dienst** im Menü der Menüleiste und in den
+Einstellungen: auf **OpenAI** stellen, die Adresse bleibt gespeichert, und
+zurück zum eigenen Server geht es genauso. Läuft dein Server einmal nicht,
+bleibt die Aufnahme gesichert und die Anzeige bietet **Mit OpenAI senden** an;
+die App wechselt nie von selbst.
 
 ## Linux
 
