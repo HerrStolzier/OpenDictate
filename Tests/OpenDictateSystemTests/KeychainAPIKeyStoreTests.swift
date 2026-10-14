@@ -91,6 +91,25 @@ struct KeychainAPIKeyStoreTests {
         }
     }
 
+    @Test func anUnreadableItemIsReportedApartFromAMissingOne() {
+        #expect(KeychainAPIKeyStore.stored(using: FakeKeychain().operations) == .missing)
+        let present = FakeKeychain(items: [canonical: previous])
+        #expect(
+            KeychainAPIKeyStore.stored(using: present.operations)
+                == .present(String(decoding: previous, as: UTF8.self)))
+
+        for status in [errSecAuthFailed, errSecInteractionNotAllowed, errSecNotAvailable] {
+            for account in [canonical, legacy] {
+                let store = FakeKeychain(items: [legacy: previous])
+                store.readFailures[account] = status
+                #expect(KeychainAPIKeyStore.stored(using: store.operations) == .unreadable)
+                #expect(store.items == [legacy: previous])
+            }
+        }
+        let malformed = FakeKeychain(items: [canonical: Data([0xFF])])
+        #expect(KeychainAPIKeyStore.stored(using: malformed.operations) == .unreadable)
+    }
+
     @Test func aLegacyReadSurvivesAFailedMigration() {
         let store = FakeKeychain(items: [legacy: previous])
         store.addFailure = errSecAuthFailed

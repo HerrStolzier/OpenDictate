@@ -10,21 +10,23 @@ final class APIKeyInputView: NSView {
         plainField.isHidden ? secureField.stringValue : plainField.stringValue
     }
 
-    init(initialValue: String?) {
+    /// Both fields start empty. With a stored key, the placeholder names its
+    /// masked hint and an empty field keeps it.
+    init(storedHint: String?) {
         super.init(frame: NSRect(x: 0, y: 0, width: 420, height: 62))
-        setup(initialValue: initialValue ?? "")
+        setup(placeholder: storedHint.map { "Leer lassen: \($0) bleibt" } ?? "sk-...")
     }
 
     required init?(coder: NSCoder) {
         nil
     }
 
-    private func setup(initialValue: String) {
+    private func setup(placeholder: String) {
         let fieldContainer = NSView()
         fieldContainer.translatesAutoresizingMaskIntoConstraints = false
 
-        configureTextField(secureField, initialValue: initialValue)
-        configureTextField(plainField, initialValue: initialValue)
+        configureTextField(secureField, placeholder: placeholder)
+        configureTextField(plainField, placeholder: placeholder)
         plainField.isHidden = true
 
         fieldContainer.addSubview(secureField)
@@ -62,15 +64,15 @@ final class APIKeyInputView: NSView {
         ])
     }
 
-    private func configureTextField(_ field: NSTextField, initialValue: String) {
-        field.stringValue = initialValue
-        field.placeholderString = "sk-..."
+    private func configureTextField(_ field: NSTextField, placeholder: String) {
+        field.placeholderString = placeholder
         field.setAccessibilityLabel("OpenAI-API-Schlüssel")
         field.translatesAutoresizingMaskIntoConstraints = false
         field.isEditable = true
         field.isSelectable = true
     }
 
+    /// The plain field holds the entered key only while it is revealed.
     @objc private func toggleReveal() {
         let shouldReveal = revealCheckbox.state == .on
 
@@ -81,6 +83,7 @@ final class APIKeyInputView: NSView {
             window?.makeFirstResponder(plainField)
         } else {
             secureField.stringValue = plainField.stringValue
+            plainField.stringValue = ""
             plainField.isHidden = true
             secureField.isHidden = false
             window?.makeFirstResponder(secureField)

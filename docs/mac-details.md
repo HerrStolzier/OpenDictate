@@ -9,7 +9,14 @@ what happens when something fails, your own server, and the permissions.
 
 The API key is stored in the macOS Keychain. Never put it in a command, environment
 variable, checked-in file or log. If the key is missing or wrong, the app tells you
-what to do; the key dialog supports normal macOS editing shortcuts.
+what to do; the key dialog supports normal macOS editing shortcuts. The dialog
+never shows a saved key again: it names it only by its start and last four
+characters (such as `sk-…abcd`), and saving with an empty field keeps it. If
+the saved key cannot be read right now, the dialog says so, and an empty field
+still keeps it.
+Keychain reads and writes run in the background, so the menu stays responsive;
+if the helper does not answer within 60 seconds, the request fails and you can
+try again.
 If macOS asks whether **OpenDictateKeychainHelper** may access an existing
 Keychain item, verify the request and choose **Always Allow** for that item.
 The helper is installed once in OpenDictate's Application Support directory and

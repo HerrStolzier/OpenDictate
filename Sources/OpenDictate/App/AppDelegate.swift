@@ -618,8 +618,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return false
     }
 
-    /// Reads the key once per attempt. The Keychain helper is a separate
-    /// process, so the read runs off the main actor.
+    /// Reads the key once per attempt, off the main actor: any Keychain read can
+    /// wait for a macOS access prompt, and in a signed build it also starts the
+    /// helper process (bounded by `KeychainBridge.timeout`).
     private func loadOptions(service: Settings.Service? = nil) async -> Result<TranscriptionOptions, any Error> {
         // A pending launch check must not overwrite what this attempt finds.
         apiKeyPresenceTask?.cancel()
@@ -806,24 +807,39 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func setAPIKey() {
         guard flow.state == .idle, let operation = lifecycle.beginOperation() else { return }
-        // The modal runs a nested event loop; a hotkey must not start a dictation
-        // while credential setup has temporarily moved focus away from its target.
-        defer {
-            lifecycle.finish(operation)
-            if !lifecycle.isTerminating { menuBar?.refresh() }
-        }
         apiKeyPresenceTask?.cancel()
         apiKeyPresenceTask = nil
-        let previousKey = Config.apiKey
-        guard lifecycle.isCurrent(operation) else { return }
-        let settingUp = previousKey == nil || dictationPanel.display == .setup
+        Task { @MainActor in
+            // The modal runs a nested event loop; a hotkey must not start a dictation
+            // while credential setup has temporarily moved focus away from its target.
+            defer {
+                lifecycle.finish(operation)
+                if !lifecycle.isTerminating { menuBar?.refresh() }
+            }
+            await setAPIKey(operation: operation)
+        }
+    }
+
+    /// Keychain reads and writes can wait for the helper process or a macOS
+    /// prompt, so they run off the main actor; the dialog and all UI stay here.
+    private func setAPIKey(operation: AppLifecycle.Operation) async {
+        // Only a masked hint reaches the dialog, never the stored key.
+        let stored = await Task.detached(priority: .userInitiated) { () -> APIKeyEntry.Stored in
+            switch KeychainAPIKeyStore.stored() {
+            case .present(let key): .readable(hint: APIKeyEntry.maskedHint(for: key))
+            case .missing: .missing
+            case .unreadable: .unreadable
+            }
+        }.value
+        guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
+        let settingUp = stored.hint == nil || dictationPanel.display == .setup
         if settingUp {
             apiKeyNeedsSetup = true
             dictationPanel.updateAPIKeySetup(needsSetup: true)
         }
-        let entered = AlertPresenter.promptForAPIKey(initialValue: previousKey)
+        let entered = AlertPresenter.promptForAPIKey(stored: stored)
         guard lifecycle.isCurrent(operation) else { return }
-        guard let key = entered else {
+        guard let entered else {
             if settingUp {
                 dictationPanel.updateAPIKeySetup(
                     needsSetup: true,
@@ -833,37 +849,56 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             return
         }
-        guard !key.isEmpty else {
+        let key: String
+        switch APIKeyEntry.decision(for: entered, hasStoredKey: stored != .missing) {
+        case .empty:
             if settingUp {
                 dictationPanel.updateAPIKeySetup(
                     needsSetup: true, message: "Das Feld war leer. Füge deinen API-Schlüssel von OpenAI ein.")
             }
             AlertPresenter.showWarning(title: "Kein API-Schlüssel gespeichert", message: "Das Feld war leer.")
             return
+        case .keep:
+            // An empty field never deletes or rewrites the stored key.
+            guard stored != .unreadable else {
+                AppLog.write("API key left unchanged; it could not be read")
+                menuBar?.updateStatus("API-Schlüssel unverändert")
+                if settingUp {
+                    dictationPanel.updateAPIKeySetup(
+                        needsSetup: true,
+                        message:
+                            "Dein gespeicherter Schlüssel ließ sich gerade nicht lesen. Prüf die Abfrage von macOS "
+                            + "oder gib ihn über „API-Schlüssel einrichten“ neu ein.")
+                }
+                return
+            }
+            AppLog.write("API key left unchanged")
+            apiKeyIsReady(status: "API-Schlüssel unverändert", settingUp: settingUp, operation: operation)
+            return
+        case .save(let value):
+            key = value
         }
-        do {
-            let result = try KeychainAPIKeyStore.save(key)
-            guard lifecycle.isCurrent(operation) else { return }
-            apiKeyNeedsSetup = false
-            menuBar?.updateStatus("API-Schlüssel gespeichert")
-            if settingUp { dictationPanel.updateAPIKeySetup(needsSetup: false) }
-            // A resend that stopped for the missing key can be offered again.
-            updateRetryOffer()
+        let saved = await Task.detached(priority: .userInitiated) {
+            Result<KeychainAPIKeyStore.SaveResult, any Error> { try KeychainAPIKeyStore.save(key) }
+        }.value
+        guard lifecycle.isCurrent(operation) else { return }
+        switch saved {
+        case .success(let result):
             AppLog.write("API key saved to Keychain")
             if case .savedWithLegacyCleanupPending(let status) = result {
                 AppLog.write("API key legacy cleanup pending: \(status)")
+            }
+            apiKeyIsReady(status: "API-Schlüssel gespeichert", settingUp: settingUp, operation: operation) {
+                guard case .savedWithLegacyCleanupPending = result else { return true }
                 AlertPresenter.showWarning(
                     title: "API-Schlüssel gespeichert",
                     message:
                         "Dein neuer Schlüssel ist gespeichert. Der alte Eintrag im Schlüsselbund "
-                        + "ließ sich noch nicht entfernen. Speichere den Schlüssel einfach nochmal, "
-                        + "dann versucht OpenDictate es wieder.")
-                guard lifecycle.isCurrent(operation) else { return }
+                        + "ließ sich noch nicht entfernen. Gib den Schlüssel beim nächsten Einrichten "
+                        + "einfach nochmal ein, dann versucht OpenDictate es wieder.")
+                return lifecycle.isCurrent(operation)
             }
-            if settingUp, !Config.settings.hasStoredTrigger { askForTrigger(operation: operation) }
-            requestAccessibilityPermissionIfNeeded()
-        } catch {
-            guard lifecycle.isCurrent(operation) else { return }
+        case .failure(let error):
             AppLog.write("Could not save API key: \(error.localizedDescription)")
             if settingUp {
                 dictationPanel.updateAPIKeySetup(
@@ -876,6 +911,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 title: "API-Schlüssel konnte nicht gespeichert werden",
                 message: OpenDictateError.userMessage(for: error))
         }
+    }
+
+    /// A stored key, new or kept, ends setup. `beforeFollowUp` may show a
+    /// modal and returns false when the operation is no longer current.
+    private func apiKeyIsReady(
+        status: String, settingUp: Bool, operation: AppLifecycle.Operation, beforeFollowUp: () -> Bool = { true }
+    ) {
+        apiKeyNeedsSetup = false
+        menuBar?.updateStatus(status)
+        if settingUp { dictationPanel.updateAPIKeySetup(needsSetup: false) }
+        // A resend that stopped for the missing key can be offered again.
+        updateRetryOffer()
+        guard beforeFollowUp() else { return }
+        if settingUp, !Config.settings.hasStoredTrigger { askForTrigger(operation: operation) }
+        requestAccessibilityPermissionIfNeeded()
     }
 
     private func deleteSavedRecordings() {
