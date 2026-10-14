@@ -362,9 +362,17 @@ Fehler und Warnungen, alle 16 Unit-Tests aus `ios/UnitTests` im Simulator und
 `testScreens` grün. Auf dem iPhone 15 (per Kabel) bestanden danach beide
 Live-Tests. Ein erster Lauf mit stummem Mac-Lautsprecher zeigte, dass OpenAI
 bei Stille „you“ zurückgab und die App es kopierte; seitdem sendet die App
-eine stille Aufnahme nicht (am Gerät noch nicht gelaufen). Die geleerte
-Test-Notiz blieb in Notizen stehen; der Test löscht sie seitdem (am Gerät
-noch nicht gelaufen).
+eine stille Aufnahme nicht. Die geleerte Test-Notiz blieb in Notizen stehen;
+der Test löscht sie seitdem.
+
+Mit `e843fb5` (Stille-Prüfung, Löschen der Test-Notiz) liefen am 14. Oktober
+am Mac Mini Bau und Formatprüfung ohne Fehler und Warnungen, alle 20
+Unit-Tests (signiert, keiner übersprungen) und `testScreens` grün, auf dem
+iPhone 15 beide Live-Tests; danach stand keine leere Test-Notiz mehr in
+Notizen. Ein Diktat ohne Ton endete am Gerät mit „Die Aufnahme war zu leise“,
+ohne Anfrage an OpenAI. Der Aufräumschritt löscht die erste leere „Neue
+Notiz“, also auch eine eigene leere Notiz, falls es eine gibt (sie landet in
+„Zuletzt gelöscht“).
 
 **Offen / bekannte Grenzen:** Start ohne Leeren der Zwischenablage und die
 Änderungen nach `4993214` am Gerät, die Übergabe nach einem Stopp im
