@@ -10,8 +10,8 @@ und ohne Branch-Schutz. Ein PR wird gemergt (Squash), wenn alles davon stimmt:
   - Alle Prüfungen auf dem letzten Stand sind fertig und grün (Erfolg, neutral oder übersprungen).
   - Es gibt keinen Konflikt mit dem Ziel-Branch und keinen offenen Review-Hinweis (Thread).
 Fehlt ein Review, ist ein Review-Hinweis offen, gibt es einen Konflikt, ist der Branch zu alt für einen
-Ziel-Branch, der einen aktuellen Stand verlangt, oder ändert der PR Workflow-Dateien (die darf GitHubs eigener Schlüssel
-nicht mergen), schreibt der Workflow einmal je Stand einen Kommentar. Der Claude-Thread, der den PR beobachtet,
+Ziel-Branch, der einen aktuellen Stand verlangt, oder ändert der PR Dateien, die über das Mergen urteilen
+(Workflows, CI-Skripte, Claudes Regeln, Secret-Scan-Ausnahmen; siehe guarded()), schreibt der Workflow einmal je Stand einen Kommentar. Der Claude-Thread, der den PR beobachtet,
 behebt das dann selbst. Rote CI kommentiert er nicht, die meldet GitHub dem Thread ohnehin.
 
 Quelle: HerrStolzier/claude-config (ci/auto_merge.py), verteilt mit scripts/install-repo-gate.py.
@@ -54,10 +54,16 @@ def latest_checks(check_runs):
     return list(latest.values())
 
 
+GUARDED_PREFIXES = (".github/", "scripts/ci/", ".claude/")
+GUARDED_FILES = {"CLAUDE.md", "AGENTS.md", ".gitleaksignore", ".gitattributes"}
+
+
 def guarded(path):
-    """Dateien, die über das Mergen selbst entscheiden. Solche PRs mergt Claude selbst (GITHUB_TOKEN darf
-    Workflow-Dateien nicht mergen, und das Skript soll nicht über seine eigene Änderung urteilen)."""
-    return path.startswith(".github/workflows/") or path == ".github/scripts/auto_merge.py"
+    """Dateien, die über das Mergen selbst entscheiden: Workflows, Auto-Merge, CI-Skripte, Claudes Regeln und
+    Hooks sowie die Ausnahmen des Secret-Scans. Solche PRs mergt Claude selbst (GITHUB_TOKEN darf
+    Workflow-Dateien nicht mergen), denn ein PR soll nicht automatisch rein, wenn er die Prüfungen oder Regeln
+    ändert, die über ihn urteilen."""
+    return path.startswith(GUARDED_PREFIXES) or path in GUARDED_FILES
 
 
 def evaluate(pr, owner, default_branch, commits, files, check_runs, status, waited, runs=(), has_ci=False,
@@ -120,8 +126,9 @@ COMMENTS = {
     "review": ("Auto-Merge wartet: Diese Commits ändern Code, tragen aber keine `Reviewed-by:`-Zeile: {detail}. "
                "Lass critic den Stand prüfen, behebe wesentliche Befunde und ergänze die Zeile in diesen Commits "
                "(eigener Branch: umschreiben und mit `--force-with-lease` pushen). Danach mergt Auto-Merge von selbst."),
-    "workflow": ("Auto-Merge mergt diesen PR nicht, weil er Workflow-Dateien unter `.github/workflows/` oder "
-                 "Auto-Merge selbst ändert. Claude: Wenn die CI grün ist und jeder Code-Commit "
+    "workflow": ("Auto-Merge mergt diesen PR nicht, weil er Dateien ändert, die über das Mergen urteilen "
+                 "(`.github/`, `scripts/ci/`, `.claude/`, `CLAUDE.md`, `AGENTS.md`, `.gitleaksignore` oder "
+                 "`.gitattributes`). Claude: Wenn die CI grün ist und jeder Code-Commit "
                  "geprüft ist, merge den PR selbst (Squash). Basti muss nichts tun."),
     "konflikt": ("Auto-Merge wartet: Der PR hat einen Konflikt mit `{base}`. Claude: Hol `{base}` in den Branch, "
                  "löse den Konflikt und pushe. Danach mergt Auto-Merge von selbst."),

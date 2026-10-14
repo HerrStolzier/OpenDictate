@@ -52,7 +52,7 @@ Host: macOS 27 arm64, Swift 6.4, Apple LLVM 21.0.0. Existing installed Swift
 Testing plugin used; no toolchain installation or configuration change.
 
 ```sh
-swift test --scratch-path /Users/basti/.codex/artifacts/opendictate/code-reduction-20260928/baseline-build \
+swift test --scratch-path ~/.codex/artifacts/opendictate/code-reduction-20260928/baseline-build \
   --enable-code-coverage -Xswiftc -warnings-as-errors \
   -Xswiftc -plugin-path \
   -Xswiftc /Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing
@@ -78,7 +78,7 @@ without adding confidence. Rust has no measured coverage baseline in this run;
 unchanged Rust bytes are checked separately, and no Rust coverage claim is made.
 
 Local durable evidence directory:
-`/Users/basti/.codex/artifacts/opendictate/code-reduction-20260928/`.
+`~/.codex/artifacts/opendictate/code-reduction-20260928/`.
 It contains `baseline-inventory.json`, `baseline-tests.log`,
 `baseline-coverage-raw.json`, `baseline-coverage.json` and the isolated build.
 Source hashes match the earlier retained coverage measurement; the new run

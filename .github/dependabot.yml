@@ -24,8 +24,11 @@ updates:
         patterns:
           - '*'
 
+  # One entry per project directory: the solution-less layout under /windows
+  # has no project file at its top level.
   - package-ecosystem: nuget
-    directory: /windows
+    directories:
+      - /windows/*
     schedule:
       interval: weekly
       day: monday
@@ -33,5 +36,29 @@ updates:
     open-pull-requests-limit: 3
     groups:
       nuget:
+        patterns:
+          - '*'
+
+  # global.json pins the .NET SDK with rollForward latestPatch.
+  - package-ecosystem: dotnet-sdk
+    directory: /windows
+    schedule:
+      interval: weekly
+      day: monday
+      time: '07:00'
+    open-pull-requests-limit: 3
+
+  # The iPhone app has no Package.swift; Dependabot reads the Package.resolved
+  # inside ios/OpenDictate.xcodeproj (Xcode project support since March 2026).
+  # A FluidAudio update also needs THIRD_PARTY_NOTICES.md updated.
+  - package-ecosystem: swift
+    directory: /ios
+    schedule:
+      interval: weekly
+      day: monday
+      time: '07:00'
+    open-pull-requests-limit: 3
+    groups:
+      swift:
         patterns:
           - '*'

@@ -104,7 +104,7 @@ Gesprächsinhalte speichern. Unbelegte historische Freigaben nicht nachtragen.
 
 - **Quelle:** Direkte Antwort „Ja, Linux-Schlüssel einrichten“ auf die
   konkrete Frage zur Einrichtung der beiden fehlenden OpenDictate-Schlüssel
-  im bestehenden geschützten Schlüsselbund auf `omarchy`.
+  im bestehenden geschützten Schlüsselbund auf Bastis Linux-Rechner.
 - **Umfang:** Basti gibt den OpenAI-API-Schlüssel selbst verdeckt am
   Linux-Rechner ein. Der Schutzschlüssel für Aufnahmen wird dort erzeugt.
   Das geprüfte Skript überspringt einen bereits vorhandenen API-Schlüssel.

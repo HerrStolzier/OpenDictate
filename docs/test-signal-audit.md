@@ -71,7 +71,7 @@ functions (50 Core and 88 System) passed, with four opt-in live, native hotkey,
 and benchmark tests skipped. All eight Python tests passed. Strict Swift formatting, the six shell
 syntax checks from `CHECKS.md`, and `git diff --check` passed.
 
-Linux checks passed on `omarchy` (Linux, Cargo 1.98.1) for commit
+Linux checks passed on Basti's Linux machine (Omarchy, Cargo 1.98.1) for commit
 `ab839fd5ab64ff69cc5a126e859f804b473b59a5`. All 17 files copied from the
 committed `linux/` tree into a temporary directory matched by SHA-256. The
 23 remaining Rust tests passed; formatting, Clippy with warnings denied, and
