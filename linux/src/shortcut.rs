@@ -361,12 +361,19 @@ pub fn install(choice: Choice, target: &Target) -> Result<Installed, String> {
             display_path(&target.path)
         ));
     }
-    prune_backups(&backup);
     Ok(Installed {
         backup,
         replaced,
         written: updated,
     })
+}
+
+impl Installed {
+    /// Called once Hyprland took the bind (or will at its next start): only
+    /// then are older backups dropped, so a rolled-back change loses none.
+    pub fn prune_older_backups(&self) {
+        prune_backups(&self.backup);
+    }
 }
 
 /// Keeps `current` and the newest other backups of the same file, up to
@@ -745,7 +752,7 @@ bind = , F9, exec, opendictate toggle
     }
 
     #[test]
-    fn install_keeps_only_the_newest_backups() {
+    fn pruning_leaves_only_the_newest_backups() {
         let dir = crate::test_support::unique_temp_dir("hypr-backups");
         let path = dir.join("bindings.conf");
         fs::write(&path, "bind = SUPER, RETURN, exec, kitty\n").unwrap();
@@ -763,6 +770,20 @@ bind = , F9, exec, opendictate toggle
             style: Style::Classic,
         };
         let installed = install(Choice::SuperD, &target).unwrap();
+        let count = || {
+            fs::read_dir(&dir)
+                .unwrap()
+                .filter(|entry| {
+                    let name = entry.as_ref().unwrap().file_name();
+                    name.to_string_lossy()
+                        .starts_with("bindings.conf.opendictate-backup-")
+                })
+                .count()
+        };
+        // A bind Hyprland may still reject keeps every earlier backup.
+        assert_eq!(count(), 6);
+        installed.prune_older_backups();
+        assert_eq!(count(), 4);
         let mut left: Vec<String> = fs::read_dir(&dir)
             .unwrap()
             .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())

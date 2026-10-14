@@ -513,14 +513,18 @@ pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
         loaded => loaded,
     };
     match loaded {
-        None => println!(
-            "{}",
-            t(
-                "Das Kürzel gilt ab dem nächsten Hyprland-Start.",
-                "The shortcut works from the next Hyprland start."
+        None => {
+            installed.prune_older_backups();
+            println!(
+                "{}",
+                t(
+                    "Das Kürzel gilt ab dem nächsten Hyprland-Start.",
+                    "The shortcut works from the next Hyprland start."
+                )
             )
-        ),
+        }
         Some(true) => {
+            installed.prune_older_backups();
             println!(
                 "{}",
                 t(
