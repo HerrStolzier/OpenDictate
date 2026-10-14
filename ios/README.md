@@ -92,7 +92,7 @@ Face, bei offener App; es liegt danach im Container der App, nicht im Backup.
 Ein Diktat lädt nie selbst nach; ohne Modell startet es nicht. Meldet ein
 Diktat, dass Parakeet nicht geklappt hat, lädt „Modell neu laden“ es frisch.
 Nach dem Herunterladen und nach jeder Installation oder jedem Update der App
-richtet iOS das Modell einmal für die Neural Engine ein (am iPhone 15 rund 40
+richtet iOS das Modell einmal für die Neural Engine ein (am iPhone 15 zwischen 20 und 40
 Sekunden, siehe Grenzen); danach geht das nach einem Start der App in
 Sekundenbruchteilen. Darum lädt die App das Modell gleich nach dem Herunterladen,
 beim Öffnen und während der Aufnahme in den Speicher. Wartet ein Diktat auf
@@ -158,15 +158,13 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
   dem Doppeltippen schreibt und wie gut sie gegen OpenAI abschneidet, zeigt
   erst der Vergleich am iPhone.
 - Parakeet ist eine Probe. Am 14. Oktober schrieb es am iPhone 15 auch über
-  den Kurzbefehl im Hintergrund. Das erste Diktat nach einer Installation
-  wartete rund 40 Sekunden auf das Einrichten des Modells; danach brauchte
+  den Kurzbefehl im Hintergrund. Nach einer Installation dauerte das
+  Einrichten des Modells 22 bis 39 Sekunden (drei Läufe); danach brauchte
   das Einrichten des größten Teils nach einem Neustart der App 0,1 Sekunden.
-  Sanduhr und Hinweis beim Einrichten sind am Gerät noch nicht gesehen, und
-  löscht iOS den Zwischenspeicher (etwa bei wenig Platz), dauert es ohne
-  Hinweis wieder lange. Ob ein Tipp auf
-  „Stopp“ in der App während des Einrichtens sofort wirkt, ist offen: Im
-  UI-Test kam er erst danach an, über den Kurzbefehl stoppte die Aufnahme
-  sofort.
+  „Stopp“ in der App wirkt auch während des Einrichtens sofort, und die Insel
+  zeigt die Sanduhr. Ob sie das auch beim Kurzbefehl direkt nach einem Update
+  tut, ist offen. Löscht iOS den Zwischenspeicher (etwa bei wenig Platz),
+  dauert es ohne Hinweis wieder lange.
   Im ersten Alltagstest war es gut, aber nicht so genau wie OpenAI; ein
   Vergleich mit festen Sätzen fehlt noch. Für eine Veröffentlichung ist
   offen, woher alle Nutzer das Modell laden.

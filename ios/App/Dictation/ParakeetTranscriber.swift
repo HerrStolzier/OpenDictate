@@ -18,7 +18,7 @@ enum ParakeetTranscriber {
 
     /// Whether a dictation now waits for the one-time setup: the first load
     /// of each installed copy of the app compiles the model for the Neural
-    /// Engine (about 40 seconds on an iPhone 15); later launches reuse that.
+    /// Engine (20 to 40 seconds on an iPhone 15); later launches reuse that.
     static func setsUpModel() async -> Bool {
         await !LoadedModel.shared.isLoaded && UserDefaults.standard.string(forKey: setUpKey) != setUpCopy
     }

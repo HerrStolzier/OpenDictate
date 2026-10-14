@@ -399,12 +399,20 @@ Einrichten, die Aufnahme lief rund 50 Sekunden; über den Kurzbefehl stoppte
 eine Aufnahme direkt nach dem Aufspielen sofort. Die kleine Insel zeigte
 dabei nur „•••“, den Hinweis aufs Laden nicht.
 
+Mit `d698e06` liefen am 14. Oktober Bau, alle 21 Unit-Tests, `testScreens`
+und beide Live-Tests mit Parakeet grün. Direkt nach dem Aufspielen wirkte ein
+Tipp auf „Stopp“ in der App nach 0,5 Sekunden, während der Encoder noch
+22 Sekunden kompilierte; der Text kam 24 Sekunden nach dem Stopp. Die kleine
+Insel zeigte dabei Blink und die Sanduhr. Wurde das Diktat direkt nach dem
+Aufspielen über eine URL zum Kurzbefehl gestartet, war die Insel gleich nach
+dem Stopp weg (zweimal); ob das am Testaufbau liegt, ist offen.
+
 **Offen / bekannte Grenzen:** Start ohne Leeren der Zwischenablage und die
 Änderungen nach `4993214` am Gerät, die Übergabe nach einem Stopp im
 Hintergrund (Live-Aktivität, Anruf, 90-Sekunden-Grenze) am Gerät, die Erkennung „Auf dem iPhone“ (Apples
 Spracherkennung, ab iOS 26) am Gerät und im Vergleich mit OpenAI, der
-Vergleich mit Parakeet, ob „Stopp“ in der App während des einmaligen
-Einrichtens von Parakeet sofort wirkt, die Sanduhr in der Insel, die
+Vergleich mit Parakeet, die Insel beim Kurzbefehl während des einmaligen
+Einrichtens von Parakeet, die
 Übersetzung „Auf dem iPhone“ (ab iOS 26) am Gerät, Abfrage
 „Lokales Netzwerk“, Abbruch-/Unterbrechungsfälle, Dateischutz am Gerät, Verteilung über TestFlight,
 Barrierefreiheit, wann die Kurzbefehle-App vor der Ausgabe fragt (auch beim
