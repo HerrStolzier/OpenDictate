@@ -354,19 +354,53 @@ dem Mikrofon auf, der Text kam an. Ebenso bestand `testShortcutPastesIntoNotes`:
 Der eigene Kurzbefehl „Diktieren“ legte den Text ab, und er ließ sich in eine
 neue Notiz einsetzen. Beide Tests liefen mit der Erkennung über den Dienst,
 ohne Übersetzung. Einmal fragte die Kurzbefehle-App, ob „Diktieren“ seinen
-Text ausgeben darf. Das Leeren der Test-Notiz kam erst danach dazu und ist am
-Gerät noch nicht gelaufen.
+Text ausgeben darf.
+
+Am 14. Oktober liefen mit `33dc985` (Übergabe an den Kurzbefehl nach einem
+Stopp im Hintergrund, Unit-Tests) am Mac Mini Bau und Formatprüfung ohne
+Fehler und Warnungen, alle 16 Unit-Tests aus `ios/UnitTests` im Simulator und
+`testScreens` grün. Auf dem iPhone 15 (per Kabel) bestanden danach beide
+Live-Tests. Ein erster Lauf mit stummem Mac-Lautsprecher zeigte, dass OpenAI
+bei Stille „you“ zurückgab und die App es kopierte; seitdem sendet die App
+eine stille Aufnahme nicht. Die geleerte Test-Notiz blieb in Notizen stehen;
+der Test löscht sie seitdem.
+
+Mit `e843fb5` (Stille-Prüfung, Löschen der Test-Notiz) liefen am 14. Oktober
+am Mac Mini Bau und Formatprüfung ohne Fehler und Warnungen, alle 20
+Unit-Tests (signiert, keiner übersprungen) und `testScreens` grün, auf dem
+iPhone 15 beide Live-Tests; danach stand keine leere Test-Notiz mehr in
+Notizen. Ein Diktat ohne Ton endete am Gerät mit „Die Aufnahme war zu leise“,
+ohne Anfrage an OpenAI. Der Aufräumschritt löschte dabei die erste leere
+„Neue Notiz“, hätte also auch eine eigene leere Notiz treffen können; seitdem
+schreibt der Test eine nur für diesen Lauf erzeugte Zahl in seine Notiz und
+löscht nur die Notiz mit dieser Zahl (am Gerät noch nicht gelaufen). Gelöschte
+Test-Notizen landen in „Zuletzt gelöscht“. Von Hand bestand mit `e843fb5` auch
+das Doppeltippen auf die Rückseite: Aufnahme im Hintergrund, der Kurzbefehl
+kopierte den Text, und die Tastatur bot ihn in WhatsApp oben als „Einsetzen
+von Kurzbefehle“ an (iPhone 15, iOS 27.0.1).
+
+Mit `ce98609` (Erkennung „Parakeet“) liefen am 14. Oktober am Mac Mini Bau
+und Formatprüfung samt FluidAudio ohne Fehler und Warnungen, alle 21
+Unit-Tests und `testScreens` grün. Auf dem iPhone 15 dauerte „Modell laden“
+44 Sekunden über das WLAN des iPhones. Lief die App schon, kam der Text
+1,2 Sekunden nach dem Stopp; nach einem Neustart der App 18 bis 19 Sekunden
+nach dem Stopp einer 2-Sekunden-Aufnahme (zwei Läufe), weil das Modell dann
+neu geladen wird. Beide Live-Tests bestanden mit Parakeet, auch der Weg über
+den Kurzbefehl im Hintergrund bis Notizen. Gesprochen hat die Computerstimme
+des Macs; das sagt nichts über die Erkennung echter Stimmen.
 
 **Offen / bekannte Grenzen:** Start ohne Leeren der Zwischenablage und die
-Änderungen nach `4993214` am Gerät, die Erkennung „Auf dem iPhone“ (Apples
-Spracherkennung, ab iOS 26) am Gerät und im Vergleich mit OpenAI, die
+Änderungen nach `4993214` am Gerät, die Übergabe nach einem Stopp im
+Hintergrund (Live-Aktivität, Anruf, 90-Sekunden-Grenze) am Gerät, die Erkennung „Auf dem iPhone“ (Apples
+Spracherkennung, ab iOS 26) am Gerät und im Vergleich mit OpenAI, der
+Vergleich mit Parakeet und dessen Ladezeit nach einem Neustart der App, die
 Übersetzung „Auf dem iPhone“ (ab iOS 26) am Gerät, Abfrage
 „Lokales Netzwerk“, Abbruch-/Unterbrechungsfälle, Dateischutz am Gerät, Verteilung über TestFlight,
 Barrierefreiheit, wann die Kurzbefehle-App vor der Ausgabe fragt (auch beim
 Doppeltippen?). Das Doppeltippen auf die Rückseite prüft Basti selbst; alles
 andere am Gerät laufen die UI-Tests.
 
-**Letzter Nachweis:** 13. Oktober 2026.
+**Letzter Nachweis:** 14. Oktober 2026.
 
 ## Android
 

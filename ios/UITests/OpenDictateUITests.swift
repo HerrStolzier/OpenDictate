@@ -97,10 +97,19 @@ final class OpenDictateUITests: XCTestCase {
         allowPasteIfAsked()
         snapshot("Notiz mit eingefügtem Text", of: notes)
         let pasted = body.value as? String ?? ""
-        // Empty the note and leave it, so Notes drops it instead of keeping it.
-        body.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: pasted.count))
+        // Replace the text with a marker only this run writes, then delete the
+        // note that carries it, so no other note on the iPhone can match.
+        // Digits only, which autocorrection leaves alone.
+        let marker = String(Int.random(in: 100_000_000_000...999_999_999_999))
+        body.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: pasted.count) + marker)
         let back = notes.navigationBars.buttons.firstMatch
         if back.exists { back.tap() }
+        let created = notes.cells.matching(NSPredicate(format: "label CONTAINS %@", marker)).firstMatch
+        if created.waitForExistence(timeout: 3) {
+            created.swipeLeft()
+            let delete = notes.buttons["Löschen"].firstMatch
+            if delete.waitForExistence(timeout: 3) { delete.tap() }
+        }
         snapshot("Notizen nach dem Aufräumen", of: notes)
         assertContains(pasted, keywords)
     }

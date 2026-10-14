@@ -16,6 +16,8 @@ enum DictationFailure: Error, Equatable {
     case recordingFailed(String?)
     case recordingUnreadable
     case tooShort
+    /// Nothing louder than room noise, so nothing was sent.
+    case tooQuiet
     case nothingRecognized
     case emptyTranslation
     case clipboardFailed
@@ -26,6 +28,10 @@ enum DictationFailure: Error, Equatable {
     case onDeviceModelMissing
     /// The error domain and code, shown so a beta report names the cause.
     case onDeviceFailed(String?)
+    /// Parakeet's model is not on this iPhone, or its download failed.
+    case localModelMissing
+    /// The error domain and code, as for `onDeviceFailed`.
+    case localModelFailed(String?)
     /// Translation on this iPhone needs iOS 26 and a pair Apple translates.
     case translationUnavailable
     case translationLanguagesMissing
@@ -83,6 +89,11 @@ enum DictationFailure: Error, Equatable {
             L10n.pick("The recording could not be read.", "Die Aufnahme konnte nicht gelesen werden.")
         case .tooShort:
             L10n.pick("The recording was too short.", "Die Aufnahme war zu kurz.")
+        case .tooQuiet:
+            L10n.pick(
+                "The recording was too quiet. Check the microphone and speak a little closer. Nothing was sent.",
+                "Die Aufnahme war zu leise. Prüfe das Mikrofon und sprich etwas näher hinein. "
+                    + "Es wurde nichts gesendet.")
         case .nothingRecognized:
             L10n.pick("No speech was recognized.", "Es wurde keine Sprache erkannt.")
         case .emptyTranslation:
@@ -111,6 +122,16 @@ enum DictationFailure: Error, Equatable {
             L10n.pick(
                 "Recognition on this iPhone did not work. Try again.",
                 "Die Erkennung auf dem iPhone hat nicht geklappt. Versuch es nochmal.")
+                + (detail.map { " (\($0))" } ?? "")
+        case .localModelMissing:
+            L10n.pick(
+                "Load the Parakeet model first, in OpenDictate's settings.",
+                "Lade zuerst das Parakeet-Modell, in den Einstellungen von OpenDictate.")
+        case .localModelFailed(let detail):
+            L10n.pick(
+                "Parakeet did not work on this iPhone. Try again, or load the model again in the settings.",
+                "Parakeet hat auf diesem iPhone nicht geklappt. Versuch es nochmal oder lade das Modell in den "
+                    + "Einstellungen neu.")
                 + (detail.map { " (\($0))" } ?? "")
         case .translationUnavailable:
             L10n.pick(

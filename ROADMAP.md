@@ -232,6 +232,12 @@ geschlossen ([Richtung](docs/ios-direction.md)).
    Bastis Wunsch vom 13. Oktober: auch die Übersetzung lokal. Gebaut als
    „Übersetzen mit: Auf dem iPhone“ (Apples Übersetzung, ab iOS 26); am Gerät
    noch nicht geprüft. Am Mac übernimmt das der Track macOS.
+   Am 14. Oktober fand Basti Apples Erkennung am iPhone spürbar schwächer
+   als OpenAI; darum kommt NVIDIAs Parakeet (über FluidAudio, etwa 500 MB)
+   als dritte Wahl „Erkennung: Parakeet“ dazu, als Probe. Danach Vergleich
+   OpenAI, Apple und Parakeet am iPhone mit festen deutschen Sätzen
+   (Wortfehler, Dauer, Lauf im Hintergrund). Vor einer Veröffentlichung ist zu
+   entscheiden, woher alle Nutzer das Modell laden.
 4. TestFlight-Beta. Hochladen und Tester einladen erst mit Bastis Go.
    Abhängigkeiten: Apple-Developer-Mitgliedschaft (vorhanden, Verlängerung
    September 2027), ein Zertifikat „Apple Distribution“ (am Mac noch nicht

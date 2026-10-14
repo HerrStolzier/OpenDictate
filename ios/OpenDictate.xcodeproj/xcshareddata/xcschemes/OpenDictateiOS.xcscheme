@@ -32,6 +32,16 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "0D1C00000000000000000034"
+               BuildableName = "OpenDictateiOSTests.xctest"
+               BlueprintName = "OpenDictateiOSTests"
+               ReferencedContainer = "container:OpenDictate.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "0D1C00000000000000000029"
                BuildableName = "OpenDictateiOSUITests.xctest"
                BlueprintName = "OpenDictateiOSUITests"

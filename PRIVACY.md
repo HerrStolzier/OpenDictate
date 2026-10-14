@@ -269,6 +269,18 @@ Screen and in the Dynamic Island shows that a recording is running.
   next start or recognition. The language model is downloaded once from
   Apple when you tap "Sprache laden"; iOS manages and shares it with other
   apps.
+- **Parakeet (trial):** with "Erkennung: Parakeet" NVIDIA's Parakeet TDT
+  0.6B v3 model writes the text on the iPhone through the FluidAudio library,
+  and the audio is not sent anywhere. The app writes the checked recording to
+  a temporary file in its own container for that and deletes it afterwards;
+  a copy left because iOS ended the app is deleted at the next start or
+  recognition. The model (about 500 MB) is downloaded once from Hugging Face
+  (huggingface.co) when you tap "Modell laden" or "Modell neu laden"; like
+  any web request, that tells Hugging Face the iPhone's IP address, the
+  requested files and the usual request details such as the iOS version,
+  never a recording or text. The model stays in the app's container,
+  excluded from backups, until the app is deleted. A dictation never
+  downloads it.
 - **Translation on the iPhone:** with "Übersetzen mit: Auf dem iPhone" (iOS 26
   or later) Apple's on-device translation (`TranslationSession`) translates
   the text, and the text is not sent anywhere. The app recognizes the text's
@@ -277,8 +289,8 @@ Screen and in the Dynamic Island shows that a recording is running.
   [says](https://developer.apple.com/documentation/translation/translationsession)
   it may collect usage and performance metrics with the app's bundle ID and
   the language pair, never the original or translated text. With recognition
-  and translation both on the iPhone, a dictation sends nothing and needs no
-  API key.
+  and translation both on the iPhone (Apple's recognition or Parakeet), a
+  dictation sends nothing and needs no API key.
 - **API key:** stored only in the iPhone's Keychain with "this device only"
   and readable after the first unlock, so a dictation from the Lock Screen
   works. It is not part of backups and never leaves the device except in the
@@ -302,7 +314,10 @@ Screen and in the Dynamic Island shows that a recording is running.
   on the Mac, each kept recording gets an authentication tag (HMAC-SHA256 with a key in the
   Keychain); "Send again" offers only recordings with a valid tag and uploads
   exactly the bytes it checked. A recording shorter than one second is kept
-  the same way. A recording cut off because iOS ended the app during it is
+  without a tag, because it is too short to send, and expires under the same
+  rule. A recording with nothing louder than room noise is not sent; it is
+  kept with a tag, so "Send again" can still send it on purpose, as on the
+  Mac. A recording cut off because iOS ended the app during it is
   kept at the next start without a tag, so it is never sent again, and
   expires under the same rule.
 - **No log, no telemetry:** the iPhone app writes no log file and sends

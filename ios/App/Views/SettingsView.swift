@@ -46,16 +46,27 @@ struct SettingsView: View {
         Section {
             Picker(L10n.pick("Recognition", "Erkennung"), selection: $recognition) {
                 engineOptions
+                Text(verbatim: "Parakeet").tag(Engine.parakeet.rawValue)
             }
             .accessibilityIdentifier("recognition")
             if recognition == Engine.onDevice.rawValue {
                 onDeviceState
+            } else if recognition == Engine.parakeet.rawValue {
+                parakeetState
             }
         } header: {
             Text(L10n.pick("Recognition", "Erkennung"))
         } footer: {
             VStack(alignment: .leading, spacing: 6) {
-                if loadFailed {
+                if recognition == Engine.parakeet.rawValue, ParakeetModel.shared.failed {
+                    Text(
+                        L10n.pick(
+                            "The model could not be loaded. Check your connection, keep the app open and try again.",
+                            "Das Modell ließ sich nicht laden. Prüf deine Verbindung, lass die App offen und "
+                                + "versuch es nochmal.")
+                    )
+                    .foregroundStyle(.red)
+                } else if loadFailed, recognition == Engine.onDevice.rawValue {
                     Text(
                         L10n.pick(
                             "The language could not be loaded. Check your connection and try again.",
@@ -63,18 +74,49 @@ struct SettingsView: View {
                     )
                     .foregroundStyle(.red)
                 }
-                Text(
-                    recognition == Engine.onDevice.rawValue
-                        ? L10n.pick(
-                            "Free and offline with Apple's speech recognition: the recording stays on this iPhone.",
-                            "Kostenlos und offline mit Apples Spracherkennung: Die Aufnahme bleibt auf diesem "
-                                + "iPhone.")
-                        : L10n.pick(
-                            "The recording goes to \(AppSettings.serviceName). Change the server below.",
-                            "Die Aufnahme geht an \(AppSettings.serviceName). Den Server stellst du unten ein."))
+                Text(recognitionNote)
             }
         }
         .task(id: recognition) { await checkOnDevice() }
+    }
+
+    private var recognitionNote: String {
+        switch Engine(rawValue: recognition) ?? .service {
+        case .service:
+            L10n.pick(
+                "The recording goes to \(AppSettings.serviceName). Change the server below.",
+                "Die Aufnahme geht an \(AppSettings.serviceName). Den Server stellst du unten ein.")
+        case .onDevice:
+            L10n.pick(
+                "Free and offline with Apple's speech recognition: the recording stays on this iPhone.",
+                "Kostenlos und offline mit Apples Spracherkennung: Die Aufnahme bleibt auf diesem iPhone.")
+        case .parakeet:
+            L10n.pick(
+                "A trial: free and offline with NVIDIA's Parakeet model, the recording stays on this iPhone. "
+                    + "The model (about 500 MB, CC BY 4.0) comes once from Hugging Face.",
+                "Eine Probe: kostenlos und offline mit NVIDIAs Parakeet-Modell, die Aufnahme bleibt auf diesem "
+                    + "iPhone. Das Modell (etwa 500 MB, CC BY 4.0) kommt einmalig von Hugging Face.")
+        }
+    }
+
+    @ViewBuilder private var parakeetState: some View {
+        let model = ParakeetModel.shared
+        if let progress = model.progress {
+            ProgressView(value: progress) {
+                Text(
+                    L10n.pick(
+                        "Loading the model, keep the app open …", "Modell wird geladen, lass die App offen …"))
+            }
+        } else if model.isInstalled {
+            LabeledContent(L10n.pick("Model", "Modell"), value: L10n.pick("Ready", "Bereit"))
+            // The way back when a dictation reports that the model did not work.
+            Button(L10n.pick("Load the model again", "Modell neu laden")) { model.install(again: true) }
+                .disabled(DictationRunner.shared.isBusy)
+        } else {
+            Button(L10n.pick("Load model (once, about 500 MB)", "Modell laden (einmalig, etwa 500 MB)")) {
+                model.install()
+            }
+        }
     }
 
     @ViewBuilder private var onDeviceState: some View {
@@ -110,6 +152,7 @@ struct SettingsView: View {
     }
 
     private func checkOnDevice() async {
+        ParakeetModel.shared.refresh()
         guard recognition == Engine.onDevice.rawValue else { return }
         language = await OnDeviceTranscriber.supportedLanguage()
         onDevice = await OnDeviceTranscriber.readiness()
