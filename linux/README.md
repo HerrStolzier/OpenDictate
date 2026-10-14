@@ -34,8 +34,9 @@ its text has reached the clipboard. Normally OpenDictate keeps a secured copy
 for this: `opendictate retry` sends it again, and at most five such copies are
 kept for 24 hours. If that copy cannot be made (for example because the
 keyring is locked), the original file stays in
-`~/.local/state/opendictate/pending/`; `retry` does not pick it up then, and
-the file is not deleted automatically either. If the microphone fails or is
+`~/.local/state/opendictate/pending/`; `retry` does not pick it up then. The
+24-hour limit applies to this file too: the next recording after that removes
+it. If the microphone fails or is
 unplugged during a recording, you get a notification and the audio up to that
 point is kept for `retry` the same way. A recording that is too short or
 silent is not sent; it is kept too, but plain `retry` passes it over
@@ -105,7 +106,8 @@ stay behind; they are in `~/.config/opendictate/` and
 2. Which shortcut starts and stops a dictation: Super+D, F9, or, on a US
    keyboard layout, the right Alt key alone. It shows which keys Hyprland
    already uses and writes the line into your Hyprland config, after asking
-   and with a backup next to the file (`….opendictate-backup-…`). For Omarchy
+   and with a backup next to the file (`….opendictate-backup-…`; the three
+   newest stay, older ones are removed). For Omarchy
    that is `~/.config/hypr/bindings.lua`; a plain Lua config only gets the line
    to copy. If Hyprland does not take the new line, setup puts the file back
    as it was, so the previous shortcut keeps working.
@@ -200,14 +202,20 @@ opendictate settings server off              # back to OpenAI
 - `https://` works for any address. Plain `http://` only for this computer
   (`localhost`, `127.0.0.1`, `[::1]`). Addresses with credentials, `?` or `#`
   are rejected.
+- A server on this computer is only private on a computer you use alone:
+  another local user could start a program on the same port first and would
+  then receive your recordings and texts.
 - **API key:** an address on this computer gets no key and needs none. Any
-  other server gets your stored key (useful for OpenAI-compatible providers);
-  only use servers you trust with it.
+  other server gets your stored key (useful for OpenAI-compatible providers),
+  even if that key was made for OpenAI; only use servers you trust with it.
 - Model names are free-form with a custom server; with OpenAI only the known
   transcription models are accepted. `settings server off` resets a model
   OpenAI does not offer.
 - Alternatively the environment variable `OPENAI_BASE_URL` sets the address;
   a stored address wins. Hyprland must see the variable, not just your shell.
+  Whoever can set this variable for your session redirects your recordings,
+  texts and, for an `https://` address not on this computer, your API key to
+  that server.
 - Local models on the CPU are slow, so OpenDictate waits up to 2 minutes for a
   custom server (plus upload time) instead of 15 seconds.
 - The log names only the server's host, never its path or a key.
@@ -232,7 +240,8 @@ given server works is exactly the feedback we are looking for.
   with `wpctl status` that a source is listed under Audio → Sources and
   marked as default (`*`); plug in or select the microphone and try again.
 - The log `~/.local/state/opendictate/operations.log` contains steps and
-  timings, but never your text, your key or audio.
+  timings, but never your text, your key or audio. Only you can read it; above
+  1 MiB it moves to `operations.log.1`, and only that one older file is kept.
 - Please report bugs and wishes as a
   [GitHub issue](https://github.com/HerrStolzier/OpenDictate/issues/new?template=linux-beta-feedback.md),
   with `opendictate version`, the Hyprland version (`hyprctl version`), the
@@ -352,7 +361,10 @@ stub. The key comes in from any trusted source through a pipe
   error; `retry` translates again. Tried live on omarchy on 5 October
   ([plan with evidence](../docs/linux-live-translation-plan.md)).
 - A non-empty transcript is written only to the Wayland clipboard. The
-  recording may be removed only after the copy succeeded.
+  recording may be removed only after the copy succeeded. A clipboard history
+  manager (for example cliphist, clipman or the one in your desktop shell)
+  keeps its own copy of every transcript; OpenDictate cannot prevent or
+  remove that.
 - Auto-paste (on by default, `settings insert off` turns it off): at start the
   active Hyprland window is captured. After copying, the CLI checks that
   exactly this window is still in front and the clipboard still holds the
@@ -388,7 +400,9 @@ stub. The key comes in from any trusted source through a pipe
   read or logged.
 
 State lives in `$XDG_STATE_HOME/opendictate/` (else
-`~/.local/state/opendictate/`), settings in `$XDG_CONFIG_HOME/opendictate/`.
+`~/.local/state/opendictate/`), settings in `$XDG_CONFIG_HOME/opendictate/`
+(else `~/.config/opendictate/`). Empty or relative `XDG_*` values are ignored;
+without an absolute `HOME` OpenDictate stops with a message.
 App, pending and recovery folders are real directories with mode `0700`; audio
 files and proofs `0600`.
 

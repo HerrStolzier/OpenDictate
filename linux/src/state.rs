@@ -104,9 +104,7 @@ mod tests {
 
     #[test]
     fn stale_state_without_socket_is_idle() {
-        let dir = std::env::temp_dir().join(format!("opendictate-state-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&dir);
-        fs::create_dir_all(&dir).unwrap();
+        let dir = crate::test_support::unique_temp_dir("state");
         let state = dir.join("state");
         let socket = dir.join("socket");
         write(&state, State::Processing).unwrap();
@@ -116,9 +114,7 @@ mod tests {
 
     #[test]
     fn every_state_survives_the_state_file() {
-        let dir = std::env::temp_dir().join(format!("opendictate-states-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&dir);
-        fs::create_dir_all(&dir).unwrap();
+        let dir = crate::test_support::unique_temp_dir("states");
         let state = dir.join("state");
         let socket = dir.join("socket");
         fs::write(&socket, b"").unwrap();
@@ -136,9 +132,7 @@ mod tests {
 
     #[test]
     fn state_guard_clears_state_and_cancel() {
-        let dir = std::env::temp_dir().join(format!("opendictate-guard-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&dir);
-        fs::create_dir_all(&dir).unwrap();
+        let dir = crate::test_support::unique_temp_dir("guard");
         let state = dir.join("state");
         let cancel = dir.join("cancel");
         {

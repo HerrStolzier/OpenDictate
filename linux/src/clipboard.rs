@@ -120,6 +120,7 @@ fn wait_until(
 mod tests {
     #[test]
     fn copy_text_fails_without_wayland_display() {
+        let _guard = crate::test_support::env_lock();
         let previous = std::env::var_os("WAYLAND_DISPLAY");
         std::env::remove_var("WAYLAND_DISPLAY");
         let error = super::copy_text("x").unwrap_err();

@@ -169,6 +169,42 @@ pub fn prune(recovery_dir: &Path, key: &[u8]) -> Result<(), String> {
     Ok(())
 }
 
+/// Removes audio left in the pending folder once it is older than the
+/// recovery limit of 24 hours. Such a file stayed there because its secured
+/// copy could not be made; `retry` never sends it. Newer files, symbolic
+/// links and other names are left alone. Returns how many were removed.
+pub fn prune_stale_pending(pending_dir: &Path) -> usize {
+    prune_pending_older_than(pending_dir, SystemTime::now(), MAXIMUM_AGE)
+}
+
+fn prune_pending_older_than(pending_dir: &Path, now: SystemTime, age: Duration) -> usize {
+    let Ok(directory) = fs::read_dir(pending_dir) else {
+        return 0;
+    };
+    let mut removed = 0;
+    for item in directory.flatten() {
+        let name = item.file_name();
+        let Some(name) = name.to_str() else {
+            continue;
+        };
+        if !name.ends_with(".wav") && !name.ends_with(".wav.auth.json") {
+            continue;
+        }
+        let Ok(metadata) = item.metadata() else {
+            continue;
+        };
+        let expired = metadata
+            .modified()
+            .ok()
+            .and_then(|modified| now.duration_since(modified).ok())
+            .is_some_and(|elapsed| elapsed >= age);
+        if metadata.file_type().is_file() && expired && fs::remove_file(item.path()).is_ok() {
+            removed += 1;
+        }
+    }
+    removed
+}
+
 /// Whether the folder holds any recording with a proof, checked without the
 /// key. Files without one are never managed, so they need no key lookup.
 pub fn has_recordings(recovery_dir: &Path) -> bool {
@@ -414,11 +450,7 @@ mod tests {
     }
 
     fn fixture(name: &str) -> (PathBuf, PathBuf) {
-        let root = std::env::temp_dir().join(format!(
-            "opendictate-recovery-{name}-{}",
-            std::process::id()
-        ));
-        let _ = fs::remove_dir_all(&root);
+        let root = crate::test_support::unique_temp_dir(&format!("recovery-{name}"));
         let pending = root.join("pending");
         let recovery = root.join("recovery");
         fs::create_dir_all(&pending).unwrap();
@@ -631,5 +663,43 @@ mod tests {
         assert!(!recovery_dir.join("real-0.wav").exists());
         assert!(recovery_dir.join("real-1.wav").exists());
         let _ = fs::remove_dir_all(recovery_dir.parent().unwrap());
+    }
+
+    fn age_file(path: &Path, age: Duration) {
+        fs::File::options()
+            .write(true)
+            .open(path)
+            .unwrap()
+            .set_modified(SystemTime::now() - age)
+            .unwrap();
+    }
+
+    #[test]
+    fn stale_pending_audio_is_removed_after_24_hours_only() {
+        let (original, _) = fixture("pending-prune");
+        let pending = original.parent().unwrap().to_path_buf();
+        let old = pending.join("1-1.wav");
+        let old_upload = pending.join("1-1.upload.wav");
+        let old_proof = pending.join("2-2.wav.auth.json");
+        let fresh = pending.join("3-3.wav");
+        let other = pending.join("notes.txt");
+        for path in [&old, &old_upload, &old_proof, &fresh, &other] {
+            fs::write(path, b"x").unwrap();
+        }
+        let day = MAXIMUM_AGE + Duration::from_secs(60);
+        for path in [&old, &old_upload, &old_proof, &other] {
+            age_file(path, day);
+        }
+        age_file(&fresh, MAXIMUM_AGE - Duration::from_secs(60));
+        let outside = pending.parent().unwrap().join("outside.wav");
+        fs::write(&outside, b"x").unwrap();
+        age_file(&outside, day);
+        std::os::unix::fs::symlink(&outside, pending.join("link.wav")).unwrap();
+        assert_eq!(prune_stale_pending(&pending), 3);
+        assert!(!old.exists() && !old_upload.exists() && !old_proof.exists());
+        assert!(fresh.exists() && other.exists() && outside.exists());
+        assert!(fs::symlink_metadata(pending.join("link.wav")).is_ok());
+        assert_eq!(prune_stale_pending(&pending.join("missing")), 0);
+        let _ = fs::remove_dir_all(pending.parent().unwrap());
     }
 }

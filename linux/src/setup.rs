@@ -442,7 +442,8 @@ fn shortcut_step() -> Result<Option<Choice>, String> {
 /// Writes the bind and reports whether Hyprland picked it up. With
 /// `ask_first` the user confirms the file change first.
 pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
-    let Some(target) = shortcut::detect(&shortcut::hypr_dir()) else {
+    let hypr_dir = shortcut::hypr_dir().map_err(|error| error.to_string())?;
+    let Some(target) = shortcut::detect(&hypr_dir) else {
         println!(
             "{}",
             t(
@@ -512,14 +513,18 @@ pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
         loaded => loaded,
     };
     match loaded {
-        None => println!(
-            "{}",
-            t(
-                "Das Kürzel gilt ab dem nächsten Hyprland-Start.",
-                "The shortcut works from the next Hyprland start."
+        None => {
+            installed.prune_older_backups();
+            println!(
+                "{}",
+                t(
+                    "Das Kürzel gilt ab dem nächsten Hyprland-Start.",
+                    "The shortcut works from the next Hyprland start."
+                )
             )
-        ),
+        }
         Some(true) => {
+            installed.prune_older_backups();
             println!(
                 "{}",
                 t(
