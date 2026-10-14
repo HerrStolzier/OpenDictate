@@ -348,7 +348,10 @@ bash scripts/ci/scan-secrets.sh [base-commit] [head-commit]
 ```
 
 Workflow lint downloads pinned actionlint 1.7.12 to a temporary directory and
-checks every external action reference for a full commit SHA. The secret scan
+checks every external action reference for a full commit SHA. It then installs
+zizmor 1.30.1, pinned by SHA-256, into a temporary virtual environment and runs
+its offline security audit of the workflows; `.github/zizmor.yml` records the
+one accepted finding (Auto-Merge's `workflow_run` trigger) and why. The secret scan
 downloads Gitleaks 8.30.1 to a temporary directory, verifies its published
 SHA-256, and scans only the selected Git commit range. CI passes the pull
 request base SHA and checked-out `github.sha` (the merge result), or the push

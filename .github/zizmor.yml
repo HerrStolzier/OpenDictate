@@ -1,0 +1,8 @@
+# Configuration for zizmor in scripts/ci/check-workflows.sh.
+rules:
+  dangerous-triggers:
+    ignore:
+      # Auto-Merge reacts to finished CI runs (workflow_run) but checks out
+      # only its own script from the default branch, never code from the pull
+      # request, and passes no event data into a shell.
+      - auto-merge.yml
