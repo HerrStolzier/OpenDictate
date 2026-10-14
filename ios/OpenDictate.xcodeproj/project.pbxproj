@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0D1C00000000000000000010 /* OpenDictateCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0D1C0000000000000000000E /* OpenDictateCore */; };
 		0D1C00000000000000000011 /* OpenDictateCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0D1C0000000000000000000F /* OpenDictateCore */; };
+		0D1C0000000000000000003F /* FluidAudio in Frameworks */ = {isa = PBXBuildFile; productRef = 0D1C0000000000000000003E /* FluidAudio */; };
 		0D1C00000000000000000012 /* OpenDictateWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0D1C00000000000000000007 /* OpenDictateWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -74,6 +75,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0D1C00000000000000000010 /* OpenDictateCore in Frameworks */,
+				0D1C0000000000000000003F /* FluidAudio in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -161,6 +163,7 @@
 			name = OpenDictateiOS;
 			packageProductDependencies = (
 				0D1C0000000000000000000E /* OpenDictateCore */,
+				0D1C0000000000000000003E /* FluidAudio */,
 			);
 			productName = OpenDictateiOS;
 			productReference = 0D1C00000000000000000006 /* OpenDictateiOS.app */;
@@ -271,6 +274,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				0D1C0000000000000000000D /* XCLocalSwiftPackageReference ".." */,
+				0D1C0000000000000000003D /* XCRemoteSwiftPackageReference "FluidAudio" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 0D1C00000000000000000003 /* Products */;
@@ -662,6 +666,17 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		0D1C0000000000000000003D /* XCRemoteSwiftPackageReference "FluidAudio" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/FluidInference/FluidAudio";
+			requirement = {
+				kind = exactVersion;
+				version = 0.15.5;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		0D1C0000000000000000000E /* OpenDictateCore */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -670,6 +685,11 @@
 		0D1C0000000000000000000F /* OpenDictateCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = OpenDictateCore;
+		};
+		0D1C0000000000000000003E /* FluidAudio */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0D1C0000000000000000003D /* XCRemoteSwiftPackageReference "FluidAudio" */;
+			productName = FluidAudio;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

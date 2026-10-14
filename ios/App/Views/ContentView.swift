@@ -233,10 +233,11 @@ struct ContentView: View {
                                 + "Doppeltippen → „Diktieren“."))
                 Text(
                     L10n.pick(
-                        "3. Run the shortcut again to stop. The text is then on the clipboard; paste it "
-                            + "anywhere.",
+                        "3. Run the shortcut again to stop. The text is then on the clipboard. Tap into a "
+                            + "text field: the keyboard usually offers it at the top to paste.",
                         "3. Führ den Kurzbefehl nochmal aus, um das Diktat zu beenden. "
-                            + "Der Text liegt dann in der Zwischenablage."))
+                            + "Der Text liegt dann in der Zwischenablage. Tipp in ein Textfeld: "
+                            + "Die Tastatur schlägt ihn meist oben zum Einsetzen vor."))
             }
         }
         .font(BrandFont.sans(15))

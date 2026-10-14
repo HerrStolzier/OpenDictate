@@ -46,12 +46,15 @@ selbst (siehe Grenzen).
    Aufnahme war zu leise“ wie am Mac und bietet die Aufnahme zum
    Nochmal-Senden an.
 3. Die Aufnahme geht an OpenAI oder den eigenen Server, oder Apples
-   Spracherkennung schreibt sie auf dem iPhone (Einstellung „Erkennung“, siehe
-   unten); mit Zielsprache folgt die Übersetzung. Ist die App vorn, kopiert sie den Text selbst. Im
+   Spracherkennung oder Parakeet schreibt sie auf dem iPhone (Einstellung
+   „Erkennung“, siehe unten); mit Zielsprache folgt die Übersetzung. Ist die App vorn, kopiert sie den Text selbst. Im
    Hintergrund verweigert iOS ihr die Zwischenablage; dann gibt sie den Text
    an den Kurzbefehl zurück, dessen Schritt „In Zwischenablage kopieren“ ihn
    ablegt. Beim Start gibt sie nichts zurück, damit dieser Schritt die
    Zwischenablage nicht leert. Die Live-Aktivität zeigt kurz „Kopiert“.
+   Tippt man danach in ein Textfeld, schlägt die iOS-Tastatur den Text oben
+   als „Einsetzen von Kurzbefehle“ vor; ein Tipp setzt ihn ein (am iPhone
+   gesehen am 14. Oktober 2026; wie lange iOS den Vorschlag zeigt, ist offen).
    Endet die Aufnahme im Hintergrund ohne den Kurzbefehl (Stopp in der
    Live-Aktivität, Anruf, 90-Sekunden-Grenze), zeigt sie „Fertig“: Wer den
    Kurzbefehl innerhalb von fünf Minuten nochmal startet, bekommt diesen Text
@@ -79,6 +82,18 @@ Erkennung „Auf dem iPhone“ (ab iOS 26, Probe vom 13. Oktober 2026): Apples
 kostenlos, offline und ohne Schlüssel. Das Sprachmodell lädt man einmal in
 den Einstellungen („Sprache laden“); ein Diktat lädt nie selbst nach. Ohne
 Modell startet es gar nicht, und „Nochmal senden“ behält die Aufnahme.
+Erkennung „Parakeet“ (Probe vom 14. Oktober 2026): NVIDIAs Modell Parakeet
+TDT 0.6B v3 schreibt die Aufnahme über die Bibliothek
+[FluidAudio](https://github.com/FluidInference/FluidAudio) (feste Version
+0.15.5) auf dem iPhone, kostenlos, offline und ohne Schlüssel. Die Sprache
+erkennt das Modell selbst (25 europäische Sprachen). Das Modell (etwa 500 MB,
+CC BY 4.0) lädt man einmal in den Einstellungen („Modell laden“) von Hugging
+Face, bei offener App; es liegt danach im Container der App, nicht im Backup.
+Ein Diktat lädt nie selbst nach; ohne Modell startet es nicht. Meldet ein
+Diktat, dass Parakeet nicht geklappt hat, lädt „Modell neu laden“ es frisch. Während der Aufnahme lädt die
+App das Modell schon in den Speicher, weil der erste Start nach dem Öffnen
+dauert (am iPhone 15 rund 18 Sekunden, siehe Grenzen). Übersetzen geht dabei über „Übersetzen mit“ wie bei
+den anderen Erkennungen.
 Übersetzen geht genauso auf dem iPhone („Übersetzen mit: Auf dem iPhone“, ab
 iOS 26): Apples `TranslationSession` übersetzt offline, nachdem die App die
 Sprache des Textes auf dem Gerät erkannt hat. Die Sprachen lädt man einmal mit
@@ -137,6 +152,12 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
   des iPhones und ist am Gerät noch nicht geprüft; ob sie im Hintergrund nach
   dem Doppeltippen schreibt und wie gut sie gegen OpenAI abschneidet, zeigt
   erst der Vergleich am iPhone.
+- Parakeet ist eine Probe. Am 14. Oktober schrieb es am iPhone 15 auch über
+  den Kurzbefehl im Hintergrund. Nach einem Neustart der App lädt es das
+  Modell aber neu, und ein kurzes Diktat wartete dann 18 bis 19 Sekunden auf
+  den Text statt gut einer Sekunde. Wie gut es gegen OpenAI und Apple
+  abschneidet, ist noch nicht verglichen. Für eine Veröffentlichung ist offen,
+  woher alle Nutzer das Modell laden.
 - Das Datenschutz-Manifest gibt Audio und Text als für die App-Funktion
   erfasst und mit der Person verknüpft an (kein Tracking), weil der gewählte
   Dienst beides eine Zeit lang aufbewahren und dem Konto hinter dem

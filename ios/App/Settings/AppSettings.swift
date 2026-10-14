@@ -28,11 +28,14 @@ enum AppSettings {
     }
 
     static var recognition: Engine { Engine(rawValue: string(recognitionKey)) ?? .service }
-    static var translationEngine: Engine { Engine(rawValue: string(translationEngineKey)) ?? .service }
+    /// Parakeet does not translate, so only Apple's translation counts.
+    static var translationEngine: Engine {
+        Engine(rawValue: string(translationEngineKey)) == .onDevice ? .onDevice : .service
+    }
 
     /// Recognition and translation on this iPhone send nothing.
     static var sendsNothing: Bool {
-        recognition == .onDevice && (string(translationTargetKey).isEmpty || translationEngine == .onDevice)
+        recognition != .service && (string(translationTargetKey).isEmpty || translationEngine == .onDevice)
     }
 
     /// A server on this iPhone takes no key either.
@@ -51,6 +54,8 @@ enum Engine: String, Sendable {
     case service = ""
     /// Apple's models on this iPhone, see `OnDeviceTranscriber` and `OnDeviceTranslator`.
     case onDevice = "device"
+    /// NVIDIA's Parakeet on this iPhone, for recognition only, see `ParakeetTranscriber`.
+    case parakeet
 }
 
 /// Everything one dictation needs, read once when it starts or is sent again.

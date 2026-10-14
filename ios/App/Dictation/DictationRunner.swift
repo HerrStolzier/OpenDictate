@@ -64,6 +64,7 @@ final class DictationRunner {
     private init() {
         store.prepare()
         OnDeviceTranscriber.removeLeftovers()
+        ParakeetTranscriber.removeLeftovers()
         retryable = pendingRetry()
         recorder.onUnexpectedStop = { Task { try? await DictationRunner.shared.finish() } }
         // A phone call or Siri takes the microphone: send what was said so far.
@@ -121,6 +122,9 @@ final class DictationRunner {
                 case .needsModel, .downloading: throw DictationFailure.onDeviceModelMissing
                 }
             }
+            if configuration.recognition == .parakeet, !ParakeetTranscriber.isInstalled {
+                throw DictationFailure.localModelMissing
+            }
             if let target = configuration.translationTarget, configuration.translationEngine == .onDevice {
                 switch await OnDeviceTranslator.readiness(into: target) {
                 case .ready: break
@@ -133,6 +137,7 @@ final class DictationRunner {
             let startedAt = Date()
             try startActivity(at: startedAt)
             try recorder.start(into: store.newRecordingURL(), limit: Self.limit)
+            if configuration.recognition == .parakeet { ParakeetTranscriber.prepare() }
             self.configuration = configuration
             self.startedAt = startedAt
             phase = .listening(since: startedAt)
@@ -313,11 +318,14 @@ final class DictationRunner {
         switch configuration.recognition {
         case .service: text = try await client.transcribe(audio, configuration: configuration)
         case .onDevice: text = try await OnDeviceTranscriber.transcribe(audio)
+        case .parakeet: text = try await ParakeetTranscriber.transcribe(audio)
         }
         guard !text.isEmpty else { throw DictationFailure.nothingRecognized }
         if let target = configuration.translationTarget {
             switch configuration.translationEngine {
-            case .service: text = try await client.translate(text, into: target, configuration: configuration)
+            // Parakeet does not translate; `AppSettings.translationEngine` never picks it.
+            case .service, .parakeet:
+                text = try await client.translate(text, into: target, configuration: configuration)
             case .onDevice: text = try await OnDeviceTranslator.translate(text, into: target)
             }
             guard !text.isEmpty else { throw DictationFailure.emptyTranslation }
