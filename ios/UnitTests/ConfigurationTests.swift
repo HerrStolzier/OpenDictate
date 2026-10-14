@@ -48,6 +48,15 @@ final class ConfigurationTests: XCTestCase {
         XCTAssertFalse(AppSettings.needsAPIKey)
     }
 
+    func testParakeetNeedsNoKeyButDoesNotTranslate() {
+        set(AppSettings.recognitionKey, Engine.parakeet.rawValue)
+        XCTAssertFalse(AppSettings.needsAPIKey)
+        set(AppSettings.translationTargetKey, "en")
+        set(AppSettings.translationEngineKey, Engine.parakeet.rawValue)
+        XCTAssertEqual(AppSettings.translationEngine, .service)
+        XCTAssertTrue(AppSettings.needsAPIKey)
+    }
+
     func testServerOnThisDeviceGetsNoKey() throws {
         set(AppSettings.serverAddressKey, Self.localServer)
         let configuration = try DictationConfiguration.current()
