@@ -389,11 +389,22 @@ neu geladen wird. Beide Live-Tests bestanden mit Parakeet, auch der Weg über
 den Kurzbefehl im Hintergrund bis Notizen. Gesprochen hat die Computerstimme
 des Macs; das sagt nichts über die Erkennung echter Stimmen.
 
+Mit `6379c54` maß der Mac Mini am 14. Oktober je Start der App die Zeilen
+„Compiled model …“ von FluidAudio. Beim ersten Start nach dem Aufspielen
+brauchte der Encoder 39,3 Sekunden, bei den beiden folgenden Starts je
+0,09 Sekunden. Die frühere Messung von 18 bis 19 Sekunden „nach einem
+Neustart“ war verfälscht, weil jeder Testlauf die App neu aufspielte. Im
+ersten Lauf wirkte der Tipp des UI-Tests auf „Stopp“ erst nach dem
+Einrichten, die Aufnahme lief rund 50 Sekunden; über den Kurzbefehl stoppte
+eine Aufnahme direkt nach dem Aufspielen sofort. Die kleine Insel zeigte
+dabei nur „•••“, den Hinweis aufs Laden nicht.
+
 **Offen / bekannte Grenzen:** Start ohne Leeren der Zwischenablage und die
 Änderungen nach `4993214` am Gerät, die Übergabe nach einem Stopp im
 Hintergrund (Live-Aktivität, Anruf, 90-Sekunden-Grenze) am Gerät, die Erkennung „Auf dem iPhone“ (Apples
 Spracherkennung, ab iOS 26) am Gerät und im Vergleich mit OpenAI, der
-Vergleich mit Parakeet und dessen Ladezeit nach einem Neustart der App, die
+Vergleich mit Parakeet, ob „Stopp“ in der App während des einmaligen
+Einrichtens von Parakeet sofort wirkt, die Sanduhr in der Insel, die
 Übersetzung „Auf dem iPhone“ (ab iOS 26) am Gerät, Abfrage
 „Lokales Netzwerk“, Abbruch-/Unterbrechungsfälle, Dateischutz am Gerät, Verteilung über TestFlight,
 Barrierefreiheit, wann die Kurzbefehle-App vor der Ausgabe fragt (auch beim

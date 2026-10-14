@@ -19,6 +19,11 @@ struct DictationAttributes: ActivityAttributes {
         var endsAt: Date
         /// One short sentence after the dictation, already in the user's language.
         var detail: String?
+        /// While writing: Parakeet first sets up its model, once after an install or update.
+        var setsUpModel = false
+
+        /// The sentence under the state word.
+        var shownDetail: String? { setsUpModel ? L10n.modelLoadsDetail : detail }
 
         var pose: BlinkPose {
             switch phase {

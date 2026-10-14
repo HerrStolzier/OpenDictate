@@ -31,7 +31,7 @@ struct DictationLiveActivity: Widget {
                     if context.state.phase == .listening, !context.isStale { StopButton(compact: true) }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    if let detail = context.state.detail {
+                    if let detail = context.state.shownDetail {
                         Text(detail)
                             .font(BrandFont.sans(13))
                             .foregroundStyle(Color(design: .inkMuted))
@@ -49,7 +49,7 @@ struct DictationLiveActivity: Widget {
                 } else {
                     // The compact area is too narrow for the word on some
                     // iPhones; the expanded and Lock Screen views show it.
-                    Image(systemName: CompactSymbol.name(context.state.phase))
+                    Image(systemName: CompactSymbol.name(context.state))
                         .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(Color(design: context.state.phase == .oops ? .warn : .signal))
                         .accessibilityLabel(L10n.word(context.state.phase))
@@ -64,10 +64,10 @@ struct DictationLiveActivity: Widget {
 }
 
 private enum CompactSymbol {
-    static func name(_ phase: DictationAttributes.ContentState.Phase) -> String {
-        switch phase {
+    static func name(_ state: DictationAttributes.ContentState) -> String {
+        switch state.phase {
         case .listening: "mic.fill"
-        case .writing: "ellipsis"
+        case .writing: state.setsUpModel ? "hourglass" : "ellipsis"
         case .copied: "checkmark"
         case .done: "doc.on.clipboard"
         case .oops: "exclamationmark"
@@ -86,7 +86,7 @@ private struct LockScreenView: View {
                 .frame(width: 44, height: 50)
             VStack(alignment: .leading, spacing: DesignMetric.space1) {
                 StateLine(state: state)
-                if let detail = state.detail {
+                if let detail = state.shownDetail {
                     Text(detail)
                         .font(BrandFont.sans(14))
                         .foregroundStyle(Color(design: .inkMuted))

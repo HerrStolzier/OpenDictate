@@ -11,16 +11,21 @@ import OpenDictateCore
 enum ParakeetTranscriber {
     static var isInstalled: Bool { AsrModels.modelsExist(at: directory, version: .v3) }
 
-    /// Loads the model ahead, while the person speaks: the first load after
-    /// a launch compiles it for the Neural Engine, which takes seconds.
+    /// Loads the model ahead, while the app is open or the person speaks.
     static func prepare() {
         Task { _ = try? await LoadedModel.shared.manager() }
     }
 
-    /// Whether a dictation would get its text without loading the model first.
-    static func isLoaded() async -> Bool {
-        await LoadedModel.shared.isLoaded
+    /// Whether a dictation now waits for the one-time setup: the first load
+    /// of each installed copy of the app compiles the model for the Neural
+    /// Engine (about 40 seconds on an iPhone 15); later launches reuse that.
+    static func setsUpModel() async -> Bool {
+        await !LoadedModel.shared.isLoaded && UserDefaults.standard.string(forKey: setUpKey) != setUpCopy
     }
+
+    /// iOS gives every install and update of the app a new folder.
+    fileprivate static var setUpCopy: String { Bundle.main.bundlePath }
+    fileprivate static let setUpKey = "parakeetSetUpFor"
 
     /// Transcribes the authenticated bytes of a kept recording. Never
     /// downloads: a missing model fails, and the recording stays for "Send again".
@@ -94,6 +99,8 @@ final class ParakeetModel {
                 await LoadedModel.shared.forget()
                 try? FileManager.default.removeItem(at: ParakeetTranscriber.directory)
             }
+            // New files need the one-time setup again.
+            UserDefaults.standard.removeObject(forKey: ParakeetTranscriber.setUpKey)
             ModelHub.offlineMode = false
             defer { ModelHub.offlineMode = true }
             do {
@@ -109,6 +116,8 @@ final class ParakeetModel {
                 var values = URLResourceValues()
                 values.isExcludedFromBackup = true
                 try? folder.setResourceValues(values)
+                // The one-time setup now, while the app is still open.
+                ParakeetTranscriber.prepare()
             } catch {
                 failed = true
             }
@@ -141,7 +150,10 @@ private actor LoadedModel {
         }
         loading = task
         let manager = try await task.value
-        if loading == task { isLoaded = true }
+        if loading == task {
+            isLoaded = true
+            UserDefaults.standard.set(ParakeetTranscriber.setUpCopy, forKey: ParakeetTranscriber.setUpKey)
+        }
         return manager
     }
 
