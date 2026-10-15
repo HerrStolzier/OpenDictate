@@ -41,14 +41,14 @@ Wie Aufnahmen, Texte und Schlüssel durch die Apps laufen, steht in
 Diese Schutzmaßnahmen lassen sich nicht im Code festlegen. Sie werden in den
 Einstellungen des Repositorys und des Kontos gesetzt:
 
-- [ ] **Private vulnerability reporting** einschalten (Settings → Code
+- [x] **Private vulnerability reporting** einschalten (Settings → Code
       security), damit „Report a vulnerability“ erscheint.
-- [ ] **Secret scanning** und **Push protection** einschalten.
-- [ ] **CodeQL** im Default setup laufen lassen (CHECKS.md setzt das voraus).
-- [ ] **Dependabot alerts** und **Dependabot security updates** einschalten.
-- [ ] Ruleset für `main`: erforderliche Statusprüfungen, Force-Push und
+- [x] **Secret scanning** und **Push protection** einschalten.
+- [x] **CodeQL** im Default setup laufen lassen (CHECKS.md setzt das voraus).
+- [x] **Dependabot alerts** und **Dependabot security updates** einschalten.
+- [x] Ruleset für `main`: erforderliche Statusprüfungen, Force-Push und
       Löschen blockieren.
-- [ ] Ruleset für die Tags `v*` und `linux-v*`: Ändern und Löschen blockieren.
+- [x] Ruleset für die Tags `v*` und `linux-v*`: Ändern und Löschen blockieren.
 - [ ] Releases mit signierten, annotierten Tags erstellen (`git tag -s`).
 - [ ] Commit-E-Mail auf die GitHub-noreply-Adresse stellen und „Block command
       line pushes that expose my email“ einschalten.
@@ -70,7 +70,7 @@ mergt Auto-Merge nicht selbst, weil sie die Prüfungen ändern, die über sie
 urteilen. Diese Regel steht in `.github/scripts/auto_merge.py`, einer Kopie aus
 `HerrStolzier/claude-config`.
 
-- [ ] Die Änderung an `guarded()` auch in `HerrStolzier/claude-config`
+- [x] Die Änderung an `guarded()` auch in `HerrStolzier/claude-config`
       (`ci/auto_merge.py`) nachziehen. Sonst setzt der nächste Lauf von
       `install-repo-gate.py` sie zurück; `scripts/tests/test_auto_merge.py`
       fällt dann rot aus und zeigt das an.
