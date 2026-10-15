@@ -56,6 +56,9 @@ The app's menus are in German for now.
 - Tested in TextEdit, Safari, Brave, Obsidian and Terminal. Other apps should
   work; please [let me know](https://github.com/HerrStolzier/OpenDictate/issues/new?template=beta-rueckmeldung.md)
   if one doesn't.
+- Other projects are also called OpenDictate. This one is the menu bar app
+  from [HerrStolzier/OpenDictate](https://github.com/HerrStolzier/OpenDictate);
+  the Snap package named `opendictate` is not ours.
 
 Everything else, from the settings to your own server and what happens to a
 failed recording, is in [the details](docs/mac-details.md). How your audio and

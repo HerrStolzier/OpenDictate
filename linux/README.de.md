@@ -63,7 +63,8 @@ wird nicht gesendet; sie wird auch gesichert, aber `retry` übergeht sie
 
 Einmalig die Bauwerkzeuge holen und das Paket aus dem Quellcode bauen. `makepkg`
 baut das Programm, führt die Tests aus und installiert es nach Rückfrage mit
-`pacman` als Paket `opendictate`:
+`pacman` als Paket `opendictate`. Auch andere Projekte heißen so: Das
+Snap-Paket `opendictate` ist nicht dieses, also bitte aus diesem Repository bauen.
 
 ```bash
 sudo pacman -S --needed base-devel git rust

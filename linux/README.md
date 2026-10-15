@@ -62,7 +62,8 @@ silent is not sent; it is kept too, but plain `retry` passes it over
 
 Get the build tools once and build the package from source. `makepkg` builds
 the program, runs the tests and, after asking, installs it with `pacman` as the
-package `opendictate`:
+package `opendictate`. Other projects share the name: the Snap package
+`opendictate` is not this one, so build from this repository.
 
 ```bash
 sudo pacman -S --needed base-devel git rust
