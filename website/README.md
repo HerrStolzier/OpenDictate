@@ -55,6 +55,23 @@ europäischen Sprachen unter den 13 Zielsprachen der App.
   320 Pixel über den Rand ragt. Die Übersetzungen hat je Sprache eine
   muttersprachliche Durchsicht (KI) geprüft, kein Mensch.
 
+## Gestaltung nach der Design-Prüfung (16. Oktober 2026)
+
+Eine Prüfung mit TasteSkill am 16. Oktober ergab einige Fehler. Das
+Designsystem hat Vorrang. Umgesetzt sind die echten Befunde:
+
+- `[hidden]` blendet immer aus. Vorher hob eine `display`-Regel das Ausblenden
+  auf. Dadurch standen in „Schreibt“ und „Eingefügt“ das rote REC-Symbol und
+  die Wellenform, die an das Wort „Schreibt“ stieß.
+- Die Bühne beginnt mit „Hört zu“ statt mit der geschlossenen Notch. Der
+  eingefügte Satz bleibt stehen, während Blink wartet.
+- Hinweis- und Fußnotensätze (`.meta`), Zitatname und der Knopf „Ton“ stehen
+  in den Stufen `small`, `code` und `ui` (13 bis 14 px) statt in 12 px.
+  Hinweise und Einleitungen sind höchstens 60 Zeichen breit. Notch-Untertitel
+  und Notizfeld nutzen die Tokens statt eigener Größen. Reine Labels in Geist
+  Mono (Kicker, Kapitelnummern, Kopf der Notiz) bleiben laut Designsystem bei
+  `label` (12 px).
+
 ## Auslieferung
 
 Die Seite läuft als Cloudflare Worker `opendictate-website` auf
