@@ -163,7 +163,7 @@ im Windows-Job der CI). Seit dem Abend des 11. Oktober gibt es die Beta-App
 Einfügen per Zwischenablage, Diktatanzeige im Designsystem, Begrüßung mit
 Kürzeltest. Seit dem 16. Oktober läuft sie auf Bastis Windows-PC xmg: 15
 Schutzprüfungen bestanden, und Bastis Diktat mit beiden Kürzeln landete in
-Notepad; den Spielchat im Vollbild prüfen die Beta-Nutzer (Basti, 16. Oktober). Ebenfalls am 16. Oktober gebaut und
+Notepad; der Spielchat im Vollbild ist noch offen, hält aber nichts auf (Basti, 16. Oktober). Ebenfalls am 16. Oktober gebaut und
 offline geprüft: Auswahl „Dienst“ (OpenAI oder eigener Server) und „So nimmst
 du auf“ (gedrückt halten oder antippen); auf xmg selbst getestet, und Basti
 hat „Antippen“ in Notepad abgenommen ([Stand](docs/remaining-acceptance.md#windows)). Keine
@@ -185,8 +185,9 @@ Paketierung, keine Signatur. Details: [Windows-Plan](docs/windows-plan.md#weg-zu
    Microsoft Store mit MSIX (kostenlos, Microsoft signiert); Konto und Wahl
    liegen bei Basti. Ohne Signatur warnt Windows jeden Nutzer beim Start.
 4. Ein echtes Diktat auf einem Windows-PC: Installation, Mikrofon, Upload,
-   Einfügen in den Editor, beide Kürzel (am 16. Oktober bestanden; der
-   Spielchat im Vollbild bleibt eine bekannte Grenze für die Beta-Nutzer).
+   Einfügen in den Editor und in den Spielchat im Vollbild, beide Kürzel.
+   Editor und Kürzel am 16. Oktober bestanden; der Spielchat ist offen, hält
+   Paket und Signatur aber nicht auf.
    Einmal, als Installationsprüfung, auf Bastis Windows-PC xmg mit
    angeschlossenem Mikrofon; seit 16. Oktober testet Claude dort ohne Go und
    holt Basti nur für Schritte, die Hände brauchen (AGENTS.md).

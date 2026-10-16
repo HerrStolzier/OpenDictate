@@ -146,8 +146,8 @@ Windows-Beta.
   Startmenü blieb zu, „Mit Windows starten“ schaltet an und aus. Kürzel und
   Strg+V brauchen echte Tasten, weil die App künstliche Tastendrücke ignoriert:
   Basti diktierte mit Strg+Win und mit der rechten Strg-Taste in Notepad, der
-  Text wurde automatisch eingefügt. Den Spielchat im Vollbild prüfen die
-  Beta-Nutzer (Windows-Plan, Schritt 7).
+  Text wurde automatisch eingefügt. Offen ist der Spielchat im Vollbild
+  (Windows-Plan, Schritt 7); er hält Paket und Signatur nicht auf.
 - Dienst und Art des Kürzels (16. Oktober): auf Linux offline geprüft, 58 von
   58 Prüfungen (8 Kern-, 9 Ablauf-, 19 Provider- und 22 Kürzel-/App-Prüfungen),
   Beta-App und Schutzprüfer bauen ohne Warnung. Auf xmg aus `37518c3`:

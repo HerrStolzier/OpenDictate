@@ -104,8 +104,8 @@ Schritte in der [ROADMAP](ROADMAP.md).
 - **Windows:** Beta-App unter [windows/](windows/README.md) seit dem
   11. Oktober 2026; seit dem 16. Oktober auf Bastis Windows-PC installiert:
   Schutzprüfungen bestanden, Diktat mit beiden Kürzeln in Notepad eingefügt.
-  Paketierung und Signatur stehen aus; der Spielchat im Vollbild bleibt eine
-  bekannte Grenze, die Beta-Nutzer prüfen.
+  Paketierung und Signatur stehen aus; der Spielchat im Vollbild ist noch
+  offen, hält den Rest aber nicht auf.
 - **iOS:** Produktkonzept seit dem 11. Oktober 2026: Aufnahme im
   Hintergrund, Ergebnis in die Zwischenablage, keine eigene Tastatur
   ([Konzept](docs/ios-konzept.md)). Die Beta-App dazu liegt unter
@@ -180,7 +180,7 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
-| 16. Oktober 2026 | Der Spielchat im Vollbild wird vor der Windows-Beta nicht eigens abgenommen; er bleibt eine bekannte Grenze, die Beta-Nutzer prüfen. Weiter geht es mit Paket und Signatur. | [Windows-Plan](docs/windows-plan.md#weg-zur-windows-beta-stand-11-oktober-2026); Bastis Nachricht im Thread „Windows-Version starten“, 16. Oktober 14:08 |
+| 16. Oktober 2026 | Der Spielchat im Vollbild bleibt ein offener Windows-Test, hält aber nichts auf: Paket und Signatur gehen schon jetzt weiter. | [Windows-Plan](docs/windows-plan.md#weg-zur-windows-beta-stand-11-oktober-2026); Bastis Nachrichten im Thread „Windows-Version starten“, 16. Oktober 14:08 und 14:09 |
 | 16. Oktober 2026 | Die Apps bekommen zwei Auswahlen: „Dienst“ wechselt zwischen OpenAI und dem eigenen Server, ohne die Adresse zu verlieren, und „So nimmst du auf“ wechselt beim Kürzel zwischen gedrückt halten und antippen (einmal starten, einmal stoppen). Zuerst in der Windows-App; Claude testet auf xmg selbst, Basti nimmt am Ende ab. Der Mac hat „Dienst“ schon, aber keine Wahl beim Kürzel; Linux hat beides noch nicht. | [Windows-README](windows/README.md#einstellungen-übersetzung-und-eigener-server-11-oktober-2026); Bastis Nachricht im Thread „Projektübersicht und offene Punkte“, 16. Oktober 09:20 |
 | 16. Oktober 2026 | OpenDictate bekommt vor der bezahlten App einen neuen Namen; das ersetzt das „Behalten“ vom 15. Oktober. Grund: Der Name beschreibt nur, was die App tut, ist als Marke schwach, und mehrere andere Projekte heißen schon so; ein Wechsel ist vor iPhone-App, Microsoft Store und Ankündigung am günstigsten. Gesucht werden Namen, die als Marke, Domain und App-Store-Name frei sind; der Favorit wird vor der Anmeldung anwaltlich geprüft. Blink bleibt. Außerdem: Das Vokabular darf auf Wunsch selbst lernen. Die Nutzer wählen offen, ob die App wie bisher nur ihr eingetragenes Vokabular nutzt oder lokal aus ihren Diktaten und Korrekturen lernt; aus ist der Standard, das Gelernte bleibt auf dem Gerät, ist sichtbar und löschbar. | [TRADEMARKS.md](TRADEMARKS.md), [ROADMAP](ROADMAP.md#plattformübergreifend); Bastis Nachricht im Thread zur Monetarisierung, 16. Oktober 08:30 |
 | 16. Oktober 2026 | Die fertige App kostet einmalig 9 Euro für alle Desktop-Plattformen; die iPhone-App wird einzeln im App Store verkauft. Verkauft wird in der Reihenfolge macOS, iOS, Windows, Linux, Android. Vokabular und Verbrauchsanzeige werden auf allen Plattformen gebaut. Ein sichtbarer Schalter zum Glätten (Zeichensetzung, Füllwörter) darf kommen; Standard bleibt die treue Abschrift. Angekündigt wird mit dem Verkaufsstart der Mac-App; bis dahin gilt weiter „nirgends ankündigen“. | [ROADMAP](ROADMAP.md#plattformübergreifend); Bastis Antworten im Thread zur Monetarisierung, 16. Oktober 08:21 |
