@@ -29,6 +29,9 @@ pub struct Settings {
     /// uses `OPENAI_BASE_URL` when set, otherwise OpenAI.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub server: Option<String>,
+    /// Explicit, local vocabulary; never learned from dictation automatically.
+    #[serde(default)]
+    pub vocabulary: Vec<String>,
 }
 
 fn default_auto_insert() -> bool {
@@ -51,6 +54,7 @@ impl Default for Settings {
             last_target_language: None,
             auto_insert: default_auto_insert(),
             server: None,
+            vocabulary: Vec::new(),
         }
     }
 }
@@ -77,6 +81,7 @@ impl Settings {
     }
 
     fn validate(&self) -> Result<(), String> {
+        validate_vocabulary(&self.vocabulary)?;
         // Which models a server offers is checked when it is used: a custom
         // server names its models freely, OpenAI only takes the known ones.
         validate_model_name(&self.model)?;
@@ -258,6 +263,33 @@ mod tests {
     use super::*;
 
     #[test]
+    fn vocabulary_limits_and_failed_save_preserve_settings() {
+        let dir = crate::test_support::unique_temp_dir("vocabulary");
+        let path = dir.join("settings.json");
+        let mut settings = Settings::default();
+        settings.save(&path).unwrap();
+        let before = fs::read(&path).unwrap();
+        for words in [
+            vec!["x".repeat(801)],
+            vec!["x".to_string(); 65],
+            vec!["word\n".to_string()],
+            vec!["a\0b".to_string()],
+            vec!["".to_string()],
+            vec![" word".to_string()],
+        ] {
+            settings.vocabulary = words;
+            assert!(settings.save(&path).is_err());
+            assert_eq!(fs::read(&path).unwrap(), before);
+        }
+        settings.vocabulary = vec!["ä".repeat(400)];
+        settings.save(&path).unwrap();
+        assert_eq!(Settings::load(&path).unwrap(), settings);
+        settings.vocabulary = vec!["x".to_string(); 64];
+        assert!(validate_vocabulary(&settings.vocabulary).is_ok());
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
     fn realtime_model_is_rejected() {
         assert!(validate_model("gpt-live-transcribe").is_err());
         assert!(validate_model(DEFAULT_MODEL).is_ok());
@@ -275,6 +307,7 @@ mod tests {
             last_target_language: Some("en".to_string()),
             auto_insert: false,
             server: Some("http://localhost:8080/v1".to_string()),
+            vocabulary: vec!["Hyprland".to_string()],
         };
         settings.save(&path).unwrap();
         assert_eq!(Settings::load(&path).unwrap(), settings);
@@ -342,4 +375,22 @@ mod tests {
         settings.toggle_target();
         assert_eq!(settings.target_language.as_deref(), Some("fr"));
     }
+}
+
+/// A bounded hint rather than a dictionary: at most 64 entries and 800 UTF-8
+/// bytes including separators. This is an application limit, not a tokenizer
+/// guarantee for a provider; even short prompts can exceed Whisper's tokens.
+pub fn validate_vocabulary(words: &[String]) -> Result<(), String> {
+    if words.len() > 64
+        || words.join(", ").len() > 800
+        || words.iter().any(|word| {
+            word.trim().is_empty() || word != word.trim() || word.chars().any(char::is_control)
+        })
+    {
+        return Err(crate::tr!(
+            "Vokabular: höchstens 64 Einträge und 800 UTF-8-Bytes. Leere Einträge und Steuerzeichen sind nicht erlaubt.",
+            "Vocabulary: at most 64 entries and 800 UTF-8 bytes. Empty entries and control characters are not allowed."
+        ));
+    }
+    Ok(())
 }

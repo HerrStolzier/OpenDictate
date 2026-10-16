@@ -421,3 +421,12 @@ Closed requests are deleted automatically 180 days after they were closed;
 open requests are kept until they are closed.
 On request, a ticket and all its messages, replies included, are deleted at
 once.
+
+### Explicit Linux vocabulary
+
+Linux keeps an explicitly managed list of up to 64 entries (800 UTF-8 bytes
+including separators) in its owner-only settings file. Every transcription
+sends this list as the optional `prompt` field to the selected service,
+including a custom server. It is never logged or learned automatically;
+`opendictate vocabulary clear` removes it locally. Existing retained recordings
+use the vocabulary selected at retry time.

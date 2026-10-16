@@ -45,6 +45,8 @@ Kürzel ein.
 Befehle:
   setup                  geführte Einrichtung: Dienst und Kürzel
   toggle                 Diktat starten oder beenden
+  vocabulary add WORT    eigenes Wort oder Namen als Erkennungshilfe speichern
+  vocabulary remove WORT Eintrag entfernen; `list` zeigt, `clear` leert die Liste
   status                 Zustand (idle, starting, recording, processing, delivering)
   bar                    Status als JSON-Zeile für Omarchy-Leiste oder Waybar
   cancel                 Aufnahme oder Verarbeitung sicher abbrechen
@@ -76,6 +78,8 @@ shortcut.
 Commands:
   setup                  guided setup: service and shortcut
   toggle                 start or stop a dictation
+  vocabulary add WORD    save a word or name as a recognition hint
+  vocabulary remove WORD remove an entry; `list` shows, `clear` empties the list
   status                 state (idle, starting, recording, processing, delivering)
   bar                    status as a JSON line for the Omarchy bar or Waybar
   cancel                 safely cancel a recording or processing
@@ -125,6 +129,15 @@ fn run(args: Vec<String>) -> Result<(), String> {
             Ok(())
         }
         ["setup"] => setup::run(),
+        ["vocabulary", "add", word] => vocabulary(Some((true, word))),
+        ["vocabulary", "remove", word] => vocabulary(Some((false, word))),
+        ["vocabulary", "list"] => vocabulary(None),
+        ["vocabulary", "clear"] => {
+            let path = paths::settings_path().map_err(path_error)?;
+            let mut settings = settings::Settings::load(&path)?;
+            settings.vocabulary.clear();
+            settings.save(&path)
+        }
         ["shortcut", "status"] => shortcut_status(),
         ["shortcut", "set", id] => shortcut_set(id),
         ["toggle"] => toggle(),
@@ -452,6 +465,14 @@ fn init_auth() -> Result<(), String> {
 fn settings_show() -> Result<(), String> {
     let path = paths::settings_path().map_err(path_error)?;
     let settings = settings::Settings::load(&path)?;
+    println!(
+        "{}",
+        tr!(
+            "Vokabular: {} Einträge",
+            "Vocabulary: {} entries",
+            settings.vocabulary.len()
+        )
+    );
     let (server, source) = server::Server::resolve(settings.server.as_deref())?;
     let server = match source {
         server::Source::Default => "openai".to_string(),
@@ -467,6 +488,29 @@ fn settings_show() -> Result<(), String> {
         if settings.auto_insert { "on" } else { "off" },
         server
     );
+    Ok(())
+}
+
+fn vocabulary(change: Option<(bool, &str)>) -> Result<(), String> {
+    let path = paths::settings_path().map_err(path_error)?;
+    let mut settings = settings::Settings::load(&path)?;
+    match change {
+        None => {
+            for word in &settings.vocabulary {
+                println!("{word}");
+            }
+            return Ok(());
+        }
+        Some((true, word)) => {
+            let word = word.to_string();
+            if !settings.vocabulary.contains(&word) {
+                settings.vocabulary.push(word);
+            }
+        }
+        Some((false, word)) => settings.vocabulary.retain(|value| value != word),
+    }
+    settings.save(&path)?;
+    println!("{}", i18n::t("Vokabular gespeichert", "Vocabulary saved"));
     Ok(())
 }
 

@@ -17,7 +17,7 @@ the provider side is shared; each client keeps its own code. Decided on
   2. `response_format` = `json`
   3. optional language: `languages[]` when the model is `gpt-transcribe`,
      otherwise `language`
-  4. optional `prompt` (vocabulary; macOS only so far)
+  4. optional `prompt` (vocabulary; macOS and Linux)
   5. `file`, with a fixed transport filename and type:
 
 | Platform | Filename | Content-Type |
@@ -60,3 +60,19 @@ German display language).
 | [error-413.json](error-413.json) | 413 | upload too large, no code |
 | [error-429.json](error-429.json) | 429 | quota used up (`insufficient_quota`) |
 | [error-500.json](error-500.json) | 500 | provider unavailable, no code |
+
+## Explicit vocabulary
+
+The additive `vocabulary` case in `cases.json` contains `entries` and the
+exact joined `prompt`. Existing success/error cases are unchanged. Linux
+accepts up to 64 non-empty entries and 800 UTF-8 bytes including `, ` separators,
+rejects controls and surrounding whitespace, and sends no prompt when empty.
+This is a conservative application bound, not a guarantee about token count:
+Whisper considers only its last 224 prompt tokens. The Mac stores free-form
+context without this list bound; Linux bounds a short list of spelling hints.
+
+Official API checked on 16 October 2026:
+[transcription context](https://developers.openai.com/api/docs/guides/speech-to-text#add-transcription-context)
+also documents `keywords[]` for `gpt-transcribe`. These clients keep `prompt`
+for compatibility with all offered models and custom servers; no undocumented
+keyword field is sent. Hints do not guarantee recognition or permit rewriting.

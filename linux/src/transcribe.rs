@@ -65,6 +65,7 @@ impl Transcriber {
     ) -> Result<String, String> {
         validate_model_for(&settings.model, &self.server)?;
         let api_key = self.key_to_send(api_key)?;
+        crate::settings::validate_vocabulary(&settings.vocabulary)?;
         if audio.is_empty() || audio.len() > MAX_UPLOAD_BYTES {
             return Err(crate::tr!(
                 "Aufnahme hat eine ungültige Größe.",
@@ -131,6 +132,14 @@ fn multipart_body(boundary: &str, audio: &[u8], settings: &Settings) -> Vec<u8> 
             "language"
         };
         push_field(&mut body, boundary, field, language);
+    }
+    if !settings.vocabulary.is_empty() {
+        push_field(
+            &mut body,
+            boundary,
+            "prompt",
+            &settings.vocabulary.join(", "),
+        );
     }
     body.extend_from_slice(format!(
         "--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"recording.wav\"\r\nContent-Type: audio/wav\r\n\r\n"
@@ -228,6 +237,45 @@ fn invalid_response() -> String {
 mod tests {
     use super::*;
     use crate::test_http::{serve, serve_without_answer};
+
+    #[test]
+    fn shared_vocabulary_is_sent_as_prompt_before_audio() {
+        let cases: serde_json::Value =
+            serde_json::from_str(include_str!("../../fixtures/provider/cases.json")).unwrap();
+        let case = &cases["vocabulary"];
+        let mut settings = Settings {
+            language: Some("de".to_string()),
+            ..Settings::default()
+        };
+        let without = multipart_body("fixed-boundary", b"synthetic-audio", &settings);
+        assert!(!String::from_utf8_lossy(&without).contains("name=\"prompt\""));
+        settings.vocabulary = serde_json::from_value(case["entries"].clone()).unwrap();
+        let (endpoint, stub) = serve("200 OK", r#"{"text":"Test."}"#);
+        let server = Server::parse(&endpoint).unwrap();
+        assert_eq!(
+            Transcriber::new(&server)
+                .transcribe_bytes(b"synthetic-audio", None, &settings)
+                .unwrap(),
+            "Test."
+        );
+        let request = String::from_utf8(stub.join().unwrap()).unwrap();
+        let expected = format!(
+            "name=\"prompt\"\r\n\r\n{}\r\n",
+            case["prompt"].as_str().unwrap()
+        );
+        assert!(request.contains(&expected));
+        assert!(
+            request.find("name=\"languages[]\"").unwrap()
+                < request.find("name=\"prompt\"").unwrap()
+        );
+        assert!(request.find("name=\"prompt\"").unwrap() < request.find("name=\"file\"").unwrap());
+        assert!(!request.contains("Authorization:"));
+        settings.vocabulary.clear();
+        assert_eq!(
+            multipart_body("fixed-boundary", b"synthetic-audio", &settings),
+            without
+        );
+    }
 
     /// OpenAI's rules, but talking to the local stub.
     fn openai_stub(endpoint: &str) -> Transcriber {
