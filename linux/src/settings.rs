@@ -9,6 +9,23 @@ pub const DEFAULT_MODEL: &str = "gpt-transcribe";
 pub const DEFAULT_TRANSLATION_MODEL: &str = "gpt-5.4-mini";
 const DEFAULT_TOGGLE_TARGET: &str = "en";
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ShortcutMode {
+    #[default]
+    Tap,
+    Hold,
+}
+
+impl ShortcutMode {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Tap => "tap",
+            Self::Hold => "hold",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Service {
@@ -39,6 +56,8 @@ pub struct Settings {
     /// Explicit local vocabulary, never learned automatically.
     #[serde(default)]
     pub vocabulary: Vec<String>,
+    #[serde(default)]
+    pub shortcut_mode: ShortcutMode,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub service: Option<Service>,
     #[serde(default = "default_custom_model")]
@@ -72,6 +91,7 @@ impl Default for Settings {
             auto_insert: default_auto_insert(),
             server: None,
             vocabulary: Vec::new(),
+            shortcut_mode: ShortcutMode::Tap,
             service: None,
             custom_model: default_custom_model(),
             custom_translation_model: default_translation_model(),
@@ -410,6 +430,7 @@ mod tests {
             server: Some("http://127.0.0.1:8080/v1".to_string()),
             service: Some(Service::Custom),
             vocabulary: vec!["Hyprland".to_string()],
+            shortcut_mode: ShortcutMode::Hold,
             custom_model: "large-v3".to_string(),
             custom_translation_model: "local-text".to_string(),
             ..Settings::default()
@@ -470,6 +491,7 @@ mod tests {
             auto_insert: false,
             server: Some("http://localhost:8080/v1".to_string()),
             vocabulary: vec!["Hyprland".to_string()],
+            shortcut_mode: ShortcutMode::Hold,
             service: Some(Service::Custom),
             custom_model: "large-v3".to_string(),
             custom_translation_model: "local-text".to_string(),

@@ -449,3 +449,21 @@ wins over `OPENAI_BASE_URL`. Without an active stored address, that variable
 still redirects requests, including after `service openai` or `server off`.
 Unset it to use OpenAI itself. `settings show` and the bar tooltip show the
 actual service; the tooltip includes only a custom host, never its full URL.
+
+## Tap or hold the shortcut
+
+`opendictate setup` asks how to record. Tap remains the default: the existing
+`toggle` binding still works. Hold uses `start` on press and `stop` on release,
+with the same recording/request lock. Repeated `start` during recording and
+`stop` without recording do nothing. A quick release waits for a microphone
+start already in progress, rather than losing the stop command. Very short or
+silent audio follows the existing retained/skipped recovery path; it is not
+silently deleted. Unlike Windows' 300 ms gesture threshold, Linux starts on
+press because Hyprland supplies separate commands rather than raw key events.
+
+The mode is saved only after the binding is installed/loaded; configuration
+restoration follows a failed write, load or settings save. `settings show`
+prints `shortcut-mode`. Omarchy Lua uses the documented `o.bind_hold` helper;
+classic config writes a press/release pair. With classic/plain Lua chord
+bindings, release the main key before its modifier. Omarchy's helper handles
+modifier changes. A live Hyprland keyboard test is still outstanding.

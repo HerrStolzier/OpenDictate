@@ -465,3 +465,23 @@ geht vor `OPENAI_BASE_URL`. Ohne aktive gespeicherte Adresse leitet die Variable
 Anfragen weiterhin um, auch nach `service openai` oder `server off`. Entferne
 sie für OpenAI selbst. `settings show` und der Leisten-Tooltip zeigen den
 tatsächlichen Dienst; im Tooltip steht nur der Host, nie die volle Adresse.
+
+## Kürzel antippen oder gedrückt halten
+
+`opendictate setup` fragt die Aufnahmeart ab. Antippen bleibt Standard; die
+vorhandene `toggle`-Belegung funktioniert weiter. Halten nutzt `start` beim
+Drücken und `stop` beim Loslassen mit derselben Aufnahme-/Anfragesperre.
+Wiederholtes `start` während der Aufnahme und `stop` ohne Aufnahme tun nichts.
+Sehr kurzes Halten wartet beim Stoppen auf einen bereits laufenden Mikrofonstart.
+Zu kurze oder stille Aufnahmen bleiben im bisherigen gesicherten/skipped-Pfad;
+sie werden nicht still gelöscht. Anders als bei der 300-ms-Schwelle unter
+Windows startet Linux beim Drücken: Hyprland liefert einzelne Befehle statt
+roher Tastaturereignisse.
+
+Die Aufnahmeart wird erst nach erfolgreichem Eintragen/Laden gespeichert;
+bei fehlgeschlagenem Schreiben, Laden oder Speichern der Einstellung wird die
+Konfiguration wiederhergestellt. `settings show` nennt `shortcut-mode`.
+Omarchy Lua nutzt den dokumentierten Helfer `o.bind_hold`, klassische
+Konfiguration zwei Zeilen. Lass bei klassischen/einfachen Lua-Kombinationen
+die Haupttaste vor dem Modifier los. Omarchys Helfer behandelt Modifierwechsel.
+Ein echter Tastaturtest unter Hyprland steht noch aus.

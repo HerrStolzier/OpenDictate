@@ -47,6 +47,9 @@ Befehle:
   toggle                 Diktat starten oder beenden
   vocabulary add WORT    eigenes Wort oder Namen als Erkennungshilfe speichern
   vocabulary remove WORT Eintrag entfernen; `list` zeigt, `clear` leert die Liste
+
+  start                  Aufnahme starten; laufende Aufnahme bleibt unverändert
+  stop                   Aufnahme beenden; ohne Aufnahme passiert nichts
   status                 Zustand (idle, starting, recording, processing, delivering)
   bar                    Status als JSON-Zeile für Omarchy-Leiste oder Waybar
   cancel                 Aufnahme oder Verarbeitung sicher abbrechen
@@ -81,6 +84,9 @@ Commands:
   toggle                 start or stop a dictation
   vocabulary add WORD    save a word or name as a recognition hint
   vocabulary remove WORD remove an entry; `list` shows, `clear` empties the list
+
+  start                  start recording; an existing recording stays unchanged
+  stop                   stop recording; does nothing without a recording
   status                 state (idle, starting, recording, processing, delivering)
   bar                    status as a JSON line for the Omarchy bar or Waybar
   cancel                 safely cancel a recording or processing
@@ -143,6 +149,8 @@ fn run(args: Vec<String>) -> Result<(), String> {
         ["shortcut", "status"] => shortcut_status(),
         ["shortcut", "set", id] => shortcut_set(id),
         ["toggle"] => toggle(),
+        ["start"] => control(Control::Start),
+        ["stop"] => control(Control::Stop),
         ["status"] => status(),
         ["bar"] | ["waybar"] => waybar_status(),
         ["cancel"] => cancel(),
@@ -174,12 +182,38 @@ fn run(args: Vec<String>) -> Result<(), String> {
 }
 
 fn toggle() -> Result<(), String> {
+    control(Control::Toggle)
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Control {
+    Toggle,
+    Start,
+    Stop,
+}
+
+fn control(command: Control) -> Result<(), String> {
     // Held until this call returns: a second `toggle` before the worker has
     // even bound its socket is refused instead of starting another worker.
-    let _lock = lock_toggle()?.ok_or_else(starting)?;
+    let deadline = Instant::now() + record::START_TIMEOUT + Duration::from_secs(1);
+    let _lock = loop {
+        if let Some(lock) = lock_toggle()? {
+            break lock;
+        }
+        // A quick release must not get lost while `start` waits for the
+        // microphone. It uses the same lock and stops once startup finishes.
+        if command != Control::Stop || Instant::now() >= deadline {
+            return Err(starting());
+        }
+        std::thread::sleep(Duration::from_millis(20));
+    };
     let socket = paths::socket_path().map_err(path_error)?;
     let state_path = paths::state_path().map_err(path_error)?;
-    match state::read(&state_path, &socket) {
+    let current = state::read(&state_path, &socket);
+    if control_is_noop(command, current) {
+        return Ok(());
+    }
+    match current {
         state::State::Idle => start_worker(),
         state::State::Recording => match ipc::send(&socket, ipc::STOP) {
             Ok(reply) if reply == ipc::PROCESSING => {
@@ -207,6 +241,11 @@ fn toggle() -> Result<(), String> {
             "OpenDictate is already processing a recording."
         )),
     }
+}
+
+fn control_is_noop(command: Control, state: state::State) -> bool {
+    command == Control::Start && state != state::State::Idle
+        || command == Control::Stop && state != state::State::Recording
 }
 
 /// Takes the lock shared by `toggle` and `retry`; `None` while another
@@ -471,6 +510,7 @@ fn init_auth() -> Result<(), String> {
 fn settings_show() -> Result<(), String> {
     let path = paths::settings_path().map_err(path_error)?;
     let settings = settings::Settings::load(&path)?;
+    println!("shortcut-mode={}", settings.shortcut_mode.name());
     println!(
         "{}",
         tr!(
@@ -1306,6 +1346,25 @@ impl Drop for SocketGuard {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn explicit_recording_edges_are_idempotent() {
+        use super::{control_is_noop, Control};
+        use crate::state::State;
+        for state in [
+            State::Idle,
+            State::Starting,
+            State::Recording,
+            State::Processing,
+            State::Delivering,
+        ] {
+            assert_eq!(control_is_noop(Control::Start, state), state != State::Idle);
+            assert_eq!(
+                control_is_noop(Control::Stop, state),
+                state != State::Recording
+            );
+            assert!(!control_is_noop(Control::Toggle, state));
+        }
+    }
     use super::*;
 
     #[test]
