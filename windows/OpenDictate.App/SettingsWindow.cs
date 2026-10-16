@@ -180,6 +180,14 @@ internal sealed class SettingsWindow : Window
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         Grid.SetRow(bottom, 1);
         root.Children.Add(new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
+        // Scrolling to a focused control also shows its focus ring and the line below it.
+        panel.AddHandler(GotKeyboardFocusEvent, new KeyboardFocusChangedEventHandler((_, e) =>
+        {
+            if (e.NewFocus is not FrameworkElement focused || InputManager.Current.MostRecentInputDevice is not KeyboardDevice) return;
+            Dispatcher.BeginInvoke(() => focused.BringIntoView(new Rect(-DesignMetric.Space2, -DesignMetric.Space2,
+                focused.ActualWidth + 2 * DesignMetric.Space2, focused.ActualHeight + DesignMetric.Space2 + DesignMetric.Space8)),
+                System.Windows.Threading.DispatcherPriority.Input);
+        }));
         root.Children.Add(bottom);
         Content = root;
 
@@ -220,15 +228,12 @@ internal sealed class SettingsWindow : Window
         serverPanel.Visibility = serverService.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         spoken.SelectionChanged += (_, _) => Change(s => s with { Language = (spoken.SelectedItem as Choice)?.Code });
         target.SelectionChanged += (_, _) => Change(s => s.WithTarget((target.SelectedItem as Choice)?.Code));
-        autoInsert.Click += (_, _) => { Change(s => s with { AutoInsert = autoInsert.IsChecked == true }); ShowSwitchHints(); };
-        autostart.Click += (_, _) =>
-        {
-            try { Autostart.Set(autostart.IsChecked == true); }
-            catch (Exception error) when (error is UnauthorizedAccessException or System.Security.SecurityException or System.IO.IOException)
-            { status.Text = UiText.T("„Mit Windows starten“ ließ sich nicht ändern.", "“Start with Windows” could not be changed."); }
-            autostart.IsChecked = Autostart.IsEnabled;
-            ShowSwitchHints();
-        };
+        // Checked and Unchecked, not Click: screen readers and other assistive
+        // tools toggle through UI Automation, which raises no Click.
+        autoInsert.Checked += (_, _) => AutoInsertToggled();
+        autoInsert.Unchecked += (_, _) => AutoInsertToggled();
+        autostart.Checked += (_, _) => AutostartToggled();
+        autostart.Unchecked += (_, _) => AutostartToggled();
         saveAddress.Click += (_, _) => SaveServer();
         saveModels.Click += (_, _) => SaveServer();
         saveKey.Click += (_, _) => SaveKey();
@@ -261,7 +266,7 @@ internal sealed class SettingsWindow : Window
         };
         var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(DesignMetric.Space6, 0, 0, 0) };
         text.Children.Add(Brand.Text("opendictate", DesignFont.Heading with { Size = 32, LineHeight = 36 }, DesignColor.Ink));
-        var line = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, DesignMetric.Space1, 0, DesignMetric.Space1) };
+        var line = new WrapPanel { Margin = new Thickness(0, DesignMetric.Space1, 0, DesignMetric.Space1) };
         readyMark.Margin = new Thickness(0, 0, DesignMetric.Space2, 0);
         ready.TextWrapping = TextWrapping.NoWrap;
         ready.VerticalAlignment = readyWhere.VerticalAlignment = VerticalAlignment.Center;
@@ -530,7 +535,32 @@ internal sealed class SettingsWindow : Window
 
     private void ChooseService(string choice)
     {
+        // Choosing what is already in effect writes nothing.
+        if (stored.UsesServer(Environment.GetEnvironmentVariable(ProviderServer.BaseUrlVariable)) == (choice == DictationSettings.ServerService))
+        {
+            if (choice == DictationSettings.OpenAiService) status.Text = UiText.T("Diktate gehen an OpenAI.", "Dictations go to OpenAI.");
+            return;
+        }
         if (Change(s => s with { Service = choice })) ShowDestination();
+    }
+
+    private void AutoInsertToggled()
+    {
+        if (showing) return;
+        Change(s => s with { AutoInsert = autoInsert.IsChecked == true });
+        ShowSwitchHints();
+    }
+
+    private void AutostartToggled()
+    {
+        if (showing) return;
+        try { Autostart.Set(autostart.IsChecked == true); }
+        catch (Exception error) when (error is UnauthorizedAccessException or System.Security.SecurityException or System.IO.IOException)
+        { status.Text = UiText.T("„Mit Windows starten“ ließ sich nicht ändern.", "“Start with Windows” could not be changed."); }
+        showing = true;
+        try { autostart.IsChecked = Autostart.IsEnabled; }
+        finally { showing = false; }
+        ShowSwitchHints();
     }
 
     private bool Change(Func<DictationSettings, DictationSettings> edit)
@@ -608,7 +638,7 @@ internal sealed class SettingsWindow : Window
             : UiText.T("Schlüssel fehlt", "Key missing");
         // A custom server chosen without an address yet: dictation still goes to OpenAI.
         if (!usesServer && serverService.IsChecked == true)
-            where = UiText.T("OpenAI, bis du eine Server-Adresse speicherst", "OpenAI until you save a server address");
+            where = UiText.T("noch OpenAI", "still OpenAI");
         ready.Text = state;
         readyWhere.Text = where;
         AutomationProperties.SetName(ready, $"{state} · {where}");
