@@ -61,7 +61,8 @@ greift, sobald das Mikrofon antwortet; geprüft ist das nur mit einer nachgestel
 Zustandsdatei, nicht mit einem langsamen Mikrofon. Einfügen in Chromium-, Electron- und
 Discord-Fenstern; gemischtes Deutsch/Englisch; Abbruch genau während der
 Übersetzung; andere Compositoren als Hyprland; andere Distributionen;
-Vokabular. Eigener Server und `opendictate setup` mit Kürzel-Abfrage
+Vokabular ist im CLI-Code umgesetzt (#164), seine Erkennungswirkung ist noch
+nicht live abgenommen. Eigener Server und `opendictate setup` mit Kürzel-Abfrage
 (11. Oktober) sind nur offline geprüft: Tests mit lokalem HTTP-Stub (kein
 Schlüssel an Loopback, Schlüssel an Fremdserver) und ein Durchlauf im
 Test-Terminal mit Attrappen für `hyprctl` und `secret-tool`. Ebenso nur mit
@@ -339,6 +340,28 @@ reproduzierbare Paketierung, keine Signatur, kein Installer; Update- und
 Deinstallationsweg; Pflichtprogramme nicht festgelegt.
 
 **Letzter Nachweis:** 16. Oktober 2026 (xmg, Bastis Diktat in Notepad).
+
+## Umsetzungskandidat vom 17. Oktober 2026
+
+Der gemeinsame Quellstand `c0bc7dd` führt die Issues #160–#166, #168–#170,
+#172 und #173 zusammen. Linux: Dienstwahl mit getrennten Modellen, Halten/
+Antippen, Vokabular, ausdrückliche OpenAI-Wiederholung, lokale Verbrauchsschätzung
+und Diagnosebericht. Windows: Vokabular und Diagnosebericht im plattformneutralen
+Kern/Provider; die App hat dafür noch keine Bedienoberfläche. Die historische
+Windows-Grenze „kein Prompt“ oben gilt weiterhin für den dort genannten
+installierten Kandidaten, nicht für diesen neuen Kerncode.
+
+Einzelstände und ihre Konfliktauflösungen sind unabhängig geprüft. 55 lokale
+Python-Prüfungen und die Linkprüfung bestanden. Vollständige kombinierte CI
+steht bei Erstellung dieses Eintrags noch aus. Keine Installation, keine echte
+Aufnahme, kein Provider-Aufruf und kein neuer Hyprland-/Windows-Desktopnachweis.
+Die oben genannten Live-Nachweise gelten weiter nur für ihre jeweiligen Builds.
+
+Noch außerhalb dieses Stands: Windows-Verbrauch (#167) nach dem Merge von
+#165, Linux-Abdeckungsmessung/Testlücken (#171) zuletzt und zwei echte
+Paketbauten samt nativer Archivprüfung (#174). Für diese Linux-Nachweise fehlt
+noch ein freigegebener Rechner; aus lokalen Attrappen wird kein Paket- oder
+Abdeckungsnachweis abgeleitet.
 
 ## iOS
 

@@ -279,6 +279,27 @@ and translation requests were exercised on one attended test system on
 5 October 2026; the Linux beta published on 11 October 2026 is not a finished
 product.
 
+### Explicit Linux vocabulary
+
+Linux keeps an explicitly managed list of up to 64 entries (800 UTF-8 bytes
+including separators) in its owner-only settings file. Every transcription
+sends this list as the optional `prompt` field to the selected service,
+including a custom server. It is never logged or learned automatically;
+`opendictate vocabulary clear` removes it locally. Existing retained recordings
+use the vocabulary selected at retry time.
+
+### Linux explicit problem reports
+
+`opendictate report` constructs and fully previews a report locally before
+asking for confirmation to open the browser. `report --print` prints only its
+address. No support request is made by the CLI. The form receives the report
+in the URI fragment, and the user decides whether to submit it. Included:
+app/version, allowlisted distribution/version/compositor, key presence (or
+unknown if unavailable), bounded settings and at most 30 recognized warning/
+error event categories. Raw log messages, paths, server addresses/hosts,
+arbitrary model names, target apps/titles, transcripts, clipboard and audio
+are never copied. The encoded address is at most 12,000 characters.
+
 ### Linux local usage ledger
 
 Linux records completed non-empty provider work locally in owner-only
@@ -295,7 +316,36 @@ before clipboard delivery. Missing token metadata/unknown models have unknown
 cost; custom servers have zero estimated provider charge. A ledger write
 failure never converts a successful dictation into a retry or deletes its text.
 
+### Linux one-off OpenAI retry
+
+Only the explicit `opendictate retry --openai` command sends one newest,
+authenticated, unexpired, non-skipped recording to OpenAI directly with the
+stored key. OPENAI_BASE_URL and the custom address are ignored for this one
+request; saved service/model settings remain unchanged. There is never an
+automatic provider fallback. The existing recovery limits and failure retention
+still apply. A constant, owner-only local marker remembers a custom transport
+failure for the status hint for at most 24 hours; it contains no audio, text,
+key, hostname or filename and is cleared by the next processing attempt.
+
 ## Windows provider core
+
+### Explicit Windows vocabulary
+
+The platform-neutral Windows provider settings persist an explicit vocabulary
+list (64 entries and 800 UTF-8 bytes including separators). A non-empty list
+is sent as the `prompt` field to the selected transcription service, including
+a custom server. It is not logged or learned automatically. The Windows app
+has no vocabulary editor yet; this change adds persistence and transport in
+the platform-neutral core/provider only.
+### Windows problem-report builder
+
+The platform-neutral Windows core can build a support-form address with a
+report in its fragment. It performs no request and opens no browser. It uses
+version/architecture metadata, bounded settings, a vocabulary count and at most
+30 recognized operational error/warning categories. Raw log messages, unknown
+model names and arbitrary event details are discarded. The URI is limited to
+12,000 encoded characters. The app's menu and explicit review/send flow are
+not wired up yet; this core utility alone sends nothing.
 
 ### Windows local usage ledger
 

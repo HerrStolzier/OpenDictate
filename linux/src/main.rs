@@ -8,6 +8,7 @@ mod paths;
 mod policy;
 mod record;
 mod recovery;
+mod report;
 mod server;
 mod settings;
 mod setup;
@@ -46,10 +47,17 @@ Kürzel ein.
 Befehle:
   setup                  geführte Einrichtung: Dienst und Kürzel
   toggle                 Diktat starten oder beenden
+  vocabulary add WORT    eigenes Wort oder Namen als Erkennungshilfe speichern
+  vocabulary remove WORT Eintrag entfernen; `list` zeigt, `clear` leert die Liste
+
+  start                  Aufnahme starten; laufende Aufnahme bleibt unverändert
+  stop                   Aufnahme beenden; ohne Aufnahme passiert nichts
   status                 Zustand (idle, starting, recording, processing, delivering)
   bar                    Status als JSON-Zeile für Omarchy-Leiste oder Waybar
   cancel                 Aufnahme oder Verarbeitung sicher abbrechen
+  report                 Fehlerbericht prüfen und im Browser öffnen; --print nur Adresse
   retry                  letzte gesicherte Aufnahme nochmal senden
+  retry --openai         letzte gesicherte Aufnahme ausdrücklich einmal an OpenAI senden
   retry --skipped        letzte zu kurze oder stille Aufnahme trotzdem senden
   copy-status            festen Statustext in die Zwischenablage
   secrets probe          Schlüsselbund prüfen: schreiben, lesen, löschen
@@ -63,6 +71,7 @@ Befehle:
   settings target toggle Übersetzung aus- oder mit letzter Zielsprache einschalten
   settings insert on|off automatisch ins Fenster einfügen, in dem du gestartet hast
   settings translation-model NAME  Modell für die Übersetzung setzen
+  settings service openai|custom  Dienst wählen, Adresse und Modelle behalten
   settings server URL    Eigener Server: Server-Adresse inkl. /v1; `off` = OpenAI
   shortcut status        Kürzel und freie Tasten anzeigen
   shortcut set KÜRZEL    super-d, f9 oder right-alt in die Hyprland-Konfiguration
@@ -78,10 +87,17 @@ shortcut.
 Commands:
   setup                  guided setup: service and shortcut
   toggle                 start or stop a dictation
+  vocabulary add WORD    save a word or name as a recognition hint
+  vocabulary remove WORD remove an entry; `list` shows, `clear` empties the list
+
+  start                  start recording; an existing recording stays unchanged
+  stop                   stop recording; does nothing without a recording
   status                 state (idle, starting, recording, processing, delivering)
   bar                    status as a JSON line for the Omarchy bar or Waybar
   cancel                 safely cancel a recording or processing
+  report                 review a problem report and open the browser; --print prints URL
   retry                  send the last kept recording again
+  retry --openai         explicitly send the last kept recording to OpenAI once
   retry --skipped        send the last too short or silent recording anyway
   copy-status            put a fixed status text in the clipboard
   secrets probe          check the keyring: write, read, delete
@@ -95,6 +111,7 @@ Commands:
   settings target toggle turn translation off, or on with the last language
   settings insert on|off paste the text into the window you started in
   settings translation-model NAME  set the model for translation
+  settings service openai|custom  choose service, keep address and models
   settings server URL    custom server: server address incl. /v1; `off` = OpenAI
   shortcut status        show the shortcut and which keys are free
   shortcut set KEY       write super-d, f9 or right-alt into the Hyprland config
@@ -128,16 +145,31 @@ fn run(args: Vec<String>) -> Result<(), String> {
             Ok(())
         }
         ["setup"] => setup::run(),
+        ["vocabulary", "add", word] => vocabulary(Some((true, word))),
+        ["vocabulary", "remove", word] => vocabulary(Some((false, word))),
+        ["vocabulary", "list"] => vocabulary(None),
+        ["vocabulary", "clear"] => {
+            let path = paths::settings_path().map_err(path_error)?;
+            let mut settings = settings::Settings::load(&path)?;
+            settings.vocabulary.clear();
+            settings.save(&path)
+        }
+
         ["usage"] => usage::show(false),
         ["usage", "reset"] => usage::show(true),
         ["shortcut", "status"] => shortcut_status(),
         ["shortcut", "set", id] => shortcut_set(id),
         ["toggle"] => toggle(),
+        ["start"] => control(Control::Start),
+        ["stop"] => control(Control::Stop),
         ["status"] => status(),
         ["bar"] | ["waybar"] => waybar_status(),
         ["cancel"] => cancel(),
-        ["retry"] => retry(false),
-        ["retry", "--skipped"] => retry(true),
+        ["report"] => report::run(false),
+        ["report", "--print"] => report::run(true),
+        ["retry"] => retry(false, false),
+        ["retry", "--openai"] => retry(false, true),
+        ["retry", "--skipped"] => retry(true, false),
         ["copy-status"] => copy_status(),
         ["secrets", "probe"] => secrets_probe(),
         ["secrets", "status"] => secrets_status(),
@@ -151,6 +183,8 @@ fn run(args: Vec<String>) -> Result<(), String> {
         ["settings", "insert", "on"] => settings_insert(true),
         ["settings", "insert", "off"] => settings_insert(false),
         ["settings", "translation-model", model] => settings_translation_model(model),
+        ["settings", "service", "openai"] => settings_service(settings::Service::Openai),
+        ["settings", "service", "custom"] => settings_service(settings::Service::Custom),
         ["settings", "server", "off"] => settings_server_off(),
         ["settings", "server", address] => settings_server(address),
         ["record", "--daemon"] => worker(),
@@ -162,12 +196,38 @@ fn run(args: Vec<String>) -> Result<(), String> {
 }
 
 fn toggle() -> Result<(), String> {
+    control(Control::Toggle)
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Control {
+    Toggle,
+    Start,
+    Stop,
+}
+
+fn control(command: Control) -> Result<(), String> {
     // Held until this call returns: a second `toggle` before the worker has
     // even bound its socket is refused instead of starting another worker.
-    let _lock = lock_toggle()?.ok_or_else(starting)?;
+    let deadline = Instant::now() + record::START_TIMEOUT + Duration::from_secs(1);
+    let _lock = loop {
+        if let Some(lock) = lock_toggle()? {
+            break lock;
+        }
+        // A quick release must not get lost while `start` waits for the
+        // microphone. It uses the same lock and stops once startup finishes.
+        if command != Control::Stop || Instant::now() >= deadline {
+            return Err(starting());
+        }
+        std::thread::sleep(Duration::from_millis(20));
+    };
     let socket = paths::socket_path().map_err(path_error)?;
     let state_path = paths::state_path().map_err(path_error)?;
-    match state::read(&state_path, &socket) {
+    let current = state::read(&state_path, &socket);
+    if control_is_noop(command, current) {
+        return Ok(());
+    }
+    match current {
         state::State::Idle => start_worker(),
         state::State::Recording => match ipc::send(&socket, ipc::STOP) {
             Ok(reply) if reply == ipc::PROCESSING => {
@@ -195,6 +255,11 @@ fn toggle() -> Result<(), String> {
             "OpenDictate is already processing a recording."
         )),
     }
+}
+
+fn control_is_noop(command: Control, state: state::State) -> bool {
+    command == Control::Start && state != state::State::Idle
+        || command == Control::Stop && state != state::State::Recording
 }
 
 /// Takes the lock shared by `toggle` and `retry`; `None` while another
@@ -324,6 +389,16 @@ fn status() -> Result<(), String> {
     let socket = paths::socket_path().map_err(path_error)?;
     let state_path = paths::state_path().map_err(path_error)?;
     println!("{}", state::read(&state_path, &socket).as_str());
+    if let Ok(path) = network_hint_path() {
+        if fs::metadata(path)
+            .ok()
+            .and_then(|metadata| metadata.modified().ok())
+            .and_then(|time| time.elapsed().ok())
+            .is_some_and(|age| age < Duration::from_secs(24 * 60 * 60))
+        {
+            println!("{}", i18n::t("Letzte Server-Anfrage fehlgeschlagen: `opendictate retry --openai` sendet die gesicherte Aufnahme einmal an OpenAI.", "Last server request failed: `opendictate retry --openai` sends the kept recording to OpenAI once."));
+        }
+    }
     Ok(())
 }
 
@@ -331,12 +406,15 @@ fn waybar_status() -> Result<(), String> {
     let socket = paths::socket_path().map_err(path_error)?;
     let state_path = paths::state_path().map_err(path_error)?;
     let state = state::read(&state_path, &socket);
-    // A broken settings file must not blank the bar; show the state alone.
+    // A broken settings file must not claim a service was read successfully.
     let settings = paths::settings_path()
         .map_err(path_error)
-        .and_then(|path| settings::Settings::load(&path))
-        .unwrap_or_default();
-    let mut value: serde_json::Value = serde_json::from_str(&waybar::render(state, &settings))
+        .and_then(|path| settings::Settings::load(&path));
+    let rendered = match settings {
+        Ok(settings) => waybar::render(state, &settings),
+        Err(_) => waybar::render_settings_error(state),
+    };
+    let mut value: serde_json::Value = serde_json::from_str(&rendered)
         .map_err(|_| tr!("Leistenanzeige nicht verfügbar.", "Bar unavailable."))?;
     let hint = usage::tooltip().unwrap_or_else(|_| tr!("Verbrauch unbekannt", "Usage unknown"));
     value["tooltip"] = serde_json::Value::String(format!(
@@ -464,7 +542,25 @@ fn init_auth() -> Result<(), String> {
 fn settings_show() -> Result<(), String> {
     let path = paths::settings_path().map_err(path_error)?;
     let settings = settings::Settings::load(&path)?;
-    let (server, source) = server::Server::resolve(settings.server.as_deref())?;
+    println!("shortcut-mode={}", settings.shortcut_mode.name());
+    println!(
+        "{}",
+        tr!(
+            "Vokabular: {} Einträge",
+            "Vocabulary: {} entries",
+            settings.vocabulary.len()
+        )
+    );
+    let (server, source) = settings.resolve_server()?;
+    println!(
+        "{}",
+        if server.is_custom() {
+            i18n::t("Dienst: Eigener Server", "Service: Custom server")
+        } else {
+            i18n::t("Dienst: OpenAI", "Service: OpenAI")
+        }
+    );
+    let settings = settings.for_request()?.0;
     let server = match source {
         server::Source::Default => "openai".to_string(),
         server::Source::Settings => server.base().to_string(),
@@ -482,12 +578,39 @@ fn settings_show() -> Result<(), String> {
     Ok(())
 }
 
+fn vocabulary(change: Option<(bool, &str)>) -> Result<(), String> {
+    let path = paths::settings_path().map_err(path_error)?;
+    let mut settings = settings::Settings::load(&path)?;
+    match change {
+        None => {
+            for word in &settings.vocabulary {
+                println!("{word}");
+            }
+            return Ok(());
+        }
+        Some((true, word)) => {
+            let word = word.to_string();
+            if !settings.vocabulary.contains(&word) {
+                settings.vocabulary.push(word);
+            }
+        }
+        Some((false, word)) => settings.vocabulary.retain(|value| value != word),
+    }
+    settings.save(&path)?;
+    println!("{}", i18n::t("Vokabular gespeichert", "Vocabulary saved"));
+    Ok(())
+}
+
 fn settings_model(model: &str) -> Result<(), String> {
     let path = paths::settings_path().map_err(path_error)?;
     let mut settings = settings::Settings::load(&path)?;
-    let (server, _) = server::Server::resolve(settings.server.as_deref())?;
+    let (server, _) = settings.resolve_server()?;
     settings::validate_model_for(model, &server)?;
-    settings.model = model.to_string();
+    if server.is_custom() {
+        settings.custom_model = model.to_string();
+    } else {
+        settings.model = model.to_string();
+    }
     settings.save(&path)?;
     println!("{}", i18n::t("Modell gespeichert", "Model saved"));
     Ok(())
@@ -557,7 +680,11 @@ fn settings_translation_model(model: &str) -> Result<(), String> {
     settings::validate_translation_model(model)?;
     let path = paths::settings_path().map_err(path_error)?;
     let mut settings = settings::Settings::load(&path)?;
-    settings.translation_model = model.to_string();
+    if settings.resolve_server()?.0.is_custom() {
+        settings.custom_translation_model = model.to_string();
+    } else {
+        settings.translation_model = model.to_string();
+    }
     settings.save(&path)?;
     println!(
         "{}",
@@ -644,7 +771,11 @@ fn settings_server(address: &str) -> Result<(), String> {
     if !server.is_custom() {
         return settings_server_off();
     }
+    let first = settings.server.is_none();
     settings.server = Some(server.base().to_string());
+    if first {
+        settings.service = Some(settings::Service::Custom);
+    }
     settings.save(&path)?;
     println!(
         "{}",
@@ -682,65 +813,24 @@ fn settings_server(address: &str) -> Result<(), String> {
         tr!(
             "Die Modellnamen deines Servers setzt du mit `opendictate settings model NAME`, für Übersetzungen mit `opendictate settings translation-model NAME` (jetzt: {}, {}).",
             "Set your server's model names with `opendictate settings model NAME`, for translations with `opendictate settings translation-model NAME` (now: {}, {}).",
-            settings.model,
-            settings.translation_model
+            settings.custom_model,
+            settings.custom_translation_model
         )
     );
     Ok(())
 }
 
-/// Back to OpenAI. A transcription model OpenAI does not offer is reset to
-/// the default, so the next dictation does not fail.
+/// The legacy alias keeps the saved address and both model choices.
 fn settings_server_off() -> Result<(), String> {
+    settings_service(settings::Service::Openai)
+}
+
+fn settings_service(service: settings::Service) -> Result<(), String> {
     let path = paths::settings_path().map_err(path_error)?;
     let mut settings = settings::Settings::load(&path)?;
-    settings.server = None;
-    let (server, source) = server::Server::resolve(None)?;
-    let reset_model = settings::validate_model_for(&settings.model, &server).is_err();
-    if reset_model {
-        settings.model = settings::DEFAULT_MODEL.to_string();
-    }
+    settings.choose_service(service)?;
     settings.save(&path)?;
-    match source {
-        server::Source::Environment => println!(
-            "{}",
-            tr!(
-                "Gespeicherter Server entfernt; {} zeigt weiter auf {}.",
-                "Stored server removed; {} still points to {}.",
-                server::BASE_URL_ENV,
-                server.base()
-            )
-        ),
-        _ => println!(
-            "{}",
-            i18n::t(
-                "Eigener Server aus; OpenDictate nutzt OpenAI.",
-                "Custom server off; OpenDictate uses OpenAI."
-            )
-        ),
-    }
-    if reset_model {
-        println!(
-            "{}",
-            tr!(
-                "Modell für die Abschrift auf {} zurückgesetzt.",
-                "Transcription model reset to {}.",
-                settings::DEFAULT_MODEL
-            )
-        );
-    }
-    if settings.translation_model != settings::DEFAULT_TRANSLATION_MODEL {
-        println!(
-            "{}",
-            tr!(
-                "Übersetzungsmodell bleibt {}; `opendictate settings translation-model {}` stellt den Standard wieder her.",
-                "Translation model stays {}; `opendictate settings translation-model {}` restores the default.",
-                settings.translation_model,
-                settings::DEFAULT_TRANSLATION_MODEL
-            )
-        );
-    }
-    Ok(())
+    settings_show()
 }
 
 /// The key for the server, or none for an address on this computer, which
@@ -779,12 +869,9 @@ fn deliverable_text(
         "translation-started target={target}{}",
         server_log(server)
     ));
-    let translation = translate::Translator::new(server).translate(
-        &transcript,
-        target,
-        &settings.translation_model,
-        api_key,
-    )?;
+    let translation = translate::Translator::new(server)
+        .translate(&transcript, target, &settings.translation_model, api_key)
+        .inspect_err(mark_network_failure)?;
     ensure_not_cancelled(state_guard)?;
     if translation.text.is_empty() {
         return Err(tr!("Leere Übersetzung.", "Empty translation."));
@@ -949,6 +1036,7 @@ fn process_new_recording(
     target: Option<&window::TargetWindow>,
     state_guard: &state::StateGuard,
 ) -> Result<(), String> {
+    clear_network_hint();
     let result = (|| {
         ensure_not_cancelled(state_guard)?;
         let prepared = match record::prepare_for_upload(path)? {
@@ -956,15 +1044,13 @@ fn process_new_recording(
             record::Upload::Skipped(message) => return Ok(Some(message)),
         };
         ensure_not_cancelled(state_guard)?;
-        let settings = settings::Settings::load(&paths::settings_path().map_err(path_error)?)?;
-        let (server, _) = server::Server::resolve(settings.server.as_deref())?;
+        let saved = settings::Settings::load(&paths::settings_path().map_err(path_error)?)?;
+        let (settings, server) = saved.for_request()?;
         let api_key = api_key_for(&server)?;
         log_ops(&format!("transcription-started{}", server_log(&server)));
-        let transcript = transcribe::Transcriber::new(&server).transcribe(
-            prepared.path(),
-            api_key.as_deref(),
-            &settings,
-        )?;
+        let transcript = transcribe::Transcriber::new(&server)
+            .transcribe(prepared.path(), api_key.as_deref(), &settings)
+            .inspect_err(mark_network_failure)?;
         ensure_not_cancelled(state_guard)?;
         if transcript.is_empty() {
             return Err(tr!(
@@ -1054,7 +1140,47 @@ fn process_new_recording(
     }
 }
 
-fn retry(skipped: bool) -> Result<(), String> {
+fn network_hint_path() -> Result<std::path::PathBuf, String> {
+    Ok(paths::state_dir()
+        .map_err(path_error)?
+        .join("custom-network-failure"))
+}
+
+fn clear_network_hint() {
+    if let Ok(path) = network_hint_path() {
+        let _ = fs::remove_file(path);
+    }
+}
+
+fn mark_network_failure(error: &server::Failure) {
+    if !error.custom_network {
+        return;
+    }
+    if let Ok(path) = network_hint_path() {
+        if let Ok(mut file) = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .mode(0o600)
+            .custom_flags(libc::O_NOFOLLOW)
+            .open(path)
+        {
+            let _ = file.write_all(b"custom-network-failure\n");
+        }
+    }
+}
+
+fn openai_retry_settings(saved: &settings::Settings) -> settings::Settings {
+    let mut request = saved.clone();
+    if settings::validate_model(&request.model).is_err() {
+        request.model = settings::DEFAULT_MODEL.to_string();
+    }
+    // A custom model name, including a gpt-* name, does not prove OpenAI support.
+    request.translation_model = settings::DEFAULT_TRANSLATION_MODEL.to_string();
+    request
+}
+
+fn retry(skipped: bool, openai: bool) -> Result<(), String> {
     // Same lock as `toggle`, held until the socket and the Processing state
     // are in place: a retry cannot take the socket from a worker that
     // `toggle` is starting, and a later `toggle` sees Processing.
@@ -1106,15 +1232,18 @@ fn retry(skipped: bool) -> Result<(), String> {
         ));
     };
     ensure_not_cancelled(&state_guard)?;
-    let settings = settings::Settings::load(&paths::settings_path().map_err(path_error)?)?;
-    let (server, _) = server::Server::resolve(settings.server.as_deref())?;
+    let saved = settings::Settings::load(&paths::settings_path().map_err(path_error)?)?;
+    let (settings, server) = if openai {
+        (openai_retry_settings(&saved), server::Server::openai())
+    } else {
+        saved.for_request()?
+    };
+    clear_network_hint();
     let api_key = api_key_for(&server)?;
     log_ops(&format!("retry-started{}", server_log(&server)));
-    let transcript = transcribe::Transcriber::new(&server).transcribe_bytes(
-        &authenticated_bytes,
-        api_key.as_deref(),
-        &settings,
-    )?;
+    let transcript = transcribe::Transcriber::new(&server)
+        .transcribe_bytes(&authenticated_bytes, api_key.as_deref(), &settings)
+        .inspect_err(mark_network_failure)?;
     ensure_not_cancelled(&state_guard)?;
     if transcript.is_empty() {
         return Err(tr!(
@@ -1332,6 +1461,44 @@ impl Drop for SocketGuard {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn explicit_recording_edges_are_idempotent() {
+        use super::{control_is_noop, Control};
+        use crate::state::State;
+        for state in [
+            State::Idle,
+            State::Starting,
+            State::Recording,
+            State::Processing,
+            State::Delivering,
+        ] {
+            assert_eq!(control_is_noop(Control::Start, state), state != State::Idle);
+            assert_eq!(
+                control_is_noop(Control::Stop, state),
+                state != State::Recording
+            );
+            assert!(!control_is_noop(Control::Toggle, state));
+        }
+    }
+
+    #[test]
+    fn one_off_openai_settings_do_not_change_the_saved_service() {
+        let saved = crate::settings::Settings {
+            model: "large-v3".to_string(),
+            translation_model: "gpt-local".to_string(),
+            server: Some("http://127.0.0.1:8080/v1".to_string()),
+            ..crate::settings::Settings::default()
+        };
+        let before = serde_json::to_vec(&saved).unwrap();
+        let request = super::openai_retry_settings(&saved);
+        assert_eq!(request.model, crate::settings::DEFAULT_MODEL);
+        assert_eq!(
+            request.translation_model,
+            crate::settings::DEFAULT_TRANSLATION_MODEL
+        );
+        assert_eq!(serde_json::to_vec(&saved).unwrap(), before);
+        assert!(crate::server::Server::openai().sends_api_key());
+    }
     use super::*;
 
     #[test]
