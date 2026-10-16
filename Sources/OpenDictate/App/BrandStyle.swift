@@ -54,6 +54,24 @@ enum BrandFonts {
         NSFont(name: semibold ? "Geist-SemiBold" : "Geist-Regular", size: size)
             ?? .systemFont(ofSize: size, weight: semibold ? .semibold : .regular)
     }
+
+    /// A generated text style (`DesignFont`) with its family, size and weight.
+    static func font(_ style: DesignTextStyle) -> NSFont {
+        let size = CGFloat(style.size)
+        switch style.family {
+        case DesignFont.pixel: return pixel(size)
+        case DesignFont.mono: return mono(size, semibold: style.weight >= 600)
+        default: return sans(size, semibold: style.weight >= 600)
+        }
+    }
+
+    /// The style's line height as a fixed paragraph height, for running text.
+    static func paragraph(_ style: DesignTextStyle) -> NSParagraphStyle {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.minimumLineHeight = CGFloat(style.lineHeight)
+        paragraph.maximumLineHeight = CGFloat(style.lineHeight)
+        return paragraph
+    }
 }
 
 extension DesignTheme {
