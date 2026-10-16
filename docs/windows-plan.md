@@ -33,7 +33,9 @@ Windows-Job der CI offline geprüft; die Live-Abnahme kommt am Ende.
 
 Schritt 7 läuft auf Bastis Windows-PC (am 28. September per SSH
 erreichbar, [Geräteprüfung](platform-audit-2026-09-28.md); am 11. Oktober von
-Basti als vorhanden bestätigt), mit seinem Go und angeschlossenem Mikrofon.
+Basti als vorhanden bestätigt), mit angeschlossenem Mikrofon. Seit dem
+16. Oktober testet Claude dort ohne Go und holt Basti nur für Schritte, die
+Hände brauchen (AGENTS.md).
 Zu prüfen sind dort vor allem, was ohne Gerät nicht geht: Hook und beide
 Kürzel, kein Startmenü nach Strg+Win, Anzeige über einem Spiel im
 randlosen und im exklusiven Vollbild, Strg+V in Editor und Spielchat, die

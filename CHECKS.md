@@ -234,10 +234,11 @@ and check scope. On Windows, from the repository root:
 
 This runs 54 core, flow, provider and shortcut checks (the provider checks read
 `fixtures/provider/`) and builds the beta app and the Windows protection
-checker. It does not execute the 15 protection checks. After
-specific authorization for synthetic files and an isolated dummy Credential
-Manager entry, run those from a separate test copy in the signed-in Windows
-desktop with normal user privileges:
+checker. It does not execute the 15 protection checks. They use synthetic
+files and an isolated dummy Credential Manager entry; run them from a separate
+test copy in the signed-in Windows desktop with normal user privileges. Since
+16 October 2026 Claude runs them on Basti's PC xmg without a Go (see
+`AGENTS.md`):
 
 ```powershell
 dotnet run --no-restore --project windows/OpenDictate.WindowsChecks -c Release
