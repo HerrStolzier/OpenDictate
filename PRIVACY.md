@@ -421,3 +421,15 @@ Closed requests are deleted automatically 180 days after they were closed;
 open requests are kept until they are closed.
 On request, a ticket and all its messages, replies included, are deleted at
 once.
+
+### Linux explicit problem reports
+
+`opendictate report` constructs and fully previews a report locally before
+asking for confirmation to open the browser. `report --print` prints only its
+address. No support request is made by the CLI. The form receives the report
+in the URI fragment, and the user decides whether to submit it. Included:
+app/version, allowlisted distribution/version/compositor, key presence (or
+unknown if unavailable), bounded settings and at most 30 recognized warning/
+error event categories. Raw log messages, paths, server addresses/hosts,
+arbitrary model names, target apps/titles, transcripts, clipboard and audio
+are never copied. The encoded address is at most 12,000 characters.

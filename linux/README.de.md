@@ -436,3 +436,13 @@ sind echte Verzeichnisse mit Modus `0700`; Audiodateien und Nachweise `0600`.
 - Das Arch-Paket ist auf einem Rechner (omarchy) installiert und mit einem
   Diktat geprüft ([Nachweis](../docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026));
   nicht im AUR, kein zweites Distro-Ziel.
+
+## Fehler melden
+
+`opendictate report` zeigt dir den vollständigen Diagnosebericht im Terminal.
+Erst nach deiner Antwort `j` öffnet sich das Support-Formular im Browser.
+Die CLI sendet nichts an den Support. Du prüfst das Formular und schickst es
+selbst ab. `opendictate report --print` gibt nur die Adresse aus. Ohne grafische
+Sitzung oder funktionierendes `xdg-open` wird sie nach der Bestätigung ausgegeben.
+Aus dem Protokoll bleiben höchstens 30 bekannte Fehler-/Warnkategorien;
+freie Meldungen, freie Modellnamen und Server-Adressen werden verworfen.

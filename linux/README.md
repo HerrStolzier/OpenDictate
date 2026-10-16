@@ -422,3 +422,13 @@ files and proofs `0600`.
 - The Arch package is installed on one machine (omarchy) and checked with a
   dictation ([evidence](../docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026));
   not in the AUR, no second distribution.
+
+## Report a problem
+
+`opendictate report` previews the whole diagnostic report in your terminal.
+Only after you answer `y` does it open the support form in your browser.
+The CLI sends nothing to support. You review and submit the form yourself.
+Use `opendictate report --print` for just the address. Without a graphical
+session or working `xdg-open`, confirmation prints the address instead.
+Only known error/warning categories survive from the log, at most 30; raw
+messages, free-form model names and server addresses are discarded.

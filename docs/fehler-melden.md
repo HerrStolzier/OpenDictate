@@ -69,7 +69,9 @@ das Protokoll sie enthielte, und dass die fertige Adresse die Grenzen einhält.
   Fehlermeldung der Diktatanzeige. Öffnet die Adresse mit `NSWorkspace.open`.
 - **Linux:** `opendictate report` zeigt den Bericht im Terminal und öffnet die
   Adresse mit `xdg-open`; `opendictate report --print` gibt nur die Adresse aus.
-  Meldungen über `tr!` auf Deutsch und Englisch.
+  Meldungen über `tr!` auf Deutsch und Englisch. Der vollständige Bericht erscheint
+  vor der Rückfrage; Standard ist Nein. Aus Protokollen werden nur bekannte
+  Kategorien ohne freie Details übernommen (höchstens 30).
 - **Windows, iOS:** mit ihrem Track, nach demselben Muster.
 
 `PRIVACY.md` wird im selben Änderungssatz wie die App-Funktion nachgezogen. Die
@@ -82,4 +84,5 @@ Datenschutzerklärung des Supports nennt den Bericht seit dem 13. Oktober 2026.
   diesem Fehler (live seit 13. Oktober 2026, Prüfskript von außen grün). Den
   Bericht übernimmt es nur aus dem Teil hinter `#`; im Browser
   geprüft.
-- macOS, Linux: nicht gebaut.
+- Linux: `report` und `report --print` umgesetzt; offline geprüft, Browser-Live-Test offen.
+- macOS: nicht gebaut.
