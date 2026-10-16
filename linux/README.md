@@ -261,7 +261,8 @@ most:
 - The timeouts (network error after about 20 seconds) are only tested
   offline.
 - Hyprland only, Arch-based systems only. No settings window, no
-  push-to-talk, no custom vocabulary. Only OpenAI is verified; custom
+  push-to-talk. Explicit vocabulary is implemented in the CLI; live recognition
+  with those hints is not yet accepted. Only OpenAI is verified; custom
   servers are untested.
 - At most 90 seconds per dictation.
 

@@ -268,7 +268,8 @@ meisten:
 - Abbruch oder Netzausfall genau während der Übersetzung.
 - Die Zeitlimits (Netzfehler nach etwa 20 Sekunden) sind nur offline geprüft.
 - Nur Hyprland, nur Arch-basierte Systeme. Kein Settings-Fenster, kein
-  Halten-zum-Sprechen, kein eigenes Vokabular. Geprüft ist nur OpenAI; eigene
+  Halten-zum-Sprechen. Eigenes Vokabular ist im CLI-Code umgesetzt; die
+  Erkennung damit ist noch nicht live abgenommen. Geprüft ist nur OpenAI; eigene
   Server sind ungetestet.
 - Höchstens 90 Sekunden pro Diktat.
 
