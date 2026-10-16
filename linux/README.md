@@ -422,3 +422,23 @@ files and proofs `0600`.
 - The Arch package is installed on one machine (omarchy) and checked with a
   dictation ([evidence](../docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026));
   not in the AUR, no second distribution.
+
+## Local usage estimate
+
+`opendictate usage` shows dictations, audio minutes and estimated USD cost for
+today, the last seven local calendar days and the current local month. The
+bar tooltip shows today's dictations and estimated US cents. This is a local
+counter, not your provider account balance. It counts completed, non-empty
+transcription/translation work, even when subsequent clipboard delivery fails.
+Cancelled/failed/empty processing is excluded, so a provider may still charge
+for work absent from this counter. Retries that succeed count as new requests.
+
+The private `usage.json` under the state directory holds only timestamp,
+service kind, model, audio seconds and optional translation token counts.
+Entries older than 13 calendar months are pruned at access/write; `usage reset`
+clears the counter. Custom servers count minutes with zero estimated provider
+cost. Missing token usage and unknown models mean unknown cost. Prices come
+from the dated shared `fixtures/pricing/prices.json`; actual invoices, taxes,
+regional surcharges and cached-token discounts can differ. A ledger write
+failure does not destroy an otherwise delivered dictation; it is logged as
+`usage-write-failed` and is not a billing claim.

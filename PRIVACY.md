@@ -279,6 +279,22 @@ and translation requests were exercised on one attended test system on
 5 October 2026; the Linux beta published on 11 October 2026 is not a finished
 product.
 
+### Linux local usage ledger
+
+Linux records completed non-empty provider work locally in owner-only
+`usage.json`: timestamp, random local request identifier (for cancellation rollback), service
+kind (OpenAI/custom), model, audio seconds,
+translation model and optional input/output token counts. It stores no
+transcript, filename, server address, key or audio. A file lock and atomic
+replacement serialize append/reset; entries strictly older than 13 local
+calendar months are pruned on access/write. `opendictate usage reset` clears it.
+No usage or admin endpoint is queried. This is a local USD estimate using a
+dated shared price table, not a provider bill. Failed/cancelled/empty processing
+is excluded even if the provider charged for it; successful work is counted
+before clipboard delivery. Missing token metadata/unknown models have unknown
+cost; custom servers have zero estimated provider charge. A ledger write
+failure never converts a successful dictation into a retry or deletes its text.
+
 ## iPhone app
 
 The iPhone app in [ios/](ios/README.md) is written but not released yet. It

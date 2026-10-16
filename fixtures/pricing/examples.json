@@ -1,0 +1,17 @@
+{
+  "now": 10000,
+  "bounds": {"today": 9000, "week": 8000, "month": 5000, "retention": 1000},
+  "entries": [
+    {"timestamp":9000,"custom":false,"model":"gpt-transcribe","audio_seconds":60,"translation":null},
+    {"timestamp":8000,"custom":false,"model":"gpt-4o-mini-transcribe","audio_seconds":30,"translation":{"model":"gpt-5.4-mini","input_tokens":1000,"output_tokens":200}},
+    {"timestamp":6000,"custom":true,"model":"local-model","audio_seconds":120,"translation":null},
+    {"timestamp":5500,"custom":false,"model":"unknown-model","audio_seconds":60,"translation":null},
+    {"timestamp":999,"custom":false,"model":"whisper-1","audio_seconds":60,"translation":null},
+    {"timestamp":10001,"custom":false,"model":"gpt-transcribe","audio_seconds":60,"translation":null}
+  ],
+  "expected": [
+    {"dictations":1,"audio_seconds":60,"cost_usd":0.0045},
+    {"dictations":2,"audio_seconds":90,"cost_usd":0.00765},
+    {"dictations":4,"audio_seconds":270,"cost_usd":null}
+  ]
+}
