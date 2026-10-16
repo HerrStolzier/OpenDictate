@@ -436,3 +436,23 @@ sind echte Verzeichnisse mit Modus `0700`; Audiodateien und Nachweise `0600`.
 - Das Arch-Paket ist auf einem Rechner (omarchy) installiert und mit einem
   Diktat geprüft ([Nachweis](../docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026));
   nicht im AUR, kein zweites Distro-Ziel.
+
+## Kürzel antippen oder gedrückt halten
+
+`opendictate setup` fragt die Aufnahmeart ab. Antippen bleibt Standard; die
+vorhandene `toggle`-Belegung funktioniert weiter. Halten nutzt `start` beim
+Drücken und `stop` beim Loslassen mit derselben Aufnahme-/Anfragesperre.
+Wiederholtes `start` während der Aufnahme und `stop` ohne Aufnahme tun nichts.
+Sehr kurzes Halten wartet beim Stoppen auf einen bereits laufenden Mikrofonstart.
+Zu kurze oder stille Aufnahmen bleiben im bisherigen gesicherten/skipped-Pfad;
+sie werden nicht still gelöscht. Anders als bei der 300-ms-Schwelle unter
+Windows startet Linux beim Drücken: Hyprland liefert einzelne Befehle statt
+roher Tastaturereignisse.
+
+Die Aufnahmeart wird erst nach erfolgreichem Eintragen/Laden gespeichert;
+bei fehlgeschlagenem Schreiben, Laden oder Speichern der Einstellung wird die
+Konfiguration wiederhergestellt. `settings show` nennt `shortcut-mode`.
+Omarchy Lua nutzt den dokumentierten Helfer `o.bind_hold`, klassische
+Konfiguration zwei Zeilen. Lass bei klassischen/einfachen Lua-Kombinationen
+die Haupttaste vor dem Modifier los. Omarchys Helfer behandelt Modifierwechsel.
+Ein echter Tastaturtest unter Hyprland steht noch aus.

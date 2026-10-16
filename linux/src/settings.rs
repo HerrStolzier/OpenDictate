@@ -9,6 +9,23 @@ pub const DEFAULT_MODEL: &str = "gpt-transcribe";
 pub const DEFAULT_TRANSLATION_MODEL: &str = "gpt-5.4-mini";
 const DEFAULT_TOGGLE_TARGET: &str = "en";
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ShortcutMode {
+    #[default]
+    Tap,
+    Hold,
+}
+
+impl ShortcutMode {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Tap => "tap",
+            Self::Hold => "hold",
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Settings {
     pub model: String,
@@ -29,6 +46,8 @@ pub struct Settings {
     /// uses `OPENAI_BASE_URL` when set, otherwise OpenAI.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub server: Option<String>,
+    #[serde(default)]
+    pub shortcut_mode: ShortcutMode,
 }
 
 fn default_auto_insert() -> bool {
@@ -51,6 +70,7 @@ impl Default for Settings {
             last_target_language: None,
             auto_insert: default_auto_insert(),
             server: None,
+            shortcut_mode: ShortcutMode::Tap,
         }
     }
 }
@@ -275,6 +295,7 @@ mod tests {
             last_target_language: Some("en".to_string()),
             auto_insert: false,
             server: Some("http://localhost:8080/v1".to_string()),
+            shortcut_mode: ShortcutMode::Hold,
         };
         settings.save(&path).unwrap();
         assert_eq!(Settings::load(&path).unwrap(), settings);
