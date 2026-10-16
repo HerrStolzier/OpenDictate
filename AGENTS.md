@@ -60,7 +60,7 @@ paragraph still applies. The same holds since 16 October 2026 for Basti's
 Windows PC xmg: Claude installs, starts and tests Windows test builds there
 largely on its own, protection checks, shortcut, real dictations and pasting
 included, and asks Basti only for steps that need his hands, such as entering
-the API key. Since 8 October 2026 only
+the API key. Basti does the final acceptance himself. Since 8 October 2026 only
 the path every user takes (installation and one dictation) is verified by us;
 single-case checks are left to beta users and listed as known limits. There are no counted test blocks,
 quotas or advance approval documents. TCC resets, signing-identity changes and
