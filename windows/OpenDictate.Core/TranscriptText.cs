@@ -20,6 +20,7 @@ public static class TranscriptText
                 cleaned.Append('\n');
                 continue;
             }
+            if (current is '\u2028' or '\u2029') { cleaned.Append('\n'); continue; }
             if (current is '\n' or '\t') { cleaned.Append(current); continue; }
             if (char.IsControl(current) || IsDirectionControl(current)) continue;
             cleaned.Append(current);
