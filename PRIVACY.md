@@ -279,6 +279,17 @@ and translation requests were exercised on one attended test system on
 5 October 2026; the Linux beta published on 11 October 2026 is not a finished
 product.
 
+## Windows provider core
+
+### Explicit Windows vocabulary
+
+The platform-neutral Windows provider settings persist an explicit vocabulary
+list (64 entries and 800 UTF-8 bytes including separators). A non-empty list
+is sent as the `prompt` field to the selected transcription service, including
+a custom server. It is not logged or learned automatically. The Windows app
+has no vocabulary editor yet; this change adds persistence and transport in
+the platform-neutral core/provider only.
+
 ## iPhone app
 
 The iPhone app in [ios/](ios/README.md) is written but not released yet. It
@@ -430,12 +441,3 @@ sends this list as the optional `prompt` field to the selected service,
 including a custom server. It is never logged or learned automatically;
 `opendictate vocabulary clear` removes it locally. Existing retained recordings
 use the vocabulary selected at retry time.
-
-### Explicit Windows vocabulary
-
-The platform-neutral Windows provider settings persist an explicit vocabulary
-list (64 entries and 800 UTF-8 bytes including separators). A non-empty list
-is sent as the `prompt` field to the selected transcription service, including
-a custom server. It is not logged or learned automatically. The Windows app
-has no vocabulary editor yet; this change adds persistence and transport in
-the platform-neutral core/provider only.
