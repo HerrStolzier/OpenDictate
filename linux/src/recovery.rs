@@ -124,8 +124,17 @@ pub fn newest_authenticated(
     key: &[u8],
     skipped: bool,
 ) -> Result<Option<(Entry, Vec<u8>)>, String> {
+    newest_with_clock(recovery_dir, key, skipped, unix_timestamp_secs)
+}
+
+fn newest_with_clock(
+    recovery_dir: &Path,
+    key: &[u8],
+    skipped: bool,
+    clock: impl FnOnce() -> u64,
+) -> Result<Option<(Entry, Vec<u8>)>, String> {
     let mut entries = authenticated_entries(recovery_dir, key)?;
-    let now = unix_timestamp_secs();
+    let now = clock();
     entries.retain(|(entry, _)| {
         now.saturating_sub(entry.created) < MAXIMUM_AGE.as_secs() && entry.skipped == skipped
     });
@@ -618,6 +627,66 @@ mod tests {
             .unwrap()
             .unwrap();
         assert!(entry.skipped && entry.audio_path.ends_with("short.wav"));
+        let _ = fs::remove_dir_all(recovery_dir.parent().unwrap());
+    }
+
+    #[test]
+    fn both_retry_modes_reject_expired_and_tampered_audio_before_selection() {
+        let (_, recovery_dir) = fixture("retry-expiry");
+        let key = test_key();
+        let now = 200_000;
+        for skipped in [false, true] {
+            let name = if skipped {
+                "expired-short.wav"
+            } else {
+                "expired-normal.wav"
+            };
+            keep(
+                &recovery_dir,
+                name,
+                now - MAXIMUM_AGE.as_secs(),
+                skipped,
+                &key,
+            );
+            assert!(newest_with_clock(&recovery_dir, &key, skipped, || now)
+                .unwrap()
+                .is_none());
+            let name = if skipped {
+                "tampered-short.wav"
+            } else {
+                "tampered-normal.wav"
+            };
+            let audio = keep(&recovery_dir, name, now, skipped, &key);
+            let mut bytes = fs::read(&audio).unwrap();
+            bytes[0] ^= 1; // Same size: refusal must authenticate contents.
+            fs::write(audio, bytes).unwrap();
+            assert!(newest_with_clock(&recovery_dir, &key, skipped, || now)
+                .unwrap()
+                .is_none());
+            let name = if skipped {
+                "usable-short.wav"
+            } else {
+                "usable-normal.wav"
+            };
+            let valid = keep(
+                &recovery_dir,
+                name,
+                now - MAXIMUM_AGE.as_secs() + 1,
+                skipped,
+                &key,
+            );
+            assert_eq!(
+                newest_with_clock(&recovery_dir, &key, skipped, || now)
+                    .unwrap()
+                    .unwrap()
+                    .0
+                    .audio_path,
+                valid
+            );
+            assert!(newest_with_clock(&recovery_dir, &key, skipped, || now + 1)
+                .unwrap()
+                .is_none());
+        }
         let _ = fs::remove_dir_all(recovery_dir.parent().unwrap());
     }
 
