@@ -431,4 +431,3 @@ Closed requests are deleted automatically 180 days after they were closed;
 open requests are kept until they are closed.
 On request, a ticket and all its messages, replies included, are deleted at
 once.
-
