@@ -4,7 +4,7 @@ use std::time::Duration;
 use serde::Deserialize;
 use serde_json::json;
 
-use crate::server::Server;
+use crate::server::{custom_network_failure, Failure, Server};
 
 const MAX_INPUT_CHARS: usize = 20_000;
 /// Waiting time for a short translation. A request that stalls because the
@@ -16,6 +16,13 @@ const MAX_REQUEST_TIMEOUT: Duration = Duration::from_secs(60);
 /// A local language model on the CPU answers far slower than OpenAI.
 const CUSTOM_RESPONSE_BUDGET: Duration = Duration::from_secs(120);
 const CUSTOM_MAX_REQUEST_TIMEOUT: Duration = Duration::from_secs(180);
+
+#[derive(Debug)]
+pub struct TranslationResult {
+    pub text: String,
+    pub input_tokens: Option<u64>,
+    pub output_tokens: Option<u64>,
+}
 
 pub struct Translator {
     server: Server,
@@ -53,7 +60,7 @@ impl Translator {
         target_language: &str,
         model: &str,
         api_key: Option<&str>,
-    ) -> Result<String, String> {
+    ) -> Result<TranslationResult, Failure> {
         // Never sent to an address on this computer, required elsewhere.
         let api_key = match api_key {
             _ if !self.server.sends_api_key() => None,
@@ -62,7 +69,8 @@ impl Translator {
                 return Err(crate::tr!(
                     "Der API-Schlüssel fehlt. Richte ihn mit `opendictate setup` ein.",
                     "The API key is missing. Set it up with `opendictate setup`."
-                ))
+                )
+                .into())
             }
         };
         let chars = text.chars().count();
@@ -70,7 +78,8 @@ impl Translator {
             return Err(crate::tr!(
                 "Text hat eine ungültige Länge für die Übersetzung.",
                 "Text has an invalid length for translation."
-            ));
+            )
+            .into());
         }
         let body = json!({
             "model": model,
@@ -147,7 +156,7 @@ fn language_name(code: &str) -> String {
 fn decode_response(
     response: Result<ureq::Response, ureq::Error>,
     server: &Server,
-) -> Result<String, String> {
+) -> Result<TranslationResult, Failure> {
     let response = match response {
         Ok(response) => response,
         Err(ureq::Error::Status(status, response)) => {
@@ -182,20 +191,17 @@ fn decode_response(
                     "OpenAI limit reached or your balance is empty. Check your OpenAI account."
                 ),
                 _ => crate::tr!("Übersetzung fehlgeschlagen.", "Translation failed."),
-            });
+            }.into());
         }
         Err(ureq::Error::Transport(_)) if server.is_custom() => {
-            return Err(crate::tr!(
-                "Dein Server ({}) ist nicht erreichbar oder zu langsam. Prüf, ob er läuft, und versuch es nochmal.",
-                "Your server ({}) is unreachable or too slow. Check that it is running and try again.",
-                server.log_host()
-            ))
+            return Err(custom_network_failure(server))
         }
         Err(ureq::Error::Transport(_)) => {
             return Err(crate::tr!(
                 "Keine Verbindung zum Dienst. Prüf das Internet und versuch es nochmal.",
                 "No connection to the service. Check your internet connection and try again."
-            ))
+            )
+            .into())
         }
     };
     let mut data = Vec::new();
@@ -204,14 +210,20 @@ fn decode_response(
         .take(1_024 * 1_024)
         .read_to_end(&mut data)
         .map_err(|_| {
-            crate::tr!(
-                "Der Dienst hat bei der Übersetzung unerwartet geantwortet.",
-                "The service gave an unexpected answer to the translation."
-            )
+            if server.is_custom() {
+                custom_network_failure(server)
+            } else {
+                crate::tr!(
+                    "Der Dienst hat bei der Übersetzung unerwartet geantwortet.",
+                    "The service gave an unexpected answer to the translation."
+                )
+                .into()
+            }
         })?;
     #[derive(Deserialize)]
     struct Response {
         choices: Vec<Choice>,
+        usage: Option<serde_json::Value>,
     }
     #[derive(Deserialize)]
     struct Choice {
@@ -233,13 +245,91 @@ fn decode_response(
         .next()
         .and_then(|choice| choice.message.content)
         .unwrap_or_default();
-    Ok(crate::policy::sanitize_transcript(&text))
+    Ok(TranslationResult {
+        text: crate::policy::sanitize_transcript(&text),
+        input_tokens: parsed
+            .usage
+            .as_ref()
+            .and_then(|usage| usage.get("prompt_tokens"))
+            .and_then(serde_json::Value::as_u64),
+        output_tokens: parsed
+            .usage
+            .as_ref()
+            .and_then(|usage| usage.get("completion_tokens"))
+            .and_then(serde_json::Value::as_u64),
+    })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::test_http::{serve, serve_without_answer};
+
+    #[test]
+    fn translation_usage_is_optional_metadata() {
+        for (usage, expected) in [
+            (
+                r#", "usage":{"prompt_tokens":1000,"completion_tokens":200}"#,
+                (Some(1000), Some(200)),
+            ),
+            (r#", "usage":{"prompt_tokens":"bad"}"#, (None, None)),
+        ] {
+            let body = format!(r#"{{"choices":[{{"message":{{"content":"Hello"}}}}]{usage}}}"#);
+            let (endpoint, stub) = serve("200 OK", &body);
+            let result = openai_stub(&endpoint)
+                .translate("Hallo", "en", "test-model", Some("test-key"))
+                .unwrap();
+            assert_eq!(result.text, "Hello");
+            assert_eq!((result.input_tokens, result.output_tokens), expected);
+            stub.join().unwrap();
+        }
+    }
+
+    // A broken custom translation connection offers the same explicit recovery
+    // as transcription; HTTP/model errors must not be mislabeled as transport.
+    #[test]
+    fn custom_translation_transport_failures_offer_openai_retry() {
+        let (endpoint, stub) = serve_without_answer();
+        let server = Server::parse(&endpoint).unwrap();
+        let mut translator = Translator::new(&server);
+        translator.response_budget = Duration::from_millis(20);
+        let error = translator
+            .translate("Fixture", "en", "local-text", None)
+            .unwrap_err();
+        assert!(error.custom_network && error.contains("retry --openai"));
+        stub.join().unwrap();
+        let (endpoint, stub) = serve("404 Not Found", "{}");
+        let server = Server::parse(&endpoint).unwrap();
+        let error = Translator::new(&server)
+            .translate("Fixture", "en", "local-text", None)
+            .unwrap_err();
+        assert!(!error.custom_network && !error.contains("retry --openai"));
+        stub.join().unwrap();
+    }
+
+    #[test]
+    fn broken_custom_translation_body_offers_openai_retry() {
+        use std::io::Write;
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let stub = std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            let mut bytes = [0; 4096];
+            let _ = stream.read(&mut bytes).unwrap();
+            stream
+                .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 100\r\n\r\n")
+                .unwrap();
+            while matches!(stream.read(&mut bytes), Ok(count) if count > 0) {}
+        });
+        let server = Server::parse(&format!("http://{address}")).unwrap();
+        let mut translator = Translator::new(&server);
+        translator.response_budget = Duration::from_millis(20);
+        let error = translator
+            .translate("Fixture", "en", "local-text", None)
+            .unwrap_err();
+        assert!(error.custom_network && error.contains("retry --openai"));
+        stub.join().unwrap();
+    }
 
     /// OpenAI's rules, but talking to the local stub.
     fn openai_stub(endpoint: &str) -> Translator {
@@ -257,7 +347,8 @@ mod tests {
         let text = openai_stub(&endpoint)
             .translate("Hallo Linux.", "en", "test-model", Some("test-key"))
             .unwrap();
-        assert_eq!(text, "Hello Linux.");
+        assert_eq!(text.text, "Hello Linux.");
+        assert!(text.input_tokens.is_none() && text.output_tokens.is_none());
         let request = server.join().unwrap();
         let request = String::from_utf8_lossy(&request);
         let body = &request[request.find("\r\n\r\n").unwrap() + 4..];
@@ -290,7 +381,7 @@ mod tests {
         let text = openai_stub(&endpoint)
             .translate("Hallo", "en", "test-model", Some("test-key"))
             .unwrap();
-        assert!(text.is_empty());
+        assert!(text.text.is_empty());
         server.join().unwrap();
     }
 
@@ -336,7 +427,7 @@ mod tests {
         let text = Translator::new(&local)
             .translate("Hallo.", "en", "llama3.1:8b", Some("test-key"))
             .unwrap();
-        assert_eq!(text, "Hello.");
+        assert_eq!(text.text, "Hello.");
         let request = server.join().unwrap();
         let request = String::from_utf8_lossy(&request);
         assert!(request.starts_with("POST /v1/chat/completions "));

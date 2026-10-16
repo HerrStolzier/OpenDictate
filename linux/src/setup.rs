@@ -5,7 +5,7 @@ use std::io::{self, BufRead, IsTerminal, Read, Write};
 use std::time::{Duration, Instant};
 
 use crate::i18n::t;
-use crate::server::{Server, Source};
+use crate::server::Server;
 use crate::settings::{self, Settings};
 use crate::shortcut::{self, Availability, Choice};
 use crate::{keyring, path_error, paths, tr};
@@ -23,9 +23,11 @@ pub fn run() -> Result<(), String> {
     service_step()?;
     println!();
     keyring::ensure_recording_auth()?;
-    let choice = shortcut_step()?;
+    let mode = recording_mode()?;
+    let choice = shortcut_step(mode)?;
     println!();
     match choice {
+        Some(choice) if mode == settings::ShortcutMode::Hold => println!("{}", tr!("Fertig. Halte {} zum Sprechen, lass zum Beenden los.", "Done. Hold {} while speaking, release to stop.", choice.label())),
         Some(choice) => println!(
             "{}",
             tr!(
@@ -55,7 +57,7 @@ pub fn run() -> Result<(), String> {
 fn service_step() -> Result<(), String> {
     let path = paths::settings_path().map_err(path_error)?;
     let settings = Settings::load(&path)?;
-    let (server, _) = Server::resolve(settings.server.as_deref())?;
+    let (server, _) = settings.resolve_server()?;
     println!(
         "{}",
         t(
@@ -79,21 +81,8 @@ fn service_step() -> Result<(), String> {
     );
     let default = if server.is_custom() { 2 } else { 1 };
     if ask_number(2, default)? == 1 {
-        if settings.server.is_some() {
-            crate::settings_server_off()?;
-        }
-        let (server, source) = Server::resolve(None)?;
-        if source == Source::Environment {
-            println!(
-                "{}",
-                tr!(
-                    "Hinweis: {} ist gesetzt; solange die Variable besteht, geht die Aufnahme an {}.",
-                    "Note: {} is set; as long as it is, recordings go to {}.",
-                    crate::server::BASE_URL_ENV,
-                    server.base()
-                )
-            );
-        }
+        crate::settings_server_off()?;
+        let (server, _) = Server::resolve(None)?;
         ensure_key(&server)
     } else {
         custom_server(&path)
@@ -144,25 +133,26 @@ fn custom_server(path: &std::path::Path) -> Result<(), String> {
             )
         );
     }
-    settings.model = ask_model(
+    settings.custom_model = ask_model(
         t(
             "Modellname für die Abschrift",
             "Model name for transcription",
         ),
-        &settings.model,
+        &settings.custom_model,
     )?;
     if settings.target_language.is_some() {
-        settings.translation_model = ask_model(
+        settings.custom_translation_model = ask_model(
             t(
                 "Modellname für die Übersetzung",
                 "Model name for translation",
             ),
-            &settings.translation_model,
+            &settings.custom_translation_model,
         )?;
     }
     // Saved together, so a cancelled setup never leaves the new server with
     // OpenAI's model names.
     settings.server = Some(server.base().to_string());
+    settings.service = Some(crate::settings::Service::Custom);
     settings.save(path)?;
     if server.sends_api_key() {
         println!(
@@ -341,7 +331,48 @@ fn report_check(server: &Server, result: Check) -> Check {
     result
 }
 
-fn shortcut_step() -> Result<Option<Choice>, String> {
+fn recording_mode() -> Result<settings::ShortcutMode, String> {
+    let current = Settings::load(&paths::settings_path().map_err(path_error)?)?.shortcut_mode;
+    let default = if current == settings::ShortcutMode::Tap {
+        1
+    } else {
+        2
+    };
+    println!(
+        "{}",
+        t(
+            "So nimmst du auf: 1) Antippen  2) Gedrückt halten",
+            "How to record: 1) Tap  2) Hold"
+        )
+    );
+    let selected = ask_number(2, default)?;
+    Ok(if selected == 1 {
+        settings::ShortcutMode::Tap
+    } else {
+        settings::ShortcutMode::Hold
+    })
+}
+
+fn save_recording_mode(
+    mode: settings::ShortcutMode,
+    target: &shortcut::Target,
+    installed: &shortcut::Installed,
+) -> Result<(), String> {
+    let result = (|| {
+        let path = paths::settings_path().map_err(path_error)?;
+        let mut settings = Settings::load(&path)?;
+        settings.shortcut_mode = mode;
+        settings.save(&path)
+    })();
+    if let Err(error) = result {
+        shortcut::restore(target, installed)?;
+        let _ = shortcut::reload();
+        return Err(error);
+    }
+    Ok(())
+}
+
+fn shortcut_step(mode: settings::ShortcutMode) -> Result<Option<Choice>, String> {
     println!(
         "{}",
         t(
@@ -407,7 +438,7 @@ fn shortcut_step() -> Result<Option<Choice>, String> {
         let answer = ask_number(skip, default.unwrap_or(skip))?;
         if answer == skip {
             if current.is_none() {
-                print_manual_line(Choice::SuperD);
+                print_manual_line(Choice::SuperD, mode);
             }
             return Ok(current);
         }
@@ -435,13 +466,22 @@ fn shortcut_step() -> Result<Option<Choice>, String> {
                 continue;
             }
         }
-        return apply(choice, true).map(Some);
+        return apply_mode(choice, true, mode).map(Some);
     }
 }
 
 /// Writes the bind and reports whether Hyprland picked it up. With
 /// `ask_first` the user confirms the file change first.
 pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
+    let settings = Settings::load(&paths::settings_path().map_err(path_error)?)?;
+    apply_mode(choice, ask_first, settings.shortcut_mode)
+}
+
+fn apply_mode(
+    choice: Choice,
+    ask_first: bool,
+    mode: settings::ShortcutMode,
+) -> Result<Choice, String> {
     let hypr_dir = shortcut::hypr_dir().map_err(|error| error.to_string())?;
     let Some(target) = shortcut::detect(&hypr_dir) else {
         println!(
@@ -451,7 +491,7 @@ pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
                 "No Hyprland config found."
             )
         );
-        print_manual_line(choice);
+        print_manual_line(choice, mode);
         return Ok(choice);
     };
     if !target.writable() {
@@ -463,7 +503,7 @@ pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
                 shortcut::display_path(&target.path)
             )
         );
-        println!("  {}", choice.line(target.style));
+        println!("  {}", choice.lines(target.style, mode));
         return Ok(choice);
     }
     if ask_first {
@@ -480,12 +520,12 @@ pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
                 "{}",
                 tr!("Trag diese Zeile selbst ein:", "Add this line yourself:")
             );
-            println!("  {}", choice.line(target.style));
+            println!("  {}", choice.lines(target.style, mode));
             return Ok(choice);
         }
     }
     let running = shortcut::active_binds().is_some();
-    let installed = shortcut::install(choice, &target)?;
+    let installed = shortcut::install(choice, &target, mode)?;
     println!(
         "{}",
         tr!(
@@ -508,12 +548,15 @@ pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
     // Hyprland reloads its config when a file changes; without that
     // (autoreload off) it is asked once. A bind it still does not show is
     // undone, so the previous shortcut keeps working.
-    let loaded = match wait_loaded(choice, running, Duration::from_secs(3)) {
-        Some(false) if shortcut::reload() => wait_loaded(choice, running, Duration::from_secs(2)),
+    let loaded = match wait_loaded(choice, mode, running, Duration::from_secs(3)) {
+        Some(false) if shortcut::reload() => {
+            wait_loaded(choice, mode, running, Duration::from_secs(2))
+        }
         loaded => loaded,
     };
     match loaded {
         None => {
+            save_recording_mode(mode, &target, &installed)?;
             installed.prune_older_backups();
             println!(
                 "{}",
@@ -524,6 +567,7 @@ pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
             )
         }
         Some(true) => {
+            save_recording_mode(mode, &target, &installed)?;
             installed.prune_older_backups();
             println!(
                 "{}",
@@ -580,7 +624,7 @@ pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
                     "To use it anyway, add this line yourself:"
                 )
             );
-            println!("  {}", choice.line(target.style));
+            println!("  {}", choice.lines(target.style, mode));
             return Err(t("Kürzel nicht geändert.", "Shortcut not changed.").to_string());
         }
     }
@@ -590,13 +634,16 @@ pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
 /// Whether Hyprland shows the bind within `timeout`; `None` when Hyprland
 /// was not running before the change. While it was, a failed query is
 /// retried and counts as not loaded at the deadline.
-fn wait_loaded(choice: Choice, running: bool, timeout: Duration) -> Option<bool> {
+fn wait_loaded(
+    choice: Choice,
+    mode: settings::ShortcutMode,
+    running: bool,
+    timeout: Duration,
+) -> Option<bool> {
     let deadline = Instant::now() + timeout;
     loop {
         match shortcut::active_binds() {
-            Some(binds)
-                if shortcut::availability(choice, Some(&binds)) == Availability::OpenDictate =>
-            {
+            Some(binds) if shortcut::loaded(choice, &binds, mode) => {
                 return Some(true);
             }
             None if !running => return None,
@@ -609,7 +656,7 @@ fn wait_loaded(choice: Choice, running: bool, timeout: Duration) -> Option<bool>
     }
 }
 
-fn print_manual_line(choice: Choice) {
+fn print_manual_line(choice: Choice, mode: settings::ShortcutMode) {
     println!(
         "{}",
         t(
@@ -617,8 +664,8 @@ fn print_manual_line(choice: Choice) {
             "Example for Omarchy (~/.config/hypr/bindings.lua) and classic config:"
         )
     );
-    println!("  {}", choice.line(shortcut::Style::OmarchyLua));
-    println!("  {}", choice.line(shortcut::Style::Classic));
+    println!("  {}", choice.lines(shortcut::Style::OmarchyLua, mode));
+    println!("  {}", choice.lines(shortcut::Style::Classic, mode));
 }
 
 fn ask(prompt: &str) -> Result<String, String> {

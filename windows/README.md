@@ -199,8 +199,8 @@ beliebiger Editoren, Browser oder Webseiten.
 
 Das vorhandene Skript:
 
-1. zeigt die SDK-Version an und führt `OpenDictate.Checks` aus (8 Kern-,
-   9 Ablauf-, 19 Provider- und 22 Kürzel-/App-Checks),
+1. zeigt die SDK-Version an und führt `OpenDictate.Checks` aus (Kern-, Ablauf-,
+   Provider-, Kürzel-/App- und gemeinsame Fixture-Prüfungen),
 2. baut `OpenDictate.App`,
 3. baut `OpenDictate.WindowsChecks`.
 
@@ -224,3 +224,21 @@ angemeldete normale Windows-Sitzung. Sie dürfen nur in einer isolierten
 Prüfumgebung mit einem Dummy-Zugangseintrag ausgeführt werden; sie verwenden
 keinen echten OpenAI-Schlüssel. Diese Dokumentation startet keinen dieser
 Abläufe.
+
+## Vokabular im plattformneutralen Kern
+
+`DictationSettings.Vocabulary` enthält eine ausdrücklich gepflegte Liste eigener
+Wörter. Der Kern speichert und lädt sie mit den übrigen Einstellungen. Bei jeder
+Transkription geht sie als `prompt` an OpenAI oder deinen eigenen Server; ohne
+Einträge bleibt die bisherige Anfrage unverändert. Grenzen wie unter Linux:
+64 Einträge, insgesamt 800 UTF-8-Bytes einschließlich `, ` zwischen den
+Einträgen; keine leeren Einträge, Steuerzeichen oder Leerzeichen am Rand.
+Die Wörter stehen nicht im Protokoll und werden nicht automatisch gelernt.
+Das Eingabefeld in der Windows-App gehört noch nicht zu dieser Änderung.
+## Fehlerbericht im Kern
+
+`ProblemReport` baut offline die begrenzte Support-Adresse nach
+[dem gemeinsamen Vertrag](../docs/fehler-melden.md). Es übernimmt nur feste
+Diagnosekategorien, keine rohen Protokollmeldungen. Die Prüfungen lesen das
+plattformübergreifende Beispiel in `fixtures/report/`. Ein Menüpunkt und das
+Öffnen des Browsers sind in dieser Änderung noch nicht angeschlossen.

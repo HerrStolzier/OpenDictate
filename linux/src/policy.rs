@@ -8,7 +8,9 @@ pub fn can_delete_audio(transcript: &str, clipboard_copied: bool) -> bool {
 /// A server or model cannot smuggle an escape sequence or a hidden
 /// direction switch into the pasted text.
 pub fn sanitize_transcript(text: &str) -> String {
-    let normalized = text.replace("\r\n", "\n").replace('\r', "\n");
+    let normalized = text
+        .replace("\r\n", "\n")
+        .replace(['\r', '\u{2028}', '\u{2029}'], "\n");
     let cleaned: String = normalized
         .chars()
         .filter(|&c| !(c.is_control() && c != '\n' && c != '\t') && !is_bidi_control(c))
@@ -28,6 +30,27 @@ fn is_bidi_control(c: char) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn shared_text_fixtures() {
+        let cases: serde_json::Value =
+            serde_json::from_str(include_str!("../../fixtures/text/sanitize.json")).unwrap();
+        for case in cases.as_array().unwrap() {
+            let actual = sanitize_transcript(case["input"].as_str().unwrap());
+            assert_eq!(
+                actual,
+                case["expected"].as_str().unwrap(),
+                "{}",
+                case["name"]
+            );
+            assert_eq!(
+                is_multiline(&actual),
+                case["multiline"].as_bool().unwrap(),
+                "{}",
+                case["name"]
+            );
+        }
+    }
 
     #[test]
     fn only_a_nonempty_clipboard_delivery_allows_deletion() {

@@ -10,6 +10,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use serde::Deserialize;
 
 use crate::i18n::t;
+use crate::settings::ShortcutMode;
 
 const COMMAND: &str = "opendictate toggle";
 const MARKER: &str = "OpenDictate: start and stop dictation (opendictate setup)";
@@ -78,6 +79,25 @@ impl Choice {
             },
         }
     }
+
+    pub fn lines(self, style: Style, mode: ShortcutMode) -> String {
+        if mode == ShortcutMode::Tap {
+            return self.line(style);
+        }
+        let key = match self {
+            Self::SuperD => "SUPER + D",
+            Self::F9 => "F9",
+            Self::RightAlt => "Alt_R",
+        };
+        match style {
+            Style::OmarchyLua => format!("o.bind_hold(\"{key}\", \"OpenDictate start\", \"opendictate start\", \"OpenDictate stop\", \"opendictate stop\")"),
+            Style::Lua => format!("hl.bind(\"{key}\", hl.dsp.exec_cmd(\"opendictate start\"))\nhl.bind(\"{key}\", hl.dsp.exec_cmd(\"opendictate stop\"), {{ release = true }})"),
+            Style::Classic => {
+                let (modifiers, key) = match self { Self::SuperD => ("SUPER", "D"), Self::F9 => ("", "F9"), Self::RightAlt => ("ALT", "Alt_R") };
+                format!("bind = {modifiers}, {key}, exec, opendictate start\nbindr = {modifiers}, {key}, exec, opendictate stop")
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -133,7 +153,9 @@ pub fn display_path(path: &Path) -> String {
 /// Omarchy 3's bindings.conf, or hyprland.conf.
 pub fn detect(hypr_dir: &Path) -> Option<Target> {
     let bindings_lua = hypr_dir.join("bindings.lua");
-    if fs::read_to_string(&bindings_lua).is_ok_and(|text| text.contains("o.bind(")) {
+    if fs::read_to_string(&bindings_lua)
+        .is_ok_and(|text| text.contains("o.bind(") || text.contains("o.bind_hold("))
+    {
         return Some(Target {
             path: bindings_lua,
             style: Style::OmarchyLua,
@@ -163,6 +185,8 @@ pub struct Bind {
     /// What the bind does, for "taken by …".
     action: String,
     opendictate: bool,
+    release: bool,
+    command: String,
 }
 
 /// The binds Hyprland has loaded right now; `None` without a running
@@ -183,6 +207,8 @@ pub fn active_binds() -> Option<Vec<Bind>> {
 fn parse_binds(json: &[u8]) -> Option<Vec<Bind>> {
     #[derive(Deserialize)]
     struct Raw {
+        #[serde(default)]
+        release: bool,
         #[serde(default)]
         modmask: u64,
         #[serde(default)]
@@ -209,6 +235,8 @@ fn parse_binds(json: &[u8]) -> Option<Vec<Bind>> {
                         .to_string()
                 };
                 Bind {
+                    release: bind.release,
+                    command: bind.arg,
                     modmask: bind.modmask,
                     key: bind.key,
                     action: shorten(&action),
@@ -217,6 +245,23 @@ fn parse_binds(json: &[u8]) -> Option<Vec<Bind>> {
             })
             .collect(),
     )
+}
+
+pub fn loaded(choice: Choice, binds: &[Bind], mode: ShortcutMode) -> bool {
+    let ours: Vec<_> = binds
+        .iter()
+        .filter(|bind| bind.opendictate && choice.matches(bind.modmask, &bind.key))
+        .collect();
+    if mode == ShortcutMode::Tap {
+        return ours.iter().any(|bind| bind.command.contains(COMMAND));
+    }
+    ours.iter().any(|bind| {
+        !bind.release
+            && (bind.command.contains("opendictate start") || bind.action == "OpenDictate start")
+    }) && ours.iter().any(|bind| {
+        bind.release
+            && (bind.command.contains("opendictate stop") || bind.action == "OpenDictate stop")
+    })
 }
 
 fn shorten(text: &str) -> String {
@@ -324,7 +369,7 @@ pub struct Installed {
 /// in that file, appends the new line and keeps a backup next to it. The
 /// new text replaces the file in one step, so a failed write leaves the
 /// working config untouched; a symlinked dotfile stays a symlink.
-pub fn install(choice: Choice, target: &Target) -> Result<Installed, String> {
+pub fn install(choice: Choice, target: &Target, mode: ShortcutMode) -> Result<Installed, String> {
     if !target.writable() {
         return Err(t(
             "Diese Hyprland-Konfiguration kann OpenDictate nicht selbst ändern.",
@@ -352,7 +397,7 @@ pub fn install(choice: Choice, target: &Target) -> Result<Installed, String> {
             display_path(&target.path)
         )
     })?;
-    let (updated, replaced) = with_bind(&original, choice, target.style);
+    let (updated, replaced) = with_bind(&original, choice, target.style, mode);
     if replace_contents(&target.path, &updated).is_err() {
         let _ = fs::remove_file(&backup);
         return Err(crate::tr!(
@@ -484,7 +529,7 @@ fn unreadable(path: &Path) -> String {
 
 /// The config text with exactly one OpenDictate bind, appended at the end;
 /// in a Lua file that ends with `return …`, right before that statement.
-fn with_bind(original: &str, choice: Choice, style: Style) -> (String, usize) {
+fn with_bind(original: &str, choice: Choice, style: Style, mode: ShortcutMode) -> (String, usize) {
     let mut replaced = 0;
     let mut kept: Vec<&str> = Vec::new();
     for line in original.lines() {
@@ -522,7 +567,7 @@ fn with_bind(original: &str, choice: Choice, style: Style) -> (String, usize) {
     text.push_str(&format!(
         "{} {MARKER}\n{}\n",
         style.comment(),
-        choice.line(style)
+        choice.lines(style, mode)
     ));
     if !tail.is_empty() {
         text.push('\n');
@@ -536,14 +581,70 @@ fn with_bind(original: &str, choice: Choice, style: Style) -> (String, usize) {
 fn is_opendictate_bind(line: &str) -> bool {
     let trimmed = line.trim_start();
     let is_bind = trimmed.starts_with("o.bind(")
+        || trimmed.starts_with("o.bind_hold(")
         || trimmed.starts_with("hl.bind(")
         || trimmed.starts_with("bind");
-    is_bind && trimmed.contains(COMMAND)
+    is_bind
+        && [COMMAND, "opendictate start", "opendictate stop"]
+            .iter()
+            .any(|command| trimmed.contains(command))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn changing_modes_replaces_the_entire_binding_and_restores_it() {
+        for (style, original) in [
+            (Style::Classic, "bind = , F9, exec, opendictate toggle\n"),
+            (
+                Style::OmarchyLua,
+                "o.bind(\"F9\", \"OpenDictate\", \"opendictate toggle\")\nreturn o\n",
+            ),
+        ] {
+            let dir = crate::test_support::unique_temp_dir("hold-config");
+            let target = Target {
+                path: dir.join("bindings.conf"),
+                style,
+            };
+            fs::write(&target.path, original).unwrap();
+            let installed = install(Choice::SuperD, &target, ShortcutMode::Hold).unwrap();
+            let text = fs::read_to_string(&target.path).unwrap();
+            assert!(text.contains("opendictate start") && text.contains("opendictate stop"));
+            assert!(!text.contains("opendictate toggle"));
+            if style == Style::Classic {
+                assert!(text.contains("bindr = SUPER, D, exec, opendictate stop"));
+            } else {
+                assert!(text.contains("o.bind_hold(") && text.trim_end().ends_with("return o"));
+            }
+            let (tap, _) = with_bind(&text, Choice::F9, style, ShortcutMode::Tap);
+            assert!(
+                tap.contains(COMMAND)
+                    && !tap.contains("opendictate start")
+                    && !tap.contains("opendictate stop")
+            );
+            restore(&target, &installed).unwrap();
+            assert_eq!(fs::read_to_string(&target.path).unwrap(), original);
+            let _ = fs::remove_dir_all(dir);
+        }
+    }
+
+    #[test]
+    fn hold_is_loaded_only_when_both_edges_are_present() {
+        let press = br#"[{"modmask":64,"key":"D","description":"OpenDictate start","arg":"opendictate start"}]"#;
+        let pair = br#"[{"modmask":64,"key":"D","description":"OpenDictate start","arg":"opendictate start"},{"modmask":64,"key":"D","description":"OpenDictate stop","arg":"opendictate stop","release":true}]"#;
+        assert!(!loaded(
+            Choice::SuperD,
+            &parse_binds(press).unwrap(),
+            ShortcutMode::Hold
+        ));
+        assert!(loaded(
+            Choice::SuperD,
+            &parse_binds(pair).unwrap(),
+            ShortcutMode::Hold
+        ));
+    }
 
     const BINDS: &str = r#"[
         {"locked":false,"modmask":64,"submap":"","key":"D","keycode":0,"description":"OpenDictate","dispatcher":"exec","arg":"opendictate toggle"},
@@ -616,6 +717,18 @@ mod tests {
     }
 
     #[test]
+    fn hold_only_lua_config_is_detected() {
+        let dir = crate::test_support::unique_temp_dir("hold-only-lua");
+        fs::write(
+            dir.join("bindings.lua"),
+            Choice::F9.lines(Style::OmarchyLua, ShortcutMode::Hold),
+        )
+        .unwrap();
+        assert_eq!(detect(&dir).unwrap().style, Style::OmarchyLua);
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
     fn right_alt_only_suits_a_plain_us_layout() {
         let devices = |layout: &str, variant: &str| {
             format!(
@@ -650,7 +763,7 @@ bind = SUPER, RETURN, exec, kitty
 bind = SUPER, D, exec, opendictate toggle
 
 ";
-        let (text, replaced) = with_bind(original, Choice::F9, Style::Classic);
+        let (text, replaced) = with_bind(original, Choice::F9, Style::Classic, ShortcutMode::Tap);
         assert_eq!(replaced, 1);
         assert_eq!(
             text,
@@ -664,7 +777,7 @@ bind = , F9, exec, opendictate toggle
 "
         );
         // Running it again changes nothing.
-        let (again, replaced) = with_bind(&text, Choice::F9, Style::Classic);
+        let (again, replaced) = with_bind(&text, Choice::F9, Style::Classic, ShortcutMode::Tap);
         assert_eq!(again, text);
         assert_eq!(replaced, 1);
     }
@@ -672,12 +785,17 @@ bind = , F9, exec, opendictate toggle
     #[test]
     fn a_lua_file_ending_in_return_keeps_its_return_last() {
         let original = "local o = require(\"omarchy\")\no.bind(\"SUPER + RETURN\", \"Terminal\", \"kitty\")\n\nreturn o\n-- end\n";
-        let (text, _) = with_bind(original, Choice::SuperD, Style::OmarchyLua);
+        let (text, _) = with_bind(
+            original,
+            Choice::SuperD,
+            Style::OmarchyLua,
+            ShortcutMode::Tap,
+        );
         assert_eq!(
             text,
             "local o = require(\"omarchy\")\no.bind(\"SUPER + RETURN\", \"Terminal\", \"kitty\")\n\n-- OpenDictate: start and stop dictation (opendictate setup)\no.bind(\"SUPER + D\", \"OpenDictate\", \"opendictate toggle\")\n\nreturn o\n-- end\n"
         );
-        let (again, _) = with_bind(&text, Choice::SuperD, Style::OmarchyLua);
+        let (again, _) = with_bind(&text, Choice::SuperD, Style::OmarchyLua, ShortcutMode::Tap);
         assert_eq!(again, text);
     }
 
@@ -691,7 +809,7 @@ bind = , F9, exec, opendictate toggle
         fs::write(dir.join("bindings.lua"), original).unwrap();
         let target = detect(&dir).unwrap();
         assert_eq!(target.style, Style::OmarchyLua);
-        let installed = install(Choice::SuperD, &target).unwrap();
+        let installed = install(Choice::SuperD, &target, ShortcutMode::Tap).unwrap();
         assert_eq!(fs::read_to_string(&installed.backup).unwrap(), original);
         let written = fs::read_to_string(&target.path).unwrap();
         assert!(written.starts_with(original));
@@ -702,7 +820,7 @@ bind = , F9, exec, opendictate toggle
             path: dir.join("hyprland.lua"),
             style: Style::Lua,
         };
-        assert!(install(Choice::SuperD, &plain_lua).is_err());
+        assert!(install(Choice::SuperD, &plain_lua, ShortcutMode::Tap).is_err());
         let _ = fs::remove_dir_all(&dir);
     }
 
@@ -719,7 +837,7 @@ bind = , F9, exec, opendictate toggle
             path: link.clone(),
             style: Style::Classic,
         };
-        let installed = install(Choice::SuperD, &target).unwrap();
+        let installed = install(Choice::SuperD, &target, ShortcutMode::Tap).unwrap();
         assert_eq!(installed.replaced, 1);
         assert!(fs::symlink_metadata(&link)
             .unwrap()
@@ -769,7 +887,7 @@ bind = , F9, exec, opendictate toggle
             path: path.clone(),
             style: Style::Classic,
         };
-        let installed = install(Choice::SuperD, &target).unwrap();
+        let installed = install(Choice::SuperD, &target, ShortcutMode::Tap).unwrap();
         let count = || {
             fs::read_dir(&dir)
                 .unwrap()
