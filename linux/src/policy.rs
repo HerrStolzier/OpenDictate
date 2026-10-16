@@ -10,9 +10,7 @@ pub fn can_delete_audio(transcript: &str, clipboard_copied: bool) -> bool {
 pub fn sanitize_transcript(text: &str) -> String {
     let normalized = text
         .replace("\r\n", "\n")
-        .replace('\r', "\n")
-        .replace('\u{2028}', "\n")
-        .replace('\u{2029}', "\n");
+        .replace(['\r', '\u{2028}', '\u{2029}'], "\n");
     let cleaned: String = normalized
         .chars()
         .filter(|&c| !(c.is_control() && c != '\n' && c != '\t') && !is_bidi_control(c))
