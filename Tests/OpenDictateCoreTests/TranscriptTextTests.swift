@@ -1,9 +1,28 @@
+import Foundation
 import Testing
 
 @testable import OpenDictateCore
 
 @Suite("Transcript text")
 struct TranscriptTextTests {
+    @Test func sharedTextFixtures() throws {
+        struct Fixture: Decodable {
+            let name: String
+            let input: String
+            let expected: String
+            let multiline: Bool
+        }
+        let path = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("fixtures/text/sanitize.json")
+        let fixtures = try JSONDecoder().decode([Fixture].self, from: Data(contentsOf: path))
+        for fixture in fixtures {
+            let actual = TranscriptText.sanitize(fixture.input)
+            #expect(actual == fixture.expected, "\(fixture.name)")
+            #expect(TranscriptText.isMultiline(actual) == fixture.multiline, "\(fixture.name)")
+        }
+    }
+
     @Test func controlCharactersAndDirectionMarksAreDropped() {
         #expect(TranscriptText.sanitize(" a\u{1B}b\u{07}c\u{00}\u{85}d\u{202E}e\u{200F}\u{2066} ") == "abcde")
         #expect(TranscriptText.sanitize("\u{1B}[31mrot\u{1B}[0m") == "[31mrot[0m")
