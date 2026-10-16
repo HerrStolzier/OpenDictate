@@ -279,7 +279,7 @@ final class DictationPanel: NSWindowController {
         header.orientation = .horizontal
         header.alignment = .centerY
         header.spacing = 8
-        brand.font = .systemFont(ofSize: 13, weight: .semibold)
+        brand.font = BrandFonts.mono(13, semibold: true)
         brand.textColor = PanelColors.ink
         brand.setAccessibilityElement(false)
         header.addArrangedSubview(brand)
@@ -312,16 +312,16 @@ final class DictationPanel: NSWindowController {
             icon.centerYAnchor.constraint(equalTo: iconSurface.centerYAnchor)
         ])
         status.addArrangedSubview(iconSurface)
-        headline.font = .systemFont(ofSize: 21, weight: .semibold)
+        headline.font = BrandFonts.pixel(22)
         headline.alignment = .left
         status.addArrangedSubview(headline)
         stack.addArrangedSubview(status)
         status.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
         stack.setCustomSpacing(9, after: status)
-        detail.font = .systemFont(ofSize: 14)
+        detail.font = BrandFonts.sans(14)
         detail.textColor = PanelColors.secondary
         detail.alignment = .left
-        shortcut.font = .systemFont(ofSize: 12)
+        shortcut.font = BrandFonts.mono(12)
         shortcut.textColor = PanelColors.secondary
         shortcut.alignment = .center
         for field in [headline, detail] {
@@ -333,7 +333,7 @@ final class DictationPanel: NSWindowController {
         textView.isEditable = false
         textView.isSelectable = true
         textView.isRichText = false
-        textView.font = .systemFont(ofSize: 15)
+        textView.font = BrandFonts.sans(15)
         textView.textColor = PanelColors.ink
         textView.backgroundColor = PanelColors.inset
         textView.textContainerInset = NSSize(width: 10, height: 10)
@@ -353,7 +353,6 @@ final class DictationPanel: NSWindowController {
         textHeight.isActive = true
         primary.target = self
         primary.action = #selector(primaryAction)
-        primary.font = .systemFont(ofSize: 14, weight: .semibold)
         primary.setAccessibilityIdentifier("dictation-primary")
         secondary.target = self
         secondary.action = #selector(secondaryAction)
@@ -372,6 +371,8 @@ final class DictationPanel: NSWindowController {
         stack.addArrangedSubview(actions)
         actions.widthAnchor.constraint(equalToConstant: 140).isActive = true
         actions.heightAnchor.constraint(equalToConstant: 34).isActive = true
+        for button in [primary, secondary] { button.font = BrandFonts.mono(14, semibold: true) }
+        for button in [settings, actions] { button.font = BrandFonts.mono(13, semibold: true) }
         window?.initialFirstResponder = primary
     }
 
@@ -485,13 +486,11 @@ extension DictationDisplay {
         }
     }
 
+    /// `rec` for recording and errors, `signal` for progress and results.
     @MainActor var color: NSColor {
         switch self {
-        case .recording: PanelColors.pair(0xA53B25, 0xFFB09B)
-        case .processing, .manual: PanelColors.pair(0x245DC1, 0x99BFFF)
-        case .confirmed: PanelColors.pair(0x216444, 0x91DFB3)
-        case .unconfirmed: PanelColors.pair(0x245DC1, 0x99BFFF)
-        case .failure: PanelColors.pair(0xAF293B, 0xFFADB7)
+        case .recording, .failure: PanelColors.design(.rec)
+        case .processing, .manual, .confirmed, .unconfirmed: PanelColors.design(.signal)
         default: PanelColors.ink
         }
     }
@@ -512,21 +511,17 @@ private final class DictationUtilityPanel: NSPanel {
     }
 }
 
+/// The design system's colours for this window: Nacht on a dark appearance,
+/// Papier on a light one, resolved again whenever the appearance changes.
 @MainActor
 enum PanelColors {
-    static func pair(_ light: Int, _ dark: Int) -> NSColor {
-        NSColor(name: nil) { appearance in
-            let value = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? dark : light
-            return NSColor(
-                srgbRed: CGFloat((value >> 16) & 255) / 255, green: CGFloat((value >> 8) & 255) / 255,
-                blue: CGFloat(value & 255) / 255, alpha: 1)
-        }
+    static func design(_ color: DesignColor) -> NSColor {
+        NSColor(name: nil) { NSColor(design: color, theme: DesignTheme.matching($0)) }
     }
-    static var background: NSColor { pair(0xF3F5F8, 0x20252D) }
-    static var raised: NSColor { pair(0xFFFFFF, 0x2C3440) }
-    static var inset: NSColor { pair(0xE7ECF2, 0x171D25) }
-    static var ink: NSColor { pair(0x202936, 0xF2F5FA) }
-    static var secondary: NSColor { pair(0x536174, 0xB6C1D1) }
+    static var background: NSColor { design(.bg) }
+    static var inset: NSColor { design(.surfaceSunken) }
+    static var ink: NSColor { design(.ink) }
+    static var secondary: NSColor { design(.inkMuted) }
 }
 
 @MainActor
@@ -572,17 +567,19 @@ private final class TactileButton: NSButton {
         let pressed = cell?.isHighlighted == true
         let rect = bounds.insetBy(dx: 3, dy: 3)
         let shape = NSBezierPath(roundedRect: rect, xRadius: 10, yRadius: 10)
-        let highContrast = NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast
+        // Design system: the main button is `signal`, a second button is
+        // `line` inside an `edge` border that reaches 3:1 to its surroundings.
         if !isEnabled {
             PanelColors.inset.setFill()
             shape.fill()
         } else if prominent {
-            PanelColors.pair(0x263B55, 0xD7E3F5).setFill()
+            PanelColors.design(.signal).setFill()
             shape.fill()
         } else {
-            PanelColors.raised.setFill()
+            PanelColors.design(.line).setFill()
             shape.fill()
-            PanelColors.secondary.withAlphaComponent(highContrast ? 0.8 : 0.3).setStroke()
+            let increaseContrast = NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast
+            (increaseContrast ? PanelColors.ink : PanelColors.design(.edge)).setStroke()
             shape.stroke()
         }
         if pressed {
@@ -592,9 +589,9 @@ private final class TactileButton: NSButton {
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = .center
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: font ?? NSFont.systemFont(ofSize: 14, weight: .medium),
+            .font: font ?? BrandFonts.mono(14, semibold: true),
             .foregroundColor: isEnabled
-                ? (prominent ? PanelColors.pair(0xFFFFFF, 0x202936) : PanelColors.ink)
+                ? (prominent ? PanelColors.design(.onSignal) : PanelColors.ink)
                 : PanelColors.secondary, .paragraphStyle: paragraph
         ]
         let size = (title as NSString).size(withAttributes: attributes)
