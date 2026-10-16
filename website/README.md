@@ -317,7 +317,12 @@ Die `Range`-Antworten des Workers (ganze Datei, Anfang–Ende, ab Stelle, letzte
 n Bytes, ungültig, `If-Range`, HEAD) sind mit einer nachgebauten KV-Umgebung in
 Node geprüft.
 
-Live seit 2026-10-16, 07:57 UTC, auf Commit `5f07fe1`: die Seite in acht
+Live seit 2026-10-16, 13:19 UTC, auf Commit `db8a170`: die Verbesserungen
+aus der Design-Prüfung (Bastis Karte „Live schalten“ 13:17 UTC). Per Browser
+Rendering geprüft: `style.css` und `site.js` sind die neuen, `/en/` zeigt beim
+Zuhören das REC-Symbol, `/` mit geschlossener Notch blendet es aus.
+
+Davor live seit 2026-10-16, 07:57 UTC, auf Commit `5f07fe1`: die Seite in acht
 Sprachen mit Sprachwahl und `hreflang` (Bastis Karte „Live schalten“ 07:17
 UTC). Per Browser Rendering geprüft: `/`, `/en/`, `/pl/` und
 `/fr/tutoriels.html` kommen in ihrer Sprache mit allen Alternativen, `/en`
