@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="{{@lang}}" data-theme="nacht">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{guide_title}}</title>
+<meta name="description" content="{{guide_description}}">
+<link rel="canonical" href="{{@url}}">
+{{@alternates}}
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0E1014">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{site.name}}">
+<meta property="og:locale" content="{{@locale}}">
+{{@locale_alternates}}
+<meta property="og:url" content="{{@url}}">
+<meta property="og:title" content="{{guide_title}}">
+<meta property="og:description" content="{{guide_description}}">
+<meta property="og:image" content="{{site.origin}}/videos/blink-01-so-diktierst-du.jpg">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="720">
+<meta property="og:image:alt" content="{{guide_image_alt}}">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/blink-32.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/fonts/GeistPixel-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/style.css">
+<script src="/site.js" defer></script>
+<script type="application/json" id="od-text">{{@text}}</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "VideoObject",
+      "@id": "{{@url}}#so-diktierst-du",
+      "name": "{{clip1_title|json}}",
+      "description": "{{clip1_desc|json}}",
+      "thumbnailUrl": "{{site.origin}}/videos/blink-01-so-diktierst-du.jpg",
+      "contentUrl": "{{site.origin}}/videos/blink-01-so-diktierst-du.mp4",
+      "embedUrl": "{{@url}}#so-diktierst-du",
+      "uploadDate": "2026-10-13",
+      "duration": "PT16.5S",
+      "inLanguage": "de",
+      "transcript": "{{de.clip1_say|json}}"
+    },
+    {
+      "@type": "VideoObject",
+      "@id": "{{@url}}#kostenlos-diktieren",
+      "name": "{{clip2_title|json}}",
+      "description": "{{clip2_desc|json}}",
+      "thumbnailUrl": "{{site.origin}}/videos/blink-02-kostenlos.jpg",
+      "contentUrl": "{{site.origin}}/videos/blink-02-kostenlos.mp4",
+      "embedUrl": "{{@url}}#kostenlos-diktieren",
+      "uploadDate": "2026-10-13",
+      "duration": "PT16.5S",
+      "inLanguage": "de",
+      "transcript": "{{de.clip2_say|json}}"
+    },
+    {
+      "@type": "VideoObject",
+      "@id": "{{@url}}#gleich-auf-englisch",
+      "name": "{{clip3_title|json}}",
+      "description": "{{clip3_desc|json}}",
+      "thumbnailUrl": "{{site.origin}}/videos/blink-03-uebersetzen.jpg",
+      "contentUrl": "{{site.origin}}/videos/blink-03-uebersetzen.mp4",
+      "embedUrl": "{{@url}}#gleich-auf-englisch",
+      "uploadDate": "2026-10-13",
+      "duration": "PT14.5S",
+      "inLanguage": "de",
+      "transcript": "{{de.clip3_say|json}}"
+    },
+    {
+      "@type": "VideoObject",
+      "@id": "{{@url}}#nichts-geht-verloren",
+      "name": "{{clip4_title|json}}",
+      "description": "{{clip4_desc|json}}",
+      "thumbnailUrl": "{{site.origin}}/videos/blink-04-nichts-geht-verloren.jpg",
+      "contentUrl": "{{site.origin}}/videos/blink-04-nichts-geht-verloren.mp4",
+      "embedUrl": "{{@url}}#nichts-geht-verloren",
+      "uploadDate": "2026-10-13",
+      "duration": "PT14.5S",
+      "inLanguage": "de",
+      "transcript": "{{de.clip4_say|json}}"
+    },
+    {
+      "@type": "VideoObject",
+      "@id": "{{@url}}#erste-schritte",
+      "name": "{{clip5_title|json}}",
+      "description": "{{clip5_desc|json}}",
+      "thumbnailUrl": "{{site.origin}}/videos/blink-05-erste-schritte.jpg",
+      "contentUrl": "{{site.origin}}/videos/blink-05-erste-schritte.mp4",
+      "embedUrl": "{{@url}}#erste-schritte",
+      "uploadDate": "2026-10-13",
+      "duration": "PT14.5S",
+      "inLanguage": "de",
+      "transcript": "{{de.clip5_say|json}}"
+    }
+  ]
+}
+</script>
+</head>
+<body id="top">
+<a class="skip" href="#main">{{skip}}</a>
+
+<div class="wrap">
+<header class="top">
+<a class="home" href="{{@home}}" aria-label="{{home_start}}"><span data-od="wordmark" data-size="26"><span class="od-wordmark od-wordmark-26">{{site.wordmark}}</span></span></a>
+<nav aria-label="{{nav_label}}" class="nav">
+<a href="{{@home}}#kosten">{{nav_cost}}</a>
+<a href="{{@home}}#datenschutz">{{nav_private}}</a>
+<a href="{{@home}}#uebersetzen">{{nav_translate}}</a>
+<a href="{{@guides}}" aria-current="page">{{nav_guides}}</a>
+<a href="{{site.repo}}">GitHub</a>
+</nav>
+{{@switch}}
+</header>
+</div>
+
+<main id="main">
+<section class="page-head" aria-labelledby="page-title">
+<div class="wrap">
+<div class="intro">
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>{{nav_guides}}</span></p>
+<h1 id="page-title">{{guide_h1}}</h1>
+<p class="lead muted">{{guide_lead}}</p>
+</div>
+</div>
+</section>
+
+<section id="so-diktierst-du" class="section rule" aria-labelledby="so-diktierst-du-title">
+<div class="wrap">
+<div class="split">
+<figure class="clip"><div class="clip-frame"><video src="/videos/blink-01-so-diktierst-du.mp4" poster="/videos/blink-01-so-diktierst-du.webp" width="1920" height="1080" controls playsinline preload="none" aria-label="{{guide_video}}{{clip1_title}}"><track kind="captions" src="/videos/blink-01-so-diktierst-du{{@vtt}}.vtt" srclang="{{@lang}}" label="{{@label}}"{{@track_default}}></video></div></figure>
+<div class="intro">
+<h2 id="so-diktierst-du-title">{{clip1_title}}</h2>
+<p class="meta">{{guide_says}}</p>
+<p class="lead">{{quote_open}}{{clip1_say}}{{quote_close}}</p>
+</div>
+</div>
+</div>
+</section>
+
+<section id="kostenlos-diktieren" class="section rule" aria-labelledby="kostenlos-diktieren-title">
+<div class="wrap">
+<div class="split">
+<figure class="clip"><div class="clip-frame"><video src="/videos/blink-02-kostenlos.mp4" poster="/videos/blink-02-kostenlos.webp" width="1920" height="1080" controls playsinline preload="none" aria-label="{{guide_video}}{{clip2_title}}"><track kind="captions" src="/videos/blink-02-kostenlos{{@vtt}}.vtt" srclang="{{@lang}}" label="{{@label}}"{{@track_default}}></video></div></figure>
+<div class="intro">
+<h2 id="kostenlos-diktieren-title">{{clip2_title}}</h2>
+<p class="meta">{{guide_says}}</p>
+<p class="lead">{{quote_open}}{{clip2_say}}{{quote_close}}</p>
+<p><a class="text-link" href="{{site.repo}}/blob/main/docs/lokales-modell.md">{{clip2_link}}</a></p>
+</div>
+</div>
+</div>
+</section>
+
+<section id="gleich-auf-englisch" class="section rule" aria-labelledby="gleich-auf-englisch-title">
+<div class="wrap">
+<div class="split">
+<figure class="clip"><div class="clip-frame"><video src="/videos/blink-03-uebersetzen.mp4" poster="/videos/blink-03-uebersetzen.webp" width="1920" height="1080" controls playsinline preload="none" aria-label="{{guide_video}}{{clip3_title}}"><track kind="captions" src="/videos/blink-03-uebersetzen{{@vtt}}.vtt" srclang="{{@lang}}" label="{{@label}}"{{@track_default}}></video></div></figure>
+<div class="intro">
+<h2 id="gleich-auf-englisch-title">{{clip3_title}}</h2>
+<p class="meta">{{guide_says}}</p>
+<p class="lead">{{quote_open}}{{clip3_say}}{{quote_close}}</p>
+</div>
+</div>
+</div>
+</section>
+
+<section id="nichts-geht-verloren" class="section rule" aria-labelledby="nichts-geht-verloren-title">
+<div class="wrap">
+<div class="split">
+<figure class="clip"><div class="clip-frame"><video src="/videos/blink-04-nichts-geht-verloren.mp4" poster="/videos/blink-04-nichts-geht-verloren.webp" width="1920" height="1080" controls playsinline preload="none" aria-label="{{guide_video}}{{clip4_title}}"><track kind="captions" src="/videos/blink-04-nichts-geht-verloren{{@vtt}}.vtt" srclang="{{@lang}}" label="{{@label}}"{{@track_default}}></video></div></figure>
+<div class="intro">
+<h2 id="nichts-geht-verloren-title">{{clip4_title}}</h2>
+<p class="meta">{{guide_says}}</p>
+<p class="lead">{{quote_open}}{{clip4_say}}{{quote_close}}</p>
+</div>
+</div>
+</div>
+</section>
+
+<section id="erste-schritte" class="section rule" aria-labelledby="erste-schritte-title">
+<div class="wrap">
+<div class="split">
+<figure class="clip"><div class="clip-frame"><video src="/videos/blink-05-erste-schritte.mp4" poster="/videos/blink-05-erste-schritte.webp" width="1920" height="1080" controls playsinline preload="none" aria-label="{{guide_video}}{{clip5_title}}"><track kind="captions" src="/videos/blink-05-erste-schritte{{@vtt}}.vtt" srclang="{{@lang}}" label="{{@label}}"{{@track_default}}></video></div></figure>
+<div class="intro">
+<h2 id="erste-schritte-title">{{clip5_title}}</h2>
+<p class="meta">{{guide_says}}</p>
+<p class="lead">{{quote_open}}{{clip5_say}}{{quote_close}}</p>
+<div class="buttons"><a class="od-btn od-btn-primary" href="{{site.mac}}">{{get_mac}}</a></div>
+</div>
+</div>
+</div>
+</section>
+</main>
+
+{{@footer}}
+</body>
+</html>

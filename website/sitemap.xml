@@ -1,9 +1,179 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://opendictate.app/</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://opendictate.app/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://opendictate.app/en/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://opendictate.app/es/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://opendictate.app/it/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/"/>
+  </url>
+  <url>
+    <loc>https://opendictate.app/en/</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://opendictate.app/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://opendictate.app/en/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://opendictate.app/es/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://opendictate.app/it/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/"/>
+  </url>
+  <url>
+    <loc>https://opendictate.app/fr/</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://opendictate.app/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://opendictate.app/en/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://opendictate.app/es/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://opendictate.app/it/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/"/>
+  </url>
+  <url>
+    <loc>https://opendictate.app/es/</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://opendictate.app/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://opendictate.app/en/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://opendictate.app/es/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://opendictate.app/it/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/"/>
+  </url>
+  <url>
+    <loc>https://opendictate.app/it/</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://opendictate.app/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://opendictate.app/en/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://opendictate.app/es/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://opendictate.app/it/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/"/>
+  </url>
+  <url>
+    <loc>https://opendictate.app/pt/</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://opendictate.app/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://opendictate.app/en/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://opendictate.app/es/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://opendictate.app/it/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/"/>
+  </url>
+  <url>
+    <loc>https://opendictate.app/nl/</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://opendictate.app/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://opendictate.app/en/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://opendictate.app/es/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://opendictate.app/it/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/"/>
+  </url>
+  <url>
+    <loc>https://opendictate.app/pl/</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://opendictate.app/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://opendictate.app/en/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://opendictate.app/es/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://opendictate.app/it/"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/"/>
   </url>
   <url>
     <loc>https://opendictate.app/anleitungen.html</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://opendictate.app/anleitungen.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://opendictate.app/en/guides.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/tutoriels.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://opendictate.app/es/tutoriales.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://opendictate.app/it/tutorial.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/tutoriais.html"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/uitleg.html"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/poradniki.html"/>
+  </url>
+  <url>
+    <loc>https://opendictate.app/en/guides.html</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://opendictate.app/anleitungen.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://opendictate.app/en/guides.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/tutoriels.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://opendictate.app/es/tutoriales.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://opendictate.app/it/tutorial.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/tutoriais.html"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/uitleg.html"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/poradniki.html"/>
+  </url>
+  <url>
+    <loc>https://opendictate.app/fr/tutoriels.html</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://opendictate.app/anleitungen.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://opendictate.app/en/guides.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/tutoriels.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://opendictate.app/es/tutoriales.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://opendictate.app/it/tutorial.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/tutoriais.html"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/uitleg.html"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/poradniki.html"/>
+  </url>
+  <url>
+    <loc>https://opendictate.app/es/tutoriales.html</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://opendictate.app/anleitungen.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://opendictate.app/en/guides.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/tutoriels.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://opendictate.app/es/tutoriales.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://opendictate.app/it/tutorial.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/tutoriais.html"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/uitleg.html"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/poradniki.html"/>
+  </url>
+  <url>
+    <loc>https://opendictate.app/it/tutorial.html</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://opendictate.app/anleitungen.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://opendictate.app/en/guides.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/tutoriels.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://opendictate.app/es/tutoriales.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://opendictate.app/it/tutorial.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/tutoriais.html"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/uitleg.html"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/poradniki.html"/>
+  </url>
+  <url>
+    <loc>https://opendictate.app/pt/tutoriais.html</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://opendictate.app/anleitungen.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://opendictate.app/en/guides.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/tutoriels.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://opendictate.app/es/tutoriales.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://opendictate.app/it/tutorial.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/tutoriais.html"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/uitleg.html"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/poradniki.html"/>
+  </url>
+  <url>
+    <loc>https://opendictate.app/nl/uitleg.html</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://opendictate.app/anleitungen.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://opendictate.app/en/guides.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/tutoriels.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://opendictate.app/es/tutoriales.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://opendictate.app/it/tutorial.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/tutoriais.html"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/uitleg.html"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/poradniki.html"/>
+  </url>
+  <url>
+    <loc>https://opendictate.app/pl/poradniki.html</loc>
+    <xhtml:link rel="alternate" hreflang="de" href="https://opendictate.app/anleitungen.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://opendictate.app/en/guides.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/tutoriels.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://opendictate.app/es/tutoriales.html"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://opendictate.app/it/tutorial.html"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/tutoriais.html"/>
+    <xhtml:link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/uitleg.html"/>
+    <xhtml:link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/poradniki.html"/>
   </url>
 </urlset>

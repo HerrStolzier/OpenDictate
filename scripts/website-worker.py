@@ -17,6 +17,8 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKER = ROOT / "website" / "worker.js"
 # Files in website/ that describe or run the site but are not served by it.
 NOT_SERVED = {"README.md", "worker.js", "wrangler.toml"}
+# Sources of the generated pages (scripts/website-i18n.py), also not served.
+NOT_SERVED_DIRS = ("i18n/",)
 # Keep in step with KINDS in website/worker.js.
 SERVED_TYPES = {"html", "css", "js", "svg", "woff2", "txt", "png", "xml", "jpg", "mp4", "webp", "vtt"}
 COMMIT_LINE = re.compile(r'^const COMMIT = "([0-9a-f]{40})";$', re.M)
@@ -36,7 +38,7 @@ def served_files(commit: str) -> dict[str, str]:
     files = {}
     for name in sorted(names):
         relative = name.removeprefix("website/")
-        if relative in NOT_SERVED:
+        if relative in NOT_SERVED or relative.startswith(NOT_SERVED_DIRS):
             continue
         if relative.rsplit(".", 1)[-1] not in SERVED_TYPES:
             raise ValueError(f"no content type for website/{relative}")

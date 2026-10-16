@@ -1,0 +1,21 @@
+{
+  "name": "OpenDictate",
+  "wordmark": "opendictate",
+  "origin": "https://opendictate.app",
+  "support": "https://support.opendictate.app",
+  "repo": "https://github.com/HerrStolzier/OpenDictate",
+  "mac": "https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.12",
+  "linux": "https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1",
+  "version": "0.1.0-beta.12",
+  "x_default": "en",
+  "languages": [
+    {"code": "de", "locale": "de_DE", "label": "Deutsch", "dir": "", "guides": "anleitungen.html"},
+    {"code": "en", "locale": "en_US", "label": "English", "dir": "en", "guides": "guides.html"},
+    {"code": "fr", "locale": "fr_FR", "label": "Français", "dir": "fr", "guides": "tutoriels.html"},
+    {"code": "es", "locale": "es_ES", "label": "Español", "dir": "es", "guides": "tutoriales.html"},
+    {"code": "it", "locale": "it_IT", "label": "Italiano", "dir": "it", "guides": "tutorial.html"},
+    {"code": "pt", "locale": "pt_BR", "label": "Português", "dir": "pt", "guides": "tutoriais.html"},
+    {"code": "nl", "locale": "nl_NL", "label": "Nederlands", "dir": "nl", "guides": "uitleg.html"},
+    {"code": "pl", "locale": "pl_PL", "label": "Polski", "dir": "pl", "guides": "poradniki.html"}
+  ]
+}
