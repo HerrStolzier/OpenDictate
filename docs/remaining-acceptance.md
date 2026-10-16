@@ -341,27 +341,35 @@ Deinstallationsweg; Pflichtprogramme nicht festgelegt.
 
 **Letzter Nachweis:** 16. Oktober 2026 (xmg, Bastis Diktat in Notepad).
 
-## Umsetzungskandidat vom 17. Oktober 2026
+## Quellcode-Erweiterungen vom 17. Oktober 2026
 
-Der gemeinsame Quellstand `c0bc7dd` führt die Issues #160–#166, #168–#170,
-#172 und #173 zusammen. Linux: Dienstwahl mit getrennten Modellen, Halten/
-Antippen, Vokabular, ausdrückliche OpenAI-Wiederholung, lokale Verbrauchsschätzung
-und Diagnosebericht. Windows: Vokabular und Diagnosebericht im plattformneutralen
-Kern/Provider; die App hat dafür noch keine Bedienoberfläche. Die historische
-Windows-Grenze „kein Prompt“ oben gilt weiterhin für den dort genannten
-installierten Kandidaten, nicht für diesen neuen Kerncode.
+Die Issues #160–#174 sind im Quellcode umgesetzt und unabhängig geprüft.
+Linux: Dienstwahl mit getrennten Modellen, Halten/Antippen, Vokabular,
+ausdrückliche OpenAI-Wiederholung, lokale Verbrauchsschätzung und Diagnosebericht.
+Windows: Vokabular, Verbrauchszähler und Bericht im plattformneutralen
+Kern/Provider; die App hat dafür noch keine Eingabefelder oder Anzeigen.
+Die historische Windows-Grenze „kein Prompt“ oben gilt für den dort genannten
+installierten Kandidaten, nicht für den neuen Kerncode.
 
-Einzelstände und ihre Konfliktauflösungen sind unabhängig geprüft. 55 lokale
-Python-Prüfungen und die Linkprüfung bestanden. Vollständige kombinierte CI
-steht bei Erstellung dieses Eintrags noch aus. Keine Installation, keine echte
-Aufnahme, kein Provider-Aufruf und kein neuer Hyprland-/Windows-Desktopnachweis.
-Die oben genannten Live-Nachweise gelten weiter nur für ihre jeweiligen Builds.
+Die gemeinsame Integration läuft über [PR #189](https://github.com/HerrStolzier/OpenDictate/pull/189)
+und [PR #191](https://github.com/HerrStolzier/OpenDictate/pull/191). Der Linux-Verbrauch
+wurde vor Beginn des Windows-Gegenstücks über PR #187 gemergt. Die Linux-
+Ablaufprüfungen wurden zuletzt ergänzt: 141 Tests, Clippy und Release-Build auf
+omarchy bestanden; Produktionsabdeckung 48,52 % → 62,64 % für den in
+[der Messung](linux-test-coverage.md) bezeichneten Stand. Schlüsselbund,
+Zwischenablage und Provider sind dabei Attrappen. Gemeinsame Text-/Serverfälle,
+Dokumentlinks und die Erkennungsauswertung sind offline geprüft; die
+Ergebnisdateien des iPhone-Erkennungsvergleichs entstehen weiterhin erst später.
 
-Noch außerhalb dieses Stands: Windows-Verbrauch (#167) nach dem Merge von
-#165, Linux-Abdeckungsmessung/Testlücken (#171) zuletzt und zwei echte
-Paketbauten samt nativer Archivprüfung (#174). Für diese Linux-Nachweise fehlt
-noch ein freigegebener Rechner; aus lokalen Attrappen wird kein Paket- oder
-Abdeckungsnachweis abgeleitet.
+Zwei echte Linux-Paketbauten und die native Archivprüfung bestanden mit
+identischen Prüfsummen für Commit `10ba599`; siehe [Paketnachweis](linux-packaging.md).
+Die regulären CI-Prüfungen des ersten gemeinsamen Stands (#189) sowie der
+Funktions-PRs #183/#190 sind bestanden; der gemeinsame Abschlussstand hat
+seine Prüfungen im verlinkten PR.
+Keine Installation, echte Aufnahme, externer Provider-Aufruf oder neue
+Hyprland-/Windows-Desktopabnahme ist damit belegt. Die oben genannten
+Live-Nachweise gelten weiter nur für ihre jeweiligen Builds. Kein neuer Tag
+oder Release wurde veröffentlicht.
 
 ## iOS
 

@@ -690,3 +690,19 @@ For a separately authorized native dictation check:
 
 Do not send a multiline or executable test to a live shell. This procedure
 does not establish support for iTerm2 or terminals embedded in editors.
+
+## Local Linux packaging (no publication)
+
+```bash
+bash -n scripts/package-linux.sh
+bash scripts/package-linux.sh --help
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/tests -p 'test_package_linux.py' -v
+```
+
+On a Linux host with the existing pinned toolchain and ALSA dependencies, run
+`package-linux.sh --tag linux-v0.1.0-beta.2 --output /absolute/new/directory` from
+a clean checkout. The requested version must match Cargo.toml and PKGBUILD;
+no tag is created. Run `--verify` on the binary archive. Build a second time
+into a different new directory and compare SHA256SUMS before claiming
+reproducibility. Refusal tests run offline on macOS too; they do not prove a
+Linux release binary or reproducibility. No CI workflow was changed.

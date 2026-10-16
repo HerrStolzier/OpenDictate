@@ -225,6 +225,26 @@ Prüfumgebung mit einem Dummy-Zugangseintrag ausgeführt werden; sie verwenden
 keinen echten OpenAI-Schlüssel. Diese Dokumentation startet keinen dieser
 Abläufe.
 
+## Lokaler Verbrauchszähler im Kern und Provider
+
+Der Standard-`ProviderSession` zählt erfolgreich abgeschlossene, nicht leere
+Diktate in `usage.json` neben den Einstellungen: Zeitpunkt, Dienst, Modell,
+Audiosekunden und gegebenenfalls Übersetzungs-Tokens. Fehlgeschlagene, leere
+und abgebrochene Provider-Abläufe zählen nicht. Text, Dateinamen, Server-Adressen
+und Schlüssel werden nie gespeichert. Ein Zählerfehler verliert keinen bereits
+erkannten Text. Die gemeinsame `fixtures/pricing/prices.json` wird beim Bauen
+eingebettet; es wird keine Konto- oder Admin-Schnittstelle abgefragt.
+Kosten sind USD-Schätzungen. Eigene Server kosten hier null, unbekannte Modelle
+oder fehlende Übersetzungs-Tokens haben unbekannte Kosten.
+
+`UsageLedger` bietet heute, die letzten sieben lokalen Kalendertage, diesen
+Monat und Zurücksetzen mit vorgebbarer Uhr und Zeitzone. Einträge, die strikt
+älter als 13 lokale Kalendermonate sind, werden beim Lesen/Schreiben entfernt.
+Eine Dateisperre ordnet die Zugriffe; die Datei wird in einem Schritt ersetzt.
+Anzeige und Rücksetzknopf in der App bleiben offen. Die Prüfungen nutzen
+temporäre Zähler, feste Uhren und HTTP-Attrappen. Der App-Build wird in der CI
+geprüft; eine neue Windows-Desktopabnahme ist damit nicht belegt.
+
 ## Vokabular im plattformneutralen Kern
 
 `DictationSettings.Vocabulary` enthält eine ausdrücklich gepflegte Liste eigener

@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod cli_flow_tests;
+
 mod clipboard;
 mod i18n;
 mod insert;

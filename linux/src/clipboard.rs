@@ -133,6 +133,7 @@ mod tests {
 
     #[test]
     fn read_output_returns_bounded_text() {
+        let _guard = crate::test_support::env_lock();
         let mut command = std::process::Command::new("printf");
         command.arg("Hallo");
         let text = super::read_output(command, 16, std::time::Duration::from_secs(2));
@@ -144,6 +145,7 @@ mod tests {
 
     #[test]
     fn read_output_gives_up_on_a_hanging_owner() {
+        let _guard = crate::test_support::env_lock();
         let started = std::time::Instant::now();
         // Like wl-paste, the forked child keeps stdout open after a kill.
         let mut command = std::process::Command::new("sh");
