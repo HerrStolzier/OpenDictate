@@ -79,6 +79,7 @@ failures += await DictationChecks.RunAsync();
 failures += await ProviderChecks.RunAsync(SyntheticWave());
 failures += ShortcutChecks.Run();
 failures += TextFixtureChecks.Run();
+failures += ReportChecks.Run();
 return failures == 0 ? 0 : 1;
 
 static void Check(bool condition) { if (!condition) throw new InvalidOperationException("Assertion failed."); }

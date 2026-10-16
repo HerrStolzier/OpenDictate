@@ -235,3 +235,10 @@ Einträge bleibt die bisherige Anfrage unverändert. Grenzen wie unter Linux:
 Einträgen; keine leeren Einträge, Steuerzeichen oder Leerzeichen am Rand.
 Die Wörter stehen nicht im Protokoll und werden nicht automatisch gelernt.
 Das Eingabefeld in der Windows-App gehört noch nicht zu dieser Änderung.
+## Fehlerbericht im Kern
+
+`ProblemReport` baut offline die begrenzte Support-Adresse nach
+[dem gemeinsamen Vertrag](../docs/fehler-melden.md). Es übernimmt nur feste
+Diagnosekategorien, keine rohen Protokollmeldungen. Die Prüfungen lesen das
+plattformübergreifende Beispiel in `fixtures/report/`. Ein Menüpunkt und das
+Öffnen des Browsers sind in dieser Änderung noch nicht angeschlossen.

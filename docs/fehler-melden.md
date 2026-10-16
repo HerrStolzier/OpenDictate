@@ -83,3 +83,12 @@ Datenschutzerklärung des Supports nennt den Bericht seit dem 13. Oktober 2026.
   Bericht übernimmt es nur aus dem Teil hinter `#`; im Browser
   geprüft.
 - macOS, Linux: nicht gebaut.
+
+### Windows-Kern
+
+Der plattformneutrale Kern baut die Adresse mit Versionen, Architektur und
+begrenzten Einstellungen. Aus Protokollzeilen übernimmt er nur bekannte
+Fehler-/Warnkategorien und verwirft alle freien Details. Unbekannte Modellnamen
+werden durch `custom` ersetzt. Das gemeinsame Beispiel liegt unter
+[`fixtures/report/`](../fixtures/report/). Menüpunkt, Browser-Aufruf und
+Bestätigung sind noch nicht angeschlossen; der Kern sendet nichts.
