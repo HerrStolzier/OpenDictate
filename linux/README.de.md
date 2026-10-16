@@ -436,3 +436,23 @@ sind echte Verzeichnisse mit Modus `0700`; Audiodateien und Nachweise `0600`.
 - Das Arch-Paket ist auf einem Rechner (omarchy) installiert und mit einem
   Diktat geprüft ([Nachweis](../docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026));
   nicht im AUR, kein zweites Distro-Ziel.
+
+## Maintainer: lokales Linux-Paket
+
+Aus einem sauberen Checkout unter Linux, mit ausgewähltem Rust/Cargo 1.98.1
+und installierten ALSA-Baupaketen:
+
+```bash
+bash scripts/package-linux.sh --tag linux-v0.1.0-beta.2 --output /absolut/neuer/paketordner
+bash scripts/package-linux.sh --verify /absolut/neuer/paketordner/opendictate-linux-v0.1.0-beta.2-x86_64-unknown-linux-gnu.tar.gz
+```
+
+Der gewünschte Tag-Text muss zu Cargo.toml und PKGBUILD passen. Das Skript legt
+keinen Git-Tag an und veröffentlicht nichts. Der neue Ausgabeordner liegt
+außerhalb des Checkouts und darf noch nicht existieren. Er enthält Binär- und
+Quellarchiv, SHA256SUMS und ein Manifest. Dateien, Lizenzen, Hinweise und
+Beispiele erhalten feste Reihenfolge, Besitzer und Commit-Zeitstempel.
+Die Prüfung kontrolliert Archiv- und Datei-Prüfsummen und startet in einem
+temporären Ordner nur `--version` und `--help`. Baue vor einer Veröffentlichung
+zweimal in verschiedene neue Ordner und vergleiche beide Archiv-Prüfsummen;
+gleiche Prüfsummen echter Linux-Builds sind für dieses Skript noch nicht belegt.

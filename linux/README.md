@@ -422,3 +422,23 @@ files and proofs `0600`.
 - The Arch package is installed on one machine (omarchy) and checked with a
   dictation ([evidence](../docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026));
   not in the AUR, no second distribution.
+
+## Maintainer: local Linux package
+
+From a clean checkout on Linux with Rust/Cargo 1.98.1 already selected and the
+ALSA build headers installed:
+
+```bash
+bash scripts/package-linux.sh --tag linux-v0.1.0-beta.2 --output /absolute/new/package-dir
+bash scripts/package-linux.sh --verify /absolute/new/package-dir/opendictate-linux-v0.1.0-beta.2-x86_64-unknown-linux-gnu.tar.gz
+```
+
+The requested tag string must match Cargo.toml and PKGBUILD. The script creates
+no Git tag and publishes nothing. The new output directory must be outside
+the checkout and must not exist. It contains binary/source archives,
+SHA256SUMS and a manifest. Binary files, licenses, notices and examples have
+fixed ordering, ownership and commit timestamps. Verification checks the
+archive and per-file hashes, then runs only `--version` and `--help` from a
+temporary directory. Repeat the build to two different output directories and
+compare both archive hashes before release; identical real Linux build hashes
+have not yet been established for this script.
