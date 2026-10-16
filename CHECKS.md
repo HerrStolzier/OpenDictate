@@ -232,7 +232,7 @@ and check scope. On Windows, from the repository root:
 ./windows/scripts/check.ps1
 ```
 
-This runs 54 core, flow, provider and shortcut checks (the provider checks read
+This runs 58 core, flow, provider and shortcut checks (the provider checks read
 `fixtures/provider/`) and builds the beta app and the Windows protection
 checker. It does not execute the 15 protection checks. They use synthetic
 files and an isolated dummy Credential Manager entry; run them from a separate
@@ -248,7 +248,7 @@ Verify deletion of the dummy credential and owned test files afterwards.
 SSH Session 0 is not equivalent to an interactive desktop credential test.
 Neither command proves live dictation, installation or public release readiness.
 
-Without a Windows computer, the same 54 checks and the builds run on Linux
+Without a Windows computer, the same 58 checks and the builds run on Linux
 with .NET SDK 10.0.401:
 
 ```bash

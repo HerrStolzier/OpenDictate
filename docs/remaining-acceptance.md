@@ -319,6 +319,12 @@ Tastatur und Stimme in Notepad: Mit Strg+Win und mit der rechten Strg-Taste
 wurde der Text samt Satzzeichen automatisch eingefügt („funktioniert
 wunderbar“).
 
+Danach, ebenfalls am 16. Oktober, kamen die Auswahl „Dienst“ (OpenAI oder
+eigener Server; die Adresse bleibt gespeichert, jede Seite hat eigene Modelle)
+und „So nimmst du auf“ (gedrückt halten oder antippen: einmal starten, einmal
+stoppen) dazu. Auf Linux bestanden 58 von 58 Offline-Prüfungen und beide
+Builds ohne Warnung; auf xmg ist das noch nicht getestet.
+
 **Offen / bekannte Grenzen:** Kein Diktat gegen ein lokales Modell; Spielchat im
 Vollbild (Anzeige über Spielen, Strg+V mit Scancode) und Skalierung ungeprüft; in Programme mit
 Adminrechten lässt Windows nicht einfügen, und die Anzeige erkennt das nicht

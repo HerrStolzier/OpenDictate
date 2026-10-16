@@ -142,7 +142,7 @@ internal static class ProviderChecks
             {
                 string path = Path.Combine(root, "nested", "settings.json");
                 Check(SettingsFile.Load(path) == DictationSettings.Default);
-                var saved = new DictationSettings { Language = null, Server = "http://127.0.0.1:8080/v1", Model = "large-v3" }.WithTarget("en");
+                var saved = new DictationSettings { Language = null, Service = "server", Server = "http://127.0.0.1:8080/v1", ServerModel = "large-v3" }.WithTarget("en");
                 SettingsFile.Save(path, saved);
                 string json = File.ReadAllText(path);
                 Check(SettingsFile.Load(path) == saved && json.Contains("\"target_language\": \"en\"") && !json.Contains("key", StringComparison.OrdinalIgnoreCase));
@@ -152,7 +152,7 @@ internal static class ProviderChecks
                 File.WriteAllText(path, "{\"model\":\"gpt-transcribe\"}");
                 Check(SettingsFile.Load(path).Language is null);
                 foreach (string damaged in new[] { "{", "null", "{\"model\":\"../x\"}", "{\"server\":\"http://example.org/v1\"}", "{\"language\":\"de de\"}",
-                    "{\"model\":null}", "{\"translation_model\":null}" })
+                    "{\"model\":null}", "{\"translation_model\":null}", "{\"server_model\":\"../x\"}", "{\"service\":\"local\"}" })
                 {
                     File.WriteAllText(path, damaged);
                     var refusal = Refused<UserFacingException>(() => { SettingsFile.Load(path); return Task.CompletedTask; }).GetAwaiter().GetResult();
@@ -161,6 +161,43 @@ internal static class ProviderChecks
                 Refused<UserFacingException>(() => { SettingsFile.Save(path, new DictationSettings { Server = "ftp://x" }); return Task.CompletedTask; }).GetAwaiter().GetResult();
                 File.WriteAllText(path, "{\"model\":\"gpt-4o-transcribe\",\"future_field\":1}");
                 Check(SettingsFile.Load(path).Model == "gpt-4o-transcribe");
+            })),
+            ("The service choice keeps the address and sends each side only its own models", () =>
+            {
+                const string local = "http://127.0.0.1:8080/v1";
+                var both = new DictationSettings { Server = local, ServerModel = "large-v3", ServerTranslationModel = "llama3.1:8b", Model = "gpt-4o-transcribe" };
+                var (toServer, server) = (both with { Service = "server" }).ForDictation(null);
+                Check(server.Base == local && toServer.Model == "large-v3" && toServer.TranslationModel == "llama3.1:8b");
+                var (toOpenAi, openAiServer) = (both with { Service = "openai" }).ForDictation("https://example.org/v1");
+                Check(openAiServer == openAi && toOpenAi.Model == "gpt-4o-transcribe" && toOpenAi.TranslationModel == "gpt-5.4-mini");
+                // Without a choice, an address means the server, as before.
+                Check(both.UsesServer(null) && new DictationSettings().UsesServer("https://example.org/v1") && !new DictationSettings().UsesServer(" "));
+                Check((both with { Service = "openai" }).Server == local);
+                // A chosen server without any address never falls back to OpenAI.
+                var missing = Refused<UserFacingException>(() => { new DictationSettings { Service = "server" }.ForDictation(null); return Task.CompletedTask; }).GetAwaiter().GetResult();
+                Check(missing.Message.Contains("Kein eigener Server"));
+                Check(new DictationSettings { Service = "server" }.ResolveServer("https://example.org/v1").Host == "example.org");
+                // Like macOS: no address at all chooses OpenAI, a first one the server, a changed one keeps the choice.
+                Check(new DictationSettings { Service = "server", Server = local }.WithServerAddress(null, null).Service == "openai");
+                Check(new DictationSettings { Service = "server" }.WithServerAddress(null, "https://example.org/v1").Service == "server");
+                Check(new DictationSettings { Service = "openai" }.WithServerAddress(local, null) is { Service: "server", Server: local });
+                Check(new DictationSettings { Service = "openai", Server = local }.WithServerAddress("http://127.0.0.1:9000/v1", null).Service == "openai");
+                Check(new DictationSettings { Service = "server", Server = local }.WithServerAddress("http://127.0.0.1:9000/v1", null).Service == "server");
+                return Task.CompletedTask;
+            }),
+            ("Older files move the server's model names to the server side", () => InTemporaryDirectory(root =>
+            {
+                string path = Path.Combine(root, "settings.json");
+                File.WriteAllText(path, "{\"server\":\"http://127.0.0.1:8080/v1\",\"model\":\"large-v3\",\"translation_model\":\"llama3.1:8b\"}");
+                var moved = SettingsFile.Load(path);
+                Check(moved.Service == "server" && moved.ServerModel == "large-v3" && moved.ServerTranslationModel == "llama3.1:8b");
+                Check(moved.Model == "gpt-transcribe" && moved.TranslationModel == "gpt-5.4-mini");
+                var known = new DictationSettings { Server = "http://127.0.0.1:8080/v1", Model = "whisper-1" }.Migrated(null);
+                Check(known.Model == "whisper-1" && known.ServerModel == "whisper-1");
+                Check(new DictationSettings { Model = "whisper-1" }.Migrated(null).Service is null);
+                Check(new DictationSettings().Migrated("https://example.org/v1").Service == "server");
+                var chosen = new DictationSettings { Service = "openai", Server = "http://127.0.0.1:8080/v1", Model = "whisper-1" };
+                Check(chosen.Migrated(null) == chosen);
             })),
             ("Translation toggle restores the last target and defaults follow the display language", () =>
             {

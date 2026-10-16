@@ -163,7 +163,9 @@ im Windows-Job der CI). Seit dem Abend des 11. Oktober gibt es die Beta-App
 Einfügen per Zwischenablage, Diktatanzeige im Designsystem, Begrüßung mit
 Kürzeltest. Seit dem 16. Oktober läuft sie auf Bastis Windows-PC xmg: 15
 Schutzprüfungen bestanden, und Bastis Diktat mit beiden Kürzeln landete in
-Notepad; der Spielchat ist noch offen ([Stand](docs/remaining-acceptance.md#windows)). Keine
+Notepad; der Spielchat ist noch offen. Ebenfalls am 16. Oktober gebaut und
+offline geprüft: Auswahl „Dienst“ (OpenAI oder eigener Server) und „So nimmst
+du auf“ (gedrückt halten oder antippen) ([Stand](docs/remaining-acceptance.md#windows)). Keine
 Paketierung, keine Signatur. Details: [Windows-Plan](docs/windows-plan.md#weg-zur-windows-beta-stand-11-oktober-2026),
 [Releaseplan](windows/RELEASE-PLAN.md).
 

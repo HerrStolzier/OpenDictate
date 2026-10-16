@@ -64,7 +64,7 @@ internal sealed class TrayApp
         DictationSettings stored;
         try { stored = SettingsFile.Load(SettingsFile.DefaultPath); }
         catch (UserFacingException) { stored = DictationSettings.Default; }
-        controller = new DictationController(dispatcher, stored.ShortcutKey);
+        controller = new DictationController(dispatcher, stored.ShortcutKey, stored.TriggerMode);
         icon.Icon = new System.Drawing.Icon(Application.GetResourceStream(new Uri("pack://application:,,,/OpenDictate;component/OpenDictate.ico")).Stream);
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add(toggle);
