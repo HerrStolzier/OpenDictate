@@ -258,6 +258,24 @@ pub fn validate_language(language: &str) -> Result<(), String> {
     }
 }
 
+/// A bounded hint rather than a dictionary: at most 64 entries and 800 UTF-8
+/// bytes including separators. This is an application limit, not a tokenizer
+/// guarantee for a provider; even short prompts can exceed Whisper's tokens.
+pub fn validate_vocabulary(words: &[String]) -> Result<(), String> {
+    if words.len() > 64
+        || words.join(", ").len() > 800
+        || words.iter().any(|word| {
+            word.trim().is_empty() || word != word.trim() || word.chars().any(char::is_control)
+        })
+    {
+        return Err(crate::tr!(
+            "Vokabular: höchstens 64 Einträge und 800 UTF-8-Bytes. Leere Einträge und Steuerzeichen sind nicht erlaubt.",
+            "Vocabulary: at most 64 entries and 800 UTF-8 bytes. Empty entries and control characters are not allowed."
+        ));
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -375,22 +393,4 @@ mod tests {
         settings.toggle_target();
         assert_eq!(settings.target_language.as_deref(), Some("fr"));
     }
-}
-
-/// A bounded hint rather than a dictionary: at most 64 entries and 800 UTF-8
-/// bytes including separators. This is an application limit, not a tokenizer
-/// guarantee for a provider; even short prompts can exceed Whisper's tokens.
-pub fn validate_vocabulary(words: &[String]) -> Result<(), String> {
-    if words.len() > 64
-        || words.join(", ").len() > 800
-        || words.iter().any(|word| {
-            word.trim().is_empty() || word != word.trim() || word.chars().any(char::is_control)
-        })
-    {
-        return Err(crate::tr!(
-            "Vokabular: höchstens 64 Einträge und 800 UTF-8-Bytes. Leere Einträge und Steuerzeichen sind nicht erlaubt.",
-            "Vocabulary: at most 64 entries and 800 UTF-8 bytes. Empty entries and control characters are not allowed."
-        ));
-    }
-    Ok(())
 }
