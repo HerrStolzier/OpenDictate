@@ -199,9 +199,8 @@ beliebiger Editoren, Browser oder Webseiten.
 
 Das vorhandene Skript:
 
-1. zeigt die SDK-Version an und führt `OpenDictate.Checks` aus (8 Kern-,
-   9 Ablauf-, 19 Provider-, 22 Kürzel-/App-Checks und 16 gemeinsame
-   Text-Fixtures, zusammen 74),
+1. zeigt die SDK-Version an und führt `OpenDictate.Checks` aus (Kern-, Ablauf-,
+   Provider-, Kürzel-/App- und gemeinsame Fixture-Prüfungen),
 2. baut `OpenDictate.App`,
 3. baut `OpenDictate.WindowsChecks`.
 
