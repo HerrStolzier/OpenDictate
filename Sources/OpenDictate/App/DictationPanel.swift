@@ -279,7 +279,7 @@ final class DictationPanel: NSWindowController {
         header.orientation = .horizontal
         header.alignment = .centerY
         header.spacing = 8
-        brand.font = BrandFonts.mono(13, semibold: true)
+        brand.font = BrandFonts.font(DesignFont.ui)
         brand.textColor = PanelColors.ink
         brand.setAccessibilityElement(false)
         header.addArrangedSubview(brand)
@@ -289,7 +289,7 @@ final class DictationPanel: NSWindowController {
         settings.prominent = false
         settings.setAccessibilityLabel("Einstellungen öffnen")
         header.addArrangedSubview(settings)
-        settings.widthAnchor.constraint(equalToConstant: 112).isActive = true
+        settings.widthAnchor.constraint(equalToConstant: 144).isActive = true
         settings.heightAnchor.constraint(equalToConstant: 34).isActive = true
         stack.addArrangedSubview(header)
         header.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
@@ -312,16 +312,16 @@ final class DictationPanel: NSWindowController {
             icon.centerYAnchor.constraint(equalTo: iconSurface.centerYAnchor)
         ])
         status.addArrangedSubview(iconSurface)
-        headline.font = BrandFonts.pixel(22)
+        headline.font = BrandFonts.font(DesignFont.heading)
         headline.alignment = .left
         status.addArrangedSubview(headline)
         stack.addArrangedSubview(status)
         status.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
         stack.setCustomSpacing(9, after: status)
-        detail.font = BrandFonts.sans(14)
+        detail.font = BrandFonts.font(DesignFont.body)
         detail.textColor = PanelColors.secondary
         detail.alignment = .left
-        shortcut.font = BrandFonts.mono(12)
+        shortcut.font = BrandFonts.font(DesignFont.label)
         shortcut.textColor = PanelColors.secondary
         shortcut.alignment = .center
         for field in [headline, detail] {
@@ -333,7 +333,10 @@ final class DictationPanel: NSWindowController {
         textView.isEditable = false
         textView.isSelectable = true
         textView.isRichText = false
-        textView.font = BrandFonts.sans(15)
+        textView.font = BrandFonts.font(DesignFont.body)
+        let paragraph = BrandFonts.paragraph(DesignFont.body)
+        textView.defaultParagraphStyle = paragraph
+        textView.typingAttributes[.paragraphStyle] = paragraph
         textView.textColor = PanelColors.ink
         textView.backgroundColor = PanelColors.inset
         textView.textContainerInset = NSSize(width: 10, height: 10)
@@ -349,7 +352,7 @@ final class DictationPanel: NSWindowController {
         textScroll.layer?.masksToBounds = true
         stack.addArrangedSubview(textScroll)
         textScroll.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
-        textHeight = textScroll.heightAnchor.constraint(equalToConstant: 130)
+        textHeight = textScroll.heightAnchor.constraint(equalToConstant: 140)
         textHeight.isActive = true
         primary.target = self
         primary.action = #selector(primaryAction)
@@ -369,10 +372,9 @@ final class DictationPanel: NSWindowController {
         actions.prominent = false
         actions.setAccessibilityIdentifier("dictation-actions")
         stack.addArrangedSubview(actions)
-        actions.widthAnchor.constraint(equalToConstant: 140).isActive = true
+        actions.widthAnchor.constraint(equalToConstant: 164).isActive = true
         actions.heightAnchor.constraint(equalToConstant: 34).isActive = true
-        for button in [primary, secondary] { button.font = BrandFonts.mono(14, semibold: true) }
-        for button in [settings, actions] { button.font = BrandFonts.mono(13, semibold: true) }
+        for button in [primary, secondary, settings, actions] { button.font = BrandFonts.font(DesignFont.ui) }
         window?.initialFirstResponder = primary
     }
 
@@ -589,7 +591,7 @@ private final class TactileButton: NSButton {
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = .center
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: font ?? BrandFonts.mono(14, semibold: true),
+            .font: font ?? BrandFonts.font(DesignFont.ui),
             .foregroundColor: isEnabled
                 ? (prominent ? PanelColors.design(.onSignal) : PanelColors.ink)
                 : PanelColors.secondary, .paragraphStyle: paragraph
