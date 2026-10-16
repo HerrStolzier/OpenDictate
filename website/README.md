@@ -72,6 +72,25 @@ Designsystem hat Vorrang. Umgesetzt sind die echten Befunde:
   Mono (Kicker, Kapitelnummern, Kopf der Notiz) bleiben laut Designsystem bei
   `label` (12 px).
 
+## Barrierefreiheit (16. Oktober 2026)
+
+Geprüft wurden alle 16 Seiten mit axe-core (WCAG 2.2 AA und Best Practice) bei
+1440 und 390 px, dazu Tastatur, Fokus, Zielgrößen, erzwungene Farben und
+reduzierte Bewegung von Hand. axe fand keinen Verstoß. Behoben sind die Punkte,
+die nur die Handprüfung zeigte:
+
+- Der Player auf der Startseite zeigt mit Ton die Untertitel der Seitensprache.
+  Die stumme Schleife braucht keine.
+- Die Notch-Bühne läuft in Schleife und hat deshalb einen Knopf zum Anhalten
+  (WCAG 2.2.2). Er hält auch den blinkenden Cursor an. Bei reduzierter Bewegung
+  steht die Bühne ohnehin still, der Knopf bleibt dann aus.
+- „Ton an“ ist eine gefüllte Fläche statt nur einer anderen Textfarbe.
+- Knöpfe im Player, die Sprachwahl und ihre Liste haben eine Kante in `edge`
+  (mindestens 3 : 1). Bei erzwungenen Farben behalten auch die Pixelknöpfe
+  eine Kante.
+- Der zugängliche Name der Sprachwahl beginnt mit dem sichtbaren Kürzel,
+  etwa „DE, Sprache: Deutsch“, damit Sprachsteuerung sie findet.
+
 ## Auslieferung
 
 Die Seite läuft als Cloudflare Worker `opendictate-website` auf

@@ -40,7 +40,7 @@
 <link rel="preload" href="/fonts/Geist-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/style.css">
 <script src="/site.js" defer></script>
-<script type="application/json" id="od-text">{"wordmark":"opendictate","video":"Explainer video: ","play":"Play","pause":"Pause","meter":"Recording level","blink":{"bereit":"ready","hoert":"listening","schreibt":"writing","eingefuegt":"pasted","hoppla":"oops, error"},"hud":{"bereit":{"word":"Ready","sub":"hold fn"},"hoert":{"word":"Listening","sub":"REC 0:0"},"schreibt":{"word":"Writing","sub":"turning into text"},"eingefuegt":{"word":"Pasted","sub":"into the text field"},"hoppla":{"word":"Oops","sub":"No connection. Your recording is saved."}}}</script>
+<script type="application/json" id="od-text">{"wordmark":"opendictate","video":"Explainer video: ","play":"Play","pause":"Pause","stage_play":"Play animation","stage_pause":"Pause animation","captions":"English","meter":"Recording level","blink":{"bereit":"ready","hoert":"listening","schreibt":"writing","eingefuegt":"pasted","hoppla":"oops, error"},"hud":{"bereit":{"word":"Ready","sub":"hold fn"},"hoert":{"word":"Listening","sub":"REC 0:0"},"schreibt":{"word":"Writing","sub":"turning into text"},"eingefuegt":{"word":"Pasted","sub":"into the text field"},"hoppla":{"word":"Oops","sub":"No connection. Your recording is saved."}}}</script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -90,7 +90,7 @@
 <a href="https://github.com/HerrStolzier/OpenDictate">GitHub</a>
 </nav>
 <details class="lang">
-<summary aria-label="Language: English">EN</summary>
+<summary aria-label="EN, Language: English">EN</summary>
 <ul class="lang-list">
 <li><a href="/" hreflang="de" lang="de">Deutsch</a></li>
 <li><a href="/en/" hreflang="en" lang="en" aria-current="true">English</a></li>
@@ -154,6 +154,7 @@
 </div>
 
 <div class="stage-foot">
+<button class="stage-hold" type="button" hidden></button>
 <ol class="flow-steps" aria-label="How a dictation works">
 <li data-phase="bereit">Ready</li>
 <li data-phase="hoert" class="hot">Listening</li>
@@ -219,11 +220,11 @@
 <div class="kino-tools" hidden><button class="kino-sound" type="button" aria-pressed="false">Sound</button><button class="kino-play" type="button"></button></div>
 </div>
 <ol class="kino-list">
-<li id="so-diktierst-du" class="is-on"><a class="kino-chapter" aria-current="step" href="/en/guides.html#so-diktierst-du" data-loop="/videos/blink-01-so-diktierst-du-schleife.mp4" data-full="/videos/blink-01-so-diktierst-du.mp4" data-poster="/videos/blink-01-so-diktierst-du.webp"><span class="kino-num">01</span><span class="kino-name">How to dictate</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Hold a key, talk, let go. Your text appears where your cursor is: in an email, a chat or a document.</p></li>
-<li id="uebersetzen"><a class="kino-chapter" href="/en/guides.html#gleich-auf-englisch" data-loop="/videos/blink-03-uebersetzen-schleife.mp4" data-full="/videos/blink-03-uebersetzen.mp4" data-poster="/videos/blink-03-uebersetzen.webp"><span class="kino-num">02</span><span class="kino-name">Translated as you go</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">You speak English; out comes German or one of eleven other languages. For emails abroad or gaming chat. The Mac's built-in dictation doesn't translate.</p></li>
-<li id="nichts-geht-verloren"><a class="kino-chapter" href="/en/guides.html#nichts-geht-verloren" data-loop="/videos/blink-04-nichts-geht-verloren-schleife.mp4" data-full="/videos/blink-04-nichts-geht-verloren.mp4" data-poster="/videos/blink-04-nichts-geht-verloren.webp"><span class="kino-num">03</span><span class="kino-name">Nothing gets lost</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">If the network drops or the service hiccups, your recording stays on your computer. Click “Nochmal senden” (Send again) to send it, any time within 24 hours.</p></li>
-<li id="kostenlos"><a class="kino-chapter" href="/en/guides.html#kostenlos-diktieren" data-loop="/videos/blink-02-kostenlos-schleife.mp4" data-full="/videos/blink-02-kostenlos.mp4" data-poster="/videos/blink-02-kostenlos.webp"><span class="kino-num">04</span><span class="kino-name">Free with your own server</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Enter a server running on your computer. Then a dictation costs nothing, and the recording stays with you.</p></li>
-<li id="erste-schritte"><a class="kino-chapter" href="/en/guides.html#erste-schritte" data-loop="/videos/blink-05-erste-schritte-schleife.mp4" data-full="/videos/blink-05-erste-schritte.mp4" data-poster="/videos/blink-05-erste-schritte.webp"><span class="kino-num">05</span><span class="kino-name">First steps on the Mac</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Download the app, drag it to Applications, enter a key or server, pick a shortcut. That's it.</p></li>
+<li id="so-diktierst-du" class="is-on"><a class="kino-chapter" aria-current="step" href="/en/guides.html#so-diktierst-du" data-loop="/videos/blink-01-so-diktierst-du-schleife.mp4" data-full="/videos/blink-01-so-diktierst-du.mp4" data-captions="/videos/blink-01-so-diktierst-du.en.vtt" data-poster="/videos/blink-01-so-diktierst-du.webp"><span class="kino-num">01</span><span class="kino-name">How to dictate</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Hold a key, talk, let go. Your text appears where your cursor is: in an email, a chat or a document.</p></li>
+<li id="uebersetzen"><a class="kino-chapter" href="/en/guides.html#gleich-auf-englisch" data-loop="/videos/blink-03-uebersetzen-schleife.mp4" data-full="/videos/blink-03-uebersetzen.mp4" data-captions="/videos/blink-03-uebersetzen.en.vtt" data-poster="/videos/blink-03-uebersetzen.webp"><span class="kino-num">02</span><span class="kino-name">Translated as you go</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">You speak English; out comes German or one of eleven other languages. For emails abroad or gaming chat. The Mac's built-in dictation doesn't translate.</p></li>
+<li id="nichts-geht-verloren"><a class="kino-chapter" href="/en/guides.html#nichts-geht-verloren" data-loop="/videos/blink-04-nichts-geht-verloren-schleife.mp4" data-full="/videos/blink-04-nichts-geht-verloren.mp4" data-captions="/videos/blink-04-nichts-geht-verloren.en.vtt" data-poster="/videos/blink-04-nichts-geht-verloren.webp"><span class="kino-num">03</span><span class="kino-name">Nothing gets lost</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">If the network drops or the service hiccups, your recording stays on your computer. Click “Nochmal senden” (Send again) to send it, any time within 24 hours.</p></li>
+<li id="kostenlos"><a class="kino-chapter" href="/en/guides.html#kostenlos-diktieren" data-loop="/videos/blink-02-kostenlos-schleife.mp4" data-full="/videos/blink-02-kostenlos.mp4" data-captions="/videos/blink-02-kostenlos.en.vtt" data-poster="/videos/blink-02-kostenlos.webp"><span class="kino-num">04</span><span class="kino-name">Free with your own server</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Enter a server running on your computer. Then a dictation costs nothing, and the recording stays with you.</p></li>
+<li id="erste-schritte"><a class="kino-chapter" href="/en/guides.html#erste-schritte" data-loop="/videos/blink-05-erste-schritte-schleife.mp4" data-full="/videos/blink-05-erste-schritte.mp4" data-captions="/videos/blink-05-erste-schritte.en.vtt" data-poster="/videos/blink-05-erste-schritte.webp"><span class="kino-num">05</span><span class="kino-name">First steps on the Mac</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Download the app, drag it to Applications, enter a key or server, pick a shortcut. That's it.</p></li>
 </ol>
 </div>
 <p class="meta"><a href="/en/guides.html">All guides with subtitles and transcripts</a></p>

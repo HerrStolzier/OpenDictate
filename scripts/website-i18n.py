@@ -87,7 +87,8 @@ class Page:
                 + f">{other['label']}</a></li>"
                 for other in site["languages"]
             )
-            label = self.resolve(f"{{{{lang_label}}}}: {lang['label']}")
+            # The accessible name starts with the visible code, so voice control finds it by what it shows.
+            label = self.resolve(f"{code.upper()}, {{{{lang_label}}}}: {lang['label']}")
             return (
                 f'<details class="lang">\n<summary aria-label="{html.escape(label)}">{code.upper()}</summary>\n'
                 f'<ul class="lang-list">\n{items}\n</ul>\n</details>'
@@ -98,6 +99,9 @@ class Page:
                 "video": self.text("js_video"),
                 "play": self.text("js_play"),
                 "pause": self.text("js_pause"),
+                "stage_play": self.text("js_stage_play"),
+                "stage_pause": self.text("js_stage_pause"),
+                "captions": lang["label"],
                 "meter": self.text("js_meter"),
                 "blink": {
                     state: self.text(f"js_blink_{name}")

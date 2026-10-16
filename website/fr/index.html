@@ -40,7 +40,7 @@
 <link rel="preload" href="/fonts/Geist-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/style.css">
 <script src="/site.js" defer></script>
-<script type="application/json" id="od-text">{"wordmark":"opendictate","video":"Vidéo explicative : ","play":"Lire","pause":"Pause","meter":"Niveau d'enregistrement","blink":{"bereit":"prêt","hoert":"à l'écoute","schreibt":"écriture","eingefuegt":"collé","hoppla":"oups, erreur"},"hud":{"bereit":{"word":"Prêt","sub":"maintenez fn"},"hoert":{"word":"À l'écoute","sub":"REC 0:0"},"schreibt":{"word":"Écriture","sub":"devient du texte"},"eingefuegt":{"word":"Collé","sub":"dans le champ de texte"},"hoppla":{"word":"Oups","sub":"Pas de connexion. Votre enregistrement est sauvegardé."}}}</script>
+<script type="application/json" id="od-text">{"wordmark":"opendictate","video":"Vidéo explicative : ","play":"Lire","pause":"Pause","stage_play":"Lire l'animation","stage_pause":"Mettre l'animation en pause","captions":"Français","meter":"Niveau d'enregistrement","blink":{"bereit":"prêt","hoert":"à l'écoute","schreibt":"écriture","eingefuegt":"collé","hoppla":"oups, erreur"},"hud":{"bereit":{"word":"Prêt","sub":"maintenez fn"},"hoert":{"word":"À l'écoute","sub":"REC 0:0"},"schreibt":{"word":"Écriture","sub":"devient du texte"},"eingefuegt":{"word":"Collé","sub":"dans le champ de texte"},"hoppla":{"word":"Oups","sub":"Pas de connexion. Votre enregistrement est sauvegardé."}}}</script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -90,7 +90,7 @@
 <a href="https://github.com/HerrStolzier/OpenDictate">GitHub</a>
 </nav>
 <details class="lang">
-<summary aria-label="Langue: Français">FR</summary>
+<summary aria-label="FR, Langue: Français">FR</summary>
 <ul class="lang-list">
 <li><a href="/" hreflang="de" lang="de">Deutsch</a></li>
 <li><a href="/en/" hreflang="en" lang="en">English</a></li>
@@ -154,6 +154,7 @@
 </div>
 
 <div class="stage-foot">
+<button class="stage-hold" type="button" hidden></button>
 <ol class="flow-steps" aria-label="Déroulé d'une dictée">
 <li data-phase="bereit">Prêt</li>
 <li data-phase="hoert" class="hot">À l'écoute</li>
@@ -219,11 +220,11 @@
 <div class="kino-tools" hidden><button class="kino-sound" type="button" aria-pressed="false">Son</button><button class="kino-play" type="button"></button></div>
 </div>
 <ol class="kino-list">
-<li id="so-diktierst-du" class="is-on"><a class="kino-chapter" aria-current="step" href="/fr/tutoriels.html#so-diktierst-du" data-loop="/videos/blink-01-so-diktierst-du-schleife.mp4" data-full="/videos/blink-01-so-diktierst-du.mp4" data-poster="/videos/blink-01-so-diktierst-du.webp"><span class="kino-num">01</span><span class="kino-name">Comment dicter</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Maintenir la touche, parler, relâcher. Votre texte s'écrit là où se trouve votre curseur : dans un e-mail, un chat ou un document.</p></li>
-<li id="uebersetzen"><a class="kino-chapter" href="/fr/tutoriels.html#gleich-auf-englisch" data-loop="/videos/blink-03-uebersetzen-schleife.mp4" data-full="/videos/blink-03-uebersetzen.mp4" data-poster="/videos/blink-03-uebersetzen.webp"><span class="kino-num">02</span><span class="kino-name">Traduit en dictant</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Vous parlez français, l'appli colle de l'anglais ou l'une des onze autres langues. Pour un e-mail à l'étranger ou le chat en jeu. La dictée intégrée du Mac ne traduit pas.</p></li>
-<li id="nichts-geht-verloren"><a class="kino-chapter" href="/fr/tutoriels.html#nichts-geht-verloren" data-loop="/videos/blink-04-nichts-geht-verloren-schleife.mp4" data-full="/videos/blink-04-nichts-geht-verloren.mp4" data-poster="/videos/blink-04-nichts-geht-verloren.webp"><span class="kino-num">03</span><span class="kino-name">Rien ne se perd</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Si le réseau tombe ou si le service flanche, votre enregistrement reste sur votre ordinateur. Avec « Nochmal senden » (renvoyer), vous l'envoyez quand même, jusqu'à 24 heures plus tard.</p></li>
-<li id="kostenlos"><a class="kino-chapter" href="/fr/tutoriels.html#kostenlos-diktieren" data-loop="/videos/blink-02-kostenlos-schleife.mp4" data-full="/videos/blink-02-kostenlos.mp4" data-poster="/videos/blink-02-kostenlos.webp"><span class="kino-num">04</span><span class="kino-name">Gratuit avec votre serveur</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Indiquez un serveur qui tourne sur votre ordinateur. Une dictée ne coûte alors rien, et l'enregistrement reste chez vous.</p></li>
-<li id="erste-schritte"><a class="kino-chapter" href="/fr/tutoriels.html#erste-schritte" data-loop="/videos/blink-05-erste-schritte-schleife.mp4" data-full="/videos/blink-05-erste-schritte.mp4" data-poster="/videos/blink-05-erste-schritte.webp"><span class="kino-num">05</span><span class="kino-name">Premiers pas sur Mac</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Télécharger l'appli, la glisser dans Applications, saisir une clé ou un serveur, choisir un raccourci. Et c'est parti.</p></li>
+<li id="so-diktierst-du" class="is-on"><a class="kino-chapter" aria-current="step" href="/fr/tutoriels.html#so-diktierst-du" data-loop="/videos/blink-01-so-diktierst-du-schleife.mp4" data-full="/videos/blink-01-so-diktierst-du.mp4" data-captions="/videos/blink-01-so-diktierst-du.fr.vtt" data-poster="/videos/blink-01-so-diktierst-du.webp"><span class="kino-num">01</span><span class="kino-name">Comment dicter</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Maintenir la touche, parler, relâcher. Votre texte s'écrit là où se trouve votre curseur : dans un e-mail, un chat ou un document.</p></li>
+<li id="uebersetzen"><a class="kino-chapter" href="/fr/tutoriels.html#gleich-auf-englisch" data-loop="/videos/blink-03-uebersetzen-schleife.mp4" data-full="/videos/blink-03-uebersetzen.mp4" data-captions="/videos/blink-03-uebersetzen.fr.vtt" data-poster="/videos/blink-03-uebersetzen.webp"><span class="kino-num">02</span><span class="kino-name">Traduit en dictant</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Vous parlez français, l'appli colle de l'anglais ou l'une des onze autres langues. Pour un e-mail à l'étranger ou le chat en jeu. La dictée intégrée du Mac ne traduit pas.</p></li>
+<li id="nichts-geht-verloren"><a class="kino-chapter" href="/fr/tutoriels.html#nichts-geht-verloren" data-loop="/videos/blink-04-nichts-geht-verloren-schleife.mp4" data-full="/videos/blink-04-nichts-geht-verloren.mp4" data-captions="/videos/blink-04-nichts-geht-verloren.fr.vtt" data-poster="/videos/blink-04-nichts-geht-verloren.webp"><span class="kino-num">03</span><span class="kino-name">Rien ne se perd</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Si le réseau tombe ou si le service flanche, votre enregistrement reste sur votre ordinateur. Avec « Nochmal senden » (renvoyer), vous l'envoyez quand même, jusqu'à 24 heures plus tard.</p></li>
+<li id="kostenlos"><a class="kino-chapter" href="/fr/tutoriels.html#kostenlos-diktieren" data-loop="/videos/blink-02-kostenlos-schleife.mp4" data-full="/videos/blink-02-kostenlos.mp4" data-captions="/videos/blink-02-kostenlos.fr.vtt" data-poster="/videos/blink-02-kostenlos.webp"><span class="kino-num">04</span><span class="kino-name">Gratuit avec votre serveur</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Indiquez un serveur qui tourne sur votre ordinateur. Une dictée ne coûte alors rien, et l'enregistrement reste chez vous.</p></li>
+<li id="erste-schritte"><a class="kino-chapter" href="/fr/tutoriels.html#erste-schritte" data-loop="/videos/blink-05-erste-schritte-schleife.mp4" data-full="/videos/blink-05-erste-schritte.mp4" data-captions="/videos/blink-05-erste-schritte.fr.vtt" data-poster="/videos/blink-05-erste-schritte.webp"><span class="kino-num">05</span><span class="kino-name">Premiers pas sur Mac</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Télécharger l'appli, la glisser dans Applications, saisir une clé ou un serveur, choisir un raccourci. Et c'est parti.</p></li>
 </ol>
 </div>
 <p class="meta"><a href="/fr/tutoriels.html">Tous les tutoriels, sous-titrés et transcrits</a></p>

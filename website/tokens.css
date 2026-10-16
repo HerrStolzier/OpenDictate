@@ -3,9 +3,10 @@
 /* Theme switch: set data-theme on <html>; Nacht is the default. */
 :root, [data-theme="nacht"] {
   --bg: #0E1014;
-  --surface: #181C23;
+  --surface: #1F242C;
   --surface-sunken: #12151A;
-  --line: #2A303A;
+  --line: #394046;
+  --edge: #6C746E;
   --ink: #E9EEE2;
   --ink-muted: #8F988A;
   --signal: #B6FF4D;
@@ -28,9 +29,10 @@
 
 [data-theme="bernstein"] {
   --bg: #17110A;
-  --surface: #22190F;
+  --surface: #2C2114;
   --surface-sunken: #120D07;
-  --line: #3A2C1B;
+  --line: #4C3C28;
+  --edge: #836E50;
   --ink: #FFE9C7;
   --ink-muted: #B49A74;
   --signal: #FFB23F;
@@ -56,6 +58,7 @@
   --surface: #FFFFFF;
   --surface-sunken: #E2E4DD;
   --line: #C9CCC3;
+  --edge: #7A7E80;
   --ink: #14161A;
   --ink-muted: #585D63;
   --signal: #1A4FE0;

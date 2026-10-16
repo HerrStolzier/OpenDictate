@@ -114,6 +114,8 @@
   "js_video": "Film instruktażowy: ",
   "js_play": "Odtwórz",
   "js_pause": "Wstrzymaj",
+  "js_stage_play": "Odtwórz animację",
+  "js_stage_pause": "Wstrzymaj animację",
   "js_meter": "Poziom nagrania",
   "js_blink_ready": "gotowy",
   "js_blink_listening": "słucha",

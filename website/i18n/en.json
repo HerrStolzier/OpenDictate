@@ -114,6 +114,8 @@
   "js_video": "Explainer video: ",
   "js_play": "Play",
   "js_pause": "Pause",
+  "js_stage_play": "Play animation",
+  "js_stage_pause": "Pause animation",
   "js_meter": "Recording level",
   "js_blink_ready": "ready",
   "js_blink_listening": "listening",
