@@ -4,10 +4,19 @@ use std::thread;
 
 /// Serves one loopback HTTP response and returns the raw request it received.
 pub fn serve(status: &str, body: &str) -> (String, thread::JoinHandle<Vec<u8>>) {
+    serve_with_type(status, "application/json", body)
+}
+
+pub fn serve_with_type(
+    status: &str,
+    content_type: &str,
+    body: &str,
+) -> (String, thread::JoinHandle<Vec<u8>>) {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let address = listener.local_addr().unwrap();
     let status = status.to_string();
     let body = body.to_string();
+    let content_type = content_type.to_string();
     let handle = thread::spawn(move || {
         let (mut stream, _) = listener.accept().unwrap();
         let mut request = Vec::new();
@@ -25,12 +34,11 @@ pub fn serve(status: &str, body: &str) -> (String, thread::JoinHandle<Vec<u8>>) 
                 break;
             }
         }
-        write!(
+        let _ = write!(
             stream,
-            "HTTP/1.1 {status}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+            "HTTP/1.1 {status}\r\nContent-Type: {content_type}\r\nLocation: /redirect-must-not-be-followed\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
             body.len()
-        )
-        .unwrap();
+        );
         request
     });
     (format!("http://{address}"), handle)
