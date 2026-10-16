@@ -537,3 +537,5 @@ one-off command.
 Explicit OpenAI retry also covers a connection failure during translation; it
 uses the default OpenAI translation model for this one request. Saved settings
 remain unchanged.
+
+The exact two-build native evidence and repeatable commands are in [Linux packaging](../docs/linux-packaging.md).

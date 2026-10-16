@@ -557,3 +557,5 @@ weiter `retry --skipped` und werden durch diesen Einmal-Befehl nie hochgeladen.
 Die ausdrückliche OpenAI-Wiederholung gilt auch bei einem Verbindungsfehler
 während der Übersetzung. Sie nutzt einmal das Standard-Übersetzungsmodell
 von OpenAI. Deine gespeicherten Einstellungen bleiben erhalten.
+
+Der echte Zwei-Bau-Nachweis und wiederholbare Befehle stehen unter [Linux-Paketierung](../docs/linux-packaging.md).
