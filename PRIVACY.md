@@ -288,6 +288,16 @@ including a custom server. It is never logged or learned automatically;
 `opendictate vocabulary clear` removes it locally. Existing retained recordings
 use the vocabulary selected at retry time.
 
+## Windows provider core
+
+### Explicit Windows vocabulary
+
+The platform-neutral Windows provider settings persist an explicit vocabulary
+list (64 entries and 800 UTF-8 bytes including separators). A non-empty list
+is sent as the `prompt` field to the selected transcription service, including
+a custom server. It is not logged or learned automatically. The Windows app
+has no vocabulary editor yet; this change adds persistence and transport in
+the platform-neutral core/provider only.
 
 ## iPhone app
 
