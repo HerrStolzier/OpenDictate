@@ -121,12 +121,15 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="RadioButton">
-          <Border x:Name="Face" Background="{DynamicResource Sunken}" BorderBrush="{DynamicResource Line}" BorderThickness="2" CornerRadius="{DynamicResource RadiusChip}" Padding="14">
-            <ContentPresenter RecognizesAccessKey="False" />
-          </Border>
+          <!-- The outer face is the edge (one pixel step wide), so it follows the stepped corners. -->
+          <app:StepBorder x:Name="Face" Background="{DynamicResource Line}" Padding="3" SnapsToDevicePixels="True">
+            <app:StepBorder Background="{DynamicResource Sunken}" Padding="14">
+              <ContentPresenter RecognizesAccessKey="False" />
+            </app:StepBorder>
+          </app:StepBorder>
           <ControlTemplate.Triggers>
-            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Face" Property="BorderBrush" Value="{DynamicResource InkMuted}" /></Trigger>
-            <Trigger Property="IsChecked" Value="True"><Setter TargetName="Face" Property="BorderBrush" Value="{DynamicResource Signal}" /></Trigger>
+            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Face" Property="Background" Value="{DynamicResource InkMuted}" /></Trigger>
+            <Trigger Property="IsChecked" Value="True"><Setter TargetName="Face" Property="Background" Value="{DynamicResource Signal}" /></Trigger>
             <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Face" Property="Opacity" Value="0.6" /></Trigger>
           </ControlTemplate.Triggers>
         </ControlTemplate>
@@ -306,7 +309,7 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="Expander">
-          <Border BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="{DynamicResource RadiusCard}">
+          <Border Background="{DynamicResource Surface}" CornerRadius="{DynamicResource RadiusCard}">
             <StackPanel>
               <ToggleButton x:Name="Header" IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
                             FocusVisualStyle="{StaticResource FocusRing}" Cursor="Hand"
