@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
@@ -78,7 +79,8 @@ internal sealed class SettingsWindow : Window
         FontSize = DesignFont.Body.Size;
         SourceInitialized += (_, _) => Brand.DarkTitleBar(this);
 
-        var panel = new StackPanel { Margin = new Thickness(DesignMetric.Space6, DesignMetric.Space4, DesignMetric.Space6, DesignMetric.Space2) };
+        // The bottom margin leaves room for the focus ring of the last control.
+        var panel = new StackPanel { Margin = new Thickness(DesignMetric.Space6, DesignMetric.Space4, DesignMetric.Space6, DesignMetric.Space6) };
         panel.Children.Add(Hero());
 
         var shortcut = Card(panel, UiText.T("Tastenkürzel", "Shortcut"));
@@ -86,7 +88,7 @@ internal sealed class SettingsWindow : Window
         rightCtrl.Content = Tile([UiText.T("Strg rechts", "Right Ctrl")], UiText.T("Rechte Strg-Taste", "Right Ctrl"), UiText.T("Für Spiele", "For games"), DesignColor.InkMuted);
         AutomationProperties.SetName(ctrlWin, UiText.T("Strg+Win (empfohlen)", "Ctrl+Win (recommended)"));
         AutomationProperties.SetName(rightCtrl, UiText.T("Rechte Strg-Taste (für Spiele)", "Right Ctrl (for games)"));
-        shortcut.Children.Add(Pair(ctrlWin, rightCtrl, "Tile", DesignMetric.Space3));
+        shortcut.Children.Add(OneTabStop(Pair(ctrlWin, rightCtrl, "Tile", DesignMetric.Space3)));
         Label(shortcut, UiText.T("So nimmst du auf", "How you record"));
         shortcut.Children.Add(Segments(holdMode, tapMode, UiText.T("So nimmst du auf", "How you record")));
         modeHint.Margin = new Thickness(0, DesignMetric.Space2, 0, 0);
@@ -100,10 +102,7 @@ internal sealed class SettingsWindow : Window
         AutomationProperties.SetName(server, UiText.T("Server-Adresse", "Server address"));
         var saveAddress = new Button { Content = UiText.T("Speichern", "Save"), Style = Brand.Style("SecondaryButton"), Margin = new Thickness(DesignMetric.Space3, 0, 0, 0) };
         AutomationProperties.SetName(saveAddress, UiText.T("Server-Adresse speichern", "Save server address"));
-        var addressRow = new DockPanel();
-        DockPanel.SetDock(saveAddress, Dock.Right);
-        addressRow.Children.Add(saveAddress); addressRow.Children.Add(server);
-        serverPanel.Children.Add(addressRow);
+        serverPanel.Children.Add(FieldWithButton(server, saveAddress));
         Hint(serverPanel, UiText.T("Zum Beispiel http://127.0.0.1:8080/v1. Die Adresse bleibt gespeichert, auch wenn du OpenAI wählst.",
             "For example http://127.0.0.1:8080/v1. The address stays saved when you choose OpenAI."));
         service.Children.Add(serverPanel);
@@ -111,10 +110,7 @@ internal sealed class SettingsWindow : Window
         AutomationProperties.SetName(apiKey, UiText.T("OpenAI-API-Schlüssel", "OpenAI API key"));
         var saveKey = new Button { Content = UiText.T("Speichern", "Save"), Style = Brand.Style("SecondaryButton"), Margin = new Thickness(DesignMetric.Space3, 0, 0, 0) };
         AutomationProperties.SetName(saveKey, UiText.T("Schlüssel speichern", "Save key"));
-        var keyRow = new DockPanel();
-        DockPanel.SetDock(saveKey, Dock.Right);
-        keyRow.Children.Add(saveKey); keyRow.Children.Add(apiKey);
-        service.Children.Add(keyRow);
+        service.Children.Add(FieldWithButton(apiKey, saveKey));
         deleteKey.Style = Brand.Style("LinkButton");
         var stateRow = new DockPanel { Margin = new Thickness(0, DesignMetric.Space2, 0, 0) };
         DockPanel.SetDock(deleteKey, Dock.Right); DockPanel.SetDock(keyCheck, Dock.Left);
@@ -219,8 +215,8 @@ internal sealed class SettingsWindow : Window
             server.Text = stored.Server ?? "";
             ShowReady();
         };
-        server.KeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) { e.Handled = true; SaveServer(); } };
-        apiKey.KeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) { e.Handled = true; SaveKey(); } };
+        server.KeyDown += (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; SaveServer(); } };
+        apiKey.KeyDown += (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; SaveKey(); } };
         serverPanel.Visibility = serverService.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         spoken.SelectionChanged += (_, _) => Change(s => s with { Language = (spoken.SelectedItem as Choice)?.Code });
         target.SelectionChanged += (_, _) => Change(s => s.WithTarget((target.SelectedItem as Choice)?.Code));
@@ -354,6 +350,25 @@ internal sealed class SettingsWindow : Window
         return grid;
     }
 
+    // A field and its button in tab order: field first.
+    private static UIElement FieldWithButton(Control field, Button button)
+    {
+        var row = new Grid();
+        row.ColumnDefinitions.Add(new ColumnDefinition());
+        row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(button, 1);
+        row.Children.Add(field); row.Children.Add(button);
+        return row;
+    }
+
+    // One tab stop for a pair of choices; the arrow keys move between them, Space selects.
+    private static UIElement OneTabStop(UIElement choices)
+    {
+        KeyboardNavigation.SetTabNavigation(choices, KeyboardNavigationMode.Once);
+        KeyboardNavigation.SetDirectionalNavigation(choices, KeyboardNavigationMode.Cycle);
+        return choices;
+    }
+
     // question: read out with each choice, since the track itself has no name for screen readers.
     private static UIElement Segments(RadioButton first, RadioButton second, string question)
     {
@@ -363,7 +378,7 @@ internal sealed class SettingsWindow : Window
         return new StepBorder
         {
             Background = Brand.Brush(DesignColor.SurfaceSunken), Padding = new Thickness(DesignMetric.Space1),
-            Child = Pair(first, second, "Segment", 0),
+            Child = OneTabStop(Pair(first, second, "Segment", 0)),
         };
     }
 
