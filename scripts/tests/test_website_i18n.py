@@ -43,6 +43,24 @@ class WebsiteI18nTests(unittest.TestCase):
             self.assertIn(f'hreflang="{lang["code"]}"', index)
         self.assertIn('hreflang="x-default"', index)
 
+    def test_language_menu_name_starts_with_visible_code(self):
+        built = MODULE.build()
+        for path, body in built.items():
+            if path.suffix != ".html":
+                continue
+            summary = re.search(r'<summary aria-label="([^"]+)">([A-Z]{2})</summary>', body)
+            self.assertIsNotNone(summary, path.name)
+            self.assertTrue(summary.group(1).startswith(summary.group(2) + ", "), path.name)
+
+    def test_home_player_chapters_carry_page_language_captions(self):
+        built = MODULE.build()
+        for code, path in (("de", MODULE.WEBSITE / "index.html"), ("fr", MODULE.WEBSITE / "fr" / "index.html")):
+            captions = re.findall(r'data-captions="([^"]+)"', built[path])
+            self.assertEqual(len(captions), 5, code)
+            for src in captions:
+                self.assertTrue((MODULE.WEBSITE / src.lstrip("/")).exists(), src)
+                self.assertEqual(src.endswith(f".{code}.vtt"), code != "de", src)
+
     def test_subtitles_keep_german_cue_times(self):
         built = MODULE.build()
         german = (MODULE.WEBSITE / "videos" / "blink-01-so-diktierst-du.vtt").read_text()

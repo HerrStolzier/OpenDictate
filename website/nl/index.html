@@ -40,7 +40,7 @@
 <link rel="preload" href="/fonts/Geist-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/style.css">
 <script src="/site.js" defer></script>
-<script type="application/json" id="od-text">{"wordmark":"opendictate","video":"Uitlegvideo: ","play":"Afspelen","pause":"Pauzeren","meter":"Opnameniveau","blink":{"bereit":"klaar","hoert":"luistert","schreibt":"schrijft","eingefuegt":"geplakt","hoppla":"oeps, fout"},"hud":{"bereit":{"word":"Klaar","sub":"houd fn ingedrukt"},"hoert":{"word":"Luistert","sub":"REC 0:0"},"schreibt":{"word":"Schrijft","sub":"wordt tekst"},"eingefuegt":{"word":"Geplakt","sub":"in het tekstveld"},"hoppla":{"word":"Oeps","sub":"Geen verbinding. Je opname is bewaard."}}}</script>
+<script type="application/json" id="od-text">{"wordmark":"opendictate","video":"Uitlegvideo: ","play":"Afspelen","pause":"Pauzeren","stage_play":"Animatie afspelen","stage_pause":"Animatie pauzeren","captions":"Nederlands","meter":"Opnameniveau","blink":{"bereit":"klaar","hoert":"luistert","schreibt":"schrijft","eingefuegt":"geplakt","hoppla":"oeps, fout"},"hud":{"bereit":{"word":"Klaar","sub":"houd fn ingedrukt"},"hoert":{"word":"Luistert","sub":"REC 0:0"},"schreibt":{"word":"Schrijft","sub":"wordt tekst"},"eingefuegt":{"word":"Geplakt","sub":"in het tekstveld"},"hoppla":{"word":"Oeps","sub":"Geen verbinding. Je opname is bewaard."}}}</script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -90,7 +90,7 @@
 <a href="https://github.com/HerrStolzier/OpenDictate">GitHub</a>
 </nav>
 <details class="lang">
-<summary aria-label="Taal: Nederlands">NL</summary>
+<summary aria-label="NL, Taal: Nederlands">NL</summary>
 <ul class="lang-list">
 <li><a href="/" hreflang="de" lang="de">Deutsch</a></li>
 <li><a href="/en/" hreflang="en" lang="en">English</a></li>
@@ -154,6 +154,7 @@
 </div>
 
 <div class="stage-foot">
+<button class="stage-hold" type="button" hidden></button>
 <ol class="flow-steps" aria-label="Zo verloopt een dictaat">
 <li data-phase="bereit">Klaar</li>
 <li data-phase="hoert" class="hot">Luistert</li>
@@ -219,11 +220,11 @@
 <div class="kino-tools" hidden><button class="kino-sound" type="button" aria-pressed="false">Geluid</button><button class="kino-play" type="button"></button></div>
 </div>
 <ol class="kino-list">
-<li id="so-diktierst-du" class="is-on"><a class="kino-chapter" aria-current="step" href="/nl/uitleg.html#so-diktierst-du" data-loop="/videos/blink-01-so-diktierst-du-schleife.mp4" data-full="/videos/blink-01-so-diktierst-du.mp4" data-poster="/videos/blink-01-so-diktierst-du.webp"><span class="kino-num">01</span><span class="kino-name">Zo dicteer je</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Toets vasthouden, praten, loslaten. Je tekst staat waar je cursor is: in de mail, de chat of het document.</p></li>
-<li id="uebersetzen"><a class="kino-chapter" href="/nl/uitleg.html#gleich-auf-englisch" data-loop="/videos/blink-03-uebersetzen-schleife.mp4" data-full="/videos/blink-03-uebersetzen.mp4" data-poster="/videos/blink-03-uebersetzen.webp"><span class="kino-num">02</span><span class="kino-name">Meteen vertaald</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Je spreekt Nederlands en er wordt Engels geplakt, of een van elf andere talen. Voor een mail naar het buitenland of de gamechat. De ingebouwde dicteerfunctie van de Mac vertaalt niet.</p></li>
-<li id="nichts-geht-verloren"><a class="kino-chapter" href="/nl/uitleg.html#nichts-geht-verloren" data-loop="/videos/blink-04-nichts-geht-verloren-schleife.mp4" data-full="/videos/blink-04-nichts-geht-verloren.mp4" data-poster="/videos/blink-04-nichts-geht-verloren.webp"><span class="kino-num">03</span><span class="kino-name">Niets gaat verloren</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Valt het netwerk weg of hapert de dienst, dan blijft je opname op je computer. Met ‘Nochmal senden’ (opnieuw versturen) stuur je hem alsnog, tot 24 uur later.</p></li>
-<li id="kostenlos"><a class="kino-chapter" href="/nl/uitleg.html#kostenlos-diktieren" data-loop="/videos/blink-02-kostenlos-schleife.mp4" data-full="/videos/blink-02-kostenlos.mp4" data-poster="/videos/blink-02-kostenlos.webp"><span class="kino-num">04</span><span class="kino-name">Gratis met je eigen server</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Vul een server in die op je computer draait. Dan kost een dictaat niets en blijft de opname bij jou.</p></li>
-<li id="erste-schritte"><a class="kino-chapter" href="/nl/uitleg.html#erste-schritte" data-loop="/videos/blink-05-erste-schritte-schleife.mp4" data-full="/videos/blink-05-erste-schritte.mp4" data-poster="/videos/blink-05-erste-schritte.webp"><span class="kino-num">05</span><span class="kino-name">Eerste stappen op de Mac</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">App downloaden, naar Apps slepen, sleutel of server invullen, sneltoets kiezen. En klaar.</p></li>
+<li id="so-diktierst-du" class="is-on"><a class="kino-chapter" aria-current="step" href="/nl/uitleg.html#so-diktierst-du" data-loop="/videos/blink-01-so-diktierst-du-schleife.mp4" data-full="/videos/blink-01-so-diktierst-du.mp4" data-captions="/videos/blink-01-so-diktierst-du.nl.vtt" data-poster="/videos/blink-01-so-diktierst-du.webp"><span class="kino-num">01</span><span class="kino-name">Zo dicteer je</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Toets vasthouden, praten, loslaten. Je tekst staat waar je cursor is: in de mail, de chat of het document.</p></li>
+<li id="uebersetzen"><a class="kino-chapter" href="/nl/uitleg.html#gleich-auf-englisch" data-loop="/videos/blink-03-uebersetzen-schleife.mp4" data-full="/videos/blink-03-uebersetzen.mp4" data-captions="/videos/blink-03-uebersetzen.nl.vtt" data-poster="/videos/blink-03-uebersetzen.webp"><span class="kino-num">02</span><span class="kino-name">Meteen vertaald</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Je spreekt Nederlands en er wordt Engels geplakt, of een van elf andere talen. Voor een mail naar het buitenland of de gamechat. De ingebouwde dicteerfunctie van de Mac vertaalt niet.</p></li>
+<li id="nichts-geht-verloren"><a class="kino-chapter" href="/nl/uitleg.html#nichts-geht-verloren" data-loop="/videos/blink-04-nichts-geht-verloren-schleife.mp4" data-full="/videos/blink-04-nichts-geht-verloren.mp4" data-captions="/videos/blink-04-nichts-geht-verloren.nl.vtt" data-poster="/videos/blink-04-nichts-geht-verloren.webp"><span class="kino-num">03</span><span class="kino-name">Niets gaat verloren</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Valt het netwerk weg of hapert de dienst, dan blijft je opname op je computer. Met ‘Nochmal senden’ (opnieuw versturen) stuur je hem alsnog, tot 24 uur later.</p></li>
+<li id="kostenlos"><a class="kino-chapter" href="/nl/uitleg.html#kostenlos-diktieren" data-loop="/videos/blink-02-kostenlos-schleife.mp4" data-full="/videos/blink-02-kostenlos.mp4" data-captions="/videos/blink-02-kostenlos.nl.vtt" data-poster="/videos/blink-02-kostenlos.webp"><span class="kino-num">04</span><span class="kino-name">Gratis met je eigen server</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Vul een server in die op je computer draait. Dan kost een dictaat niets en blijft de opname bij jou.</p></li>
+<li id="erste-schritte"><a class="kino-chapter" href="/nl/uitleg.html#erste-schritte" data-loop="/videos/blink-05-erste-schritte-schleife.mp4" data-full="/videos/blink-05-erste-schritte.mp4" data-captions="/videos/blink-05-erste-schritte.nl.vtt" data-poster="/videos/blink-05-erste-schritte.webp"><span class="kino-num">05</span><span class="kino-name">Eerste stappen op de Mac</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">App downloaden, naar Apps slepen, sleutel of server invullen, sneltoets kiezen. En klaar.</p></li>
 </ol>
 </div>
 <p class="meta"><a href="/nl/uitleg.html">Alle uitlegvideo's met ondertitels en tekst</a></p>

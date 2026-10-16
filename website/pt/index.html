@@ -40,7 +40,7 @@
 <link rel="preload" href="/fonts/Geist-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/style.css">
 <script src="/site.js" defer></script>
-<script type="application/json" id="od-text">{"wordmark":"opendictate","video":"Vídeo explicativo: ","play":"Reproduzir","pause":"Pausar","meter":"Nível de gravação","blink":{"bereit":"pronto","hoert":"ouvindo","schreibt":"escrevendo","eingefuegt":"colado","hoppla":"ops, erro"},"hud":{"bereit":{"word":"Pronto","sub":"segure fn"},"hoert":{"word":"Ouvindo","sub":"REC 0:0"},"schreibt":{"word":"Escrevendo","sub":"virando texto"},"eingefuegt":{"word":"Colado","sub":"no campo de texto"},"hoppla":{"word":"Ops","sub":"Sem conexão. Sua gravação está salva."}}}</script>
+<script type="application/json" id="od-text">{"wordmark":"opendictate","video":"Vídeo explicativo: ","play":"Reproduzir","pause":"Pausar","stage_play":"Reproduzir a animação","stage_pause":"Pausar a animação","captions":"Português","meter":"Nível de gravação","blink":{"bereit":"pronto","hoert":"ouvindo","schreibt":"escrevendo","eingefuegt":"colado","hoppla":"ops, erro"},"hud":{"bereit":{"word":"Pronto","sub":"segure fn"},"hoert":{"word":"Ouvindo","sub":"REC 0:0"},"schreibt":{"word":"Escrevendo","sub":"virando texto"},"eingefuegt":{"word":"Colado","sub":"no campo de texto"},"hoppla":{"word":"Ops","sub":"Sem conexão. Sua gravação está salva."}}}</script>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -90,7 +90,7 @@
 <a href="https://github.com/HerrStolzier/OpenDictate">GitHub</a>
 </nav>
 <details class="lang">
-<summary aria-label="Idioma: Português">PT</summary>
+<summary aria-label="PT, Idioma: Português">PT</summary>
 <ul class="lang-list">
 <li><a href="/" hreflang="de" lang="de">Deutsch</a></li>
 <li><a href="/en/" hreflang="en" lang="en">English</a></li>
@@ -154,6 +154,7 @@
 </div>
 
 <div class="stage-foot">
+<button class="stage-hold" type="button" hidden></button>
 <ol class="flow-steps" aria-label="Como funciona um ditado">
 <li data-phase="bereit">Pronto</li>
 <li data-phase="hoert" class="hot">Ouvindo</li>
@@ -219,11 +220,11 @@
 <div class="kino-tools" hidden><button class="kino-sound" type="button" aria-pressed="false">Som</button><button class="kino-play" type="button"></button></div>
 </div>
 <ol class="kino-list">
-<li id="so-diktierst-du" class="is-on"><a class="kino-chapter" aria-current="step" href="/pt/tutoriais.html#so-diktierst-du" data-loop="/videos/blink-01-so-diktierst-du-schleife.mp4" data-full="/videos/blink-01-so-diktierst-du.mp4" data-poster="/videos/blink-01-so-diktierst-du.webp"><span class="kino-num">01</span><span class="kino-name">Como ditar</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Segure a tecla, fale, solte. O texto aparece onde está o cursor: no e-mail, no chat ou no documento.</p></li>
-<li id="uebersetzen"><a class="kino-chapter" href="/pt/tutoriais.html#gleich-auf-englisch" data-loop="/videos/blink-03-uebersetzen-schleife.mp4" data-full="/videos/blink-03-uebersetzen.mp4" data-poster="/videos/blink-03-uebersetzen.webp"><span class="kino-num">02</span><span class="kino-name">Traduzido na hora</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Você fala português, e o texto é colado em inglês ou em um dos outros onze idiomas. Para um e-mail para o exterior ou para o chat do jogo. O ditado nativo do Mac não traduz.</p></li>
-<li id="nichts-geht-verloren"><a class="kino-chapter" href="/pt/tutoriais.html#nichts-geht-verloren" data-loop="/videos/blink-04-nichts-geht-verloren-schleife.mp4" data-full="/videos/blink-04-nichts-geht-verloren.mp4" data-poster="/videos/blink-04-nichts-geht-verloren.webp"><span class="kino-num">03</span><span class="kino-name">Nada se perde</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Se a rede cair ou o serviço travar, sua gravação fica no seu computador. Com “Nochmal senden” (enviar de novo), você pode reenviá-la por até 24 horas.</p></li>
-<li id="kostenlos"><a class="kino-chapter" href="/pt/tutoriais.html#kostenlos-diktieren" data-loop="/videos/blink-02-kostenlos-schleife.mp4" data-full="/videos/blink-02-kostenlos.mp4" data-poster="/videos/blink-02-kostenlos.webp"><span class="kino-num">04</span><span class="kino-name">Grátis com o seu próprio servidor</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Informe um servidor que roda no seu computador. Assim um ditado não custa nada, e a gravação fica com você.</p></li>
-<li id="erste-schritte"><a class="kino-chapter" href="/pt/tutoriais.html#erste-schritte" data-loop="/videos/blink-05-erste-schritte-schleife.mp4" data-full="/videos/blink-05-erste-schritte.mp4" data-poster="/videos/blink-05-erste-schritte.webp"><span class="kino-num">05</span><span class="kino-name">Primeiros passos no Mac</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Baixe o app, arraste para Aplicativos, informe uma chave ou um servidor e escolha um atalho. Pronto.</p></li>
+<li id="so-diktierst-du" class="is-on"><a class="kino-chapter" aria-current="step" href="/pt/tutoriais.html#so-diktierst-du" data-loop="/videos/blink-01-so-diktierst-du-schleife.mp4" data-full="/videos/blink-01-so-diktierst-du.mp4" data-captions="/videos/blink-01-so-diktierst-du.pt.vtt" data-poster="/videos/blink-01-so-diktierst-du.webp"><span class="kino-num">01</span><span class="kino-name">Como ditar</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Segure a tecla, fale, solte. O texto aparece onde está o cursor: no e-mail, no chat ou no documento.</p></li>
+<li id="uebersetzen"><a class="kino-chapter" href="/pt/tutoriais.html#gleich-auf-englisch" data-loop="/videos/blink-03-uebersetzen-schleife.mp4" data-full="/videos/blink-03-uebersetzen.mp4" data-captions="/videos/blink-03-uebersetzen.pt.vtt" data-poster="/videos/blink-03-uebersetzen.webp"><span class="kino-num">02</span><span class="kino-name">Traduzido na hora</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Você fala português, e o texto é colado em inglês ou em um dos outros onze idiomas. Para um e-mail para o exterior ou para o chat do jogo. O ditado nativo do Mac não traduz.</p></li>
+<li id="nichts-geht-verloren"><a class="kino-chapter" href="/pt/tutoriais.html#nichts-geht-verloren" data-loop="/videos/blink-04-nichts-geht-verloren-schleife.mp4" data-full="/videos/blink-04-nichts-geht-verloren.mp4" data-captions="/videos/blink-04-nichts-geht-verloren.pt.vtt" data-poster="/videos/blink-04-nichts-geht-verloren.webp"><span class="kino-num">03</span><span class="kino-name">Nada se perde</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Se a rede cair ou o serviço travar, sua gravação fica no seu computador. Com “Nochmal senden” (enviar de novo), você pode reenviá-la por até 24 horas.</p></li>
+<li id="kostenlos"><a class="kino-chapter" href="/pt/tutoriais.html#kostenlos-diktieren" data-loop="/videos/blink-02-kostenlos-schleife.mp4" data-full="/videos/blink-02-kostenlos.mp4" data-captions="/videos/blink-02-kostenlos.pt.vtt" data-poster="/videos/blink-02-kostenlos.webp"><span class="kino-num">04</span><span class="kino-name">Grátis com o seu próprio servidor</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Informe um servidor que roda no seu computador. Assim um ditado não custa nada, e a gravação fica com você.</p></li>
+<li id="erste-schritte"><a class="kino-chapter" href="/pt/tutoriais.html#erste-schritte" data-loop="/videos/blink-05-erste-schritte-schleife.mp4" data-full="/videos/blink-05-erste-schritte.mp4" data-captions="/videos/blink-05-erste-schritte.pt.vtt" data-poster="/videos/blink-05-erste-schritte.webp"><span class="kino-num">05</span><span class="kino-name">Primeiros passos no Mac</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Baixe o app, arraste para Aplicativos, informe uma chave ou um servidor e escolha um atalho. Pronto.</p></li>
 </ol>
 </div>
 <p class="meta"><a href="/pt/tutoriais.html">Todos os tutoriais, com legendas e texto</a></p>

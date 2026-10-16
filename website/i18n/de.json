@@ -114,6 +114,8 @@
   "js_video": "Erklärvideo: ",
   "js_play": "Abspielen",
   "js_pause": "Anhalten",
+  "js_stage_play": "Animation abspielen",
+  "js_stage_pause": "Animation anhalten",
   "js_meter": "Aufnahmepegel",
   "js_blink_ready": "bereit",
   "js_blink_listening": "hört zu",

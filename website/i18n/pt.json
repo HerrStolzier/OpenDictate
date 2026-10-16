@@ -114,6 +114,8 @@
   "js_video": "Vídeo explicativo: ",
   "js_play": "Reproduzir",
   "js_pause": "Pausar",
+  "js_stage_play": "Reproduzir a animação",
+  "js_stage_pause": "Pausar a animação",
   "js_meter": "Nível de gravação",
   "js_blink_ready": "pronto",
   "js_blink_listening": "ouvindo",
