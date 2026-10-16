@@ -548,6 +548,7 @@ internal sealed class SettingsWindow : Window
     {
         if (showing) return;
         Change(s => s with { AutoInsert = autoInsert.IsChecked == true });
+        ShowIntro();
         ShowSwitchHints();
     }
 
@@ -626,12 +627,15 @@ internal sealed class SettingsWindow : Window
     }
 
     // "Ready" needs a destination that can take the recording: a custom server
-    // with a valid address, or OpenAI with a saved key.
+    // with a valid address, plus a saved key wherever the key is sent (OpenAI
+    // and servers on other computers).
     private void ShowReady()
     {
         bool usesServer = stored.UsesServer(Environment.GetEnvironmentVariable(ProviderServer.BaseUrlVariable));
-        bool broken = !readable || (usesServer ? !ServerResolves() : keyPresent is null);
-        bool isReady = !broken && (usesServer || keyPresent == true);
+        ProviderServer? resolved = usesServer ? ResolvedServer() : null;
+        bool needsKey = !usesServer || resolved is { SendsApiKey: true };
+        bool broken = !readable || (usesServer && resolved is null) || (needsKey && keyPresent is null);
+        bool isReady = !broken && (!needsKey || keyPresent == true);
         string where = usesServer ? UiText.T("Eigener Server", "Custom server") : "OpenAI";
         string state = isReady ? UiText.T("Bereit", "Ready")
             : broken ? UiText.T("Hoppla", "Oops")
@@ -647,21 +651,29 @@ internal sealed class SettingsWindow : Window
         readyMark.Fill = Brand.Brush(color);
     }
 
-    private bool ServerResolves()
+    private ProviderServer? ResolvedServer()
     {
-        try { stored.ResolveServer(); return true; }
-        catch (UserFacingException) { return false; }
+        try { return stored.ResolveServer(); }
+        catch (UserFacingException) { return null; }
+    }
+
+    private void ShowIntro()
+    {
+        string how = stored.TriggerMode == TriggerMode.Tap
+            ? UiText.T("Tipp das Kürzel an, sprich und tipp es nochmal an.", "Tap the shortcut, speak and tap it again.")
+            : UiText.T("Halte das Kürzel gedrückt, sprich und lass los.", "Hold the shortcut, speak and let go.");
+        string lands = stored.AutoInsert
+            ? UiText.T("Der Text landet dort, wo du gerade schreibst.", "The text lands where you are typing.")
+            : UiText.T("Der Text liegt dann in der Zwischenablage.", "The text is then on the clipboard.");
+        intro.Text = firstRun
+            ? UiText.T($"Willkommen. {how} {lands}", $"Welcome. {how} {lands}")
+            : $"{how} {lands}";
     }
 
     private void ShowHints()
     {
         bool tap = stored.TriggerMode == TriggerMode.Tap;
-        string how = tap
-            ? UiText.T("Tipp das Kürzel an, sprich und tipp es nochmal an.", "Tap the shortcut, speak and tap it again.")
-            : UiText.T("Halte das Kürzel gedrückt, sprich und lass los.", "Hold the shortcut, speak and let go.");
-        intro.Text = firstRun
-            ? UiText.T($"Willkommen. {how} Der Text landet dort, wo du gerade schreibst.", $"Welcome. {how} The text lands where you are typing.")
-            : UiText.T($"{how} Der Text landet dort, wo du gerade schreibst.", $"{how} The text lands where you are typing.");
+        ShowIntro();
         modeHint.Text = tap
             ? UiText.T("Einmal antippen startet die Aufnahme, nochmal antippen beendet sie.", "Tap once to start recording, tap again to stop.")
             : UiText.T("Solange du das Kürzel hältst, hört OpenDictate zu. Beim Loslassen endet die Aufnahme.", "OpenDictate listens while you hold the shortcut. Letting go ends the recording.");
