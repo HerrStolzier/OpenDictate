@@ -57,6 +57,29 @@ internal static class ProviderChecks
                 }
                 finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
             }),
+
+            ("Shared unusual responses fail safely or return empty without a retry", async () =>
+            {
+                foreach (var item in Cases().GetProperty("edge_cases").EnumerateArray())
+                {
+                    string body = item.TryGetProperty("text_repeat", out var count)
+                        ? JsonSerializer.Serialize(new { text = new string('x', count.GetInt32()) })
+                        : Fixture(item.GetProperty("file").GetString()!);
+                    var handler = new FixtureHandler(_ =>
+                    {
+                        var response = Response(item.GetProperty("status").GetInt32(), body);
+                        response.Content.Headers.ContentType = new(item.GetProperty("content_type").GetString()!);
+                        response.Headers.Location = new Uri("https://redirect.invalid/private");
+                        return response;
+                    });
+                    using var adapter = new OpenAiTranscriber(openAi, handler);
+                    if (item.GetProperty("expected").GetString() == "error")
+                        await Refused<UserFacingException>(() => adapter.TranscribeAsync(wave, Key, german, default));
+                    else
+                        Check(await adapter.TranscribeAsync(wave, Key, german, default) == (item.TryGetProperty("text", out var text) ? text.GetString() : ""));
+                    Check(handler.Requests.Count == 1);
+                }
+            }),
             ("Success fixture keeps the contract's field order and exact bytes", async () =>
             {
                 var handler = new FixtureHandler(_ => Response(200, Fixture("response-ok.json")));

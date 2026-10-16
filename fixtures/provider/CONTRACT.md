@@ -76,3 +76,23 @@ Official API checked on 16 October 2026:
 also documents `keywords[]` for `gpt-transcribe`. These clients keep `prompt`
 for compatibility with all offered models and custom servers; no undocumented
 keyword field is sent. Hints do not guarantee recognition or permit rewriting.
+
+## Unusual replies (Rust and C#)
+
+The additive `edge_cases` list leaves the existing Swift success/error schema
+unchanged. Rust and C# read the same response files. `text_repeat` generates a
+large synthetic text without checking a megabyte into source control.
+HTTP 400/403/404/502/503 and redirects 301/302/307 fail once. Redirects are never
+followed, even if their body contains a usable transcript. Missing/invalid
+JSON or missing/non-string text fails; empty or whitespace text returns empty
+and the existing dictation flow retains the recording without delivery.
+
+Linux now matches Windows' bounded response policy: at most 131,072 body bytes
+and 16,000 UTF-16 code units of trimmed/sanitized text. This comfortably covers
+a 90-second dictation; oversized replies are rejected, never truncated into a
+possibly misleading transcript. Linux previously allowed up to 1 MiB and did
+not cap text independently. Both accept valid JSON under a wrong Content-Type
+for compatibility with local servers; content is still parsed and bounded.
+The provider error body is never shown. The existing flow tests separately
+cover audio retention for errors/empty replies; transport tests alone do not
+prove a live dictation or target-field insertion.

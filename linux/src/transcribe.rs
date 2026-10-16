@@ -212,18 +212,31 @@ fn decode_response(
             ))
         }
     };
+    if !(200..300).contains(&response.status()) {
+        return Err(crate::tr!(
+            "Transkription fehlgeschlagen.",
+            "Transcription failed."
+        ));
+    }
     let mut data = Vec::new();
     response
         .into_reader()
-        .take(1_024 * 1_024)
+        .take(131_073)
         .read_to_end(&mut data)
         .map_err(|_| invalid_response())?;
+    if data.len() > 131_072 {
+        return Err(invalid_response());
+    }
     #[derive(Deserialize)]
     struct Response {
         text: String,
     }
     let parsed: Response = serde_json::from_slice(&data).map_err(|_| invalid_response())?;
-    Ok(crate::policy::sanitize_transcript(&parsed.text))
+    let text = crate::policy::sanitize_transcript(&parsed.text);
+    if text.encode_utf16().count() > 16_000 {
+        return Err(invalid_response());
+    }
+    Ok(text)
 }
 
 fn invalid_response() -> String {
@@ -275,6 +288,47 @@ mod tests {
             multipart_body("fixed-boundary", b"synthetic-audio", &settings),
             without
         );
+    }
+
+    #[test]
+    fn shared_unusual_responses_fail_safely_or_return_empty() {
+        let cases: serde_json::Value =
+            serde_json::from_str(include_str!("../../fixtures/provider/cases.json")).unwrap();
+        for case in cases["edge_cases"].as_array().unwrap() {
+            let body = if let Some(count) = case["text_repeat"].as_u64() {
+                serde_json::json!({"text": "x".repeat(count as usize)}).to_string()
+            } else {
+                std::fs::read_to_string(
+                    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                        .join("../fixtures/provider")
+                        .join(case["file"].as_str().unwrap()),
+                )
+                .unwrap()
+            };
+            let (endpoint, stub) = crate::test_http::serve_with_type(
+                &format!("{} Fixture", case["status"]),
+                case["content_type"].as_str().unwrap(),
+                &body,
+            );
+            let result = openai_stub(&endpoint).transcribe_bytes(
+                b"synthetic-audio",
+                Some("test-key"),
+                &Settings::default(),
+            );
+            match case["expected"].as_str().unwrap() {
+                "error" => assert!(result.is_err(), "{}", case["name"]),
+                "empty" => assert_eq!(result.unwrap(), "", "{}", case["name"]),
+                "text" => assert_eq!(
+                    result.unwrap(),
+                    case["text"].as_str().unwrap(),
+                    "{}",
+                    case["name"]
+                ),
+                other => panic!("unknown result {other}"),
+            }
+            let request = String::from_utf8(stub.join().unwrap()).unwrap();
+            assert!(request.starts_with("POST / "), "{}", case["name"]);
+        }
     }
 
     /// OpenAI's rules, but talking to the local stub.
