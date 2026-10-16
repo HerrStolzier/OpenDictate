@@ -20,7 +20,7 @@ internal static class Brand
     private static readonly (string Key, DesignColor Color)[] Colors =
     [
         ("Bg", DesignColor.Bg), ("Surface", DesignColor.Surface), ("Sunken", DesignColor.SurfaceSunken),
-        ("Line", DesignColor.Line), ("Ink", DesignColor.Ink), ("InkMuted", DesignColor.InkMuted),
+        ("Line", DesignColor.Line), ("Edge", DesignColor.Edge), ("Ink", DesignColor.Ink), ("InkMuted", DesignColor.InkMuted),
         ("Signal", DesignColor.Signal), ("OnSignal", DesignColor.OnSignal), ("FocusRingBrush", DesignColor.FocusRing),
     ];
 
