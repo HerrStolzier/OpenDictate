@@ -450,7 +450,7 @@ fn shortcut_step(mode: settings::ShortcutMode) -> Result<Option<Choice>, String>
         let answer = ask_number(skip, default.unwrap_or(skip))?;
         if answer == skip {
             if current.is_none() {
-                print_manual_line(Choice::SuperD);
+                print_manual_line(Choice::SuperD, mode);
             }
             return Ok(current);
         }
