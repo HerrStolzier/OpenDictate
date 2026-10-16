@@ -357,14 +357,39 @@
       }
       raf = requestAnimationFrame(frame);
     }
-    // The loop only runs while the stage is on screen, so it costs nothing further down the page.
-    var raf = 0;
-    if (!('IntersectionObserver' in window)) { raf = requestAnimationFrame(frame); return; }
-    new IntersectionObserver(function (entries) {
-      var seen = entries[entries.length - 1].isIntersecting;
-      if (seen && !raf) raf = requestAnimationFrame(frame);
-      else if (!seen && raf) { cancelAnimationFrame(raf); raf = 0; }
-    }).observe(document.querySelector('.stage'));
+    // The loop only runs while the stage is on screen and not held, so it costs nothing further down the page.
+    var raf = 0, seen = true, held = false, heldAt = 0;
+    var box = document.querySelector('.stage');
+    var hold = document.querySelector('.stage-hold');
+    function run() {
+      var want = seen && !held;
+      if (want && !raf) raf = requestAnimationFrame(frame);
+      else if (!want && raf) { cancelAnimationFrame(raf); raf = 0; }
+    }
+    function holdButton() {
+      hold.innerHTML = glyph(held ? 'play' : 'pause', 20, '');
+      hold.setAttribute('aria-label', held ? (TEXT.stage_play || 'Animation abspielen') : (TEXT.stage_pause || 'Animation anhalten'));
+    }
+    // The stage loops for as long as it is visible, so it can be held (WCAG 2.2.2); it resumes where it stopped.
+    if (hold) {
+      hold.addEventListener('click', function () {
+        held = !held;
+        if (held) heldAt = performance.now();
+        else t0 += performance.now() - heldAt;
+        box.classList.toggle('is-held', held);
+        holdButton();
+        run();
+      });
+      holdButton();
+      hold.hidden = false;
+    }
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        seen = entries[entries.length - 1].isIntersecting;
+        run();
+      }).observe(box);
+    }
+    run();
   }
 
   /* ---------- Footer: Blink runs along while the page scrolls ---------- */
@@ -458,6 +483,19 @@
       video.poster = link.dataset.poster;
       video.src = withSound ? link.dataset.full : link.dataset.loop;
       video.muted = !withSound;
+      // The version with sound gets its captions; the silent loop has nothing to caption.
+      var old = video.querySelector('track');
+      if (old) video.removeChild(old);
+      if (withSound && link.dataset.captions) {
+        var track = document.createElement('track');
+        track.kind = 'captions';
+        track.src = link.dataset.captions;
+        track.srclang = document.documentElement.lang;
+        track.label = TEXT.captions || document.documentElement.lang;
+        track.default = true;
+        video.appendChild(track);
+        track.track.mode = 'showing';
+      }
       video.setAttribute('aria-label', (TEXT.video || 'Erklärvideo: ') + link.querySelector('.kino-name').textContent);
       if (time) video.addEventListener('loadedmetadata', function () { video.currentTime = time; }, { once: true });
       if (visible && !held) start();

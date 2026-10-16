@@ -114,6 +114,8 @@
   "js_video": "Uitlegvideo: ",
   "js_play": "Afspelen",
   "js_pause": "Pauzeren",
+  "js_stage_play": "Animatie afspelen",
+  "js_stage_pause": "Animatie pauzeren",
   "js_meter": "Opnameniveau",
   "js_blink_ready": "klaar",
   "js_blink_listening": "luistert",
