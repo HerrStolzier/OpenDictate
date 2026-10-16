@@ -19,7 +19,9 @@ europäischen Sprachen unter den 13 Zielsprachen der App.
   Sprachen. `python3 scripts/website-i18n.py` schreibt daraus alle Seiten
   (auch die deutschen), die übersetzten Untertitel `videos/*.<sprache>.vtt`
   und `sitemap.xml`. Die erzeugten Dateien nie von Hand ändern; `--check`
-  meldet veraltete. Der Ordner `i18n/` wird nicht ausgeliefert.
+  meldet veraltete. Jede `.html`-Datei im Wurzelordner gilt als erzeugt, eine
+  neue Seite kommt daher als Vorlage dazu. Der Ordner `i18n/` wird nicht
+  ausgeliefert.
 - **Produktname:** steht nur in `i18n/site.json` (`name` und `wordmark`). Ein
   neuer Name braucht dort eine Änderung und einen Lauf des Skripts. Fest
   bleiben die Links auf das Repository, die Domain in `site.json` (`origin`,

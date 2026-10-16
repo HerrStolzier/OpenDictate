@@ -72,6 +72,15 @@ class WebsiteI18nTests(unittest.TestCase):
         finally:
             orphan.unlink()
 
+    def test_renamed_root_page_counts_as_stale(self):
+        expected = MODULE.build()
+        orphan = MODULE.WEBSITE / "renamed-test-page.html"
+        orphan.write_text("old")
+        try:
+            self.assertIn(orphan, MODULE.stale(expected))
+        finally:
+            orphan.unlink()
+
     def test_straight_quotes_in_plain_text_fail(self):
         real = MODULE.load
 

@@ -3,7 +3,7 @@
 
 `python3 scripts/website-i18n.py` writes the pages of each language listed in
 website/i18n/site.json, their subtitles and the sitemap. `--check` fails when a
-generated file is missing, out of date or left over from a removed language.
+generated file is missing, out of date or left over from a removed language or a renamed page.
 
 Templates in website/i18n/pages/ use `{{key}}` for a text of the page language,
 `{{de.key}}` for the German text, `{{site.key}}` for a value from site.json
@@ -214,6 +214,8 @@ def build() -> dict[Path, str]:
 def stale(expected: dict[Path, str]) -> list[Path]:
     """Generated files that no current language produces any more."""
     found = [path for path in (WEBSITE / "videos").glob("blink-*.vtt") if SUBTITLE.match(path.name)]
+    # Every HTML page in the site root comes from a template, also after a renamed German page.
+    found += list(WEBSITE.glob("*.html"))
     # Language folders have two-letter names; any file there that no page produces is stale,
     # also after a renamed page inside a language that is still listed.
     found += [path for child in WEBSITE.iterdir() if child.is_dir() and len(child.name) == 2
