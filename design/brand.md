@@ -11,7 +11,7 @@ OpenDictate ist eine Diktier-App für die Menüleiste: Tastenkürzel drücken, s
 ## Farben und Themes
 
 - Drei Themes: **Nacht** ist der Standard, **Bernstein** und **Papier** sind gleichwertige Alternativen. Jede Farbe kommt aus einem Token, nie als fester Hex-Wert, damit alles mit dem Theme wechselt.
-- Flächen: `bg` für Seite und Fenster, `surface` für Karten und Panels, `surface-sunken` für eingelassene Flächen wie die Bühne hinter Blink. `line` nur als Haarlinie zur Gliederung.
+- Flächen: `bg` für Seite und Fenster, `surface` für Karten und Panels, `surface-sunken` für eingelassene Flächen wie die Bühne hinter Blink. `line` nur als Haarlinie zur Gliederung und als Fläche von Zweitknöpfen und Tastenkappen. `edge` für die Grenzen von Bedienelementen: Kachelrahmen, Feldkanten, Schalterspuren. Karten heben sich sichtbar vom Grund ab, auch auf matten Bildschirmen.
 - Text: `ink` für Inhalte, `ink-muted` für Labels, Zeiten und Hinweise. Beide lesen sich auf `bg`, `surface` und `surface-sunken` in allen Themes.
 - `signal` ist die Markenfarbe: Blinks Körper, der Hauptknopf, Fortschritt, aktive Zustände. Text auf einer `signal`-Fläche ist immer `on-signal`.
 - `rec` heißt Aufnahme oder Fehler und steht nie allein: immer mit „REC“, „Hoppla“ oder einem Symbol.
@@ -59,7 +59,7 @@ OpenDictate ist eine Diktier-App für die Menüleiste: Tastenkürzel drücken, s
 
 ## Zugänglichkeit
 
-- Text erreicht mindestens 4,5 : 1 in jedem Theme auf den Flächen, die sein Token nennt; `line` ist Gliederung, keine Grenze eines Bedienelements.
+- Text erreicht mindestens 4,5 : 1 in jedem Theme auf den Flächen, die sein Token nennt; `line` ist Gliederung, keine Grenze eines Bedienelements. Grenzen und Zustände von Bedienelementen erreichen mindestens 3 : 1 zu ihrer Umgebung (`edge`, `signal`).
 - Tastaturfokus: 2 px Abstand, dann 2 px `focus-ring`. Bei Knöpfen mit Stufenecken liegt der Ring außerhalb der Ecken.
 - Zustände nie nur über Farbe oder Blink allein: immer mit Wort.
 - Knöpfe sind 44 px hoch.
