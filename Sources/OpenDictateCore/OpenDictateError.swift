@@ -16,6 +16,10 @@ public enum OpenDictateError: LocalizedError {
     case recordingTooShort(actual: TimeInterval, minimum: TimeInterval)
     case emptyTranslation
     case translationNotConfigured
+    /// Translating on this Mac needs macOS 26, and Apple must offer the pair.
+    case translationUnavailable
+    case translationLanguagesMissing
+    case translationFailed
     case invalidServerAddress
 
     /// User-facing messages deliberately exclude raw provider and framework errors.
@@ -70,6 +74,14 @@ public enum OpenDictateError: LocalizedError {
                 + "oder wähl unter „Dienst“ OpenAI."
         case .translationNotConfigured:
             return "Zielsprache oder Übersetzungsmodell ist ungültig. Wähle die Übersetzung in den Einstellungen neu."
+        case .translationUnavailable:
+            return "Auf diesem Mac kann Apple diese Sprachen nicht übersetzen. Das geht erst ab macOS 26 "
+                + "und nur für Sprachen, die Apple anbietet. Stell unter „Übersetzen mit“ deinen Dienst ein."
+        case .translationLanguagesMissing:
+            return "Für das Übersetzen auf dem Mac fehlen noch Sprachen. Lade sie in den Systemeinstellungen "
+                + "unter Allgemein → Sprache & Region → Übersetzungssprachen."
+        case .translationFailed:
+            return "Das Übersetzen auf dem Mac hat nicht geklappt. Du kannst die Aufnahme nochmal senden."
         }
     }
 }
