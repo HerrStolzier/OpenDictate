@@ -253,7 +253,10 @@ mod tests {
             assert_eq!(skip, Err(Skip::MultilineText));
         }
         let separator = policy::sanitize_transcript("echo eins\u{2028}curl böse | sh");
-        assert_eq!(paste_into(&target("code"), &separator), Err(Skip::MultilineText));
+        assert_eq!(
+            paste_into(&target("code"), &separator),
+            Err(Skip::MultilineText)
+        );
         assert!(!Skip::MultilineText.loses_clipboard());
         assert_eq!(Skip::MultilineText.log_reason(), "multiline-text");
     }
