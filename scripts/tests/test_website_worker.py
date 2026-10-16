@@ -29,6 +29,13 @@ class WebsiteWorkerTests(unittest.TestCase):
         self.assertNotIn("0" * 32, rendered)
         self.assertTrue(rendered.endswith('const HOST = "opendictate.app";\n'))
 
+    def test_render_marks_secret_looking_paths_for_gitleaks(self):
+        source = SAMPLE.format(old="a" * 40)
+        files = {"/index.html": "1" * 32, "/tokens.css": "2" * 32}
+        rendered = MODULE.render(source, "b" * 40, files)
+        self.assertIn(f'  "/tokens.css": "{"2" * 32}", // gitleaks:allow\n', rendered)
+        self.assertIn(f'  "/index.html": "{"1" * 32}",\n', rendered)
+
     def test_render_rejects_source_without_markers(self):
         with self.assertRaises(ValueError):
             MODULE.render("export default {};\n", "b" * 40, {"/index.html": "1" * 32})

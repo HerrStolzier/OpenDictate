@@ -336,7 +336,14 @@ Die `Range`-Antworten des Workers (ganze Datei, Anfang–Ende, ab Stelle, letzte
 n Bytes, ungültig, `If-Range`, HEAD) sind mit einer nachgebauten KV-Umgebung in
 Node geprüft.
 
-Live seit 2026-10-16, 13:19 UTC, auf Commit `db8a170`: die Verbesserungen
+Live seit 2026-10-16, 15:01 UTC, auf Commit `535a74b`: die Verbesserungen
+zur Barrierefreiheit und die helleren Farben aus dem Designsystem (Bastis Karte
+„Live schalten“ 14:52 UTC). Per Browser Rendering geprüft: `/` und `/fr/`
+haben den Knopf zum Anhalten, die Sprachwahl heißt „DE, Sprache: Deutsch“ bzw.
+„FR, Langue: Français“, die Kapitel tragen ihre Untertitel, und `tokens.css`
+enthält `--edge`.
+
+Davor live seit 2026-10-16, 13:19 UTC, auf Commit `db8a170`: die Verbesserungen
 aus der Design-Prüfung (Bastis Karte „Live schalten“ 13:17 UTC). Per Browser
 Rendering geprüft: `style.css` und `site.js` sind die neuen, `/en/` zeigt beim
 Zuhören das REC-Symbol, `/` mit geschlossener Notch blendet es aus.
