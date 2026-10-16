@@ -62,14 +62,18 @@ Notiz vom 12. September 2026, die bisher außerhalb des Repositorys lag.
   selbst und kostenlos.
 - Die CLI-Builds (heute: Linux) bleiben gratis.
 - Die fertig installierbare, signierte und gepflegte App mit Oberfläche kostet
-  einmalig etwas; Hypothese 2 bis 10 Euro. Bezahlt wird Komfort, Signatur,
+  einmalig 9 Euro, ein Kauf für alle Desktop-Plattformen (Entscheidung vom
+  16. Oktober 2026). Die iPhone-App wird einzeln im App Store verkauft, weil
+  Apple dort keine Lizenzschlüssel erlaubt. Bezahlt wird Komfort, Signatur,
   Updates und Support, nicht eine künstlich gesperrte Funktion. Größere spätere
   Upgrades dürfen etwas kosten.
 - Die API-Kosten zahlt jeder Nutzer selbst beim Anbieter.
 - Verkauft wird erst nach einer Firmengründung. Bis dahin bleibt alles
   kostenlos, auch die Betas.
+- Reihenfolge beim Verkauf: macOS, iOS, Windows, Linux, Android. Mit dem
+  Verkaufsstart der Mac-App wird OpenDictate angekündigt.
 
-Nicht entschieden: Preis, Bezahlweg, Firma, App Store. Ein Abo ist nicht
+Nicht entschieden: Bezahlweg, Firma, Name oder Marke. Ein Abo ist nicht
 vorgesehen.
 
 ## Plattformen und belegter Umfang
@@ -145,9 +149,10 @@ auch in der Windows- und der iPhone-App (dort noch nicht veröffentlicht)
   Annahme in jedem Zieltextfeld. Repräsentative Programme sind Testbeispiele,
   keine pauschale Supportzusage. Die Zwischenablage bleibt der verlustfreie
   manuelle Rückweg.
-- Keine Nachbearbeitung: OpenDictate glättet, formatiert oder kürzt nicht.
-  Nutzer, die das erwarten, finden es bei anderen Apps; die Website soll das
-  erklären.
+- Keine ungefragte Nachbearbeitung: OpenDictate glättet, formatiert oder
+  kürzt nicht von selbst. Ein sichtbarer Schalter zum Glätten (Zeichensetzung,
+  Füllwörter) ist seit dem 16. Oktober 2026 beschlossen, aber nicht gebaut;
+  die treue Abschrift bleibt Standard.
 - Streaming und Echtzeit-Übersetzung sind gewünscht, nicht implementiert und
   kein Teil des Funktionsumfangs. Hold-to-talk und Einzeltaste sind auf macOS
   seit Build 10 Teil der Beta (veröffentlicht am 11. Oktober 2026); auf den
@@ -173,6 +178,7 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
+| 16. Oktober 2026 | Die fertige App kostet einmalig 9 Euro für alle Desktop-Plattformen; die iPhone-App wird einzeln im App Store verkauft. Verkauft wird in der Reihenfolge macOS, iOS, Windows, Linux, Android. Vokabular und Verbrauchsanzeige werden auf allen Plattformen gebaut. Ein sichtbarer Schalter zum Glätten (Zeichensetzung, Füllwörter) darf kommen; Standard bleibt die treue Abschrift. Angekündigt wird mit dem Verkaufsstart der Mac-App; bis dahin gilt weiter „nirgends ankündigen“. | [ROADMAP](ROADMAP.md#plattformübergreifend); Bastis Antworten im Thread zur Monetarisierung, 16. Oktober 08:21 |
 | 15. Oktober 2026 | Der Name „OpenDictate“ bleibt vorerst. Weil weitere Projekte so heißen (unter anderem ein Linux-Programm mit dem Snap „opendictate“) und keine Marke eingetragen ist, sagen die READMEs kurz, welches Projekt dieses ist. Kein Snap; ein Linux-Paket außerhalb dieses Repos käme ins AUR unter `opendictate`. Ob die Wortmarke angemeldet (vorher anwaltlich prüfen) oder der Name gewechselt wird, entscheidet Basti vor der bezahlten App. | [README.md](README.md#good-to-know), [linux/README.md](linux/README.md#install), [linux/README.de.md](linux/README.de.md#installieren), [TRADEMARKS.md](TRADEMARKS.md); Bastis Karte „Namen ‚OpenDictate‘ vorerst behalten?“ im Thread „Projektübersicht und offene Punkte“, 15. Oktober 10:21 („Behalten“) |
 | 14. Oktober 2026 | Liegengebliebene Original-Aufnahmen (App endete vor dem Sichern oder die gesicherte Kopie ließ sich nicht anlegen) löschen Mac, Linux und Windows beim Start, sobald sie 24 Stunden alt sind, nie früher und ohne Obergrenze von fünf. Die Grenze von fünf gilt weiter nur für die gesicherten Kopien, damit kein Diktat vor Ablauf der 24 Stunden verloren geht. | [PRIVACY.md](PRIVACY.md); Bastis Entscheidung im Thread „Sicherheits-PRs aus dem Bundle“, 14. Oktober 15:17 („So lassen“) |
 | 14. Oktober 2026 | Auf allen Plattformen geht der gespeicherte API-Schlüssel weiter an jeden eigenen Server außerhalb dieses Geräts (über HTTPS), auch wenn er für OpenAI angelegt wurde; am Mac liegt die Server-Adresse weiter in den UserDefaults. Das Verhalten bleibt, die Dokumentation sagt es deutlich – ebenso, dass `OPENAI_BASE_URL` Aufnahmen und Schlüssel umleitet und ein Server auf `localhost` nur auf einem Rechner mit einem einzigen Nutzer privat ist. | [PRIVACY.md](PRIVACY.md), [linux/README.md](linux/README.md#custom-server), [linux/README.de.md](linux/README.de.md), [docs/mac-details.md](docs/mac-details.md), [ios/README.md](ios/README.md), [windows/README.md](windows/README.md); Chat 14. Oktober 2026 (Sicherheitsdurchsicht) |
