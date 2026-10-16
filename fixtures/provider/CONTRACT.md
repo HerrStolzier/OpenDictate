@@ -17,7 +17,7 @@ the provider side is shared; each client keeps its own code. Decided on
   2. `response_format` = `json`
   3. optional language: `languages[]` when the model is `gpt-transcribe`,
      otherwise `language`
-  4. optional `prompt` (vocabulary; macOS only so far)
+  4. optional `prompt` (vocabulary; macOS, Linux and Windows core)
   5. `file`, with a fixed transport filename and type:
 
 | Platform | Filename | Content-Type |
@@ -60,3 +60,39 @@ German display language).
 | [error-413.json](error-413.json) | 413 | upload too large, no code |
 | [error-429.json](error-429.json) | 429 | quota used up (`insufficient_quota`) |
 | [error-500.json](error-500.json) | 500 | provider unavailable, no code |
+
+## Explicit vocabulary
+
+The additive `vocabulary` case in `cases.json` contains `entries` and the
+exact joined `prompt`. Existing success/error cases are unchanged. Linux
+accepts up to 64 non-empty entries and 800 UTF-8 bytes including `, ` separators,
+rejects controls and surrounding whitespace, and sends no prompt when empty.
+This is a conservative application bound, not a guarantee about token count:
+Whisper considers only its last 224 prompt tokens. The Mac stores free-form
+context without this list bound; Linux bounds a short list of spelling hints.
+
+Official API checked on 16 October 2026:
+[transcription context](https://developers.openai.com/api/docs/guides/speech-to-text#add-transcription-context)
+also documents `keywords[]` for `gpt-transcribe`. These clients keep `prompt`
+for compatibility with all offered models and custom servers; no undocumented
+keyword field is sent. Hints do not guarantee recognition or permit rewriting.
+
+## Unusual replies (Rust and C#)
+
+The additive `edge_cases` list leaves the existing Swift success/error schema
+unchanged. Rust and C# read the same response files. `text_repeat` generates a
+large synthetic text without checking a megabyte into source control.
+HTTP 400/403/404/502/503 and redirects 301/302/307 fail once. Redirects are never
+followed, even if their body contains a usable transcript. Missing/invalid
+JSON or missing/non-string text fails; empty or whitespace text returns empty
+and the existing dictation flow retains the recording without delivery.
+
+Linux now matches Windows' bounded response policy: at most 131,072 body bytes
+and 16,000 UTF-16 code units of trimmed/sanitized text. This comfortably covers
+a 90-second dictation; oversized replies are rejected, never truncated into a
+possibly misleading transcript. Linux previously allowed up to 1 MiB and did
+not cap text independently. Both accept valid JSON under a wrong Content-Type
+for compatibility with local servers; content is still parsed and bounded.
+The provider error body is never shown. The existing flow tests separately
+cover audio retention for errors/empty replies; transport tests alone do not
+prove a live dictation or target-field insertion.

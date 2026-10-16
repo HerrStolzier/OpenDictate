@@ -46,6 +46,8 @@ public sealed record DictationSettings
     public bool ShortcutConfirmed { get; init; }
     // False keeps every transcript on the clipboard without sending Ctrl+V.
     public bool AutoInsert { get; init; } = true;
+    // Explicit local spelling hints, shared limits with Linux (#164).
+    public IReadOnlyList<string> Vocabulary { get; init; } = [];
 
     [JsonIgnore]
     public ShortcutKey ShortcutKey => ShortcutGesture.Parse(Shortcut) ?? ShortcutKey.CtrlWin;
@@ -130,6 +132,7 @@ public sealed record DictationSettings
     // server names its models freely, OpenAI only takes the known ones.
     public void Validate()
     {
+        ValidateVocabulary(Vocabulary);
         ValidateModelName(Model);
         ValidateModelName(ServerModel);
         if (!IsModelName(TranslationModel) || !IsModelName(ServerTranslationModel))
@@ -161,6 +164,16 @@ public sealed record DictationSettings
     {
         if (language.Length is 0 or > 16 || !language.All(c => char.IsAsciiLetterOrDigit(c) || c == '-'))
             throw new UserFacingException(UiText.T("Ungültiger Sprachcode.", "Invalid language code."));
+    }
+
+    public static void ValidateVocabulary(IReadOnlyList<string>? words)
+    {
+        if (words is null || words.Count > 64
+            || words.Any(word => string.IsNullOrWhiteSpace(word) || word != word.Trim() || word.Any(char.IsControl))
+            || System.Text.Encoding.UTF8.GetByteCount(string.Join(", ", words)) > 800)
+            throw new UserFacingException(UiText.T(
+                "Vokabular: höchstens 64 Einträge und 800 UTF-8-Bytes. Leere Einträge und Steuerzeichen sind nicht erlaubt.",
+                "Vocabulary: at most 64 entries and 800 UTF-8 bytes. Empty entries and control characters are not allowed."));
     }
 
     private static void ValidateModelName(string? model)

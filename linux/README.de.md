@@ -268,7 +268,8 @@ meisten:
 - Abbruch oder Netzausfall genau während der Übersetzung.
 - Die Zeitlimits (Netzfehler nach etwa 20 Sekunden) sind nur offline geprüft.
 - Nur Hyprland, nur Arch-basierte Systeme. Kein Settings-Fenster, kein
-  Halten-zum-Sprechen, kein eigenes Vokabular. Geprüft ist nur OpenAI; eigene
+  Halten-zum-Sprechen. Eigenes Vokabular ist im CLI-Code umgesetzt; die
+  Erkennung damit ist noch nicht live abgenommen. Geprüft ist nur OpenAI; eigene
   Server sind ungetestet.
 - Höchstens 90 Sekunden pro Diktat.
 
@@ -437,6 +438,64 @@ sind echte Verzeichnisse mit Modus `0700`; Audiodateien und Nachweise `0600`.
   Diktat geprüft ([Nachweis](../docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026));
   nicht im AUR, kein zweites Distro-Ziel.
 
+## Vokabular
+
+Eigene Wörter und Namen speicherst du mit
+`opendictate vocabulary add "Pull Request"`. Mit `vocabulary list`,
+`vocabulary remove "Pull Request"` und `vocabulary clear` verwaltest du sie.
+Die Liste liegt in deiner privaten Einstellungsdatei und geht als `prompt` an
+deinen gewählten Transkriptionsdienst, auch an einen eigenen Server.
+Grenzen: 64 Einträge und 800 UTF-8-Bytes einschließlich Trennzeichen; keine
+leeren Einträge, Steuerzeichen oder Leerzeichen am Rand. Die Liste lernt nicht
+von selbst. Einstellungen und Berichte zeigen nur die Anzahl; im Protokoll
+stehen die Wörter nie.
+
+## Dienst wechseln und Server behalten
+
+`opendictate settings service openai` behält die eigene Adresse und deren
+Modelle; `settings service custom` nutzt sie wieder und braucht eine gespeicherte
+Adresse. `settings server off` ist ein Alias für die OpenAI-Auswahl. Die erste
+eigene Adresse wählt den eigenen Server; spätere Adressänderungen behalten die
+Auswahl. Beide Dienste behalten getrennte Abschrift- und Übersetzungsmodelle.
+`settings model` und `settings translation-model` ändern den aktiven Dienst.
+Alte Einstellungen mit eigener Adresse ziehen ihre Modellnamen dorthin um.
+
+Die bisherige Rangfolge bleibt: Eine aktiv gewählte gespeicherte Server-Adresse
+geht vor `OPENAI_BASE_URL`. Ohne aktive gespeicherte Adresse leitet die Variable
+Anfragen weiterhin um, auch nach `service openai` oder `server off`. Entferne
+sie für OpenAI selbst. `settings show` und der Leisten-Tooltip zeigen den
+tatsächlichen Dienst; im Tooltip steht nur der Host, nie die volle Adresse.
+
+## Kürzel antippen oder gedrückt halten
+
+`opendictate setup` fragt die Aufnahmeart ab. Antippen bleibt Standard; die
+vorhandene `toggle`-Belegung funktioniert weiter. Halten nutzt `start` beim
+Drücken und `stop` beim Loslassen mit derselben Aufnahme-/Anfragesperre.
+Wiederholtes `start` während der Aufnahme und `stop` ohne Aufnahme tun nichts.
+Sehr kurzes Halten wartet beim Stoppen auf einen bereits laufenden Mikrofonstart.
+Zu kurze oder stille Aufnahmen bleiben im bisherigen gesicherten/skipped-Pfad;
+sie werden nicht still gelöscht. Anders als bei der 300-ms-Schwelle unter
+Windows startet Linux beim Drücken: Hyprland liefert einzelne Befehle statt
+roher Tastaturereignisse.
+
+Die Aufnahmeart wird erst nach erfolgreichem Eintragen/Laden gespeichert;
+bei fehlgeschlagenem Schreiben, Laden oder Speichern der Einstellung wird die
+Konfiguration wiederhergestellt. `settings show` nennt `shortcut-mode`.
+Omarchy Lua nutzt den dokumentierten Helfer `o.bind_hold`, klassische
+Konfiguration zwei Zeilen. Lass bei klassischen/einfachen Lua-Kombinationen
+die Haupttaste vor dem Modifier los. Omarchys Helfer behandelt Modifierwechsel.
+Ein echter Tastaturtest unter Hyprland steht noch aus.
+
+## Fehler melden
+
+`opendictate report` zeigt dir den vollständigen Diagnosebericht im Terminal.
+Erst nach deiner Antwort `j` öffnet sich das Support-Formular im Browser.
+Die CLI sendet nichts an den Support. Du prüfst das Formular und schickst es
+selbst ab. `opendictate report --print` gibt nur die Adresse aus. Ohne grafische
+Sitzung oder funktionierendes `xdg-open` wird sie nach der Bestätigung ausgegeben.
+Aus dem Protokoll bleiben höchstens 30 bekannte Fehler-/Warnkategorien;
+freie Meldungen, freie Modellnamen und Server-Adressen werden verworfen.
+
 ## Lokale Verbrauchsschätzung
 
 `opendictate usage` zeigt Diktate, Audiominuten und geschätzte USD-Kosten für
@@ -457,3 +516,24 @@ Die Preise stammen aus der datierten gemeinsamen `fixtures/pricing/prices.json`;
 Rechnung, Steuern, regionale Zuschläge und Cache-Rabatte können abweichen.
 Scheitert das Speichern des Zählers, bleibt das Diktat nutzbar; das Protokoll
 nennt `usage-write-failed`. Der Zähler ersetzt keine Abrechnung.
+
+## Eine gesicherte Aufnahme mit OpenAI senden
+
+Bei Verbindungsfehler oder Zeitüberschreitung des eigenen Servers erscheint
+`opendictate retry --openai`. Der ausdrückliche Befehl sendet nur die neueste
+authentifizierte, nicht abgelaufene und nicht als skipped markierte Aufnahme
+einmal an OpenAI selbst. Dafür wird OPENAI_BASE_URL für diese Anfrage ignoriert;
+der gespeicherte OpenAI-Schlüssel wird benötigt. Es gibt keinen automatischen
+Wechsel. Normales retry und spätere Diktate nutzen weiter den eingestellten
+Dienst und dessen Modelle. Ein bekanntes OpenAI-Modell wird übernommen; alte
+Einstellungen mit ausschließlich eigenem Modell nutzen den OpenAI-Standard.
+Keine gespeicherte Einstellung wird geändert. Bei Fehler, leerem Text oder
+Abbruch bleibt die Aufnahme nach den bisherigen Regeln erhalten.
+`status` nennt den letzten eigenen Netzwerkfehler höchstens 24 Stunden lang;
+ein neuer Verarbeitungsversuch entfernt den Hinweis. HTTP-Fehler wie 404 bieten
+diesen Netzwerk-Rückweg nicht an. Zu kurze/stille skipped-Aufnahmen brauchen
+weiter `retry --skipped` und werden durch diesen Einmal-Befehl nie hochgeladen.
+
+Die ausdrückliche OpenAI-Wiederholung gilt auch bei einem Verbindungsfehler
+während der Übersetzung. Sie nutzt einmal das Standard-Übersetzungsmodell
+von OpenAI. Deine gespeicherten Einstellungen bleiben erhalten.
