@@ -17,6 +17,7 @@ import os
 import re
 import shlex
 import subprocess
+import time
 from urllib.parse import quote
 import sys
 
@@ -28,11 +29,17 @@ GIT = r"(?:^|[;&|(\s])git(?:\s+(?:-[cC]\s+(?:\"[^\"]*\"|'[^']*'|\S+)|--[\w-]+(?:
 RE_COMMIT = re.compile(GIT + r"commit(?=\s|$)")
 RE_PUSH = re.compile(GIT + r"push(?=\s|$)")
 RE_ADD = re.compile(GIT + r"add(?=\s|$)")
-RE_MERGE = re.compile(r"(?:^|[;&|(\s])gh\s+pr\s+merge(?=\s|$)")
+RE_MERGE = re.compile(r"(?:^|[;&|(\s])gh\s+pr\s+(?:(?:-R|--repo)(?:\s+|=)\S+\s+)?merge(?=\s|$)")
+# Merge über die REST-API (`gh api -X PUT repos/o/r/pulls/7/merge`), ebenso Auto-Merge per GraphQL.
+RE_GH_API = re.compile(r"(?:^|[;&|(\s])gh\s+api(?=\s)")
+RE_API_MERGE = re.compile(r"repos/([^/\s'\"]+/[^/\s'\"]+)/pulls/(\d+)/merge\b")
+RE_GRAPHQL_MERGE = re.compile(r"\bgh\s+api\s+graphql\b.*\b(?:mergePullRequest|enablePullRequestAutoMerge)\b", re.S)
 RE_CD = re.compile(r"(?:^|[;&|(])\s*cd\s+(?=\S)")
 SEPARATOR = re.compile(r"[;&|\n]")
 OK_CONCLUSIONS = {"SUCCESS", "NEUTRAL", "SKIPPED"}
 GH_TIMEOUT = 10
+BUDGET = 45  # Sekunden für alle GitHub-Abfragen; das Zeitlimit des Hooks (60 s) ließe den Befehl sonst durch.
+STARTED = time.monotonic()
 HOW = ("Lass den Agenten critic den aktuellen Stand prüfen, behebe wesentliche Befunde und trag das Ergebnis "
        "als Zeile `Reviewed-by: critic (…)` in die Commit-Nachricht ein. Frag Basti nicht nach einer "
        "Code-Bewertung; er liest keinen Code.")
@@ -64,10 +71,14 @@ def lines(out):
     return [l for l in (out or "").splitlines() if l.strip()]
 
 
+BEHAVIOR_DIRS = ("agents/", ".claude/")  # .md dort ist Verhalten (Frontmatter mit Werkzeugen, Modell, Hooks)
+
+
 def needs_review(paths) -> list:
     """Dateien, die kein reiner Text sind. Reine Textkorrekturen brauchen laut Regeln kein Review."""
-    return [p for p in paths if p and not p.lower().endswith(TEXT_SUFFIXES)
-            and not os.path.basename(p).upper().startswith("LICENSE")]
+    return [p for p in paths if p and (p.startswith(BEHAVIOR_DIRS) or "/.claude/" in p
+                                       or not (p.lower().endswith(TEXT_SUFFIXES)
+                                               or os.path.basename(p).upper().startswith("LICENSE")))]
 
 
 def blank(m):
@@ -359,12 +370,24 @@ def check_push(raw, bare, seg, cwd):
         deny(f"Diese noch nicht gepushten Commits ändern Code ohne Zeile `Reviewed-by:`: {hashes}. {HOW}{tip}")
 
 
-def gh_json(args, cwd):
+def gh_call(args, cwd):
+    """(Exit-Code, JSON oder None). gh gibt auch bei HTTP-Fehlern die Antwort von GitHub aus."""
+    left = BUDGET - (time.monotonic() - STARTED)
+    if left <= 1:
+        blocked("alles in der verfügbaren Zeit (GitHub antwortet zu langsam)")
     try:
-        code, out = run(["gh", *args], cwd, timeout=GH_TIMEOUT)
-        return json.loads(out) if code == 0 else None
-    except (OSError, ValueError, subprocess.TimeoutExpired):
-        return None
+        code, out = run(["gh", *args], cwd, timeout=min(GH_TIMEOUT, left))
+    except (OSError, subprocess.TimeoutExpired):
+        return 1, None
+    try:
+        return code, json.loads(out)
+    except ValueError:
+        return code, None
+
+
+def gh_json(args, cwd):
+    code, data = gh_call(args, cwd)
+    return data if code == 0 else None
 
 
 def blocked(what):
@@ -372,11 +395,17 @@ def blocked(what):
          "Melde Basti das als Blocker in einfachen Worten.")
 
 
+# Auslöser `pull_request:`/`pull_request_target:`, `- pull_request`, `on: [push, pull_request]`; kein `if:`-Ausdruck.
+PR_TRIGGER = re.compile(r"^\s*(?:-\s*)?pull_request(?:_target)?\s*(?::|$)|^\s*['\"]?on['\"]?\s*:[^#\n]*\bpull_request(?:_target)?\b", re.M)
+
+
 def pr_workflows(repo, ref, cwd) -> bool:
     """Gibt es einen Workflow, der bei PRs läuft? Workflows nur für main, Deploy oder Zeitplan zählen nicht."""
-    wf = gh_json(["api", f"repos/{repo}/contents/.github/workflows?ref={ref}"], cwd)
-    if not isinstance(wf, list):
+    code, wf = gh_call(["api", f"repos/{repo}/contents/.github/workflows?ref={ref}"], cwd)
+    if code != 0 and isinstance(wf, dict) and str(wf.get("status")) == "404":
         return False  # Kein Workflow-Ordner: Repo ohne CI.
+    if code != 0 or not isinstance(wf, list):
+        blocked("die Workflows des Repos")
     for f in wf:
         if not f.get("name", "").endswith((".yml", ".yaml")):
             continue
@@ -387,7 +416,7 @@ def pr_workflows(repo, ref, cwd) -> bool:
             text = base64.b64decode(body.get("content") or "").decode("utf-8", "ignore")
         except ValueError:
             blocked(f"den Workflow {f.get('name')}")
-        if re.search(r"\bpull_request(_target)?\b", text):
+        if PR_TRIGGER.search(text):
             return True
     return False
 
@@ -469,7 +498,7 @@ def check_pr(repo, target, cwd):
             blocked("die Dateien eines PR-Commits")
         if needs_review([f.get("filename", "") for f in detail.get("files") or []]):
             missing.append((c.get("sha") or "")[:8])
-            break  # Ein Fund reicht; weitere Abfragen könnten das Zeitlimit des Hooks reißen (dann liefe der Merge durch).
+            break  # Ein Fund reicht; das spart Abfragen.
     if missing:
         deny(f"PR #{num}: Mindestens dieser Commit ändert Code ohne Zeile `Reviewed-by:`: {missing[0]}. {HOW}")
 
@@ -478,10 +507,15 @@ def check_gh_merge(raw, bare, seg, cwd):
     with_value = {"-R", "--repo", "-t", "--subject", "-b", "--body", "-F", "--body-file",
                   "-A", "--author-email", "--match-head-commit"}
     w = seg.words
+    try:
+        pre = shlex.split(seg.prefix)
+    except ValueError:
+        pre = seg.prefix.split()
     repo = None
-    for i, x in enumerate(w):
-        if x in ("-R", "--repo") and i + 1 < len(w):
-            repo = w[i + 1]
+    w_all = pre + w  # `-R` darf auch zwischen `pr` und `merge` stehen
+    for i, x in enumerate(w_all):
+        if x in ("-R", "--repo") and i + 1 < len(w_all):
+            repo = w_all[i + 1]
         elif x.startswith("--repo="):
             repo = x.split("=", 1)[1]
     if repo:
@@ -514,12 +548,28 @@ def main():
     if not raw.strip():
         return
     bare = strip_text(raw)
+    merges = segments(raw, bare, RE_MERGE)
+    # Nur Argumente echter `gh api`-Aufrufe, nicht etwa eine Commit-Nachricht, die so einen Aufruf erwähnt.
+    api_merges = [(m.start(), a) for m in RE_GH_API.finditer(bare)
+                  for a in RE_API_MERGE.finditer(raw[m.end():(SEPARATOR.search(bare, m.end()) or re.search("$", bare)).start()])]
+    if RE_GH_API.search(bare) and RE_GRAPHQL_MERGE.search(raw):
+        deny("Merge oder Auto-Merge per GraphQL prüfe ich nicht. Nimm `gh pr merge` oder "
+             "`gh api -X PUT repos/<owner>/<repo>/pulls/<n>/merge`.")
+    pushes = segments(raw, bare, RE_PUSH)
+    first_merge = min([s.start for s in merges] + [start for start, _ in api_merges], default=None)
+    if first_merge is not None and any(s.start < first_merge and not {"-d", "--delete"} & set(s.words)
+                                       for s in pushes):
+        # Der Wächter prüft vor dem Push; die CI auf GitHub gehört dann noch zum alten Stand.
+        deny("Push und Merge im selben Befehl: Die CI kennt den neuen Stand noch nicht. Erst pushen, "
+             "CI abwarten, dann in einem eigenen Befehl mergen.")
     for seg in segments(raw, bare, RE_COMMIT):
         check_commit(raw, bare, seg, cwd)
-    for seg in segments(raw, bare, RE_PUSH):
+    for seg in pushes:
         check_push(raw, bare, seg, cwd)
-    for seg in segments(raw, bare, RE_MERGE):
+    for seg in merges:
         check_gh_merge(raw, bare, seg, cwd)
+    for _, m in api_merges:
+        check_pr(m.group(1), m.group(2), cwd)
 
 
 if __name__ == "__main__":

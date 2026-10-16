@@ -52,8 +52,10 @@ jobs:
           persist-credentials: false
           sparse-checkout: .github/scripts/auto_merge.py
           sparse-checkout-cone-mode: false
+          # Eigener Unterordner: Auf einem eigenen Runner bliebe die Teil-Kopie sonst im Arbeitsordner der anderen Jobs.
+          path: .auto-merge
       - name: Fertige PRs mergen
-        run: python3 .github/scripts/auto_merge.py
+        run: python3 .auto-merge/.github/scripts/auto_merge.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AUTO_MERGE_HAS_CI: "1"

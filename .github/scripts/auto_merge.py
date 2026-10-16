@@ -35,10 +35,14 @@ SHORT_WAIT_MINUTES = 3
 FILE_CAP = 3000  # Obergrenze der Dateilisten von GitHub (Commit und PR)
 
 
+BEHAVIOR_DIRS = ("agents/", ".claude/")  # .md dort ist Verhalten (Frontmatter mit Werkzeugen, Modell, Hooks)
+
+
 def needs_review(paths):
     """Dateien, die kein reiner Text sind (gleiche Regel wie hooks/review-gate.py)."""
-    return [p for p in paths if p and not p.lower().endswith(TEXT_SUFFIXES)
-            and not os.path.basename(p).upper().startswith("LICENSE")]
+    return [p for p in paths if p and (p.startswith(BEHAVIOR_DIRS) or "/.claude/" in p
+                                       or not (p.lower().endswith(TEXT_SUFFIXES)
+                                               or os.path.basename(p).upper().startswith("LICENSE")))]
 
 
 def latest_checks(check_runs):
@@ -54,16 +58,18 @@ def latest_checks(check_runs):
     return list(latest.values())
 
 
-GUARDED_PREFIXES = (".github/", "scripts/ci/", ".claude/")
-GUARDED_FILES = {"CLAUDE.md", "AGENTS.md", ".gitleaksignore", ".gitattributes"}
+# ci/, hooks/, agents/, config/ und der Installer sind in claude-config die Vorlagen der Wächter aller Repos.
+GUARDED_PREFIXES = (".github/", "scripts/ci/", ".claude/", "ci/", "hooks/", "agents/", "config/")
+GUARDED_FILES = {"CLAUDE.md", "AGENTS.md", ".gitleaksignore", ".gitattributes", "scripts/install-repo-gate.py"}
+LINT_CONFIGS = {"ruff.toml", ".ruff.toml", ".shellcheckrc", ".ignore"}  # gelten auch in Unterordnern; .ignore blendet Dateien für ruff aus
 
 
 def guarded(path):
     """Dateien, die über das Mergen selbst entscheiden: Workflows, Auto-Merge, CI-Skripte, Claudes Regeln und
-    Hooks sowie die Ausnahmen des Secret-Scans. Solche PRs mergt Claude selbst (GITHUB_TOKEN darf
-    Workflow-Dateien nicht mergen), denn ein PR soll nicht automatisch rein, wenn er die Prüfungen oder Regeln
-    ändert, die über ihn urteilen."""
-    return path.startswith(GUARDED_PREFIXES) or path in GUARDED_FILES
+    Hooks, die Regeln von ruff und shellcheck sowie die Ausnahmen des Secret-Scans. Solche PRs mergt Claude
+    selbst (GITHUB_TOKEN darf Workflow-Dateien nicht mergen), denn ein PR soll nicht automatisch rein, wenn
+    er die Prüfungen oder Regeln ändert, die über ihn urteilen."""
+    return path.startswith(GUARDED_PREFIXES) or path in GUARDED_FILES or path.rsplit("/", 1)[-1] in LINT_CONFIGS
 
 
 def evaluate(pr, owner, default_branch, commits, files, check_runs, status, waited, runs=(), has_ci=False,
@@ -127,8 +133,9 @@ COMMENTS = {
                "Lass critic den Stand prüfen, behebe wesentliche Befunde und ergänze die Zeile in diesen Commits "
                "(eigener Branch: umschreiben und mit `--force-with-lease` pushen). Danach mergt Auto-Merge von selbst."),
     "workflow": ("Auto-Merge mergt diesen PR nicht, weil er Dateien ändert, die über das Mergen urteilen "
-                 "(`.github/`, `scripts/ci/`, `.claude/`, `CLAUDE.md`, `AGENTS.md`, `.gitleaksignore` oder "
-                 "`.gitattributes`). Claude: Wenn die CI grün ist und jeder Code-Commit "
+                 "(`.github/`, `scripts/ci/`, `.claude/`, `CLAUDE.md`, `AGENTS.md`, `.gitleaksignore`, `.gitattributes`, "
+                 "Lint-Regeln wie `ruff.toml`, in claude-config auch `ci/`, `hooks/`, `agents/`, `config/` und "
+                 "`scripts/install-repo-gate.py`). Claude: Wenn die CI grün ist und jeder Code-Commit "
                  "geprüft ist, merge den PR selbst (Squash). Basti muss nichts tun."),
     "konflikt": ("Auto-Merge wartet: Der PR hat einen Konflikt mit `{base}`. Claude: Hol `{base}` in den Branch, "
                  "löse den Konflikt und pushe. Danach mergt Auto-Merge von selbst."),
@@ -246,6 +253,8 @@ def pr_facts(gh, number, cache):
             files = paths(gh.pages(f"/repos/{r}/commits/{c['sha']}", key="files", limit=30))
             commits.append({"sha": c["sha"], "message": c["commit"]["message"],
                             "parents": c.get("parents") or [], "files": files})
+        if len(commits) != pr.get("commits"):  # GitHub liefert höchstens 250 Commits; der Rest bliebe ungeprüft.
+            raise RuntimeError(f"PR #{number}: {pr.get('commits')} Commits, nur {len(commits)} geliefert, bitte selbst mergen")
         files = paths(gh.pages(f"/repos/{r}/pulls/{number}/files", limit=30))
         cache[number] = {"sha": sha, "commits": commits, "files": files}
     checks = gh.pages(f"/repos/{r}/commits/{sha}/check-runs", key="check_runs")
