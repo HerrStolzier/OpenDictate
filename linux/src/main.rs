@@ -836,6 +836,21 @@ fn auto_insert(
     }
 }
 
+fn finish_usage(
+    state_guard: &state::StateGuard,
+    receipt: Option<usage::Receipt>,
+) -> Result<(), String> {
+    if let Err(error) = ensure_not_cancelled(state_guard) {
+        if let Some(receipt) = receipt {
+            if receipt.rollback().is_err() {
+                log_ops("usage-rollback-failed");
+            }
+        }
+        return Err(error);
+    }
+    Ok(())
+}
+
 fn delivered_status(settings: &settings::Settings, retry: bool) -> String {
     let copied = tr!(
         "{} in die Zwischenablage kopiert",
@@ -965,15 +980,17 @@ fn process_new_recording(
             state_guard,
         )?;
         ensure_not_cancelled(state_guard)?;
-        if fs::read(prepared.path())
-            .map_err(|_| ())
-            .and_then(|audio| {
-                usage::record(&audio, &server, &settings, translation_usage).map_err(|_| ())
-            })
-            .is_err()
-        {
-            log_ops("usage-write-failed");
-        }
+        let usage_receipt = fs::read(prepared.path()).map_err(|_| ()).and_then(|audio| {
+            usage::record(&audio, &server, &settings, translation_usage).map_err(|_| ())
+        });
+        let usage_receipt = match usage_receipt {
+            Ok(receipt) => Some(receipt),
+            Err(()) => {
+                log_ops("usage-write-failed");
+                None
+            }
+        };
+        finish_usage(state_guard, usage_receipt)?;
         state_guard
             .set(state::State::Delivering)
             .map_err(path_error)?;
@@ -1113,9 +1130,15 @@ fn retry(skipped: bool) -> Result<(), String> {
         &state_guard,
     )?;
     ensure_not_cancelled(&state_guard)?;
-    if usage::record(&authenticated_bytes, &server, &settings, translation_usage).is_err() {
-        log_ops("usage-write-failed");
-    }
+    let usage_receipt =
+        match usage::record(&authenticated_bytes, &server, &settings, translation_usage) {
+            Ok(receipt) => Some(receipt),
+            Err(_) => {
+                log_ops("usage-write-failed");
+                None
+            }
+        };
+    finish_usage(&state_guard, usage_receipt)?;
     state_guard
         .set(state::State::Delivering)
         .map_err(path_error)?;

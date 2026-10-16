@@ -17,6 +17,8 @@ pub struct Translation {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Entry {
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub request_id: String,
     pub timestamp: i64,
     pub custom: bool,
     pub model: String,
@@ -37,6 +39,21 @@ pub struct Total {
     pub dictations: usize,
     pub audio_seconds: f64,
     pub cost_usd: Option<f64>,
+}
+
+pub struct Receipt {
+    path: std::path::PathBuf,
+    request_id: String,
+}
+
+impl Receipt {
+    /// Removes only this request when cancellation won during ledger IO.
+    pub fn rollback(self) -> Result<(), String> {
+        let _lock = lock(&self.path)?;
+        let mut entries = read(&self.path)?;
+        entries.retain(|entry| entry.request_id != self.request_id);
+        write(&self.path, &entries)
+    }
 }
 
 fn prices() -> serde_json::Value {
@@ -219,26 +236,29 @@ pub fn record(
     server: &crate::server::Server,
     settings: &crate::settings::Settings,
     translation: Option<Translation>,
-) -> Result<(), String> {
+) -> Result<Receipt, String> {
     let wave = hound::WavReader::new(std::io::Cursor::new(audio)).map_err(|_| error())?;
     if wave.spec().sample_rate == 0 {
         return Err(error());
     }
     let now = now();
     let entry = Entry {
+        request_id: crate::keyring::random_hex(16)?,
         timestamp: now,
         custom: server.is_custom(),
         model: settings.model.clone(),
         audio_seconds: f64::from(wave.duration()) / f64::from(wave.spec().sample_rate),
         translation,
     };
-    append(
-        &crate::paths::state_dir()
-            .map_err(crate::path_error)?
-            .join("usage.json"),
-        entry,
-        bounds(now),
-    )
+    let path = crate::paths::state_dir()
+        .map_err(crate::path_error)?
+        .join("usage.json");
+    let receipt = Receipt {
+        path: path.clone(),
+        request_id: entry.request_id.clone(),
+    };
+    append(&path, entry, bounds(now))?;
+    Ok(receipt)
 }
 
 pub fn show(reset: bool) -> Result<(), String> {
@@ -366,6 +386,34 @@ mod tests {
         assert!(write(&path, &[]).is_err());
         assert_eq!(fs::read(&temporary).unwrap(), b"pre-existing file");
         assert_eq!(fs::read(&path).unwrap(), before);
+        fs::remove_file(&temporary).unwrap();
+        let entry = Entry {
+            request_id: "this-request".to_string(),
+            timestamp: 9000,
+            custom: false,
+            model: "gpt-transcribe".to_string(),
+            audio_seconds: 10.0,
+            translation: None,
+        };
+        append(&path, entry.clone(), bounds).unwrap();
+        append(
+            &path,
+            Entry {
+                request_id: "another-request".to_string(),
+                ..entry
+            },
+            bounds,
+        )
+        .unwrap();
+        Receipt {
+            path: path.clone(),
+            request_id: "this-request".to_string(),
+        }
+        .rollback()
+        .unwrap();
+        let remaining = read(&path).unwrap();
+        assert_eq!(remaining.len(), 1);
+        assert_eq!(remaining[0].request_id, "another-request");
         let _ = fs::remove_dir_all(dir);
     }
 }

@@ -331,7 +331,7 @@ mod tests {
         let text = openai_stub(&endpoint)
             .translate("Hallo", "en", "test-model", Some("test-key"))
             .unwrap();
-        assert!(text.is_empty());
+        assert!(text.text.is_empty());
         server.join().unwrap();
     }
 
