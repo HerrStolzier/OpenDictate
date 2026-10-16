@@ -224,3 +224,11 @@ angemeldete normale Windows-Sitzung. Sie dürfen nur in einer isolierten
 Prüfumgebung mit einem Dummy-Zugangseintrag ausgeführt werden; sie verwenden
 keinen echten OpenAI-Schlüssel. Diese Dokumentation startet keinen dieser
 Abläufe.
+
+## Fehlerbericht im Kern
+
+`ProblemReport` baut offline die begrenzte Support-Adresse nach
+[dem gemeinsamen Vertrag](../docs/fehler-melden.md). Es übernimmt nur feste
+Diagnosekategorien, keine rohen Protokollmeldungen. Die Prüfungen lesen das
+plattformübergreifende Beispiel in `fixtures/report/`. Ein Menüpunkt und das
+Öffnen des Browsers sind in dieser Änderung noch nicht angeschlossen.

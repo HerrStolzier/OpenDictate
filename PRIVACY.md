@@ -421,3 +421,13 @@ Closed requests are deleted automatically 180 days after they were closed;
 open requests are kept until they are closed.
 On request, a ticket and all its messages, replies included, are deleted at
 once.
+
+### Windows problem-report builder
+
+The platform-neutral Windows core can build a support-form address with a
+report in its fragment. It performs no request and opens no browser. It uses
+version/architecture metadata, bounded settings, a vocabulary count and at most
+30 recognized operational error/warning categories. Raw log messages, unknown
+model names and arbitrary event details are discarded. The URI is limited to
+12,000 encoded characters. The app's menu and explicit review/send flow are
+not wired up yet; this core utility alone sends nothing.
