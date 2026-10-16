@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="pl" data-theme="nacht">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenDictate · Aplikacja do dyktowania na Maca i Linuksa, bez abonamentu</title>
+<meta name="description" content="Przytrzymaj klawisz i mów: tekst pojawi się tam, gdzie jest kursor. Około 0,1 centa za dyktowanie z OpenAI, za darmo i prywatnie z lokalnym modelem. Open source.">
+<link rel="canonical" href="https://opendictate.app/pl/">
+<link rel="alternate" hreflang="de" href="https://opendictate.app/">
+<link rel="alternate" hreflang="en" href="https://opendictate.app/en/">
+<link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/">
+<link rel="alternate" hreflang="es" href="https://opendictate.app/es/">
+<link rel="alternate" hreflang="it" href="https://opendictate.app/it/">
+<link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/">
+<link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/">
+<link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/">
+<link rel="alternate" hreflang="x-default" href="https://opendictate.app/en/">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0E1014">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OpenDictate">
+<meta property="og:locale" content="pl_PL">
+<meta property="og:locale:alternate" content="de_DE">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:locale:alternate" content="es_ES">
+<meta property="og:locale:alternate" content="it_IT">
+<meta property="og:locale:alternate" content="pt_BR">
+<meta property="og:locale:alternate" content="nl_NL">
+<meta property="og:url" content="https://opendictate.app/pl/">
+<meta property="og:title" content="OpenDictate · Aplikacja do dyktowania na Maca i Linuksa, bez abonamentu">
+<meta property="og:description" content="Przytrzymaj klawisz i mów: tekst pojawi się tam, gdzie jest kursor. Około 0,1 centa za dyktowanie z OpenAI, za darmo i prywatnie z lokalnym modelem. Open source.">
+<meta property="og:image" content="https://opendictate.app/videos/blink-01-so-diktierst-du.jpg">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="720">
+<meta property="og:image:alt" content="Blink, pikselowa postać z OpenDictate, pokazuje, jak dyktować">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/blink-32.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/fonts/GeistPixel-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/Geist-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/style.css">
+<script src="/site.js" defer></script>
+<script type="application/json" id="od-text">{"wordmark":"opendictate","video":"Film instruktażowy: ","play":"Odtwórz","pause":"Wstrzymaj","meter":"Poziom nagrania","blink":{"bereit":"gotowy","hoert":"słucha","schreibt":"pisze","eingefuegt":"wklejone","hoppla":"ups, błąd"},"hud":{"bereit":{"word":"Gotowe","sub":"przytrzymaj fn"},"hoert":{"word":"Słucha","sub":"REC 0:0"},"schreibt":{"word":"Pisze","sub":"zmienia się w tekst"},"eingefuegt":{"word":"Wklejone","sub":"do pola tekstowego"},"hoppla":{"word":"Ups","sub":"Brak połączenia. Nagranie jest zapisane."}}}</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://opendictate.app/#website",
+      "url": "https://opendictate.app/",
+      "name": "OpenDictate",
+      "inLanguage": "pl"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://opendictate.app/#app",
+      "name": "OpenDictate",
+      "description": "Przytrzymaj klawisz i mów: tekst pojawi się tam, gdzie jest kursor. Około 0,1 centa za dyktowanie z OpenAI, za darmo i prywatnie z lokalnym modelem. Open source.",
+      "url": "https://opendictate.app/pl/",
+      "applicationCategory": "UtilitiesApplication",
+      "applicationSubCategory": "Dyktowanie, wprowadzanie głosowe",
+      "operatingSystem": "macOS 14 lub nowszy (czip Apple), Linux (Arch z Hyprlandem)",
+      "softwareVersion": "0.1.0-beta.12",
+      "releaseNotes": "https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.12",
+      "downloadUrl": "https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.12",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "inLanguage": ["de", "en"],
+      "image": "https://opendictate.app/og.png",
+      "sameAs": ["https://github.com/HerrStolzier/OpenDictate"],
+      "author": {"@type": "Person", "name": "HerrStolzier", "url": "https://github.com/HerrStolzier"},
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"}
+    }
+  ]
+}
+</script>
+</head>
+<body id="top">
+<a class="skip" href="#main">Przejdź do treści</a>
+
+<div class="wrap">
+<header class="top">
+<a class="home" href="#top" aria-label="OpenDictate, na górę strony"><span data-od="wordmark" data-size="26"><span class="od-wordmark od-wordmark-26">opendictate</span></span></a>
+<nav aria-label="Menu główne" class="nav">
+<a href="#kosten">Koszty</a>
+<a href="#datenschutz">Prywatność</a>
+<a href="#uebersetzen">Tłumaczenie</a>
+<a href="/pl/poradniki.html">Poradniki</a>
+<a href="https://github.com/HerrStolzier/OpenDictate">GitHub</a>
+</nav>
+<details class="lang">
+<summary aria-label="Język: Polski">PL</summary>
+<ul class="lang-list">
+<li><a href="/" hreflang="de" lang="de">Deutsch</a></li>
+<li><a href="/en/" hreflang="en" lang="en">English</a></li>
+<li><a href="/fr/" hreflang="fr" lang="fr">Français</a></li>
+<li><a href="/es/" hreflang="es" lang="es">Español</a></li>
+<li><a href="/it/" hreflang="it" lang="it">Italiano</a></li>
+<li><a href="/pt/" hreflang="pt" lang="pt">Português</a></li>
+<li><a href="/nl/" hreflang="nl" lang="nl">Nederlands</a></li>
+<li><a href="/pl/" hreflang="pl" lang="pl" aria-current="true">Polski</a></li>
+</ul>
+</details>
+</header>
+</div>
+
+<main id="main">
+<section class="hero" aria-labelledby="hero-title">
+<div class="wrap">
+<div class="hero-head">
+<div class="hero-title">
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Mac i Linux · Open source · Beta</span></p>
+<h1 id="hero-title">Dyktuj <br>bez abonamentu.</h1>
+</div>
+<div class="hero-side">
+<p class="lead">Przytrzymaj klawisz i mów. Tekst pojawi się tam, gdzie jest kursor, a jeśli chcesz, od razu przetłumaczony. Z OpenAI jedno dyktowanie kosztuje około 0,1 centa. Z modelem na twoim komputerze nie kosztuje nic i zostaje na nim.</p>
+<div class="buttons">
+<a class="od-btn od-btn-primary" href="https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.12">Pobierz betę na Maca</a>
+<a class="od-btn od-btn-secondary" href="https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1">Na Linuksa</a>
+</div>
+<p class="meta">macOS 14 z czipem Apple, notaryzowana przez Apple, bez konta OpenDictate. Menu aplikacji są na razie po niemiecku.</p>
+</div>
+</div>
+
+<div class="stage" role="img" aria-label="Z notcha Maca wysuwa się wskaźnik, Blink słucha, a potem tekst zostaje wklejony do wiadomości.">
+<div class="screen">
+<canvas data-dither="field" data-color="signal" data-cy="38" data-hw="110" aria-hidden="true" class="field"></canvas>
+<div class="menubar" aria-hidden="true">
+<span class="menubar-right"><span class="menubar-rec" hidden>REC</span><img src="/blink-32.svg" width="32" height="32" alt=""></span>
+</div>
+<div class="hud" data-theme="nacht" aria-hidden="true">
+<div class="hud-in">
+<div class="hud-blink"></div>
+<div class="hud-text">
+<span class="hud-word">Gotowe</span>
+<span class="hud-sub"><span class="hud-rec" hidden data-od="icon" data-name="rec" data-size="12"></span><span class="hud-sub-text">przytrzymaj fn</span></span>
+</div>
+<div class="hud-vis">
+<canvas data-show="hoert" data-dither="voice" data-color="signal" class="voice" hidden></canvas>
+<span data-show="schreibt" hidden data-od="progress" data-value="0.55" data-cells="14" data-label="Trwa przetwarzanie"></span>
+<span data-show="eingefuegt" hidden data-od="icon" data-name="check" data-size="36"></span>
+<span data-show="hoppla" hidden data-od="icon" data-name="error" data-size="36"></span>
+</div>
+</div>
+</div>
+<div class="notes" aria-hidden="true">
+<div class="notes-head"><span>Nowa wiadomość</span><span>Do: zespół</span></div>
+<div class="notes-body">
+<p><span class="notes-paste">Jestem jeszcze w drodze. Zacznijmy pół godziny później.</span><span class="cursor od-a-blink"></span></p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="stage-foot">
+<ol class="flow-steps" aria-label="Przebieg dyktowania">
+<li data-phase="bereit">Gotowe</li>
+<li data-phase="hoert" class="hot">Słucha</li>
+<li data-phase="schreibt">Pisze</li>
+<li data-phase="eingefuegt">Wklejone</li>
+<li data-phase="hoppla" class="hot">Ups</li>
+</ol>
+<p>Wskaźnik w notchu i Blink są w becie na Maca od kompilacji 12. Na Macach bez notcha wskaźnik unosi się przy górnej krawędzi.</p>
+</div>
+</div>
+</section>
+
+<section id="kosten" class="section rule" aria-labelledby="kosten-title">
+<div class="wrap">
+<div class="intro">
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Koszty</span></p>
+<h2 id="kosten-title">Płacisz raz, a nie co miesiąc.</h2>
+<p class="lead">Bez abonamentu. Beta jest darmowa, a gotowa aplikacja będzie kosztować jednorazowo kilka euro. Za samo dyktowanie płacisz niewiele:</p>
+</div>
+<div class="cards">
+<article class="card stat"><span class="stat-num">0,1&nbsp;ct</span><p class="muted">za 15-sekundowe dyktowanie z własnym kluczem OpenAI.</p></article>
+<article class="card stat"><span class="stat-num">1,35&nbsp;$</span><p class="muted">miesięcznie, jeśli dyktujesz po dziesięć minut dziennie. Abonament na dyktowanie kosztuje zwykle od 8 do 15&nbsp;$.</p></article>
+<article class="card stat"><span class="stat-num">0&nbsp;€</span><p class="muted">z lokalnym modelem. Już teraz na Macu i Linuksie. <a href="https://github.com/HerrStolzier/OpenDictate/blob/main/docs/lokales-modell.md">Jak to zrobić (po niemiecku)</a></p></article>
+</div>
+<p class="meta">Cena OpenAI za gpt-transcribe, październik 2026. Z OpenAI tłumaczenie to jedno małe zapytanie tekstowe więcej na każde dyktowanie.</p>
+</div>
+</section>
+
+<section id="datenschutz" class="section sunken" aria-labelledby="daten-title">
+<div class="wrap">
+<div class="split">
+<div class="intro">
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Z lokalnym modelem</span></p>
+<h2 id="daten-title">Twój głos zostaje u ciebie.</h2>
+<p class="lead">Z lokalnym modelem to twoje urządzenie rozpoznaje, co mówisz. Ani nagranie, ani tekst go nie opuszczają. Nie potrzebujesz klucza ani konta. <a href="https://github.com/HerrStolzier/OpenDictate/blob/main/docs/lokales-modell.md">Jak to skonfigurować (po niemiecku)</a></p>
+<p class="muted">Z OpenAI nagranie trafia prosto z twojego urządzenia do OpenAI, z twoim własnym kluczem. Ja nic z tego nie widzę, a aplikacja niczego nie śledzi. Kod jest otwarty na <a href="https://github.com/HerrStolzier/OpenDictate">GitHubie</a>.</p>
+</div>
+<figure class="route" aria-label="Dokąd trafia nagranie">
+<div class="lane is-local">
+<p class="lane-head"><span>Lokalnie</span><span class="lane-tag">0&nbsp;€</span></p>
+<ol class="hops"><li>Mikrofon</li><li>twoje urządzenie</li><li>Tekst</li></ol>
+<p class="lane-note">Zostaje na urządzeniu. Z modelem z poradnika tłumaczenie jeszcze nie działa.</p>
+</div>
+<div class="lane">
+<p class="lane-head"><span>OpenAI</span><span class="lane-tag">0,1&nbsp;ct</span></p>
+<ol class="hops"><li>Mikrofon</li><li class="is-out">OpenAI</li><li>Tekst</li></ol>
+<p class="lane-note">Z twoim własnym kluczem, bez pośrednictwa z naszej strony. Przy tłumaczeniu trafia tam też tekst.</p>
+</div>
+</figure>
+</div>
+</div>
+</section>
+
+<section id="so-gehts" class="section rule" aria-labelledby="kino-title">
+<div class="wrap">
+<div class="intro">
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Jak to działa</span></p>
+<h2 id="kino-title">Blink ci pokaże.</h2>
+</div>
+<div class="kino">
+<div class="kino-screen">
+<video class="kino-video" src="/videos/blink-01-so-diktierst-du-schleife.mp4" poster="/videos/blink-01-so-diktierst-du.webp" width="1280" height="720" muted playsinline preload="none" controls aria-label="Film instruktażowy: Jak dyktować"></video>
+<div class="kino-tools" hidden><button class="kino-sound" type="button" aria-pressed="false">Dźwięk</button><button class="kino-play" type="button"></button></div>
+</div>
+<ol class="kino-list">
+<li id="so-diktierst-du" class="is-on"><a class="kino-chapter" aria-current="step" href="/pl/poradniki.html#so-diktierst-du" data-loop="/videos/blink-01-so-diktierst-du-schleife.mp4" data-full="/videos/blink-01-so-diktierst-du.mp4" data-poster="/videos/blink-01-so-diktierst-du.webp"><span class="kino-num">01</span><span class="kino-name">Jak dyktować</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Przytrzymaj klawisz, mów, puść. Tekst pojawi się tam, gdzie jest kursor: w mailu, na czacie albo w dokumencie.</p></li>
+<li id="uebersetzen"><a class="kino-chapter" href="/pl/poradniki.html#gleich-auf-englisch" data-loop="/videos/blink-03-uebersetzen-schleife.mp4" data-full="/videos/blink-03-uebersetzen.mp4" data-poster="/videos/blink-03-uebersetzen.webp"><span class="kino-num">02</span><span class="kino-name">Od razu przetłumaczone</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Mówisz po polsku, a wklejony tekst jest po angielsku albo w jednym z jedenastu innych języków. Do maila za granicę albo na czat w grze. Wbudowane dyktowanie Maca nie tłumaczy.</p></li>
+<li id="nichts-geht-verloren"><a class="kino-chapter" href="/pl/poradniki.html#nichts-geht-verloren" data-loop="/videos/blink-04-nichts-geht-verloren-schleife.mp4" data-full="/videos/blink-04-nichts-geht-verloren.mp4" data-poster="/videos/blink-04-nichts-geht-verloren.webp"><span class="kino-num">03</span><span class="kino-name">Nic nie ginie</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Gdy padnie sieć albo usługa się zatnie, nagranie zostaje na twoim komputerze. Przyciskiem „Nochmal senden” (wyślij ponownie) wyślesz je jeszcze raz, nawet do 24 godzin później.</p></li>
+<li id="kostenlos"><a class="kino-chapter" href="/pl/poradniki.html#kostenlos-diktieren" data-loop="/videos/blink-02-kostenlos-schleife.mp4" data-full="/videos/blink-02-kostenlos.mp4" data-poster="/videos/blink-02-kostenlos.webp"><span class="kino-num">04</span><span class="kino-name">Za darmo z własnym serwerem</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Wpisz serwer działający na twoim komputerze. Wtedy dyktowanie nic nie kosztuje, a nagranie zostaje u ciebie.</p></li>
+<li id="erste-schritte"><a class="kino-chapter" href="/pl/poradniki.html#erste-schritte" data-loop="/videos/blink-05-erste-schritte-schleife.mp4" data-full="/videos/blink-05-erste-schritte.mp4" data-poster="/videos/blink-05-erste-schritte.webp"><span class="kino-num">05</span><span class="kino-name">Pierwsze kroki na Macu</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Pobierz aplikację, przeciągnij ją do folderu Aplikacje, wpisz klucz lub serwer, wybierz skrót. I gotowe.</p></li>
+</ol>
+</div>
+<p class="meta"><a href="/pl/poradniki.html">Wszystkie poradniki z napisami i tekstem</a></p>
+</div>
+</section>
+
+<section class="section cta" aria-labelledby="cta-title">
+<div class="wrap">
+<h2 id="cta-title" class="cta-title">Wypróbuj.</h2>
+<p class="lead">To wersja beta. Jeśli coś nie działa, napisz do mnie.</p>
+<div class="buttons">
+<a class="od-btn od-btn-primary" href="https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.12">Pobierz betę na Maca</a>
+<a class="od-btn od-btn-secondary" href="https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1">Na Linuksa</a>
+<a class="text-link" href="https://github.com/HerrStolzier/OpenDictate/issues/new?template=beta-rueckmeldung.md">Zgłoś problem</a>
+</div>
+<p class="meta">iPhone i Windows pojawią się później.</p>
+<figure class="why">
+<blockquote><p>Dyktuję codziennie, w pracy i na czacie w grach. Abonament na coś, co kosztuje ułamek centa za dyktowanie? To nie dla mnie.</p></blockquote>
+<figcaption>Basti</figcaption>
+</figure>
+</div>
+</section>
+</main>
+
+<footer class="foot">
+<div class="wrap">
+<div class="run-track" aria-hidden="true">
+<span class="run-prompt" data-od="icon" data-name="prompt" data-size="36" data-tone="muted"></span>
+<div class="run-blink"></div>
+</div>
+<div class="foot-row">
+<span data-od="wordmark" data-size="20" data-still><span class="od-wordmark od-wordmark-20">opendictate</span></span>
+<nav aria-label="Stopka" class="foot-nav">
+<a href="https://github.com/HerrStolzier/OpenDictate">GitHub</a>
+<a href="https://github.com/HerrStolzier/OpenDictate/issues/new?template=beta-rueckmeldung.md">Zgłoś problem</a>
+<a href="https://support.opendictate.app/kontakt">Kontakt</a>
+<a href="https://support.opendictate.app/impressum">Nota prawna (po niemiecku)</a>
+<a href="https://support.opendictate.app/datenschutz">Prywatność (po niemiecku)</a>
+<a href="https://github.com/HerrStolzier/OpenDictate/blob/main/LICENSE">Licencja MIT</a>
+</nav>
+<p class="meta">© 2026 HerrStolzier</p>
+</div>
+</div>
+</footer>
+</body>
+</html>
