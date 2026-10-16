@@ -6,6 +6,7 @@ import OpenDictateCore
 struct ServiceClient: Sendable {
     /// The upload limit of `/audio/transcriptions`.
     static let maximumUploadBytes = 25 * 1_024 * 1_024
+    static let maximumResponseBytes = 1_024 * 1_024
 
     private let transcriptionSession: URLSession
     private let translationSession: URLSession
@@ -23,13 +24,12 @@ struct ServiceClient: Sendable {
         guard !endpoint.isOpenAI, !endpoint.isLoopback else { return }
         var request = URLRequest(url: endpoint.baseURL.appendingPathComponent("models"))
         request.timeoutInterval = 10
-        _ = try? await translationSession.data(for: request)
+        _ = try? await Self.boundedResponse(request, using: translationSession, maximumBytes: 1_024)
     }
 
     func transcribe(_ audio: Data, configuration: DictationConfiguration) async throws -> String {
         let request = try Self.transcriptionRequest(audio: audio, configuration: configuration)
-        let (data, response) = try await transcriptionSession.data(for: request)
-        guard let response = response as? HTTPURLResponse else { throw DictationFailure.invalidResponse }
+        let (data, response) = try await Self.boundedResponse(request, using: transcriptionSession)
         guard 200..<300 ~= response.statusCode else { throw Self.failure(data: data, status: response.statusCode) }
         struct Body: Decodable { let text: String }
         guard let body = try? JSONDecoder().decode(Body.self, from: data) else {
@@ -40,8 +40,7 @@ struct ServiceClient: Sendable {
 
     func translate(_ text: String, into target: String, configuration: DictationConfiguration) async throws -> String {
         let request = try Self.translationRequest(text: text, target: target, configuration: configuration)
-        let (data, response) = try await translationSession.data(for: request)
-        guard let response = response as? HTTPURLResponse else { throw DictationFailure.invalidResponse }
+        let (data, response) = try await Self.boundedResponse(request, using: translationSession)
         guard 200..<300 ~= response.statusCode else { throw Self.failure(data: data, status: response.statusCode) }
         struct Body: Decodable {
             struct Choice: Decodable {
@@ -114,6 +113,22 @@ struct ServiceClient: Sendable {
         }
         let detail = (try? JSONDecoder().decode(Body.self, from: data))?.error
         return .service(status: status, code: detail?.code ?? detail?.type)
+    }
+
+    private static func boundedResponse(
+        _ request: URLRequest, using session: URLSession, maximumBytes: Int = maximumResponseBytes
+    ) async throws -> (Data, HTTPURLResponse) {
+        let (bytes, response) = try await session.bytes(for: request)
+        defer { bytes.task.cancel() }
+        guard let response = response as? HTTPURLResponse,
+            response.expectedContentLength <= maximumBytes
+        else { throw DictationFailure.invalidResponse }
+        var data = Data()
+        for try await byte in bytes {
+            guard data.count < maximumBytes else { throw DictationFailure.invalidResponse }
+            data.append(byte)
+        }
+        return (data, response)
     }
 }
 

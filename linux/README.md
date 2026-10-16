@@ -175,9 +175,9 @@ and `opendictate settings target off` turns it off again.
    clipboard and a notification says so.
 
 In known terminals (for example Alacritty, foot, kitty) OpenDictate pastes with
-Ctrl+Shift+V, elsewhere with Ctrl+V. Text with line breaks is not pasted into a
-terminal, because a line break would run the dictated line as a command; it
-stays in the clipboard and a notification says so. Control characters in the
+Ctrl+Shift+V, elsewhere with Ctrl+V. Text with line breaks stays in the
+clipboard for manual pasting in every app, because a terminal can be embedded
+in an editor or browser. A notification says so. Control characters in the
 transcript are removed before anything is copied. The text is always in the
 clipboard afterwards too. `opendictate settings insert off` turns automatic pasting
 off. `opendictate cancel` stops a running recording; the recording is kept for
@@ -370,8 +370,8 @@ stub. The key comes in from any trusted source through a pipe
   active Hyprland window is captured. After copying, the CLI checks that
   exactly this window is still in front and the clipboard still holds the
   text, then sends Ctrl+V (Ctrl+Shift+V in known terminals) to that window via
-  `hyprctl dispatch`. Multi-line text is never sent to a known terminal; it
-  stays in the clipboard. It first uses the Lua form `hl.dsp.send_shortcut`
+  `hyprctl dispatch`. Multi-line text is never pasted automatically into any
+  app; it stays in the clipboard. It first uses the Lua form `hl.dsp.send_shortcut`
   (Hyprland with Lua config, for example 0.56), and the older `sendshortcut`
   only when Hyprland clearly rejects it. Otherwise the text stays in the
   clipboard with a notice. If the clipboard no longer holds exactly the text

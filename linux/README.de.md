@@ -178,9 +178,9 @@ aus.
    Zwischenablage und eine Meldung sagt das.
 
 In bekannten Terminals (zum Beispiel Alacritty, foot, kitty) fügt OpenDictate
-mit Strg+Umschalt+V ein, sonst mit Strg+V. Text mit Zeilenumbruch wird nicht
-in ein Terminal eingefügt, weil ein Zeilenumbruch die diktierte Zeile als
-Befehl ausführen würde; er bleibt in der Zwischenablage und eine Meldung sagt
+mit Strg+Umschalt+V ein, sonst mit Strg+V. Text mit Zeilenumbruch wird nirgends
+automatisch eingefügt, weil auch Editoren und Browser ein Terminal enthalten
+können. Er bleibt in der Zwischenablage und eine Meldung sagt
 das. Steuerzeichen im Transkript werden entfernt, bevor etwas kopiert wird. Der
 Text liegt danach immer auch in der Zwischenablage. `opendictate settings insert
 off` schaltet das automatische Einfügen ab. `opendictate cancel` bricht eine
@@ -378,8 +378,8 @@ Quelle per Pipe (`trusted-secret-command | opendictate secrets set-api-key`).
   Start wird das aktive Hyprland-Fenster erfasst. Nach dem Kopieren prüft das
   CLI, dass genau dieses Fenster noch vorne ist und die Zwischenablage noch den
   Text enthält, und sendet dann per `hyprctl dispatch` Ctrl+V, in bekannten
-  Terminals Ctrl+Shift+V, an dieses Fenster. Mehrzeiliger Text wird nie an ein
-  bekanntes Terminal gesendet; er bleibt in der Zwischenablage. Zuerst wird die Lua-Form
+  Terminals Ctrl+Shift+V, an dieses Fenster. Mehrzeiliger Text wird in keine
+  App automatisch eingefügt; er bleibt in der Zwischenablage. Zuerst wird die Lua-Form
   `hl.dsp.send_shortcut` verwendet (Hyprland mit Lua-Konfiguration, z. B.
   0.56); nur wenn Hyprland sie eindeutig ablehnt, die ältere Form
   `sendshortcut`. Sonst bleibt es bei

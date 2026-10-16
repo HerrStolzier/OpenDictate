@@ -106,9 +106,9 @@ Windows-Beta.
   Fenster, das beim Start vorne war, wenn es noch vorne ist, alle
   Zusatztasten losgelassen sind und die Zwischenablage noch den Text hält;
   sonst bleibt der Text in der Zwischenablage („Kopiert“). Text mit
-  Zeilenumbruch wird nicht in Konsolen (Windows Terminal, cmd, PowerShell und
-  andere) eingefügt, weil ein Zeilenumbruch die diktierte Zeile als Befehl
-  ausführen würde; er bleibt in der Zwischenablage. Abschaltbar mit
+  Zeilenumbruch wird in keine App automatisch eingefügt, weil auch Editoren
+  und Browser Terminals enthalten können; er bleibt in der Zwischenablage.
+  Abschaltbar mit
   „Automatisch einfügen“. Strg+V wird als Scancode im Tastaturlayout des
   Zielfensters gesendet, weil manche Spiele nur diesen lesen; ob jedes Spiel
   es annimmt, ist erst live prüfbar.

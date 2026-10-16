@@ -13,17 +13,18 @@ struct TranscriptTextTests {
         #expect(TranscriptText.sanitize("eins\r\nzwei\rdrei\tvier\n") == "eins\nzwei\ndrei\tvier")
         #expect(TranscriptText.sanitize("Grüße 🧪 👨‍👩‍👧") == "Grüße 🧪 👨‍👩‍👧")
         #expect(TranscriptText.isMultiline("a\nb"))
+        #expect(TranscriptText.isMultiline("a\u{2028}b"))
         #expect(TranscriptText.isMultiline(TranscriptText.sanitize("a\r\nb")))
         #expect(!TranscriptText.isMultiline("a b"))
     }
 
-    @Test("Unicode line and paragraph separators become line breaks, so terminals do not get them pasted")
+    @Test("Unicode line and paragraph separators become line breaks and stay on the clipboard")
     func unicodeSeparatorsBecomeLineBreaks() {
         #expect(TranscriptText.sanitize("ls\u{2028}rm -rf x\u{2029}ende") == "ls\nrm -rf x\nende")
         #expect(TranscriptText.sanitize("\u{2029}eins\u{2028}") == "eins")
         let pasted = TranscriptText.sanitize("ls\u{2028}rm -rf x")
         #expect(TranscriptText.isMultiline(pasted))
-        #expect(!AutoPastePolicy.allowsPaste(of: pasted, intoBundleIdentifier: "com.apple.Terminal"))
+        #expect(!AutoPastePolicy.allowsPaste(of: pasted))
     }
 
     @Test("Segment line breaks from a local server become spaces; tabs and emoji stay")
@@ -36,11 +37,9 @@ struct TranscriptTextTests {
         #expect(TranscriptText.joiningSegments("a\tb  c 🧪") == "a\tb  c 🧪")
     }
 
-    @Test func multilineTextStaysInTheClipboardForTerminals() {
-        #expect(!AutoPastePolicy.allowsPaste(of: "ls\nrm -rf x", intoBundleIdentifier: "com.apple.Terminal"))
-        #expect(!AutoPastePolicy.allowsPaste(of: "a\nb", intoBundleIdentifier: "com.googlecode.iterm2"))
-        #expect(AutoPastePolicy.allowsPaste(of: "one line", intoBundleIdentifier: "com.apple.Terminal"))
-        #expect(AutoPastePolicy.allowsPaste(of: "a\nb", intoBundleIdentifier: "com.apple.TextEdit"))
-        #expect(AutoPastePolicy.allowsPaste(of: "a\nb", intoBundleIdentifier: nil))
+    @Test func multilineTextStaysInTheClipboardForEveryTarget() {
+        #expect(!AutoPastePolicy.allowsPaste(of: "ls\nrm -rf x"))
+        #expect(!AutoPastePolicy.allowsPaste(of: "a\nb"))
+        #expect(AutoPastePolicy.allowsPaste(of: "one line"))
     }
 }
