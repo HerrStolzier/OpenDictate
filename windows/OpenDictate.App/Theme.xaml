@@ -122,7 +122,7 @@
       <Setter.Value>
         <ControlTemplate TargetType="RadioButton">
           <!-- The outer face is the edge (one pixel step wide), so it follows the stepped corners. -->
-          <app:StepBorder x:Name="Face" Background="{DynamicResource Line}" Padding="3" SnapsToDevicePixels="True">
+          <app:StepBorder x:Name="Face" Background="{DynamicResource Edge}" Padding="3" SnapsToDevicePixels="True">
             <app:StepBorder Background="{DynamicResource Sunken}" Padding="14">
               <ContentPresenter RecognizesAccessKey="False" />
             </app:StepBorder>
@@ -151,8 +151,8 @@
               <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <ContentPresenter VerticalAlignment="Center" Margin="0,0,16,0" RecognizesAccessKey="False" />
-            <app:StepBorder x:Name="Track" Grid.Column="1" Width="52" Height="28" Padding="6,0" Background="{DynamicResource Line}" VerticalAlignment="Center" SnapsToDevicePixels="True">
-              <Rectangle x:Name="Knob" Width="16" Height="16" Fill="{DynamicResource InkMuted}" HorizontalAlignment="Left" />
+            <app:StepBorder x:Name="Track" Grid.Column="1" Width="52" Height="28" Padding="6,0" Background="{DynamicResource Edge}" VerticalAlignment="Center" SnapsToDevicePixels="True">
+              <Rectangle x:Name="Knob" Width="16" Height="16" Fill="{DynamicResource Bg}" HorizontalAlignment="Left" />
             </app:StepBorder>
           </Grid>
           <ControlTemplate.Triggers>
@@ -170,7 +170,7 @@
 
   <ControlTemplate x:Key="FieldTemplate" TargetType="Control">
     <app:StepBorder Background="{DynamicResource Sunken}" SnapsToDevicePixels="True">
-      <Border x:Name="Edge" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,2" Padding="{TemplateBinding Padding}">
+      <Border x:Name="Edge" BorderBrush="{DynamicResource Edge}" BorderThickness="0,0,0,2" Padding="{TemplateBinding Padding}">
         <ScrollViewer x:Name="PART_ContentHost" VerticalAlignment="Center" Focusable="False" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" />
       </Border>
     </app:StepBorder>
@@ -211,7 +211,7 @@
       <Setter.Value>
         <ControlTemplate TargetType="ToggleButton">
           <app:StepBorder Background="{DynamicResource Sunken}" SnapsToDevicePixels="True">
-            <Border x:Name="Edge" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,2" Background="Transparent">
+            <Border x:Name="Edge" BorderBrush="{DynamicResource Edge}" BorderThickness="0,0,0,2" Background="Transparent">
               <Path HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,14,0" Fill="{DynamicResource InkMuted}" SnapsToDevicePixels="True"
                     Data="M0,0h2v2h-2z M2,2h2v2h-2z M4,4h2v2h-2z M6,2h2v2h-2z M8,0h2v2h-2z" />
             </Border>
@@ -261,7 +261,7 @@
                               Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" />
             <Popup x:Name="PART_Popup" Placement="Bottom" VerticalOffset="4" AllowsTransparency="True" Focusable="False" PopupAnimation="None"
                    IsOpen="{TemplateBinding IsDropDownOpen}">
-              <Border Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Line}" BorderThickness="1" CornerRadius="{DynamicResource RadiusChip}" Padding="0,4"
+              <Border Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Edge}" BorderThickness="1" CornerRadius="{DynamicResource RadiusChip}" Padding="0,4"
                       MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
                 <ScrollViewer>
                   <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained" />
@@ -289,7 +289,7 @@
               <Thumb>
                 <Thumb.Template>
                   <ControlTemplate TargetType="Thumb">
-                    <Rectangle x:Name="Bar" Fill="{DynamicResource Line}" />
+                    <Rectangle x:Name="Bar" Fill="{DynamicResource Edge}" />
                     <ControlTemplate.Triggers>
                       <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Bar" Property="Fill" Value="{DynamicResource InkMuted}" /></Trigger>
                     </ControlTemplate.Triggers>

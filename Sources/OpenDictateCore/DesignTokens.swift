@@ -11,6 +11,7 @@ public enum DesignColor: String, CaseIterable, Sendable {
     case surface = "surface"
     case surfaceSunken = "surface-sunken"
     case line = "line"
+    case edge = "edge"
     case ink = "ink"
     case inkMuted = "ink-muted"
     case signal = "signal"
@@ -38,9 +39,9 @@ public enum DesignColor: String, CaseIterable, Sendable {
         case (.bg, .papier):
             return 0xEDEEE9
         case (.surface, .nacht):
-            return 0x181C23
+            return 0x1F242C
         case (.surface, .bernstein):
-            return 0x22190F
+            return 0x2C2114
         case (.surface, .papier):
             return 0xFFFFFF
         case (.surfaceSunken, .nacht):
@@ -50,11 +51,17 @@ public enum DesignColor: String, CaseIterable, Sendable {
         case (.surfaceSunken, .papier):
             return 0xE2E4DD
         case (.line, .nacht):
-            return 0x2A303A
+            return 0x394046
         case (.line, .bernstein):
-            return 0x3A2C1B
+            return 0x4C3C28
         case (.line, .papier):
             return 0xC9CCC3
+        case (.edge, .nacht):
+            return 0x6C746E
+        case (.edge, .bernstein):
+            return 0x836E50
+        case (.edge, .papier):
+            return 0x7A7E80
         case (.ink, .nacht):
             return 0xE9EEE2
         case (.ink, .bernstein):
