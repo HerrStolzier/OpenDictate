@@ -77,6 +77,7 @@ foreach (var test in tests)
 Console.WriteLine($"{tests.Length - failures}/{tests.Length} checks passed; synthetic data only.");
 failures += await DictationChecks.RunAsync();
 failures += await ProviderChecks.RunAsync(SyntheticWave());
+failures += await UsageChecks.RunAsync(SyntheticWave());
 failures += ShortcutChecks.Run();
 failures += TextFixtureChecks.Run();
 failures += ReportChecks.Run();
