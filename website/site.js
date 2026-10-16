@@ -4,6 +4,11 @@
   'use strict';
 
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Page texts in the page language; scripts/website-i18n.py writes them into each page.
+  var TEXT = (function () {
+    var el = document.getElementById('od-text');
+    try { return el ? JSON.parse(el.textContent) : {}; } catch (e) { return {}; }
+  })();
 
   /* ---------- Blink: pixel scenes on a 44 x 50 grid ---------- */
   var GW = 44, GH = 50;
@@ -103,7 +108,7 @@
       return { box: '0 0 44 50', layers: [layer(back), layer(ch, 'od-a-glitch')] };
     }
   };
-  var LABELS = { bereit: 'bereit', hoert: 'hört zu', schreibt: 'schreibt', eingefuegt: 'eingefügt', hoppla: 'Hoppla, Fehler' };
+  var LABELS = TEXT.blink || { bereit: 'bereit', hoert: 'hört zu', schreibt: 'schreibt', eingefuegt: 'eingefügt', hoppla: 'Hoppla, Fehler' };
   var cache = {};
   function scene(state) {
     if (!SCENES[state]) state = 'bereit';
@@ -133,9 +138,10 @@
   var B32 = [[12, 1, 1, 1, 'L'], [13, 1, 6, 1, 'B'], [19, 1, 1, 1, 'S'], [11, 2, 2, 18, 'L'], [13, 2, 6, 18, 'B'], [19, 2, 2, 18, 'S'], [12, 20, 1, 1, 'L'], [13, 20, 6, 1, 'B'], [19, 20, 1, 1, 'S']];
   var B32LEGS = [[12, 21, 2, 6, 'K'], [18, 21, 2, 6, 'K'], [9, 26, 5, 2, 'W'], [9, 28, 5, 1, 'G'], [18, 26, 5, 2, 'W'], [18, 28, 5, 1, 'G']];
   function cells(list) { return list.map(function (c) { return '<rect x="' + c[0] + '" y="' + c[1] + '" width="' + c[2] + '" height="' + c[3] + '" class="od-px-' + c[4] + '"></rect>'; }).join(''); }
+  var WORDMARK = TEXT.wordmark || 'opendictate';
   function wordmark(size, still) {
-    return '<span class="od-wordmark' + (still ? ' od-still' : '') + '" data-font-size="' + size + '" role="img" aria-label="opendictate">' +
-      '<span aria-hidden="true">opendictate</span><svg class="od-wordmark-blink" viewBox="9 1 14 29" aria-hidden="true" shape-rendering="crispEdges">' +
+    return '<span class="od-wordmark' + (still ? ' od-still' : '') + '" data-font-size="' + size + '" role="img" aria-label="' + WORDMARK + '">' +
+      '<span aria-hidden="true">' + WORDMARK + '</span><svg class="od-wordmark-blink" viewBox="9 1 14 29" aria-hidden="true" shape-rendering="crispEdges">' +
       '<g class="od-a-body">' + cells(B32) + '</g>' + cells(B32LEGS) + '</svg></span>';
   }
 
@@ -185,7 +191,7 @@
       }
     });
     var w = DEMO_LEVELS.length * 11 - 3;
-    return '<svg class="od-meter" viewBox="0 0 ' + w + ' 107" width="' + w + '" height="107" role="img" aria-label="Aufnahmepegel" shape-rendering="crispEdges">' + out + '</svg>';
+    return '<svg class="od-meter" viewBox="0 0 ' + w + ' 107" width="' + w + '" height="107" role="img" aria-label="' + (TEXT.meter || 'Aufnahmepegel') + '" shape-rendering="crispEdges">' + out + '</svg>';
   }
   function progress(value, n, label) {
     var filled = Math.round(value * n);
@@ -276,7 +282,7 @@
   }
 
   /* ---------- Hero stage: one dictation, looped ---------- */
-  var HUD = {
+  var HUD = TEXT.hud || {
     bereit: { word: 'Bereit', sub: 'fn halten' },
     hoert: { word: 'Hört zu', sub: 'REC 0:0' },
     schreibt: { word: 'Schreibt', sub: 'wird zu Text' },
@@ -433,7 +439,7 @@
     }
     function button() {
       play.innerHTML = glyph(video.paused ? 'play' : 'pause', 20, '');
-      play.setAttribute('aria-label', video.paused ? 'Abspielen' : 'Anhalten');
+      play.setAttribute('aria-label', video.paused ? (TEXT.play || 'Abspielen') : (TEXT.pause || 'Anhalten'));
     }
     function select(i, time) {
       items[current].classList.remove('is-on');
@@ -446,7 +452,7 @@
       video.poster = link.dataset.poster;
       video.src = withSound ? link.dataset.full : link.dataset.loop;
       video.muted = !withSound;
-      video.setAttribute('aria-label', 'Erklärvideo: ' + link.querySelector('.kino-name').textContent);
+      video.setAttribute('aria-label', (TEXT.video || 'Erklärvideo: ') + link.querySelector('.kino-name').textContent);
       if (time) video.addEventListener('loadedmetadata', function () { video.currentTime = time; }, { once: true });
       if (visible && !held) start();
     }
@@ -503,7 +509,22 @@
     }
   }
 
+  /* ---------- Language menu: a plain <details>, closed by Escape or a click elsewhere ---------- */
+  function languages() {
+    var menu = document.querySelector('details.lang');
+    if (!menu) return;
+    document.addEventListener('click', function (event) {
+      if (menu.open && !menu.contains(event.target)) menu.open = false;
+    });
+    menu.addEventListener('keydown', function (event) {
+      if (event.key !== 'Escape' || !menu.open) return;
+      menu.open = false;
+      menu.querySelector('summary').focus();
+    });
+  }
+
   document.documentElement.classList.add('js');
+  languages();
   mount();
   stage();
   runner();

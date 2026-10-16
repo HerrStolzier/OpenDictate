@@ -155,7 +155,12 @@ export default {
     if (request.method !== "GET" && request.method !== "HEAD") {
       return plain(405, "Methode nicht erlaubt", { allow: "GET, HEAD" });
     }
-    const path = url.pathname === "/" ? "/index.html" : url.pathname;
+    // Each language lives in its own folder, e.g. /en/ for /en/index.html.
+    if (Object.hasOwn(FILES, `${url.pathname}/index.html`)) {
+      url.pathname += "/";
+      return Response.redirect(url.toString(), 301);
+    }
+    const path = url.pathname.endsWith("/") ? `${url.pathname}index.html` : url.pathname;
     const hash = Object.hasOwn(FILES, path) ? FILES[path] : null;
     if (!hash) return plain(404, "Nicht gefunden");
     const [type, maxAge] = KINDS[path.split(".").pop()];

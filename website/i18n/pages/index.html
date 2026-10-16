@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="{{@lang}}" data-theme="nacht">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{title}}</title>
+<meta name="description" content="{{description}}">
+<link rel="canonical" href="{{@url}}">
+{{@alternates}}
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0E1014">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{site.name}}">
+<meta property="og:locale" content="{{@locale}}">
+{{@locale_alternates}}
+<meta property="og:url" content="{{@url}}">
+<meta property="og:title" content="{{title}}">
+<meta property="og:description" content="{{description}}">
+<meta property="og:image" content="{{site.origin}}{{og_image}}">
+<meta property="og:image:width" content="{{og_image_width}}">
+<meta property="og:image:height" content="{{og_image_height}}">
+<meta property="og:image:alt" content="{{og_image_alt}}">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/blink-32.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/fonts/GeistPixel-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/Geist-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/style.css">
+<script src="/site.js" defer></script>
+<script type="application/json" id="od-text">{{@text}}</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "{{site.origin}}/#website",
+      "url": "{{site.origin}}/",
+      "name": "{{site.name|json}}",
+      "inLanguage": "{{@lang}}"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "{{site.origin}}/#app",
+      "name": "{{site.name|json}}",
+      "description": "{{description|json}}",
+      "url": "{{@url}}",
+      "applicationCategory": "UtilitiesApplication",
+      "applicationSubCategory": "{{ld_category|json}}",
+      "operatingSystem": "{{ld_os|json}}",
+      "softwareVersion": "{{site.version}}",
+      "releaseNotes": "{{site.mac}}",
+      "downloadUrl": "{{site.mac}}",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "inLanguage": ["de", "en"],
+      "image": "{{site.origin}}/og.png",
+      "sameAs": ["{{site.repo}}"],
+      "author": {"@type": "Person", "name": "HerrStolzier", "url": "https://github.com/HerrStolzier"},
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"}
+    }
+  ]
+}
+</script>
+</head>
+<body id="top">
+<a class="skip" href="#main">{{skip}}</a>
+
+<div class="wrap">
+<header class="top">
+<a class="home" href="#top" aria-label="{{home_top}}"><span data-od="wordmark" data-size="26"><span class="od-wordmark od-wordmark-26">{{site.wordmark}}</span></span></a>
+<nav aria-label="{{nav_label}}" class="nav">
+<a href="#kosten">{{nav_cost}}</a>
+<a href="#datenschutz">{{nav_private}}</a>
+<a href="#uebersetzen">{{nav_translate}}</a>
+<a href="{{@guides}}">{{nav_guides}}</a>
+<a href="{{site.repo}}">GitHub</a>
+</nav>
+{{@switch}}
+</header>
+</div>
+
+<main id="main">
+<section class="hero" aria-labelledby="hero-title">
+<div class="wrap">
+<div class="hero-head">
+<div class="hero-title">
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>{{hero_kicker}}</span></p>
+<h1 id="hero-title">{{hero_title}}</h1>
+</div>
+<div class="hero-side">
+<p class="lead">{{hero_lead}}</p>
+<div class="buttons">
+<a class="od-btn od-btn-primary" href="{{site.mac}}">{{get_mac}}</a>
+<a class="od-btn od-btn-secondary" href="{{site.linux}}">{{get_linux}}</a>
+</div>
+<p class="meta">{{hero_meta}}</p>
+</div>
+</div>
+
+<div class="stage" role="img" aria-label="{{stage_label}}">
+<div class="screen">
+<canvas data-dither="field" data-color="signal" data-cy="38" data-hw="110" aria-hidden="true" class="field"></canvas>
+<div class="menubar" aria-hidden="true">
+<span class="menubar-right"><span class="menubar-rec" hidden>REC</span><img src="/blink-32.svg" width="32" height="32" alt=""></span>
+</div>
+<div class="hud" data-theme="nacht" aria-hidden="true">
+<div class="hud-in">
+<div class="hud-blink"></div>
+<div class="hud-text">
+<span class="hud-word">{{hud_ready}}</span>
+<span class="hud-sub"><span class="hud-rec" hidden data-od="icon" data-name="rec" data-size="12"></span><span class="hud-sub-text">{{hud_ready_sub}}</span></span>
+</div>
+<div class="hud-vis">
+<canvas data-show="hoert" data-dither="voice" data-color="signal" class="voice" hidden></canvas>
+<span data-show="schreibt" hidden data-od="progress" data-value="0.55" data-cells="14" data-label="{{hud_progress}}"></span>
+<span data-show="eingefuegt" hidden data-od="icon" data-name="check" data-size="36"></span>
+<span data-show="hoppla" hidden data-od="icon" data-name="error" data-size="36"></span>
+</div>
+</div>
+</div>
+<div class="notes" aria-hidden="true">
+<div class="notes-head"><span>{{notes_new}}</span><span>{{notes_to}}</span></div>
+<div class="notes-body">
+<p><span class="notes-paste">{{notes_text}}</span><span class="cursor od-a-blink"></span></p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="stage-foot">
+<ol class="flow-steps" aria-label="{{steps_label}}">
+<li data-phase="bereit">{{step_ready}}</li>
+<li data-phase="hoert" class="hot">{{step_listening}}</li>
+<li data-phase="schreibt">{{step_writing}}</li>
+<li data-phase="eingefuegt">{{step_pasted}}</li>
+<li data-phase="hoppla" class="hot">{{step_oops}}</li>
+</ol>
+<p>{{stage_note}}</p>
+</div>
+</div>
+</section>
+
+<section id="kosten" class="section rule" aria-labelledby="kosten-title">
+<div class="wrap">
+<div class="intro">
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>{{cost_kicker}}</span></p>
+<h2 id="kosten-title">{{cost_title}}</h2>
+<p class="lead">{{cost_lead}}</p>
+</div>
+<div class="cards">
+<article class="card stat"><span class="stat-num">{{cost_openai_num}}</span><p class="muted">{{cost_openai}}</p></article>
+<article class="card stat"><span class="stat-num">{{cost_month_num}}</span><p class="muted">{{cost_month}}</p></article>
+<article class="card stat"><span class="stat-num">{{cost_local_num}}</span><p class="muted">{{cost_local}} <a href="{{site.repo}}/blob/main/docs/lokales-modell.md">{{cost_local_link}}</a></p></article>
+</div>
+<p class="meta">{{cost_meta}}</p>
+</div>
+</section>
+
+<section id="datenschutz" class="section sunken" aria-labelledby="daten-title">
+<div class="wrap">
+<div class="split">
+<div class="intro">
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>{{private_kicker}}</span></p>
+<h2 id="daten-title">{{private_title}}</h2>
+<p class="lead">{{private_lead}} <a href="{{site.repo}}/blob/main/docs/lokales-modell.md">{{private_link}}</a></p>
+<p class="muted">{{private_openai}}</p>
+</div>
+<figure class="route" aria-label="{{route_label}}">
+<div class="lane is-local">
+<p class="lane-head"><span>{{route_local}}</span><span class="lane-tag">{{cost_local_num}}</span></p>
+<ol class="hops"><li>{{hop_mic}}</li><li>{{hop_device}}</li><li>{{hop_text}}</li></ol>
+<p class="lane-note">{{route_local_note}}</p>
+</div>
+<div class="lane">
+<p class="lane-head"><span>OpenAI</span><span class="lane-tag">{{cost_openai_num}}</span></p>
+<ol class="hops"><li>{{hop_mic}}</li><li class="is-out">OpenAI</li><li>{{hop_text}}</li></ol>
+<p class="lane-note">{{route_openai_note}}</p>
+</div>
+</figure>
+</div>
+</div>
+</section>
+
+<section id="so-gehts" class="section rule" aria-labelledby="kino-title">
+<div class="wrap">
+<div class="intro">
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>{{kino_kicker}}</span></p>
+<h2 id="kino-title">{{kino_title}}</h2>
+</div>
+<div class="kino">
+<div class="kino-screen">
+<video class="kino-video" src="/videos/blink-01-so-diktierst-du-schleife.mp4" poster="/videos/blink-01-so-diktierst-du.webp" width="1280" height="720" muted playsinline preload="none" controls aria-label="{{js_video}}{{clip1_title}}"></video>
+<div class="kino-tools" hidden><button class="kino-sound" type="button" aria-pressed="false">{{kino_sound}}</button><button class="kino-play" type="button"></button></div>
+</div>
+<ol class="kino-list">
+<li id="so-diktierst-du" class="is-on"><a class="kino-chapter" aria-current="step" href="{{@guides}}#so-diktierst-du" data-loop="/videos/blink-01-so-diktierst-du-schleife.mp4" data-full="/videos/blink-01-so-diktierst-du.mp4" data-poster="/videos/blink-01-so-diktierst-du.webp"><span class="kino-num">01</span><span class="kino-name">{{clip1_title}}</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">{{kino1}}</p></li>
+<li id="uebersetzen"><a class="kino-chapter" href="{{@guides}}#gleich-auf-englisch" data-loop="/videos/blink-03-uebersetzen-schleife.mp4" data-full="/videos/blink-03-uebersetzen.mp4" data-poster="/videos/blink-03-uebersetzen.webp"><span class="kino-num">02</span><span class="kino-name">{{clip3_title}}</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">{{kino3}}</p></li>
+<li id="nichts-geht-verloren"><a class="kino-chapter" href="{{@guides}}#nichts-geht-verloren" data-loop="/videos/blink-04-nichts-geht-verloren-schleife.mp4" data-full="/videos/blink-04-nichts-geht-verloren.mp4" data-poster="/videos/blink-04-nichts-geht-verloren.webp"><span class="kino-num">03</span><span class="kino-name">{{clip4_title}}</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">{{kino4}}</p></li>
+<li id="kostenlos"><a class="kino-chapter" href="{{@guides}}#kostenlos-diktieren" data-loop="/videos/blink-02-kostenlos-schleife.mp4" data-full="/videos/blink-02-kostenlos.mp4" data-poster="/videos/blink-02-kostenlos.webp"><span class="kino-num">04</span><span class="kino-name">{{kino2_title}}</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">{{kino2}}</p></li>
+<li id="erste-schritte"><a class="kino-chapter" href="{{@guides}}#erste-schritte" data-loop="/videos/blink-05-erste-schritte-schleife.mp4" data-full="/videos/blink-05-erste-schritte.mp4" data-poster="/videos/blink-05-erste-schritte.webp"><span class="kino-num">05</span><span class="kino-name">{{clip5_title}}</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">{{kino5}}</p></li>
+</ol>
+</div>
+<p class="meta"><a href="{{@guides}}">{{kino_all}}</a></p>
+</div>
+</section>
+
+<section class="section cta" aria-labelledby="cta-title">
+<div class="wrap">
+<h2 id="cta-title" class="cta-title">{{cta_title}}</h2>
+<p class="lead">{{cta_lead}}</p>
+<div class="buttons">
+<a class="od-btn od-btn-primary" href="{{site.mac}}">{{get_mac}}</a>
+<a class="od-btn od-btn-secondary" href="{{site.linux}}">{{get_linux}}</a>
+<a class="text-link" href="{{site.repo}}/issues/new?template=beta-rueckmeldung.md">{{report}}</a>
+</div>
+<p class="meta">{{cta_meta}}</p>
+<figure class="why">
+<blockquote><p>{{why}}</p></blockquote>
+<figcaption>Basti</figcaption>
+</figure>
+</div>
+</section>
+</main>
+
+{{@footer}}
+</body>
+</html>

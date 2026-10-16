@@ -6,6 +6,53 @@ Umsetzung: eigenständige statische Seite ohne Abhängigkeiten. Die Demo ist ill
 
 Vorschau aus diesem Ordner: `python3 -m http.server 4317 --bind 127.0.0.1`.
 
+## Sprachen
+
+Seit dem 16. Oktober 2026 gibt es die Seite in acht Sprachen (Bastis Wunsch
+„die gängigsten Sprachen“): Deutsch bleibt Hauptsprache unter `/`, dazu
+Englisch, Französisch, Spanisch, Italienisch, Portugiesisch (Brasilien),
+Niederländisch und Polnisch unter `/en/`, `/fr/` und so weiter. Es sind die
+europäischen Sprachen unter den 13 Zielsprachen der App.
+
+- **Quelle:** `i18n/pages/` enthält die Vorlagen, `i18n/<sprache>.json` die
+  Texte, `i18n/site.json` Produktname, Wortmarke, Adressen und die Liste der
+  Sprachen. `python3 scripts/website-i18n.py` schreibt daraus alle Seiten
+  (auch die deutschen), die übersetzten Untertitel `videos/*.<sprache>.vtt`
+  und `sitemap.xml`. Die erzeugten Dateien nie von Hand ändern; `--check`
+  meldet veraltete. Der Ordner `i18n/` wird nicht ausgeliefert.
+- **Produktname:** steht nur in `i18n/site.json` (`name` und `wordmark`). Ein
+  neuer Name braucht dort eine Änderung und einen Lauf des Skripts. Fest
+  bleiben die Links auf das Repository, die Domain in `site.json` (`origin`,
+  `support`), `og.png` (Bild mit Wortmarke) und die Texte in den Videos.
+- **Suchmaschinen:** Jede Seite verweist per `hreflang` auf alle Sprachen;
+  `x-default` ist Englisch, weil Besucher ohne passende Sprache damit am
+  ehesten zurechtkommen. Die Sitemap nennt die Alternativen ebenfalls.
+- **Sprachwahl:** ein `<details>`-Menü rechts im Kopf, ohne JavaScript
+  bedienbar; `site.js` schließt es mit Escape oder einem Klick daneben. Es
+  gibt keine automatische Umleitung nach Browsersprache.
+- **Was deutsch bleibt:** Blinks Stimme und die Texte im Bild der Videos,
+  Impressum, Datenschutzerklärung und die Anleitung zum lokalen Modell (die
+  Links sagen das in der jeweiligen Sprache). Die Menüs der Mac-App sind
+  deutsch; die fremdsprachigen Seiten sagen das unter den Download-Knöpfen,
+  wie README.md. Der Knopf „Nochmal senden“ heißt in den Texten deshalb auch
+  so, mit Übersetzung in Klammern.
+- **Untertitel:** Auf den Anleitungsseiten der anderen Sprachen ist die
+  Untertitelspur der Seitensprache voreingestellt. Ihre Zeiten übernimmt das
+  Skript aus den deutschen Spuren, nur der Text kommt aus `vtt` in der
+  Sprachdatei.
+- **Animation im Kopf:** Die Wörter der Anzeige (Bereit, Hört zu …) kommen als
+  JSON-Block `od-text` aus der Sprachdatei, damit `site.js` keine Texte
+  enthält.
+- **Bilder für geteilte Links:** Deutsch nutzt weiter `og.png`; die anderen
+  Sprachen das Standbild aus dem ersten Video, weil `og.png` deutschen Text
+  trägt.
+- **Prüfung:** Headless Chromium bei 1440, 390 und 320 Pixel für alle 16
+  Seiten: kein horizontaler Überlauf, keine Konsolenfehler, Sprachmenü mit
+  Escape und Klick daneben. Die Überschrift im Kopf ist unter 420 Pixel
+  höchstens `14vw` groß, weil „abbonamento.“ oder „subscription.“ sonst bei
+  320 Pixel über den Rand ragt. Die Übersetzungen hat je Sprache eine
+  muttersprachliche Durchsicht (KI) geprüft, kein Mensch.
+
 ## Auslieferung
 
 Die Seite läuft als Cloudflare Worker `opendictate-website` auf

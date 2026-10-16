@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="nl" data-theme="nacht">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenDictate · Dicteer-app voor Mac en Linux, zonder abonnement</title>
+<meta name="description" content="Houd een toets ingedrukt en praat: de tekst verschijnt waar je cursor staat. Ongeveer 0,1 cent per dictaat met OpenAI, gratis en privé met een lokaal model. Open source.">
+<link rel="canonical" href="https://opendictate.app/nl/">
+<link rel="alternate" hreflang="de" href="https://opendictate.app/">
+<link rel="alternate" hreflang="en" href="https://opendictate.app/en/">
+<link rel="alternate" hreflang="fr" href="https://opendictate.app/fr/">
+<link rel="alternate" hreflang="es" href="https://opendictate.app/es/">
+<link rel="alternate" hreflang="it" href="https://opendictate.app/it/">
+<link rel="alternate" hreflang="pt" href="https://opendictate.app/pt/">
+<link rel="alternate" hreflang="nl" href="https://opendictate.app/nl/">
+<link rel="alternate" hreflang="pl" href="https://opendictate.app/pl/">
+<link rel="alternate" hreflang="x-default" href="https://opendictate.app/en/">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0E1014">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="OpenDictate">
+<meta property="og:locale" content="nl_NL">
+<meta property="og:locale:alternate" content="de_DE">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="fr_FR">
+<meta property="og:locale:alternate" content="es_ES">
+<meta property="og:locale:alternate" content="it_IT">
+<meta property="og:locale:alternate" content="pt_BR">
+<meta property="og:locale:alternate" content="pl_PL">
+<meta property="og:url" content="https://opendictate.app/nl/">
+<meta property="og:title" content="OpenDictate · Dicteer-app voor Mac en Linux, zonder abonnement">
+<meta property="og:description" content="Houd een toets ingedrukt en praat: de tekst verschijnt waar je cursor staat. Ongeveer 0,1 cent per dictaat met OpenAI, gratis en privé met een lokaal model. Open source.">
+<meta property="og:image" content="https://opendictate.app/videos/blink-01-so-diktierst-du.jpg">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="720">
+<meta property="og:image:alt" content="Blink, het pixelfiguurtje van OpenDictate, laat zien hoe je dicteert">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/blink-32.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preload" href="/fonts/GeistPixel-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/Geist-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/tokens.css"><link rel="stylesheet" href="/style.css">
+<script src="/site.js" defer></script>
+<script type="application/json" id="od-text">{"wordmark":"opendictate","video":"Uitlegvideo: ","play":"Afspelen","pause":"Pauzeren","meter":"Opnameniveau","blink":{"bereit":"klaar","hoert":"luistert","schreibt":"schrijft","eingefuegt":"geplakt","hoppla":"oeps, fout"},"hud":{"bereit":{"word":"Klaar","sub":"houd fn ingedrukt"},"hoert":{"word":"Luistert","sub":"REC 0:0"},"schreibt":{"word":"Schrijft","sub":"wordt tekst"},"eingefuegt":{"word":"Geplakt","sub":"in het tekstveld"},"hoppla":{"word":"Oeps","sub":"Geen verbinding. Je opname is bewaard."}}}</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://opendictate.app/#website",
+      "url": "https://opendictate.app/",
+      "name": "OpenDictate",
+      "inLanguage": "nl"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://opendictate.app/#app",
+      "name": "OpenDictate",
+      "description": "Houd een toets ingedrukt en praat: de tekst verschijnt waar je cursor staat. Ongeveer 0,1 cent per dictaat met OpenAI, gratis en privé met een lokaal model. Open source.",
+      "url": "https://opendictate.app/nl/",
+      "applicationCategory": "UtilitiesApplication",
+      "applicationSubCategory": "Dicteren, spraakinvoer",
+      "operatingSystem": "macOS 14 of nieuwer (Apple-chip), Linux (Arch met Hyprland)",
+      "softwareVersion": "0.1.0-beta.12",
+      "releaseNotes": "https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.12",
+      "downloadUrl": "https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.12",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "inLanguage": ["de", "en"],
+      "image": "https://opendictate.app/og.png",
+      "sameAs": ["https://github.com/HerrStolzier/OpenDictate"],
+      "author": {"@type": "Person", "name": "HerrStolzier", "url": "https://github.com/HerrStolzier"},
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "EUR"}
+    }
+  ]
+}
+</script>
+</head>
+<body id="top">
+<a class="skip" href="#main">Naar de inhoud</a>
+
+<div class="wrap">
+<header class="top">
+<a class="home" href="#top" aria-label="OpenDictate, naar boven"><span data-od="wordmark" data-size="26"><span class="od-wordmark od-wordmark-26">opendictate</span></span></a>
+<nav aria-label="Hoofdmenu" class="nav">
+<a href="#kosten">Kosten</a>
+<a href="#datenschutz">Privé</a>
+<a href="#uebersetzen">Vertalen</a>
+<a href="/nl/uitleg.html">Uitleg</a>
+<a href="https://github.com/HerrStolzier/OpenDictate">GitHub</a>
+</nav>
+<details class="lang">
+<summary aria-label="Taal: Nederlands">NL</summary>
+<ul class="lang-list">
+<li><a href="/" hreflang="de" lang="de">Deutsch</a></li>
+<li><a href="/en/" hreflang="en" lang="en">English</a></li>
+<li><a href="/fr/" hreflang="fr" lang="fr">Français</a></li>
+<li><a href="/es/" hreflang="es" lang="es">Español</a></li>
+<li><a href="/it/" hreflang="it" lang="it">Italiano</a></li>
+<li><a href="/pt/" hreflang="pt" lang="pt">Português</a></li>
+<li><a href="/nl/" hreflang="nl" lang="nl" aria-current="true">Nederlands</a></li>
+<li><a href="/pl/" hreflang="pl" lang="pl">Polski</a></li>
+</ul>
+</details>
+</header>
+</div>
+
+<main id="main">
+<section class="hero" aria-labelledby="hero-title">
+<div class="wrap">
+<div class="hero-head">
+<div class="hero-title">
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Mac en Linux · Open source · Bèta</span></p>
+<h1 id="hero-title">Dicteren <br>zonder abonnement.</h1>
+</div>
+<div class="hero-side">
+<p class="lead">Houd een toets ingedrukt en praat. De tekst verschijnt waar je cursor staat, als je wilt meteen vertaald. Met OpenAI kost een dictaat ongeveer 0,1 cent. Met een model op je eigen computer kost het niets en blijft het daar.</p>
+<div class="buttons">
+<a class="od-btn od-btn-primary" href="https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.12">Download de Mac-bèta</a>
+<a class="od-btn od-btn-secondary" href="https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1">Voor Linux</a>
+</div>
+<p class="meta">macOS 14 met Apple-chip, genotariseerd door Apple, geen OpenDictate-account. De menu's van de app zijn voorlopig in het Duits.</p>
+</div>
+</div>
+
+<div class="stage" role="img" aria-label="Uit de notch van de Mac schuift een indicator, Blink luistert en daarna wordt de tekst in een bericht geplakt.">
+<div class="screen">
+<canvas data-dither="field" data-color="signal" data-cy="38" data-hw="110" aria-hidden="true" class="field"></canvas>
+<div class="menubar" aria-hidden="true">
+<span class="menubar-right"><span class="menubar-rec" hidden>REC</span><img src="/blink-32.svg" width="32" height="32" alt=""></span>
+</div>
+<div class="hud" data-theme="nacht" aria-hidden="true">
+<div class="hud-in">
+<div class="hud-blink"></div>
+<div class="hud-text">
+<span class="hud-word">Klaar</span>
+<span class="hud-sub"><span class="hud-rec" hidden data-od="icon" data-name="rec" data-size="12"></span><span class="hud-sub-text">houd fn ingedrukt</span></span>
+</div>
+<div class="hud-vis">
+<canvas data-show="hoert" data-dither="voice" data-color="signal" class="voice" hidden></canvas>
+<span data-show="schreibt" hidden data-od="progress" data-value="0.55" data-cells="14" data-label="Bezig met omzetten"></span>
+<span data-show="eingefuegt" hidden data-od="icon" data-name="check" data-size="36"></span>
+<span data-show="hoppla" hidden data-od="icon" data-name="error" data-size="36"></span>
+</div>
+</div>
+</div>
+<div class="notes" aria-hidden="true">
+<div class="notes-head"><span>Nieuw bericht</span><span>Aan: team</span></div>
+<div class="notes-body">
+<p><span class="notes-paste">Ik ben nog onderweg. Laten we een halfuur later beginnen.</span><span class="cursor od-a-blink"></span></p>
+</div>
+</div>
+</div>
+</div>
+
+<div class="stage-foot">
+<ol class="flow-steps" aria-label="Zo verloopt een dictaat">
+<li data-phase="bereit">Klaar</li>
+<li data-phase="hoert" class="hot">Luistert</li>
+<li data-phase="schreibt">Schrijft</li>
+<li data-phase="eingefuegt">Geplakt</li>
+<li data-phase="hoppla" class="hot">Oeps</li>
+</ol>
+<p>De indicator in de notch en Blink zitten vanaf build 12 in de Mac-bèta. Op Macs zonder notch zweeft de indicator bovenaan.</p>
+</div>
+</div>
+</section>
+
+<section id="kosten" class="section rule" aria-labelledby="kosten-title">
+<div class="wrap">
+<div class="intro">
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Kosten</span></p>
+<h2 id="kosten-title">Eén keer betalen, niet elke maand.</h2>
+<p class="lead">Geen abonnement. De bèta is gratis, de definitieve app kost later eenmalig een paar euro. Voor de dictaten zelf betaal je zo weinig:</p>
+</div>
+<div class="cards">
+<article class="card stat"><span class="stat-num">0,1&nbsp;ct</span><p class="muted">voor een dictaat van 15 seconden, met je eigen OpenAI-sleutel.</p></article>
+<article class="card stat"><span class="stat-num">$&nbsp;1,35</span><p class="muted">per maand als je elke dag tien minuten dicteert. Een dicteerabonnement kost meestal $&nbsp;8 tot 15.</p></article>
+<article class="card stat"><span class="stat-num">€&nbsp;0</span><p class="muted">met een lokaal model. Nu al op Mac en Linux. <a href="https://github.com/HerrStolzier/OpenDictate/blob/main/docs/lokales-modell.md">Zo werkt het (in het Duits)</a></p></article>
+</div>
+<p class="meta">OpenAI-prijs voor gpt-transcribe, oktober 2026. Met OpenAI kost vertalen per dictaat een kleine tekstaanvraag extra.</p>
+</div>
+</section>
+
+<section id="datenschutz" class="section sunken" aria-labelledby="daten-title">
+<div class="wrap">
+<div class="split">
+<div class="intro">
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Met een lokaal model</span></p>
+<h2 id="daten-title">Je stem blijft bij jou.</h2>
+<p class="lead">Met een lokaal model herkent je eigen apparaat wat je zegt. Je opname en je tekst verlaten het niet. Je hebt geen sleutel en geen account nodig. <a href="https://github.com/HerrStolzier/OpenDictate/blob/main/docs/lokales-modell.md">Zo stel je het in (in het Duits)</a></p>
+<p class="muted">Met OpenAI gaat de opname rechtstreeks van je apparaat naar OpenAI, met je eigen sleutel. Ik zie daar niets van, en de app houdt niets bij. De code staat openbaar op <a href="https://github.com/HerrStolzier/OpenDictate">GitHub</a>.</p>
+</div>
+<figure class="route" aria-label="Waar je opname naartoe gaat">
+<div class="lane is-local">
+<p class="lane-head"><span>Lokaal</span><span class="lane-tag">€&nbsp;0</span></p>
+<ol class="hops"><li>Microfoon</li><li>je apparaat</li><li>Tekst</li></ol>
+<p class="lane-note">Blijft op het apparaat. Met het model uit de handleiding werkt vertalen nog niet.</p>
+</div>
+<div class="lane">
+<p class="lane-head"><span>OpenAI</span><span class="lane-tag">0,1&nbsp;ct</span></p>
+<ol class="hops"><li>Microfoon</li><li class="is-out">OpenAI</li><li>Tekst</li></ol>
+<p class="lane-note">Met je eigen sleutel, zonder omweg via ons. Bij vertalen gaat ook de tekst daarheen.</p>
+</div>
+</figure>
+</div>
+</div>
+</section>
+
+<section id="so-gehts" class="section rule" aria-labelledby="kino-title">
+<div class="wrap">
+<div class="intro">
+<p class="kicker"><span data-od="icon" data-name="prompt" data-size="12"></span><span>Zo werkt het</span></p>
+<h2 id="kino-title">Blink doet het voor.</h2>
+</div>
+<div class="kino">
+<div class="kino-screen">
+<video class="kino-video" src="/videos/blink-01-so-diktierst-du-schleife.mp4" poster="/videos/blink-01-so-diktierst-du.webp" width="1280" height="720" muted playsinline preload="none" controls aria-label="Uitlegvideo: Zo dicteer je"></video>
+<div class="kino-tools" hidden><button class="kino-sound" type="button" aria-pressed="false">Geluid</button><button class="kino-play" type="button"></button></div>
+</div>
+<ol class="kino-list">
+<li id="so-diktierst-du" class="is-on"><a class="kino-chapter" aria-current="step" href="/nl/uitleg.html#so-diktierst-du" data-loop="/videos/blink-01-so-diktierst-du-schleife.mp4" data-full="/videos/blink-01-so-diktierst-du.mp4" data-poster="/videos/blink-01-so-diktierst-du.webp"><span class="kino-num">01</span><span class="kino-name">Zo dicteer je</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Toets vasthouden, praten, loslaten. Je tekst staat waar je cursor is: in de mail, de chat of het document.</p></li>
+<li id="uebersetzen"><a class="kino-chapter" href="/nl/uitleg.html#gleich-auf-englisch" data-loop="/videos/blink-03-uebersetzen-schleife.mp4" data-full="/videos/blink-03-uebersetzen.mp4" data-poster="/videos/blink-03-uebersetzen.webp"><span class="kino-num">02</span><span class="kino-name">Meteen vertaald</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Je spreekt Nederlands en er wordt Engels geplakt, of een van elf andere talen. Voor een mail naar het buitenland of de gamechat. De ingebouwde dicteerfunctie van de Mac vertaalt niet.</p></li>
+<li id="nichts-geht-verloren"><a class="kino-chapter" href="/nl/uitleg.html#nichts-geht-verloren" data-loop="/videos/blink-04-nichts-geht-verloren-schleife.mp4" data-full="/videos/blink-04-nichts-geht-verloren.mp4" data-poster="/videos/blink-04-nichts-geht-verloren.webp"><span class="kino-num">03</span><span class="kino-name">Niets gaat verloren</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Valt het netwerk weg of hapert de dienst, dan blijft je opname op je computer. Met ‘Nochmal senden’ (opnieuw versturen) stuur je hem alsnog, tot 24 uur later.</p></li>
+<li id="kostenlos"><a class="kino-chapter" href="/nl/uitleg.html#kostenlos-diktieren" data-loop="/videos/blink-02-kostenlos-schleife.mp4" data-full="/videos/blink-02-kostenlos.mp4" data-poster="/videos/blink-02-kostenlos.webp"><span class="kino-num">04</span><span class="kino-name">Gratis met je eigen server</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">Vul een server in die op je computer draait. Dan kost een dictaat niets en blijft de opname bij jou.</p></li>
+<li id="erste-schritte"><a class="kino-chapter" href="/nl/uitleg.html#erste-schritte" data-loop="/videos/blink-05-erste-schritte-schleife.mp4" data-full="/videos/blink-05-erste-schritte.mp4" data-poster="/videos/blink-05-erste-schritte.webp"><span class="kino-num">05</span><span class="kino-name">Eerste stappen op de Mac</span><span class="kino-bar" aria-hidden="true"></span></a><p class="kino-text">App downloaden, naar Apps slepen, sleutel of server invullen, sneltoets kiezen. En klaar.</p></li>
+</ol>
+</div>
+<p class="meta"><a href="/nl/uitleg.html">Alle uitlegvideo's met ondertitels en tekst</a></p>
+</div>
+</section>
+
+<section class="section cta" aria-labelledby="cta-title">
+<div class="wrap">
+<h2 id="cta-title" class="cta-title">Probeer het uit.</h2>
+<p class="lead">Het is een bèta. Werkt er iets niet, laat het me weten.</p>
+<div class="buttons">
+<a class="od-btn od-btn-primary" href="https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.12">Download de Mac-bèta</a>
+<a class="od-btn od-btn-secondary" href="https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1">Voor Linux</a>
+<a class="text-link" href="https://github.com/HerrStolzier/OpenDictate/issues/new?template=beta-rueckmeldung.md">Probleem melden</a>
+</div>
+<p class="meta">iPhone en Windows volgen.</p>
+<figure class="why">
+<blockquote><p>Ik dicteer elke dag, op het werk en in de gamechat. Een abonnement voor iets wat per dictaat een fractie van een cent kost, wilde ik niet.</p></blockquote>
+<figcaption>Basti</figcaption>
+</figure>
+</div>
+</section>
+</main>
+
+<footer class="foot">
+<div class="wrap">
+<div class="run-track" aria-hidden="true">
+<span class="run-prompt" data-od="icon" data-name="prompt" data-size="36" data-tone="muted"></span>
+<div class="run-blink"></div>
+</div>
+<div class="foot-row">
+<span data-od="wordmark" data-size="20" data-still><span class="od-wordmark od-wordmark-20">opendictate</span></span>
+<nav aria-label="Voettekst" class="foot-nav">
+<a href="https://github.com/HerrStolzier/OpenDictate">GitHub</a>
+<a href="https://github.com/HerrStolzier/OpenDictate/issues/new?template=beta-rueckmeldung.md">Probleem melden</a>
+<a href="https://support.opendictate.app/kontakt">Contact</a>
+<a href="https://support.opendictate.app/impressum">Colofon (in het Duits)</a>
+<a href="https://support.opendictate.app/datenschutz">Privacy (in het Duits)</a>
+<a href="https://github.com/HerrStolzier/OpenDictate/blob/main/LICENSE">MIT-licentie</a>
+</nav>
+<p class="meta">© 2026 HerrStolzier</p>
+</div>
+</div>
+</footer>
+</body>
+</html>
