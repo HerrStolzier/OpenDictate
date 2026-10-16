@@ -12,11 +12,12 @@ struct TranscriptionOptions: Sendable {
     /// applies to the next dictation.
     let translationTarget: String?
     let translationModel: String
+    let translationEngine: Settings.TranslationEngine
 
     init(
         apiKey: String?, model: TranscriptionModel, language: String?, prompt: String?,
         translationTarget: String? = nil, translationModel: String = Translation.defaultModel,
-        endpoint: ServiceEndpoint = .openAI
+        translationEngine: Settings.TranslationEngine = .service, endpoint: ServiceEndpoint = .openAI
     ) {
         self.apiKey = apiKey
         self.endpoint = endpoint
@@ -25,6 +26,7 @@ struct TranscriptionOptions: Sendable {
         self.prompt = prompt
         self.translationTarget = translationTarget
         self.translationModel = translationModel
+        self.translationEngine = translationEngine
     }
 
     /// Options for the chosen service, or for `service` when the user picked
@@ -47,7 +49,8 @@ struct TranscriptionOptions: Sendable {
         return Self(
             apiKey: key, model: model, language: Config.language, prompt: Config.prompt,
             translationTarget: settings.translationTarget,
-            translationModel: settings.translationModel(for: service), endpoint: endpoint)
+            translationModel: settings.translationModel(for: service),
+            translationEngine: settings.translationEngine, endpoint: endpoint)
     }
 
     /// Sets the bearer header only when a key belongs to this request.

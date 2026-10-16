@@ -26,6 +26,7 @@ public final class Settings: Sendable {
         public static let vocabularyPrompt = "vocabularyPrompt"
         public static let translationTarget = "translationTarget"
         public static let translationModel = "translationModel"
+        public static let translationEngine = "translationEngine"
         public static let indicatorStyle = "indicatorStyle"
         public static let serverAddress = "serverAddress"
         public static let service = "service"
@@ -37,6 +38,14 @@ public final class Settings: Sendable {
     public enum Service: String, Sendable, CaseIterable {
         case openAI = "openai"
         case server
+    }
+
+    /// Who translates the transcript.
+    public enum TranslationEngine: String, Sendable, CaseIterable {
+        /// The chosen service's text model: OpenAI or the own server.
+        case service
+        /// Apple's translation on this Mac; the text stays on the device.
+        case device
     }
 
     /// Stored value for "transcribe in whatever language you hear".
@@ -198,6 +207,21 @@ public final class Settings: Sendable {
         }
     }
 
+    /// Who translates. Without a stored valid choice, the service does, as
+    /// before the choice existed.
+    public var translationEngine: TranslationEngine {
+        get {
+            (store.object(forKey: Key.translationEngine) as? String).flatMap(TranslationEngine.init) ?? .service
+        }
+        set {
+            if newValue == .service {
+                store.removeObject(forKey: Key.translationEngine)
+            } else {
+                store.set(newValue.rawValue, forKey: Key.translationEngine)
+            }
+        }
+    }
+
     // MARK: - Server
 
     /// The own server's address as configured, for display; nil means none is
@@ -344,6 +368,7 @@ public final class Settings: Sendable {
         store.removeObject(forKey: Key.vocabularyPrompt)
         store.removeObject(forKey: Key.translationTarget)
         store.removeObject(forKey: Key.translationModel)
+        store.removeObject(forKey: Key.translationEngine)
         store.removeObject(forKey: Key.indicatorStyle)
         store.removeObject(forKey: Key.serverAddress)
         store.removeObject(forKey: Key.service)

@@ -27,6 +27,19 @@ enum AlertPresenter {
         return alert.runModal() == .alertFirstButtonReturn
     }
 
+    /// True when the user wants to open System Settings to load the languages.
+    static func offerTranslationLanguages() -> Bool {
+        let alert = NSAlert()
+        alert.messageText = "Sprachen für das Übersetzen laden"
+        alert.informativeText =
+            "Zum Übersetzen auf dem Mac braucht Apple die Sprachen einmal auf diesem Mac. "
+            + "Lade sie unter Allgemein → Sprache & Region → Übersetzungssprachen. "
+            + "Danach bleibt dein Text beim Übersetzen auf dem Mac."
+        alert.addButton(withTitle: "Systemeinstellungen öffnen")
+        alert.addButton(withTitle: "Später")
+        return alert.runModal() == .alertFirstButtonReturn
+    }
+
     static func confirmQuitWithActiveDictation() -> Bool {
         let alert = NSAlert()
         alert.messageText = "OpenDictate beenden?"

@@ -174,6 +174,20 @@ struct SettingsTests {
         #expect(s.translationModel == Translation.defaultModel)
     }
 
+    @Test("The service translates until the Mac is chosen, and an unknown stored value falls back")
+    func translationEngineChoice() {
+        let s = settings()
+        #expect(s.translationEngine == .service)
+        s.translationEngine = .device
+        #expect(s.translationEngine == .device)
+        // Translating on the Mac is its own choice: switching the service keeps it.
+        #expect(s.select(.openAI))
+        #expect(s.translationEngine == .device)
+        s.translationEngine = .service
+        #expect(s.translationEngine == .service)
+        #expect(settings(stored: [Settings.Key.translationEngine: "cloud"]).translationEngine == .service)
+    }
+
     // MARK: - Service choice
 
     @Test("Switching to OpenAI keeps the own server, and switching back needs no new entry")
@@ -332,6 +346,7 @@ struct SettingsTests {
         s.autoPaste = false
         s.prompt = "stored prompt"
         s.translationTarget = "fr"
+        s.translationEngine = .device
         s.indicatorStyle = .off
         s.setServerAddress("http://127.0.0.1:8080/v1")
         s.serverModel = TranscriptionModel(rawValue: "local-model")
@@ -344,6 +359,7 @@ struct SettingsTests {
         #expect(s.autoPaste)
         #expect(s.prompt == "environment prompt")
         #expect(s.translationTarget == nil)
+        #expect(s.translationEngine == .service)
         #expect(s.indicatorStyle == .floating)
         #expect(s.endpoint == .openAI)
         #expect(s.service == .openAI)

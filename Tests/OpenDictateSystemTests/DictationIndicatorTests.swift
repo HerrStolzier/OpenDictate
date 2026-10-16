@@ -86,6 +86,21 @@ struct DictationIndicatorSystemTests {
         #expect(controller.dailyMenu.items.map(label).contains("Abbrechen (Aufnahme bleibt)"))
     }
 
+    @Test func dailyMenuSaysWhenTheTranslationStaysOnTheMac() {
+        let delegate = MenuDelegateStub()
+        delegate.translationTarget = "en"
+        let controller = MenuBarController(delegate: delegate)
+        func translationTitle() -> String? {
+            controller.menuNeedsUpdate(controller.dailyMenu)
+            return controller.dailyMenu.items.first { $0.title.hasPrefix("Übersetzen") }?.title
+        }
+        #expect(translationTitle() == "Übersetzen: Englisch")
+        delegate.translationEngine = .device
+        #expect(translationTitle() == "Übersetzen: Englisch (auf dem Mac)")
+        delegate.translationTarget = nil
+        #expect(translationTitle() == "Übersetzen: Aus")
+    }
+
     @Test func dailyMenuShowsWhoWritesOnceAServerIsSetUp() throws {
         let delegate = MenuDelegateStub()
         delegate.service = .server
@@ -119,6 +134,8 @@ private final class MenuDelegateStub: MenuBarControllerDelegate {
     var service = Settings.Service.openAI
     var serverHost: String?
     var selectedServices: [Settings.Service] = []
+    var translationTarget: String?
+    var translationEngine = Settings.TranslationEngine.service
 
     func menuBarDidConfigureShortcut() {}
     func menuBarDidConfigureVocabulary() {}
@@ -143,6 +160,7 @@ private final class MenuDelegateStub: MenuBarControllerDelegate {
     func menuBarDidSelect(service: Settings.Service) { selectedServices.append(service) }
     func menuBarDidSelect(language: String?) {}
     func menuBarDidSelect(translationTarget: String?) {}
+    func menuBarDidSelect(translationEngine: Settings.TranslationEngine) {}
     func menuBarDidSelect(indicatorStyle: IndicatorStyle) {}
     func menuBarDidShowLastText() {}
     var menuBarIndicatorStyle: IndicatorStyle { .menuBar }
@@ -152,5 +170,7 @@ private final class MenuDelegateStub: MenuBarControllerDelegate {
     var menuBarService: Settings.Service { service }
     var menuBarServerHost: String? { serverHost }
     var menuBarLanguage: String? { nil }
-    var menuBarTranslationTarget: String? { nil }
+    var menuBarTranslationTarget: String? { translationTarget }
+    var menuBarTranslationEngine: Settings.TranslationEngine { translationEngine }
+    var menuBarCanTranslateOnDevice: Bool { true }
 }
