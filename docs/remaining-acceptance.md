@@ -305,19 +305,28 @@ wurden das alte Prüffenster, der Browser-Host und die Test-Erweiterung
 entfernt. Seit 14. Oktober löscht die App beim Start liegengebliebene
 Originale im Aufnahmeordner, sobald sie 24 Stunden alt sind; seitdem bestanden
 54 Offline-Prüfungen (davon 20 für Kürzel, Auslöser, Einfügeregel,
-Einstellungen und Anzeige) und beide Builds auf Linux. Die 15 Schutzprüfungen
-und die App selbst liefen noch nicht auf Windows.
+Einstellungen und Anzeige) und beide Builds auf Linux.
 
-**Offen / bekannte Grenzen:** Kein echtes Diktat, keine Provideranfrage, auch
-nicht gegen ein lokales Modell; die Beta-App lief noch nie auf Windows (Hook,
-Startmenü nach Strg+Win, Anzeige über Spielen, Strg+V, Mikrofonfreigabe,
-Autostart, Skalierung, Strg+V mit Scancode in Spielen); in Programme mit
+Am 16. Oktober lief die App aus `40911f3` erstmals auf Bastis Windows-PC xmg,
+installiert ohne Adminrechte: 54 von 54 Offline-Prüfungen, beide Builds ohne
+Warnungen und alle 15 Schutzprüfungen bestanden. Ein echtes Diktat über das
+Menü im Infobereich (Computerstimme, eine Anfrage an OpenAI) zeigte „Hört zu“,
+„Schreibt“ und „Kopiert“ und legte den Text in die Zwischenablage; das
+Startmenü blieb zu. „Mit Windows starten“ setzt und entfernt den Run-Eintrag.
+Das Kürzel lässt sich nicht automatisch testen, weil die App künstliche
+Tastendrücke absichtlich ignoriert. Danach diktierte Basti selbst mit echter
+Tastatur und Stimme in Notepad: Mit Strg+Win und mit der rechten Strg-Taste
+wurde der Text samt Satzzeichen automatisch eingefügt („funktioniert
+wunderbar“).
+
+**Offen / bekannte Grenzen:** Kein Diktat gegen ein lokales Modell; Spielchat im
+Vollbild (Anzeige über Spielen, Strg+V mit Scancode) und Skalierung ungeprüft; in Programme mit
 Adminrechten lässt Windows nicht einfügen, und die Anzeige erkennt das nicht
 (Text bleibt in der Zwischenablage); kein Prompt (Vokabular); keine Maus-Seitentaste; keine
 reproduzierbare Paketierung, keine Signatur, kein Installer; Update- und
 Deinstallationsweg; Pflichtprogramme nicht festgelegt.
 
-**Letzter Nachweis:** 14. Oktober 2026 (offline).
+**Letzter Nachweis:** 16. Oktober 2026 (xmg, Bastis Diktat in Notepad).
 
 ## iOS
 
