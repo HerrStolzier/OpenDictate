@@ -20,6 +20,12 @@ enum SystemSettings {
         open("x-apple.systempreferences:com.apple.preference.sound")
     }
 
+    /// Language & Region, where "Translation Languages" lives.
+    static func openTranslationLanguages() {
+        AppLog.write("Opening Language & Region settings")
+        open("x-apple.systempreferences:com.apple.Localization-Settings.extension")
+    }
+
     private static func open(_ string: String) {
         if let url = URL(string: string) {
             NSWorkspace.shared.open(url)

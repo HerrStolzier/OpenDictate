@@ -27,6 +27,7 @@ protocol MenuBarControllerDelegate: AnyObject {
     func menuBarDidSelect(service: Settings.Service)
     func menuBarDidSelect(language: String?)
     func menuBarDidSelect(translationTarget: String?)
+    func menuBarDidSelect(translationEngine: Settings.TranslationEngine)
     func menuBarDidSelect(indicatorStyle: IndicatorStyle)
     func menuBarDidShowLastText()
 
@@ -40,6 +41,9 @@ protocol MenuBarControllerDelegate: AnyObject {
     var menuBarServerHost: String? { get }
     var menuBarLanguage: String? { get }
     var menuBarTranslationTarget: String? { get }
+    var menuBarTranslationEngine: Settings.TranslationEngine { get }
+    /// False before macOS 26: Apple translates on the Mac only from there.
+    var menuBarCanTranslateOnDevice: Bool { get }
 }
 
 /// Owns the status bar item, its daily menu and the settings model. Knows
@@ -84,6 +88,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private var serviceMenuItem: NSMenuItem?
     private var languageMenuItem: NSMenuItem?
     private var translationMenuItem: NSMenuItem?
+    private var translationEngineMenuItem: NSMenuItem?
     private var indicatorStyleMenuItem: NSMenuItem?
     /// Stored value of the "Aus" entry in the translation submenu.
     private static let translationOff = "off"
@@ -141,6 +146,11 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         translationItem.identifier = NSUserInterfaceItemIdentifier("translation")
         menu.addItem(translationItem)
         self.translationMenuItem = translationItem
+        let engineItem = NSMenuItem(title: "Übersetzen mit", action: nil, keyEquivalent: "")
+        engineItem.submenu = makeTranslationEngineSubmenu()
+        engineItem.identifier = NSUserInterfaceItemIdentifier("translationEngine")
+        menu.addItem(engineItem)
+        self.translationEngineMenuItem = engineItem
         let styleItem = NSMenuItem(title: "Anzeige (Macs ohne Notch)", action: nil, keyEquivalent: "")
         styleItem.submenu = makeIndicatorStyleSubmenu()
         styleItem.identifier = NSUserInterfaceItemIdentifier("indicatorStyle")
@@ -273,9 +283,7 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         autoPaste.isEnabled = state == .idle
         dailyMenu.addItem(autoPaste)
         let target = delegate.menuBarTranslationTarget
-        let translation = NSMenuItem(
-            title: "Übersetzen: " + (target.map { Translation.language(code: $0)?.title ?? $0 } ?? "Aus"), action: nil,
-            keyEquivalent: "")
+        let translation = NSMenuItem(title: translationTitle, action: nil, keyEquivalent: "")
         translation.submenu = makeTranslationSubmenu()
         for item in translation.submenu?.items ?? [] {
             item.state = (item.representedObject as? String) == (target ?? Self.translationOff) ? .on : .off
@@ -416,8 +424,8 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     private func refreshActions() {
         let state = delegate?.menuBarState ?? .idle
         for id in [
-            "shortcut", "language", "translation", "service", "model", "apiKey", "vocabulary", "customServer",
-            "autoPaste"
+            "shortcut", "language", "translation", "translationEngine", "service", "model", "apiKey", "vocabulary",
+            "customServer", "autoPaste"
         ] {
             settingsMenu?.items.first { $0.identifier?.rawValue == id }?.isEnabled = state == .idle
         }
@@ -574,6 +582,33 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         return submenu
     }
 
+    private func makeTranslationEngineSubmenu() -> NSMenu {
+        let submenu = NSMenu()
+        submenu.delegate = self
+        submenu.autoenablesItems = false
+        for engine in Settings.TranslationEngine.allCases {
+            let item = makeActionItem("", action: #selector(selectTranslationEngine(_:)))
+            item.representedObject = engine.rawValue
+            submenu.addItem(item)
+        }
+        return submenu
+    }
+
+    /// "Übersetzen: Englisch", with "auf dem Mac" while the text stays here.
+    private var translationTitle: String {
+        guard let delegate, let target = delegate.menuBarTranslationTarget else { return "Übersetzen: Aus" }
+        let language = Translation.language(code: target)?.title ?? target
+        return "Übersetzen: \(language)" + (delegate.menuBarTranslationEngine == .device ? " (auf dem Mac)" : "")
+    }
+
+    /// The service option carries the current service's name, as on the iPhone.
+    private func engineTitle(_ engine: Settings.TranslationEngine) -> String {
+        switch engine {
+        case .service: return delegate?.menuBarService == .server ? "Eigener Server" : "OpenAI"
+        case .device: return "Auf dem Mac"
+        }
+    }
+
     // MARK: - Refresh
 
     private func refreshInputDeviceMenuItem() {
@@ -620,10 +655,20 @@ final class MenuBarController: NSObject, NSMenuDelegate {
         }
 
         let target = delegate.menuBarTranslationTarget
-        let targetTitle = target.map { Translation.language(code: $0)?.title ?? $0 } ?? "Aus"
-        translationMenuItem?.title = "Übersetzen: \(targetTitle)"
+        translationMenuItem?.title = translationTitle
         for item in translationMenuItem?.submenu?.items ?? [] {
             item.state = (item.representedObject as? String) == (target ?? Self.translationOff) ? .on : .off
+        }
+
+        let engine = delegate.menuBarTranslationEngine
+        translationEngineMenuItem?.title = "Übersetzen mit: \(engineTitle(engine))"
+        for item in translationEngineMenuItem?.submenu?.items ?? [] {
+            let raw = item.representedObject as? String ?? ""
+            guard let choice = Settings.TranslationEngine(rawValue: raw) else { continue }
+            let unsupported = choice == .device && !delegate.menuBarCanTranslateOnDevice
+            item.title = engineTitle(choice) + (unsupported ? " (ab macOS 26)" : "")
+            item.state = choice == engine ? .on : .off
+            item.isEnabled = !unsupported || choice == engine
         }
 
         let style = delegate.menuBarIndicatorStyle
@@ -749,6 +794,14 @@ final class MenuBarController: NSObject, NSMenuDelegate {
     @objc private func selectIndicatorStyle(_ sender: NSMenuItem) {
         guard let raw = sender.representedObject as? String, let style = IndicatorStyle(rawValue: raw) else { return }
         delegate?.menuBarDidSelect(indicatorStyle: style)
+        refreshSelections()
+        if settingsWindow.window?.isVisible == true { showSettings() }
+    }
+
+    @objc private func selectTranslationEngine(_ sender: NSMenuItem) {
+        let raw = sender.representedObject as? String ?? ""
+        guard let engine = Settings.TranslationEngine(rawValue: raw) else { return }
+        delegate?.menuBarDidSelect(translationEngine: engine)
         refreshSelections()
         if settingsWindow.window?.isVisible == true { showSettings() }
     }
