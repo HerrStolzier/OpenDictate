@@ -6,10 +6,9 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::sync::MutexGuard;
 
-const AUTH: [u8; 32] = [0x23; 32]; // Synthetic authentication material only.
-
 struct Fixture {
     root: PathBuf,
+    auth: Vec<u8>,
     saved: Vec<(&'static str, Option<OsString>)>,
     _lock: MutexGuard<'static, ()>,
 }
@@ -19,8 +18,16 @@ impl Fixture {
         let root = test_support::unique_temp_dir("cli-flow");
         let bin = root.join("bin");
         fs::create_dir(&bin).unwrap();
+        let mut auth = Vec::with_capacity(32);
+        File::open("/dev/urandom")
+            .unwrap()
+            .take(32)
+            .read_to_end(&mut auth)
+            .unwrap();
+        assert_eq!(auth.len(), 32);
         let mut fixture = Self {
             root,
+            auth,
             saved: Vec::new(),
             _lock: lock,
         };
@@ -57,7 +64,7 @@ impl Fixture {
             "secret-tool",
             &format!(
                 "[ \"$1\" = lookup ] && [ \"$5\" = recording-auth ] || exit 97\nprintf '%s' '{}'",
-                hex::encode(AUTH)
+                hex::encode(&self.auth)
             ),
         );
     }
@@ -201,16 +208,17 @@ fn failed_empty_cancelled_and_undelivered_processing_keeps_authenticated_audio()
         let original = fs::read(&path).unwrap();
         let guard = fixture.guard(state::State::Processing);
         let error = process_new_recording(&path, None, &guard).unwrap_err();
-        assert!(error.contains(expected_error), "{name}: {error}");
+        assert!(error.contains(expected_error), "{name}");
         stub.join().unwrap();
         let recovery_dir = paths::recovery_dir().unwrap();
         let kept = recovery_dir.join(name);
         assert_eq!(fs::read(&kept).unwrap(), original);
         assert!(!path.exists());
         // Retrieval authenticates the exact stored bytes, rather than existence alone.
-        let (entry, authenticated) = recovery::newest_authenticated(&recovery_dir, &AUTH, false)
-            .unwrap()
-            .unwrap();
+        let (entry, authenticated) =
+            recovery::newest_authenticated(&recovery_dir, &fixture.auth, false)
+                .unwrap()
+                .unwrap();
         assert_eq!(entry.audio_path, kept);
         assert_eq!(authenticated, original);
         recovery::delete(&entry).unwrap();
@@ -270,12 +278,12 @@ fn retry_dispatch_sends_authenticated_bytes_and_requires_the_skipped_option() {
     let dir = paths::recovery_dir().unwrap();
     let skipped = fixture.recording("short.wav", 0);
     let skipped_bytes = fs::read(&skipped).unwrap();
-    recovery::preserve(&skipped, &dir, &AUTH, true).unwrap();
+    recovery::preserve(&skipped, &dir, &fixture.auth, true).unwrap();
     let refusal = fixture.run(&["retry"]).unwrap_err();
     assert!(refusal.contains("retry --skipped") && dir.join("short.wav").exists());
     let normal = fixture.recording("normal.wav", 8_000);
     let normal_bytes = fs::read(&normal).unwrap();
-    recovery::preserve(&normal, &dir, &AUTH, false).unwrap();
+    recovery::preserve(&normal, &dir, &fixture.auth, false).unwrap();
     for (args, expected) in [
         (&["retry"][..], normal_bytes),
         (&["retry", "--skipped"][..], skipped_bytes),
