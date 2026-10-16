@@ -102,8 +102,9 @@ Schritte in der [ROADMAP](ROADMAP.md).
   dem 7. Oktober 2026 im Alltag genutzt, seit 11. Oktober als Pre-Release
   [`linux-v0.1.0-beta.1`](https://github.com/HerrStolzier/OpenDictate/releases/tag/linux-v0.1.0-beta.1) veröffentlicht. Einrichtung: [linux/README.de.md](linux/README.de.md).
 - **Windows:** Beta-App unter [windows/](windows/README.md) seit dem
-  11. Oktober 2026, nur offline geprüft; noch nie auf Windows gestartet, kein
-  echtes Diktat, keine Paketierung.
+  11. Oktober 2026; seit dem 16. Oktober auf Bastis Windows-PC installiert:
+  Schutzprüfungen bestanden, Diktat mit beiden Kürzeln in Notepad eingefügt.
+  Spielchat, Paketierung und Signatur stehen aus.
 - **iOS:** Produktkonzept seit dem 11. Oktober 2026: Aufnahme im
   Hintergrund, Ergebnis in die Zwischenablage, keine eigene Tastatur
   ([Konzept](docs/ios-konzept.md)). Die Beta-App dazu liegt unter
