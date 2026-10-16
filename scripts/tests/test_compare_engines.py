@@ -40,6 +40,16 @@ class CompareEnginesTests(unittest.TestCase):
         self.assertEqual(MODULE.normalized_numbers(MODULE.EVALUATOR.tokens('Einundzwanzig zwölf neunundneunzig ein eine 03')), ['21', '12', '99', 'ein', 'eine', '3'])
         self.assertEqual(MODULE.normalized_numbers(MODULE.EVALUATOR.tokens('dreißig einunddreißig neununddreißig')), ['30', '31', '39'])
 
+    def test_number_normalization_preserves_decimal_date_and_time_context(self):
+        for reference, wrong in [('27,50 Euro', 'siebenundzwanzig fünfzig Euro'), ('14:30 Uhr', 'vierzehn dreißig Uhr'), ('16.10.2026', 'sechzehn zehn 2026'), ('16. Oktober', 'sechzehn Oktober'), ('Wir treffen uns am 16.', 'Wir treffen uns am sechzehn.')]:
+            with self.subTest(reference=reference):
+                sentences = MODULE.catalogue({'sentences': [{'id': 'a', 'group': 'Zahlen', 'reference': reference}]})
+                exact = MODULE.compare(sentences, [self.run_row(hypothesis=reference)])
+                changed = MODULE.compare(sentences, [self.run_row(hypothesis=wrong)])
+                self.assertEqual(exact['engines']['Apple']['number_normalized_wer'], 0)
+                self.assertGreater(changed['engines']['Apple']['number_normalized_wer'], 0)
+        self.assertEqual(MODULE.number_tokens('drei Äpfel'), MODULE.number_tokens('3 Äpfel'))
+
     def test_rejects_ambiguous_or_invalid_runs(self):
         for row in [self.run_row(sentence='unknown'), self.run_row(duration=-1), self.run_row(duration=True), self.run_row(duration=float('nan')), self.run_row(background=1), {'engine': 'Apple'}]:
             with self.subTest(row=row), self.assertRaises(ValueError):

@@ -7,8 +7,10 @@ import argparse
 import importlib.util
 import json
 import math
+import re
 import statistics
 import sys
+import unicodedata
 from pathlib import Path
 
 SPEC = importlib.util.spec_from_file_location("evaluate_transcripts", Path(__file__).with_name("evaluate-transcripts.py"))
@@ -27,6 +29,21 @@ def normalized_numbers(words: list[str]) -> list[str]:
     # Deliberately limited to whole numbers 0–99. Dates, decimals, compounds
     # above 99 and articles (ein/eine) remain unchanged and visible in WER.
     return [NUMBERS.get(word, str(int(word)) if word.isascii() and word.isdecimal() else word) for word in words]
+
+
+def number_tokens(text: str) -> list[str]:
+    text = unicodedata.normalize("NFKC", text).casefold()
+    # Protect components of decimals, grouped numbers, dates/times and
+    # written ordinals before punctuation removal can erase their context.
+    protected = list(re.finditer(r"\d+(?:[.,:/-]\d+)+|\d+\.", text))
+    result = []
+    for match in EVALUATOR.TOKEN_RE.finditer(text):
+        context = next((span for span in protected if span.start() <= match.start() and match.end() <= span.end()), None)
+        if context:
+            result.append(f"literal:{context[0]}:{match.start() - context.start()}")
+        else:
+            result.extend(normalized_numbers([match[0]]))
+    return result
 
 
 def catalogue(document: object) -> dict[str, dict]:
@@ -68,7 +85,7 @@ def compare(sentences: dict[str, dict], runs: list[dict]) -> dict:
             hypothesis = EVALUATOR.tokens(row["hypothesis"])
             words += len(reference)
             errors += EVALUATOR.edit_counts(reference, hypothesis)["errors"]
-            number_errors += EVALUATOR.edit_counts(normalized_numbers(reference), normalized_numbers(hypothesis))["errors"]
+            number_errors += EVALUATOR.edit_counts(number_tokens(sentences[row["sentence_id"]]["reference"]), number_tokens(row["hypothesis"]))["errors"]
         durations = sorted(row["duration_seconds"] for row in rows)
         return {
             "runs": len(rows), "reference_words": words, "errors": errors,

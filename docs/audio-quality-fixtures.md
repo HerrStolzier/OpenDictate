@@ -191,6 +191,10 @@ Die zweite WER-Spalte setzt zusätzlich deutsche ganze Zahlwörter von null bis
 neunundneunzig mit Ziffern gleich, einschließlich „einundzwanzig“. Die Artikel
 „ein“ und „eine“, Dezimalzahlen, Datumsformate und höhere Zahlwörter bleiben
 unverändert. Führende Nullen in Ziffernfolgen werden entfernt.
+Zusammengesetzte Ziffernformate und Ziffern mit Punkt werden vor der
+Satzzeichenentfernung geschützt, auch am Textende. Das ist konservativ:
+„3.“ und „drei.“ gelten in dieser Zusatzspalte nicht als gleich. Die rohe WER
+bleibt daneben sichtbar und ignoriert Satzzeichen weiterhin.
 
 Median und P90 beziehen sich auf die gemeldeten Dauern; P90 nutzt den
 nächsten Rang (`ceil(0.9 * n)`). Fehlende Sätze werden angezeigt und nicht
