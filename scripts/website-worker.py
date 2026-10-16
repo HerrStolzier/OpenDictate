@@ -48,8 +48,17 @@ def served_files(commit: str) -> dict[str, str]:
     return files
 
 
+# Gitleaks reads a path such as "/tokens.css" next to its hex digest as a generic API key.
+SECRET_WORDS = re.compile(r"token|secret|key|passw|auth|api|access|cred", re.I)
+
+
+def entry(path: str, hash: str) -> str:
+    allow = " // gitleaks:allow" if SECRET_WORDS.search(path) else ""
+    return f'  "{path}": "{hash}",{allow}\n'
+
+
 def render(source: str, commit: str, files: dict[str, str]) -> str:
-    block = "const FILES = {\n" + "".join(f'  "{path}": "{hash}",\n' for path, hash in files.items()) + "};"
+    block = "const FILES = {\n" + "".join(entry(path, hash) for path, hash in files.items()) + "};"
     source, commits = COMMIT_LINE.subn(f'const COMMIT = "{commit}";', source)
     source, blocks = FILES_BLOCK.subn(lambda _: block, source)
     if commits != 1 or blocks != 1:
