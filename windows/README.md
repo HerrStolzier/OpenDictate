@@ -224,3 +224,21 @@ angemeldete normale Windows-Sitzung. Sie dürfen nur in einer isolierten
 Prüfumgebung mit einem Dummy-Zugangseintrag ausgeführt werden; sie verwenden
 keinen echten OpenAI-Schlüssel. Diese Dokumentation startet keinen dieser
 Abläufe.
+
+## Local usage accounting (core/provider)
+
+The default `ProviderSession` records successful non-empty provider work locally
+in `usage.json` beside the settings file: time, service kind, model, audio seconds
+and optional translation token counts. Failed, empty and cancelled provider
+operations are excluded. It never records dictated text, file names, server
+addresses or keys. Accounting failures retain successfully recognized text.
+The shared `fixtures/pricing/prices.json` is embedded at build time; no account
+or admin endpoint is queried. Costs are USD estimates, custom servers cost zero,
+and unknown models or missing translation usage produce unknown cost.
+
+`UsageLedger` exposes today, the last seven local calendar days, this month and
+reset with an injectable clock/time zone. Entries strictly older than 13 local
+calendar months are pruned on access/write. A file lease serializes instances;
+writes replace the file atomically. This adds no app display or reset control;
+those remain open. Checks use temporary ledgers, fixed clocks and fake HTTP.
+The app build is checked in CI; no Windows desktop acceptance is claimed here.

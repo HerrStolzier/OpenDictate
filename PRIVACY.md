@@ -295,6 +295,24 @@ before clipboard delivery. Missing token metadata/unknown models have unknown
 cost; custom servers have zero estimated provider charge. A ledger write
 failure never converts a successful dictation into a retry or deletes its text.
 
+## Windows provider core
+
+### Windows local usage ledger
+
+The default Windows provider session writes local completed-work metadata to
+`usage.json` beside its settings: timestamp, random local request identifier
+(for cancellation rollback), OpenAI/custom service kind, model, audio seconds,
+translation model and optional input/output token counts. No transcript,
+translation, file name, server address, key or audio is stored. Failed, empty
+and cancelled provider operations do not count. Successful provider work counts
+before clipboard delivery; this estimate may differ from the provider's bill.
+A file lease and atomic replacement serialize writes/reset; entries strictly
+older than 13 local calendar months are pruned on access/write. The shared USD
+price table is embedded, with unknown cost for unknown models/missing token
+metadata and zero provider charge for custom servers. No account endpoint is
+queried. The core exposes reset; the app has no display/reset control yet.
+A ledger failure never turns successfully recognized text into a failed request.
+
 ## iPhone app
 
 The iPhone app in [ios/](ios/README.md) is written but not released yet. It

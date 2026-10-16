@@ -6,6 +6,8 @@ namespace OpenDictate.Provider;
 
 // Translates a finished transcript after speaking, like macOS and Linux. The
 // transcript is sent as data in the user message, never as instructions.
+internal sealed record TranslationResult(string Text, ulong? InputTokens, ulong? OutputTokens);
+
 public sealed class Translator : IDisposable
 {
     private const int MaximumInputLength = 20000;
@@ -28,6 +30,9 @@ public sealed class Translator : IDisposable
     }
 
     public async Task<string> TranslateAsync(string text, string targetLanguage, string model, string? key, CancellationToken token)
+        => (await TranslateWithUsageAsync(text, targetLanguage, model, key, token)).Text;
+
+    internal async Task<TranslationResult> TranslateWithUsageAsync(string text, string targetLanguage, string model, string? key, CancellationToken token)
     {
         DictationSettings.ValidateLanguage(targetLanguage);
         if (text.Length is 0 or > MaximumInputLength)
@@ -57,7 +62,10 @@ public sealed class Translator : IDisposable
             throw ProviderHttp.InvalidResponse();
         if (translation.Length == 0) throw new UserFacingException(UiText.T("Leere Übersetzung.", "Empty translation."));
         if (translation.Length > 16000) throw ProviderHttp.InvalidResponse();
-        return translation;
+        ulong? Tokens(string name) => document.RootElement.TryGetProperty("usage", out var usage) &&
+            usage.ValueKind == JsonValueKind.Object && usage.TryGetProperty(name, out var value) &&
+            value.ValueKind == JsonValueKind.Number && value.TryGetUInt64(out ulong count) ? count : null;
+        return new(translation, Tokens("prompt_tokens"), Tokens("completion_tokens"));
     }
 
     private static string Instructions(string targetLanguage) =>
