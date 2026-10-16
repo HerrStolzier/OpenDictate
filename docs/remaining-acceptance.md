@@ -357,11 +357,13 @@ steht bei Erstellung dieses Eintrags noch aus. Keine Installation, keine echte
 Aufnahme, kein Provider-Aufruf und kein neuer Hyprland-/Windows-Desktopnachweis.
 Die oben genannten Live-Nachweise gelten weiter nur für ihre jeweiligen Builds.
 
-Noch außerhalb dieses Stands: Windows-Verbrauch (#167) nach dem Merge von
-#165, Linux-Abdeckungsmessung/Testlücken (#171) zuletzt und zwei echte
-Paketbauten samt nativer Archivprüfung (#174). Für diese Linux-Nachweise fehlt
-noch ein freigegebener Rechner; aus lokalen Attrappen wird kein Paket- oder
-Abdeckungsnachweis abgeleitet.
+Fortschreibung vom 17. Oktober: Der gemeinsame Stand ist über PR #189 in
+`main` integriert; die regulären Build-/Testprüfungen bestanden. Windows-Verbrauch
+(#167, PR #190) wird separat zusammengeführt. Die zwei echten Linux-Paketbauten
+und die native Archivprüfung (#174) sind auf omarchy bestanden, mit identischen
+Prüfsummen für Commit `10ba599`; siehe [Paketnachweis](linux-packaging.md).
+Die Linux-Abdeckungsmessung und zusätzliche Ablaufprüfungen (#171) folgen zuletzt.
+Eine neue Live-Abnahme ist damit weiterhin nicht belegt.
 
 ## iOS
 
