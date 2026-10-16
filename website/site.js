@@ -9,6 +9,10 @@
     var el = document.getElementById('od-text');
     try { return el ? JSON.parse(el.textContent) : {}; } catch (e) { return {}; }
   })();
+  // Page texts go into HTML strings below; escape them so a stray character stays text.
+  function esc(value) {
+    return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
 
   /* ---------- Blink: pixel scenes on a 44 x 50 grid ---------- */
   var GW = 44, GH = 50;
@@ -121,7 +125,7 @@
     var height = size || 200;
     var width = Math.round(height * parseFloat(box.split(' ')[2]) / 50);
     var out = '<svg class="od-blink' + (glow ? ' od-glow' : '') + '" viewBox="' + box + '" width="' + width + '" height="' + height +
-      '" role="img" aria-label="Blink ' + (LABELS[state] || 'bereit') + '" shape-rendering="crispEdges">';
+      '" role="img" aria-label="Blink ' + esc(LABELS[state] || 'bereit') + '" shape-rendering="crispEdges">';
     sc.layers.forEach(function (l) {
       out += '<g' + (l.cls ? ' class="' + l.cls + '"' : '') + '>';
       l.cells.forEach(function (c) {
@@ -138,7 +142,7 @@
   var B32 = [[12, 1, 1, 1, 'L'], [13, 1, 6, 1, 'B'], [19, 1, 1, 1, 'S'], [11, 2, 2, 18, 'L'], [13, 2, 6, 18, 'B'], [19, 2, 2, 18, 'S'], [12, 20, 1, 1, 'L'], [13, 20, 6, 1, 'B'], [19, 20, 1, 1, 'S']];
   var B32LEGS = [[12, 21, 2, 6, 'K'], [18, 21, 2, 6, 'K'], [9, 26, 5, 2, 'W'], [9, 28, 5, 1, 'G'], [18, 26, 5, 2, 'W'], [18, 28, 5, 1, 'G']];
   function cells(list) { return list.map(function (c) { return '<rect x="' + c[0] + '" y="' + c[1] + '" width="' + c[2] + '" height="' + c[3] + '" class="od-px-' + c[4] + '"></rect>'; }).join(''); }
-  var WORDMARK = TEXT.wordmark || 'opendictate';
+  var WORDMARK = esc(TEXT.wordmark || 'opendictate');
   function wordmark(size, still) {
     return '<span class="od-wordmark' + (still ? ' od-still' : '') + '" data-font-size="' + size + '" role="img" aria-label="' + WORDMARK + '">' +
       '<span aria-hidden="true">' + WORDMARK + '</span><svg class="od-wordmark-blink" viewBox="9 1 14 29" aria-hidden="true" shape-rendering="crispEdges">' +
@@ -166,7 +170,7 @@
         if (row[x] === 'X') { var w = 1; while (x + w < 12 && row[x + w] === 'X') w++; out += '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="1"></rect>'; x += w; } else x++;
       }
     });
-    var a11y = label ? ' role="img" aria-label="' + label + '"' : ' aria-hidden="true"';
+    var a11y = label ? ' role="img" aria-label="' + esc(label) + '"' : ' aria-hidden="true"';
     return '<svg class="' + cls + '" viewBox="0 0 12 12" width="' + size + '" height="' + size + '" shape-rendering="crispEdges"' + a11y + '>' + out + '</svg>';
   }
   var KEY_LABELS = { option: 'Wahltaste', shift: 'Umschalttaste', space: 'Leertaste' };
@@ -191,7 +195,7 @@
       }
     });
     var w = DEMO_LEVELS.length * 11 - 3;
-    return '<svg class="od-meter" viewBox="0 0 ' + w + ' 107" width="' + w + '" height="107" role="img" aria-label="' + (TEXT.meter || 'Aufnahmepegel') + '" shape-rendering="crispEdges">' + out + '</svg>';
+    return '<svg class="od-meter" viewBox="0 0 ' + w + ' 107" width="' + w + '" height="107" role="img" aria-label="' + esc(TEXT.meter || 'Aufnahmepegel') + '" shape-rendering="crispEdges">' + out + '</svg>';
   }
   function progress(value, n, label) {
     var filled = Math.round(value * n);
@@ -199,7 +203,7 @@
     for (var i = 0; i < n; i++) {
       out += '<span class="od-progress-cell ' + (i < filled ? 'od-progress-on' : (i === filled ? 'od-progress-on od-a-blink' : 'od-progress-off')) + '"></span>';
     }
-    return '<div class="od-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(value * 100) + '" aria-label="' + label + '">' + out + '</div>';
+    return '<div class="od-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(value * 100) + '" aria-label="' + esc(label) + '">' + out + '</div>';
   }
 
   function render(el) {
