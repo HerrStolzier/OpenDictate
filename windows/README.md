@@ -123,9 +123,13 @@ Windows-Beta.
   neue Diktat scheitert daran nicht, und angeboten werden nur die fünf neuesten.
 - Geprüft am 14. Oktober nur offline auf Linux mit .NET SDK 10.0.401: 54 von
   54 Prüfungen (8 Kern-, 9 Ablauf-, 17 Provider- und 20 Kürzel-/App-Prüfungen),
-  Beta-App und Schutzprüfer bauen ohne Warnung. Nicht gestartet: Hook,
-  Mikrofon, Anzeige, Strg+V, Autostart und die 15 Schutzprüfungen sind erst
-  mit einem Windows-PC prüfbar (Windows-Plan, Schritt 7).
+  Beta-App und Schutzprüfer bauen ohne Warnung.
+- Am 16. Oktober auf Bastis Windows-PC aus `40911f3` gebaut und installiert:
+  54 Prüfungen und alle 15 Schutzprüfungen bestanden; ein Diktat über das
+  Menü im Infobereich lief mit Mikrofon, Anzeige und Zwischenablage durch, das
+  Startmenü blieb zu, „Mit Windows starten“ schaltet an und aus. Kürzel und
+  Strg+V brauchen echte Tasten, weil die App künstliche Tastendrücke ignoriert;
+  sie prüft Basti in der Abnahme (Windows-Plan, Schritt 7).
 
 ## Heutige Offline-Prüfung, 28. September 2026
 

@@ -64,7 +64,7 @@ internal sealed class SettingsWindow : Window
             DesignFont.Small, DesignColor.InkMuted, Theme));
 
         Section(panel, UiText.T("Tastenkürzel", "Shortcut"));
-        panel.Children.Add(ctrlWin); panel.Children.Add(rightCtrl);
+        Option(panel, ctrlWin); Option(panel, rightCtrl);
         detected.Text = UiText.T("Halte jetzt das Kürzel, um es zu testen.", "Hold the shortcut now to test it.");
         detected.Foreground = Brand.Brush(DesignColor.InkMuted, Theme);
         detected.Margin = new Thickness(0, DesignMetric.Space2, 0, 0);
@@ -85,8 +85,9 @@ internal sealed class SettingsWindow : Window
         Field(panel, UiText.T("Gesprochene Sprache", "Spoken language"), spoken);
         Field(panel, UiText.T("Übersetzung nach dem Sprechen", "Translation after speaking"), target);
         Section(panel, UiText.T("Einfügen", "Pasting"));
-        panel.Children.Add(autoInsert);
-        panel.Children.Add(autostart);
+        Option(panel, autoInsert);
+        Section(panel, UiText.T("Start", "Startup"));
+        Option(panel, autostart);
 
         var serverFields = new StackPanel();
         Field(serverFields, UiText.T("Server-Adresse", "Server address"), server);
@@ -151,6 +152,12 @@ internal sealed class SettingsWindow : Window
         var heading = Brand.Text(title, DesignFont.Strong, DesignColor.Ink, Theme);
         heading.Margin = new Thickness(0, DesignMetric.Space6, 0, DesignMetric.Space2);
         panel.Children.Add(heading);
+    }
+
+    private static void Option(Panel panel, Control option)
+    {
+        option.Margin = new Thickness(0, DesignMetric.Space1, 0, DesignMetric.Space1);
+        panel.Children.Add(option);
     }
 
     private static void Field(Panel panel, string label, Control field)
