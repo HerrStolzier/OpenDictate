@@ -4,7 +4,7 @@
 // KV namespace and served from there. Visitors never contact GitHub.
 // Update COMMIT and FILES with `python3 scripts/website-worker.py <commit>`.
 
-const COMMIT = "5f07fe148c915b75126791ac276d89e0d400131f";
+const COMMIT = "db8a170ac13b2ff486f39651cb2a8358f612aa8c";
 const FILES = {
   "/anleitungen.html": "a0c2d983e0bf6f9b7360b584534f17a3",
   "/apple-touch-icon.png": "017aca3eeebd83164aedace3bca37977",
@@ -32,9 +32,9 @@ const FILES = {
   "/pt/index.html": "c562ce3a963d7b4f36467adae25965ec",
   "/pt/tutoriais.html": "59e2d15054f96ed738af1124c44cebae",
   "/robots.txt": "3fb85fe309acd473d6be9a95d46879e4",
-  "/site.js": "b283b176e9ed4a8259ea09954b8f735c",
+  "/site.js": "1249b1284e6458f066fe9a18098e6f3e",
   "/sitemap.xml": "4238d565fcfc1a77a9052799a28aeaa1",
-  "/style.css": "535ed9f59ff9dfa3d1e03f9fc3f1eeeb",
+  "/style.css": "1622f756217cfa2076514f772c4f9333",
   "/tokens.css": "ded977b1cea80720ca8fb091c7ba90ec",
   "/videos/blink-01-so-diktierst-du-schleife.mp4": "d9f77f553aa7cca24b65c548cd574b13",
   "/videos/blink-01-so-diktierst-du.en.vtt": "6ccd149ac138b6522a159b7af14f9b95",
