@@ -17,7 +17,7 @@ the provider side is shared; each client keeps its own code. Decided on
   2. `response_format` = `json`
   3. optional language: `languages[]` when the model is `gpt-transcribe`,
      otherwise `language`
-  4. optional `prompt` (vocabulary; macOS and Linux)
+  4. optional `prompt` (vocabulary; macOS, Linux and Windows core)
   5. `file`, with a fixed transport filename and type:
 
 | Platform | Filename | Content-Type |

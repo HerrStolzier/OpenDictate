@@ -20,6 +20,43 @@ internal static class ProviderChecks
         var german = new DictationSettings { Language = "de" };
         var tests = new (string, Func<Task>)[]
         {
+            ("Shared vocabulary is optional and precedes audio on either service", async () =>
+            {
+                var fixture = Cases().GetProperty("vocabulary");
+                string[] vocabulary = fixture.GetProperty("entries").EnumerateArray().Select(value => value.GetString()!).ToArray();
+                foreach (var server in new[] { openAi, local })
+                {
+                    var handler = new FixtureHandler(_ => Response(200, Fixture("response-ok.json")));
+                    using var adapter = new OpenAiTranscriber(server, handler);
+                    await adapter.TranscribeAsync(wave, Key, german with { Vocabulary = vocabulary }, default);
+                    var sent = handler.Requests.Single();
+                    Check(sent.Fields.Select(field => field.Name).SequenceEqual(new[] { "model", "response_format", "languages[]", "prompt", "file" }));
+                    Check(sent.Fields[3].Value == fixture.GetProperty("prompt").GetString());
+                }
+            }),
+            ("Vocabulary validates the shared byte/count limits before saving or sending", async () =>
+            {
+                var handler = new FixtureHandler((HttpRequestMessage _) => throw new InvalidOperationException());
+                using var adapter = new OpenAiTranscriber(openAi, handler);
+                foreach (IReadOnlyList<string> words in new IReadOnlyList<string>[] { new[] { new string('x', 801) }, Enumerable.Repeat("x", 65).ToArray(), new[] { "line\n" }, new[] { "a\0b" }, new[] { "" }, new[] { " word" }, null! })
+                {
+                    await Refused<UserFacingException>(() => adapter.TranscribeAsync(wave, Key, german with { Vocabulary = words }, default));
+                }
+                DictationSettings.ValidateVocabulary([new string('ä', 400)]);
+                DictationSettings.ValidateVocabulary(Enumerable.Repeat("x", 64).ToArray());
+                Check(handler.Requests.Count == 0);
+                string root = Path.Combine(Path.GetTempPath(), "vocabulary-" + Guid.NewGuid().ToString("N"));
+                try
+                {
+                    string path = Path.Combine(root, "settings.json");
+                    SettingsFile.Save(path, german with { Vocabulary = ["Hyprland", "Pull Request"] });
+                    byte[] before = File.ReadAllBytes(path);
+                    Check(SettingsFile.Load(path).Vocabulary.SequenceEqual(new[] { "Hyprland", "Pull Request" }));
+                    try { SettingsFile.Save(path, german with { Vocabulary = ["invalid\r"] }); throw new InvalidOperationException(); }
+                    catch (UserFacingException) { Check(File.ReadAllBytes(path).SequenceEqual(before)); }
+                }
+                finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
+            }),
             ("Success fixture keeps the contract's field order and exact bytes", async () =>
             {
                 var handler = new FixtureHandler(_ => Response(200, Fixture("response-ok.json")));
@@ -145,7 +182,7 @@ internal static class ProviderChecks
                 var saved = new DictationSettings { Language = null, Service = "server", Server = "http://127.0.0.1:8080/v1", ServerModel = "large-v3" }.WithTarget("en");
                 SettingsFile.Save(path, saved);
                 string json = File.ReadAllText(path);
-                Check(SettingsFile.Load(path) == saved && json.Contains("\"target_language\": \"en\"") && !json.Contains("key", StringComparison.OrdinalIgnoreCase));
+                Check(SameSettings(SettingsFile.Load(path), saved) && json.Contains("\"target_language\": \"en\"") && !json.Contains("key", StringComparison.OrdinalIgnoreCase));
                 Check(Directory.GetFiles(Path.GetDirectoryName(path)!).Length == 1);
                 SettingsFile.Save(path, DictationSettings.Default);
                 Check(!File.ReadAllText(path).Contains("\"server\""));
@@ -194,7 +231,7 @@ internal static class ProviderChecks
                 var moved = SettingsFile.Load(path);
                 Check(moved.Service == "server" && moved.ServerModel == "large-v3" && moved.ServerTranslationModel == "llama3.1:8b");
                 Check(moved.Model == "gpt-transcribe" && moved.TranslationModel == "gpt-5.4-mini");
-                Check(File.ReadAllText(path).Contains("\"service\": \"server\"") && SettingsFile.Load(path) == moved);
+                Check(File.ReadAllText(path).Contains("\"service\": \"server\"") && SameSettings(SettingsFile.Load(path), moved));
                 var known = new DictationSettings { Server = "http://127.0.0.1:8080/v1", Model = "whisper-1" }.Migrated(null);
                 Check(known.Model == "whisper-1" && known.ServerModel == "whisper-1");
                 Check(new DictationSettings { Model = "whisper-1" }.Migrated(null).Service is null);
@@ -303,6 +340,11 @@ internal static class ProviderChecks
     private static string Fixture(string name) => File.ReadAllText(Path.Combine(Fixtures, name));
     private static JsonElement Cases() => JsonDocument.Parse(Fixture("cases.json")).RootElement;
     private static HttpResponseMessage Response(int code, string body) => new((HttpStatusCode)code) { Content = new StringContent(body) };
+    // Record equality compares collection references. The persisted contract
+    // compares their contents while retaining every other record field check.
+    private static bool SameSettings(DictationSettings left, DictationSettings right) =>
+        left with { Vocabulary = right.Vocabulary } == right && left.Vocabulary.SequenceEqual(right.Vocabulary);
+
     private static void Check(bool value) { if (!value) throw new InvalidOperationException("Provider assertion failed."); }
 
     private static async Task<T> Refused<T>(Func<Task> action) where T : Exception

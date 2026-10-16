@@ -25,6 +25,7 @@ public sealed class OpenAiTranscriber : IDisposable
     {
         DictationFlow.ValidateWave(verifiedWave.Span);
         DictationSettings.ValidateModelFor(settings.Model, server);
+        DictationSettings.ValidateVocabulary(settings.Vocabulary);
         if (settings.Language is not null) DictationSettings.ValidateLanguage(settings.Language);
         token.ThrowIfCancellationRequested();
         using var request = new HttpRequestMessage(HttpMethod.Post, server.TranscriptionUri);
@@ -34,6 +35,8 @@ public sealed class OpenAiTranscriber : IDisposable
         form.Add(new StringContent("json"), "response_format");
         if (settings.Language is not null)
             form.Add(new StringContent(settings.Language), settings.Model == DictationSettings.DefaultModel ? "languages[]" : "language");
+        if (settings.Vocabulary.Count > 0)
+            form.Add(new StringContent(string.Join(", ", settings.Vocabulary)), "prompt");
         var audio = new ReadOnlyMemoryContent(verifiedWave);
         audio.Headers.ContentType = new("audio/wav");
         form.Add(audio, "file", "recording.wav");
