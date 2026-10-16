@@ -516,3 +516,24 @@ Die Preise stammen aus der datierten gemeinsamen `fixtures/pricing/prices.json`;
 Rechnung, Steuern, regionale Zuschläge und Cache-Rabatte können abweichen.
 Scheitert das Speichern des Zählers, bleibt das Diktat nutzbar; das Protokoll
 nennt `usage-write-failed`. Der Zähler ersetzt keine Abrechnung.
+
+## Eine gesicherte Aufnahme mit OpenAI senden
+
+Bei Verbindungsfehler oder Zeitüberschreitung des eigenen Servers erscheint
+`opendictate retry --openai`. Der ausdrückliche Befehl sendet nur die neueste
+authentifizierte, nicht abgelaufene und nicht als skipped markierte Aufnahme
+einmal an OpenAI selbst. Dafür wird OPENAI_BASE_URL für diese Anfrage ignoriert;
+der gespeicherte OpenAI-Schlüssel wird benötigt. Es gibt keinen automatischen
+Wechsel. Normales retry und spätere Diktate nutzen weiter den eingestellten
+Dienst und dessen Modelle. Ein bekanntes OpenAI-Modell wird übernommen; alte
+Einstellungen mit ausschließlich eigenem Modell nutzen den OpenAI-Standard.
+Keine gespeicherte Einstellung wird geändert. Bei Fehler, leerem Text oder
+Abbruch bleibt die Aufnahme nach den bisherigen Regeln erhalten.
+`status` nennt den letzten eigenen Netzwerkfehler höchstens 24 Stunden lang;
+ein neuer Verarbeitungsversuch entfernt den Hinweis. HTTP-Fehler wie 404 bieten
+diesen Netzwerk-Rückweg nicht an. Zu kurze/stille skipped-Aufnahmen brauchen
+weiter `retry --skipped` und werden durch diesen Einmal-Befehl nie hochgeladen.
+
+Die ausdrückliche OpenAI-Wiederholung gilt auch bei einem Verbindungsfehler
+während der Übersetzung. Sie nutzt einmal das Standard-Übersetzungsmodell
+von OpenAI. Deine gespeicherten Einstellungen bleiben erhalten.
