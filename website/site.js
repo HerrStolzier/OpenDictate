@@ -293,7 +293,8 @@
     eingefuegt: { word: 'Eingefügt', sub: 'ins Textfeld' },
     hoppla: { word: 'Hoppla', sub: 'Keine Verbindung. Deine Aufnahme ist gesichert.' }
   };
-  var PHASES = [['bereit', 2400], ['hoert', 4600], ['schreibt', 1800], ['eingefuegt', 3000]];
+  // The loop opens on speech, and the pasted sentence stays while Blink waits, so the stage never starts empty.
+  var PHASES = [['hoert', 4600], ['schreibt', 1800], ['eingefuegt', 3000], ['bereit', 2400]];
   var TOTAL = 11800;
 
   function stage() {
@@ -320,6 +321,7 @@
         recIcon.hidden = phase !== 'hoert';
         rec.hidden = phase !== 'hoert';
         paste.classList.toggle('is-pasted', phase === 'eingefuegt');
+        paste.classList.toggle('is-kept', phase === 'bereit');
         Array.prototype.forEach.call(vis, function (el) { el.hidden = el.dataset.show !== phase; });
         Array.prototype.forEach.call(steps, function (li) { li.classList.toggle('is-on', li.dataset.phase === phase); });
         if (field) { field.dataset.cy = phase !== 'bereit' ? 176 : 38; field.dataset.hw = phase !== 'bereit' ? 290 : 110; }
@@ -337,7 +339,7 @@
       return;
     }
     function frame(now) {
-      var el = (now - t0) % TOTAL, acc = 0, phase = 'bereit', secs = 0;
+      var el = (now - t0) % TOTAL, acc = 0, phase = PHASES[0][0], secs = 0;
       for (var i = 0; i < PHASES.length; i++) {
         if (el < acc + PHASES[i][1]) { phase = PHASES[i][0]; secs = Math.floor((el - acc) / 1000); break; }
         acc += PHASES[i][1];
