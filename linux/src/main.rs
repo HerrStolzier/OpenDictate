@@ -942,10 +942,7 @@ fn process_new_recording(
         log_ops(&format!("transcription-started{}", server_log(&server)));
         let transcript = transcribe::Transcriber::new(&server)
             .transcribe(prepared.path(), api_key.as_deref(), &settings)
-            .map_err(|error| {
-                mark_network_failure(&error);
-                error
-            })?;
+            .inspect_err(mark_network_failure)?;
         ensure_not_cancelled(state_guard)?;
         if transcript.is_empty() {
             return Err(tr!(
@@ -1128,10 +1125,7 @@ fn retry(skipped: bool, openai: bool) -> Result<(), String> {
     log_ops(&format!("retry-started{}", server_log(&server)));
     let transcript = transcribe::Transcriber::new(&server)
         .transcribe_bytes(&authenticated_bytes, api_key.as_deref(), &settings)
-        .map_err(|error| {
-            mark_network_failure(&error);
-            error
-        })?;
+        .inspect_err(mark_network_failure)?;
     ensure_not_cancelled(&state_guard)?;
     if transcript.is_empty() {
         return Err(tr!(
