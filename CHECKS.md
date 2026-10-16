@@ -388,6 +388,11 @@ The findings were suppressed by commit, path, rule and line fingerprint, not
 by excluding files or directories ([Gitleaks fingerprint ignores](https://github.com/gitleaks/gitleaks#additional-configuration)).
 New or changed findings remain visible and fail the scan.
 
+`scripts/website-worker.py` marks `FILES` entries in `website/worker.js` whose
+path looks like a secret name (such as `/tokens.css`) with an inline
+`// gitleaks:allow`. Their values are SHA-256 prefixes of public website files,
+so the pin pull request after a deploy needs no separate ignore-file change.
+
 To allow a new false positive, keep the ignore file and the finding in separate
 pull requests, because a range scan reads `.gitleaksignore` from the base
 commit:
