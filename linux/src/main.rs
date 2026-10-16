@@ -49,6 +49,7 @@ Befehle:
   bar                    Status als JSON-Zeile für Omarchy-Leiste oder Waybar
   cancel                 Aufnahme oder Verarbeitung sicher abbrechen
   retry                  letzte gesicherte Aufnahme nochmal senden
+  retry --openai         letzte gesicherte Aufnahme ausdrücklich einmal an OpenAI senden
   retry --skipped        letzte zu kurze oder stille Aufnahme trotzdem senden
   copy-status            festen Statustext in die Zwischenablage
   secrets probe          Schlüsselbund prüfen: schreiben, lesen, löschen
@@ -80,6 +81,7 @@ Commands:
   bar                    status as a JSON line for the Omarchy bar or Waybar
   cancel                 safely cancel a recording or processing
   retry                  send the last kept recording again
+  retry --openai         explicitly send the last kept recording to OpenAI once
   retry --skipped        send the last too short or silent recording anyway
   copy-status            put a fixed status text in the clipboard
   secrets probe          check the keyring: write, read, delete
@@ -131,8 +133,9 @@ fn run(args: Vec<String>) -> Result<(), String> {
         ["status"] => status(),
         ["bar"] | ["waybar"] => waybar_status(),
         ["cancel"] => cancel(),
-        ["retry"] => retry(false),
-        ["retry", "--skipped"] => retry(true),
+        ["retry"] => retry(false, false),
+        ["retry", "--openai"] => retry(false, true),
+        ["retry", "--skipped"] => retry(true, false),
         ["copy-status"] => copy_status(),
         ["secrets", "probe"] => secrets_probe(),
         ["secrets", "status"] => secrets_status(),
@@ -319,6 +322,16 @@ fn status() -> Result<(), String> {
     let socket = paths::socket_path().map_err(path_error)?;
     let state_path = paths::state_path().map_err(path_error)?;
     println!("{}", state::read(&state_path, &socket).as_str());
+    if let Ok(path) = network_hint_path() {
+        if fs::metadata(path)
+            .ok()
+            .and_then(|metadata| metadata.modified().ok())
+            .and_then(|time| time.elapsed().ok())
+            .is_some_and(|age| age < Duration::from_secs(24 * 60 * 60))
+        {
+            println!("{}", i18n::t("Letzte Server-Anfrage fehlgeschlagen: `opendictate retry --openai` sendet die gesicherte Aufnahme einmal an OpenAI.", "Last server request failed: `opendictate retry --openai` sends the kept recording to OpenAI once."));
+        }
+    }
     Ok(())
 }
 
@@ -915,6 +928,7 @@ fn process_new_recording(
     target: Option<&window::TargetWindow>,
     state_guard: &state::StateGuard,
 ) -> Result<(), String> {
+    clear_network_hint();
     let result = (|| {
         ensure_not_cancelled(state_guard)?;
         let prepared = match record::prepare_for_upload(path)? {
@@ -926,11 +940,12 @@ fn process_new_recording(
         let (server, _) = server::Server::resolve(settings.server.as_deref())?;
         let api_key = api_key_for(&server)?;
         log_ops(&format!("transcription-started{}", server_log(&server)));
-        let transcript = transcribe::Transcriber::new(&server).transcribe(
-            prepared.path(),
-            api_key.as_deref(),
-            &settings,
-        )?;
+        let transcript = transcribe::Transcriber::new(&server)
+            .transcribe(prepared.path(), api_key.as_deref(), &settings)
+            .map_err(|error| {
+                mark_network_failure(&error);
+                error
+            })?;
         ensure_not_cancelled(state_guard)?;
         if transcript.is_empty() {
             return Err(tr!(
@@ -1008,7 +1023,48 @@ fn process_new_recording(
     }
 }
 
-fn retry(skipped: bool) -> Result<(), String> {
+fn network_hint_path() -> Result<std::path::PathBuf, String> {
+    Ok(paths::state_dir()
+        .map_err(path_error)?
+        .join("custom-network-failure"))
+}
+
+fn clear_network_hint() {
+    if let Ok(path) = network_hint_path() {
+        let _ = fs::remove_file(path);
+    }
+}
+
+fn mark_network_failure(error: &transcribe::Failure) {
+    if !error.custom_network {
+        return;
+    }
+    if let Ok(path) = network_hint_path() {
+        if let Ok(mut file) = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .mode(0o600)
+            .custom_flags(libc::O_NOFOLLOW)
+            .open(path)
+        {
+            let _ = file.write_all(b"custom-network-failure\n");
+        }
+    }
+}
+
+fn openai_retry_settings(saved: &settings::Settings) -> settings::Settings {
+    let mut request = saved.clone();
+    if settings::validate_model(&request.model).is_err() {
+        request.model = settings::DEFAULT_MODEL.to_string();
+    }
+    if !request.translation_model.starts_with("gpt-") {
+        request.translation_model = settings::DEFAULT_TRANSLATION_MODEL.to_string();
+    }
+    request
+}
+
+fn retry(skipped: bool, openai: bool) -> Result<(), String> {
     // Same lock as `toggle`, held until the socket and the Processing state
     // are in place: a retry cannot take the socket from a worker that
     // `toggle` is starting, and a later `toggle` sees Processing.
@@ -1060,15 +1116,22 @@ fn retry(skipped: bool) -> Result<(), String> {
         ));
     };
     ensure_not_cancelled(&state_guard)?;
-    let settings = settings::Settings::load(&paths::settings_path().map_err(path_error)?)?;
-    let (server, _) = server::Server::resolve(settings.server.as_deref())?;
+    let saved = settings::Settings::load(&paths::settings_path().map_err(path_error)?)?;
+    let (settings, server) = if openai {
+        (openai_retry_settings(&saved), server::Server::openai())
+    } else {
+        let (server, _) = server::Server::resolve(saved.server.as_deref())?;
+        (saved, server)
+    };
+    clear_network_hint();
     let api_key = api_key_for(&server)?;
     log_ops(&format!("retry-started{}", server_log(&server)));
-    let transcript = transcribe::Transcriber::new(&server).transcribe_bytes(
-        &authenticated_bytes,
-        api_key.as_deref(),
-        &settings,
-    )?;
+    let transcript = transcribe::Transcriber::new(&server)
+        .transcribe_bytes(&authenticated_bytes, api_key.as_deref(), &settings)
+        .map_err(|error| {
+            mark_network_failure(&error);
+            error
+        })?;
     ensure_not_cancelled(&state_guard)?;
     if transcript.is_empty() {
         return Err(tr!(
@@ -1276,6 +1339,19 @@ impl Drop for SocketGuard {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn one_off_openai_settings_do_not_change_the_saved_service() {
+        let saved = crate::settings::Settings {
+            model: "large-v3".to_string(),
+            server: Some("http://127.0.0.1:8080/v1".to_string()),
+            ..crate::settings::Settings::default()
+        };
+        let before = serde_json::to_vec(&saved).unwrap();
+        let request = super::openai_retry_settings(&saved);
+        assert_eq!(request.model, crate::settings::DEFAULT_MODEL);
+        assert_eq!(serde_json::to_vec(&saved).unwrap(), before);
+        assert!(crate::server::Server::openai().sends_api_key());
+    }
     use super::*;
 
     #[test]

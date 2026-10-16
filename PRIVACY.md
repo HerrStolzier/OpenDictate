@@ -421,3 +421,14 @@ Closed requests are deleted automatically 180 days after they were closed;
 open requests are kept until they are closed.
 On request, a ticket and all its messages, replies included, are deleted at
 once.
+
+### Linux one-off OpenAI retry
+
+Only the explicit `opendictate retry --openai` command sends one newest,
+authenticated, unexpired, non-skipped recording to OpenAI directly with the
+stored key. OPENAI_BASE_URL and the custom address are ignored for this one
+request; saved service/model settings remain unchanged. There is never an
+automatic provider fallback. The existing recovery limits and failure retention
+still apply. A constant, owner-only local marker remembers a custom transport
+failure for the status hint for at most 24 hours; it contains no audio, text,
+key, hostname or filename and is cleared by the next processing attempt.

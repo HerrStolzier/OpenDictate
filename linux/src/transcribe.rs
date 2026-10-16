@@ -19,6 +19,37 @@ const CUSTOM_RESPONSE_BUDGET: Duration = Duration::from_secs(120);
 /// Upload allowance for a slow uplink of about 2 Mbit/s.
 const SLOW_UPLINK_BYTES_PER_SECOND: u64 = 250_000;
 
+#[derive(Debug)]
+pub struct Failure {
+    message: String,
+    pub custom_network: bool,
+}
+
+impl From<String> for Failure {
+    fn from(message: String) -> Self {
+        Self {
+            message,
+            custom_network: false,
+        }
+    }
+}
+impl From<Failure> for String {
+    fn from(error: Failure) -> Self {
+        error.message
+    }
+}
+impl std::ops::Deref for Failure {
+    type Target = str;
+    fn deref(&self) -> &str {
+        &self.message
+    }
+}
+impl std::fmt::Display for Failure {
+    fn fmt(&self, output: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.message.fmt(output)
+    }
+}
+
 pub struct Transcriber {
     server: Server,
     url: String,
@@ -49,7 +80,7 @@ impl Transcriber {
         audio_path: &Path,
         api_key: Option<&str>,
         settings: &Settings,
-    ) -> Result<String, String> {
+    ) -> Result<String, Failure> {
         validate_model_for(&settings.model, &self.server)?;
         self.key_to_send(api_key)?;
         let audio = std::fs::read(audio_path)
@@ -62,14 +93,15 @@ impl Transcriber {
         audio: &[u8],
         api_key: Option<&str>,
         settings: &Settings,
-    ) -> Result<String, String> {
+    ) -> Result<String, Failure> {
         validate_model_for(&settings.model, &self.server)?;
         let api_key = self.key_to_send(api_key)?;
         if audio.is_empty() || audio.len() > MAX_UPLOAD_BYTES {
             return Err(crate::tr!(
                 "Aufnahme hat eine ungültige Größe.",
                 "Recording has an invalid size."
-            ));
+            )
+            .into());
         }
         let boundary = new_boundary()?;
         let body = multipart_body(&boundary, audio, settings);
@@ -113,7 +145,7 @@ fn request_timeout(response_budget: Duration, upload_bytes: usize) -> Duration {
 
 /// A multipart boundary from 16 random bytes, so neither the audio nor a
 /// field value can contain it by chance or by design.
-fn new_boundary() -> Result<String, String> {
+fn new_boundary() -> Result<String, Failure> {
     Ok(format!(
         "OpenDictateBoundary{}",
         crate::keyring::random_hex(16)?
@@ -152,7 +184,7 @@ fn push_field(body: &mut Vec<u8>, boundary: &str, name: &str, value: &str) {
 fn decode_response(
     response: Result<ureq::Response, ureq::Error>,
     server: &Server,
-) -> Result<String, String> {
+) -> Result<String, Failure> {
     let response = match response {
         Ok(response) => response,
         Err(ureq::Error::Status(status, response)) => {
@@ -161,7 +193,7 @@ fn decode_response(
                 .into_reader()
                 .take(16 * 1_024)
                 .read_to_end(&mut ignored);
-            return Err(match status {
+            return Err((match status {
                 401 | 403 if !server.sends_api_key() => crate::tr!(
                     "Dein lokaler Server will eine Anmeldung. OpenDictate schickt an Server auf diesem Rechner keinen Schlüssel – schalte die Anmeldung dort ab.",
                     "Your local server asks for a login. OpenDictate sends no key to servers on this computer – turn the login off there."
@@ -187,20 +219,17 @@ fn decode_response(
                     "OpenAI limit reached or your balance is empty. Check your OpenAI account."
                 ),
                 _ => crate::tr!("Transkription fehlgeschlagen.", "Transcription failed."),
-            });
+            }).into());
         }
         Err(ureq::Error::Transport(_)) if server.is_custom() => {
-            return Err(crate::tr!(
-                "Dein Server ({}) ist nicht erreichbar oder zu langsam. Prüf, ob er läuft, und versuch es nochmal.",
-                "Your server ({}) is unreachable or too slow. Check that it is running and try again.",
-                server.log_host()
-            ))
+            return Err(custom_network_failure(server))
         }
         Err(ureq::Error::Transport(_)) => {
             return Err(crate::tr!(
                 "Keine Verbindung zum Dienst. Prüf das Internet und versuch es nochmal.",
                 "No connection to the service. Check your internet connection and try again."
-            ))
+            )
+            .into())
         }
     };
     let mut data = Vec::new();
@@ -208,13 +237,25 @@ fn decode_response(
         .into_reader()
         .take(1_024 * 1_024)
         .read_to_end(&mut data)
-        .map_err(|_| invalid_response())?;
+        .map_err(|_| {
+            if server.is_custom() {
+                custom_network_failure(server)
+            } else {
+                invalid_response().into()
+            }
+        })?;
     #[derive(Deserialize)]
     struct Response {
         text: String,
     }
     let parsed: Response = serde_json::from_slice(&data).map_err(|_| invalid_response())?;
     Ok(crate::policy::sanitize_transcript(&parsed.text))
+}
+
+fn custom_network_failure(server: &Server) -> Failure {
+    Failure { custom_network: true, message: crate::tr!(
+        "Dein Server ({}) ist nicht erreichbar oder zu langsam. Prüf, ob er läuft. Mit `opendictate retry --openai` kannst du die gesicherte Aufnahme einmal an OpenAI senden.",
+        "Your server ({}) is unreachable or too slow. Check that it is running. `opendictate retry --openai` sends the kept recording to OpenAI once.", server.log_host()) }
 }
 
 fn invalid_response() -> String {
@@ -228,6 +269,61 @@ fn invalid_response() -> String {
 mod tests {
     use super::*;
     use crate::test_http::{serve, serve_without_answer};
+
+    #[test]
+    fn a_custom_response_body_timeout_keeps_the_explicit_retry_hint() {
+        use std::io::Write;
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let stub = std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            let mut bytes = [0; 4096];
+            let _ = stream.read(&mut bytes).unwrap();
+            stream.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 100\r\n\r\n").unwrap();
+            while matches!(stream.read(&mut bytes), Ok(count) if count > 0) {}
+        });
+        let server = Server::parse(&format!("http://{address}")).unwrap();
+        let mut transcriber = Transcriber::new(&server);
+        transcriber.response_budget = Duration::from_millis(20);
+        let error = transcriber
+            .transcribe_bytes(b"synthetic-audio", None, &Settings::default())
+            .unwrap_err();
+        assert!(error.custom_network && error.contains("retry --openai"));
+        stub.join().unwrap();
+    }
+
+    #[test]
+    fn only_custom_transport_errors_offer_explicit_openai_retry() {
+        let (endpoint, stub) = serve_without_answer();
+        let custom = Server::parse(&endpoint).unwrap();
+        let mut transcriber = Transcriber::new(&custom);
+        transcriber.response_budget = Duration::from_millis(20);
+        let settings = Settings::default();
+        let before = serde_json::to_vec(&settings).unwrap();
+        let error = transcriber
+            .transcribe_bytes(b"synthetic-recording", None, &settings)
+            .unwrap_err();
+        assert!(error.custom_network && error.contains("retry --openai"));
+        stub.join().unwrap();
+        let (endpoint, stub) = serve("404 Not Found", "{}");
+        let server = Server::parse(&endpoint).unwrap();
+        let error = Transcriber::new(&server)
+            .transcribe_bytes(b"synthetic-recording", None, &settings)
+            .unwrap_err();
+        assert!(!error.custom_network && !error.contains("retry --openai"));
+        stub.join().unwrap();
+        let (endpoint, stub) = serve("200 OK", r#"{"text":"Again."}"#);
+        let text = openai_stub(&endpoint)
+            .transcribe_bytes(b"synthetic-recording", Some("test-key"), &settings)
+            .unwrap();
+        assert_eq!(text, "Again.");
+        let request = String::from_utf8(stub.join().unwrap()).unwrap();
+        assert!(
+            request.contains("Authorization: Bearer test-key")
+                && request.contains("synthetic-recording")
+        );
+        assert_eq!(serde_json::to_vec(&settings).unwrap(), before);
+    }
 
     /// OpenAI's rules, but talking to the local stub.
     fn openai_stub(endpoint: &str) -> Transcriber {

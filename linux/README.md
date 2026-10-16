@@ -422,3 +422,19 @@ files and proofs `0600`.
 - The Arch package is installed on one machine (omarchy) and checked with a
   dictation ([evidence](../docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026));
   not in the AUR, no second distribution.
+
+## Send one kept recording to OpenAI
+
+A custom-server connection failure/timeout offers `opendictate retry --openai`.
+It explicitly sends only the newest authenticated, unexpired, non-skipped
+recording once to OpenAI itself, ignoring OPENAI_BASE_URL for this one request.
+It requires your stored OpenAI key. There is no automatic switch: normal retry
+and subsequent dictations keep using your configured service and model pairs.
+The OpenAI model is used when known; legacy custom-only settings use the
+default OpenAI model. No saved setting is changed. Failed/empty/cancelled
+requests retain the recording under the existing recovery rules.
+`status` also shows a recent custom network-failure hint (at most 24 hours);
+a new processing attempt clears it. HTTP error replies such as 404 do not
+produce this network-fallback offer. Short/silent skipped audio still requires
+the separate explicit `retry --skipped` command and is never uploaded by this
+one-off command.

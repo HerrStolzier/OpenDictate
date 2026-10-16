@@ -436,3 +436,20 @@ sind echte Verzeichnisse mit Modus `0700`; Audiodateien und Nachweise `0600`.
 - Das Arch-Paket ist auf einem Rechner (omarchy) installiert und mit einem
   Diktat geprüft ([Nachweis](../docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026));
   nicht im AUR, kein zweites Distro-Ziel.
+
+## Eine gesicherte Aufnahme mit OpenAI senden
+
+Bei Verbindungsfehler oder Zeitüberschreitung des eigenen Servers erscheint
+`opendictate retry --openai`. Der ausdrückliche Befehl sendet nur die neueste
+authentifizierte, nicht abgelaufene und nicht als skipped markierte Aufnahme
+einmal an OpenAI selbst. Dafür wird OPENAI_BASE_URL für diese Anfrage ignoriert;
+der gespeicherte OpenAI-Schlüssel wird benötigt. Es gibt keinen automatischen
+Wechsel. Normales retry und spätere Diktate nutzen weiter den eingestellten
+Dienst und dessen Modelle. Ein bekanntes OpenAI-Modell wird übernommen; alte
+Einstellungen mit ausschließlich eigenem Modell nutzen den OpenAI-Standard.
+Keine gespeicherte Einstellung wird geändert. Bei Fehler, leerem Text oder
+Abbruch bleibt die Aufnahme nach den bisherigen Regeln erhalten.
+`status` nennt den letzten eigenen Netzwerkfehler höchstens 24 Stunden lang;
+ein neuer Verarbeitungsversuch entfernt den Hinweis. HTTP-Fehler wie 404 bieten
+diesen Netzwerk-Rückweg nicht an. Zu kurze/stille skipped-Aufnahmen brauchen
+weiter `retry --skipped` und werden durch diesen Einmal-Befehl nie hochgeladen.
