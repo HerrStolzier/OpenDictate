@@ -7,7 +7,8 @@
   server if you set one up, using your own key. With a server on your own
   computer, nothing leaves it. The project never sees your audio or text.
 - With translation on, the recognised text is sent a second time, for the
-  translation.
+  translation, unless your device translates it itself ("Auf dem Mac" on
+  macOS 26 or later, "Auf dem iPhone" on iOS 26 or later).
 - Your key stays in the system keychain. There is no tracking and no
   analytics, and the log never contains your text, your audio or your key.
 - A recording that failed is kept so you can send it again: the five newest,
@@ -34,6 +35,17 @@ set, the transcript text is then sent over HTTPS to OpenAI's
 `/v1/chat/completions` endpoint together with the target language and the
 translation model, and only the translation is copied and pasted. OpenAI's own
 data handling terms apply to these transfers.
+
+With **Übersetzen mit: Auf dem Mac** (macOS 26 or later), Apple's on-device
+translation (`TranslationSession`) translates the transcript instead, and the
+text is not sent anywhere for the translation. The app takes the source
+language from the dictation language setting, or with Auto recognises it in the
+text on the Mac. The languages come from Apple once, through System Settings.
+Apple
+[says](https://developer.apple.com/documentation/translation/translationsession)
+it may collect usage and performance metrics with the app's bundle ID and the
+language pair, never the original or translated text. The recording itself
+still goes to the chosen service for transcription.
 
 With **Eigener Server** (or `OPENAI_BASE_URL`), the same requests go to the
 configured address instead of OpenAI, and that server's own terms apply. A

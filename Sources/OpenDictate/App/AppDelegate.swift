@@ -22,6 +22,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         /// The own server wrote this attempt. If it fails, the resend offer
         /// names OpenAI instead, and only for this one recording.
         var viaServer = false
+        /// Translating on this Mac failed after the service wrote, so the
+        /// service is not the problem and OpenAI is not offered instead.
+        var failedOnThisMac = false
     }
     private var pendingRetryFilename: String?
     /// The service the confirmation named, so a switch while it is open
@@ -80,8 +83,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     return await pasteboard.paste(text, into: previousApplication)
                 },
                 translationTarget: { [unowned self] in requestOptions?.translationTarget },
-                translate: { [unowned self] in
-                    try await translator.translate($0, into: $1, options: requestOptions)
+                translate: { [unowned self] text, target in
+                    guard let options = requestOptions, options.translationEngine == .device else {
+                        return try await translator.translate(text, into: target, options: requestOptions)
+                    }
+                    do {
+                        return try await OnDeviceTranslator.translate(
+                            text, into: target, dictationLanguage: options.language)
+                    } catch {
+                        attempt?.failedOnThisMac = true
+                        throw error
+                    }
                 }
             ))
     }
@@ -138,9 +150,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settings.migrateServiceChoice()
         let modelSource = settings.service == .openAI ? settings.modelSource : "own server settings"
         AppLog.write("Transcription model: \(Config.model.rawValue) (from \(modelSource))")
-        AppLog.write(
-            "Translation: \(settings.translationTarget ?? "off") "
-                + "(model \(settings.translationModel(for: settings.service)))")
+        var translatedBy = "model \(settings.translationModel(for: settings.service))"
+        if settings.translationEngine == .device { translatedBy = "on this Mac" }
+        AppLog.write("Translation: \(settings.translationTarget ?? "off") (\(translatedBy))")
         AppLog.write("Service: \(Self.serviceDescription)")
         verifyHotKeyConstants()
         BrandFonts.register()
@@ -222,7 +234,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// The own server did not take the latest attempt, so its recording may
     /// go to OpenAI once, never without the user's click.
     private var offersOpenAI: Bool {
-        attempt?.viaServer == true && Config.settings.service == .server && retryCandidate != nil
+        attempt?.viaServer == true && attempt?.failedOnThisMac != true && Config.settings.service == .server
+            && retryCandidate != nil
     }
 
     private func updateRetryOffer() {
@@ -507,6 +520,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let loadedOptions = await loadOptions()
         guard lifecycle.isCurrent(operation), !Task.isCancelled, flow.state.canStart else { return }
         guard let options = usableOptions(loadedOptions, for: operation) else { return }
+        let translationProblem = await onDeviceTranslationProblem(options)
+        guard lifecycle.isCurrent(operation), !Task.isCancelled, flow.state.canStart else { return }
+        if let translationProblem {
+            AppLog.write("Dictation did not start: translation on this Mac is not ready")
+            let message = translationProblem.errorDescription ?? ""
+            updateStatus(message)
+            dictationPanel.updateFailure(message)
+            indicator.showProblem(message)
+            return
+        }
         let permitted = await AudioRecorder.requestPermission()
         guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
         guard permitted else {
@@ -605,6 +628,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Only a valid server outside this Mac needs a key; a local server never
     /// waits for one, and an invalid address is reported on its own.
     private static var needsAPIKey: Bool { Config.settings.endpoint?.isLoopback == false }
+
+    /// Missing languages for translating on this Mac stop before recording,
+    /// so no dictation is transcribed and paid for only to fail afterwards.
+    private func onDeviceTranslationProblem(_ options: TranscriptionOptions) async -> OpenDictateError? {
+        guard options.translationEngine == .device, let target = options.translationTarget else { return nil }
+        switch await OnDeviceTranslator.readiness(into: target, dictationLanguage: options.language) {
+        case .ready: return nil
+        case .needsLanguages: return .translationLanguagesMissing
+        case .unavailable: return .translationUnavailable
+        }
+    }
 
     /// An invalid configured address stops before the key or microphone is
     /// asked for; neither would help.
@@ -1225,6 +1259,43 @@ extension AppDelegate: MenuBarControllerDelegate {
         guard translationTarget != Config.settings.translationTarget else { return }
         Config.settings.translationTarget = translationTarget
         AppLog.write("Translation target changed to \(translationTarget ?? "off")")
+        checkTranslationOnThisMac()
+    }
+
+    func menuBarDidSelect(translationEngine: Settings.TranslationEngine) {
+        guard lifecycle.canBeginOperation, flow.state == .idle else { return }
+        guard translationEngine != Config.settings.translationEngine else { return }
+        guard translationEngine == .service || OnDeviceTranslator.isSupported else {
+            updateStatus(OpenDictateError.translationUnavailable.errorDescription ?? "")
+            return
+        }
+        Config.settings.translationEngine = translationEngine
+        AppLog.write("Translation engine changed to \(translationEngine.rawValue)")
+        checkTranslationOnThisMac()
+    }
+
+    /// Says right after the choice what translating on this Mac still needs,
+    /// instead of only at the next dictation.
+    private func checkTranslationOnThisMac() {
+        let settings = Config.settings
+        guard settings.translationEngine == .device, let target = settings.translationTarget else { return }
+        let language = Config.language
+        Task { @MainActor in
+            let readiness = await OnDeviceTranslator.readiness(into: target, dictationLanguage: language)
+            guard Config.settings.translationEngine == .device, Config.settings.translationTarget == target else {
+                return
+            }
+            AppLog.write("Translation on this Mac for \(target): \(readiness)")
+            switch readiness {
+            case .ready: break
+            case .needsLanguages:
+                if AlertPresenter.offerTranslationLanguages() { SystemSettings.openTranslationLanguages() }
+            case .unavailable:
+                AlertPresenter.showWarning(
+                    title: "Übersetzen auf dem Mac geht hier nicht",
+                    message: OpenDictateError.translationUnavailable.errorDescription ?? "")
+            }
+        }
     }
 
     func menuBarDidSelect(indicatorStyle: IndicatorStyle) {
@@ -1252,4 +1323,6 @@ extension AppDelegate: MenuBarControllerDelegate {
     }
     var menuBarLanguage: String? { Config.language }
     var menuBarTranslationTarget: String? { Config.settings.translationTarget }
+    var menuBarTranslationEngine: Settings.TranslationEngine { Config.settings.translationEngine }
+    var menuBarCanTranslateOnDevice: Bool { OnDeviceTranslator.isSupported }
 }

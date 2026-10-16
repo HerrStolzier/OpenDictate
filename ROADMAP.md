@@ -133,11 +133,14 @@ die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleiner
      bietet die Anzeige „Mit OpenAI senden“ für diese eine Aufnahme an; die
      App wechselt nie von selbst (Bastis Fund nach dem Neustart des Mac mini
      am 14. Oktober). Live-Test mit dem nächsten Kandidaten.
-   - Die Übersetzung läuft auch lokal, ohne OpenAI. Sie braucht dafür einen
-     eigenen Weg, weil der lokale whisper.cpp-Server nur transkribiert.
-     Vorgesehen ist Apples Übersetzung auf dem Gerät (Translation, offline und
-     kostenlos); sie gibt es ab macOS 15, unter macOS 14 bleibt es beim
-     bisherigen Dienst.
+   - Die Übersetzung läuft auch lokal, ohne OpenAI. Gebaut am 16. Oktober,
+     noch nicht live geprüft: „Übersetzen mit: Auf dem Mac“ nutzt Apples
+     Übersetzung auf dem Gerät (offline und kostenlos). Ohne Fenster geht das
+     erst ab macOS 26; davor bleibt es beim Dienst, die Wahl zeigt
+     „ab macOS 26“. Fehlen die Sprachen, sagt die App das gleich bei der Wahl
+     und öffnet die Systemeinstellungen; ohne Sprachen startet kein Diktat,
+     ein späterer Fehler behält die Aufnahme. Live-Test mit dem nächsten
+     Kandidaten.
 
 **Bekannte Grenzen, den Beta-Nutzern überlassen:** Feldtypen und Programme
 jenseits der [Kompatibilitätsmatrix](docs/compatibility-matrix.md); gehörte

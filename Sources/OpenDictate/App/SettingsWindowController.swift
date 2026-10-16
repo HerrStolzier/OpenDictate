@@ -85,6 +85,7 @@ final class SettingsWindowController: NSWindowController {
             addRow("Tastenkürzel", id: "shortcut", to: stack)
             addRow("Sprache", id: "language", to: stack)
             addRow("Übersetzen", id: "translation", to: stack)
+            addRow("Übersetzen mit", id: "translationEngine", to: stack)
             addRow("Dienst", id: "service", to: stack)
             addRow("Anzeige", id: "indicatorStyle", to: stack)
             if let item = item("autoPaste") { addControl(item, to: stack) }
@@ -168,7 +169,7 @@ final class SettingsWindowController: NSWindowController {
         row.spacing = 12
         row.alignment = .centerY
         let label = NSTextField(labelWithString: title)
-        label.widthAnchor.constraint(equalToConstant: 88).isActive = true
+        label.widthAnchor.constraint(equalToConstant: 104).isActive = true
         row.addArrangedSubview(label)
         let control = control(for: item)
         row.addArrangedSubview(control)
@@ -210,10 +211,15 @@ final class SettingsWindowController: NSWindowController {
         return control
     }
 
+    /// Rows that show only the value after "Title:" next to their own label.
+    private static let valueRows: Set<String> = [
+        "microphone", "shortcut", "language", "translation", "translationEngine", "service", "model",
+        "indicatorStyle"
+    ]
+
     private func valueTitle(_ item: NSMenuItem) -> String {
-        if ["microphone", "shortcut", "language", "translation", "service", "model", "indicatorStyle"].contains(
-            item.identifier?.rawValue ?? ""),
-            page == .settings, let colon = item.title.firstIndex(of: ":")
+        if Self.valueRows.contains(item.identifier?.rawValue ?? ""), page == .settings,
+            let colon = item.title.firstIndex(of: ":")
         {
             return String(item.title[item.title.index(after: colon)...]).trimmingCharacters(in: .whitespaces)
         }

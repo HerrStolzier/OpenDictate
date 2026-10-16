@@ -117,6 +117,19 @@ Changes apply to the next dictation, no restart needed.
   only the translation is copied and pasted. If the translation fails or comes
   back empty, nothing is pasted, the original text is not used as a fallback and
   the recording is kept for retry; a retry translates again.
+- **Übersetzen mit** — who translates: your **Dienst** (OpenAI or your own
+  server, as above) or **Auf dem Mac**. "Auf dem Mac" uses Apple's translation
+  on the device (macOS 26 or later): the text is not sent anywhere for the
+  translation, and it costs nothing. It translates from the dictation language
+  you chose under **Sprache**, or with Auto from the language it recognises in
+  the text. Apple needs the languages on this Mac once; right after the choice
+  the app tells you if they are missing and opens System Settings → General →
+  Language & Region → Translation Languages. Without them, or for a pair Apple
+  does not translate, a dictation does not start and says what is missing, so
+  nothing is transcribed in vain. If translating fails later, the dictation
+  keeps its recording; it never falls back to the service, and "Nochmal
+  senden" goes to your Dienst as usual. Before macOS 26 the option is shown as
+  "ab macOS 26" and cannot be chosen.
 - **Anzeige** — how the indicator appears on screens without a notch:
   floating below the menu bar (default), inside the menu bar, or off.
 - **Eigener Server** (Advanced) — use any server that speaks the OpenAI request
@@ -168,7 +181,8 @@ speech. That is what OpenAI
 charged for `gpt-transcribe` from July to October 2026; OpenAI sets the price,
 and its price list is what counts. Your cost depends on how long you speak. With a [model on your own Mac](#using-your-own-server) dictation
 costs nothing. Translation adds one text-model request per dictation,
-which OpenAI bills separately by tokens.
+which OpenAI bills separately by tokens; translating **Auf dem Mac** costs
+nothing.
 
 Transcription uses `gpt-transcribe`, OpenAI's current accuracy-focused model.
 **Vokabular und Kontext** adds your own vocabulary for names and technical terms.
