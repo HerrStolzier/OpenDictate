@@ -225,23 +225,25 @@ Prüfumgebung mit einem Dummy-Zugangseintrag ausgeführt werden; sie verwenden
 keinen echten OpenAI-Schlüssel. Diese Dokumentation startet keinen dieser
 Abläufe.
 
-## Local usage accounting (core/provider)
+## Lokaler Verbrauchszähler im Kern und Provider
 
-The default `ProviderSession` records successful non-empty provider work locally
-in `usage.json` beside the settings file: time, service kind, model, audio seconds
-and optional translation token counts. Failed, empty and cancelled provider
-operations are excluded. It never records dictated text, file names, server
-addresses or keys. Accounting failures retain successfully recognized text.
-The shared `fixtures/pricing/prices.json` is embedded at build time; no account
-or admin endpoint is queried. Costs are USD estimates, custom servers cost zero,
-and unknown models or missing translation usage produce unknown cost.
+Der Standard-`ProviderSession` zählt erfolgreich abgeschlossene, nicht leere
+Diktate in `usage.json` neben den Einstellungen: Zeitpunkt, Dienst, Modell,
+Audiosekunden und gegebenenfalls Übersetzungs-Tokens. Fehlgeschlagene, leere
+und abgebrochene Provider-Abläufe zählen nicht. Text, Dateinamen, Server-Adressen
+und Schlüssel werden nie gespeichert. Ein Zählerfehler verliert keinen bereits
+erkannten Text. Die gemeinsame `fixtures/pricing/prices.json` wird beim Bauen
+eingebettet; es wird keine Konto- oder Admin-Schnittstelle abgefragt.
+Kosten sind USD-Schätzungen. Eigene Server kosten hier null, unbekannte Modelle
+oder fehlende Übersetzungs-Tokens haben unbekannte Kosten.
 
-`UsageLedger` exposes today, the last seven local calendar days, this month and
-reset with an injectable clock/time zone. Entries strictly older than 13 local
-calendar months are pruned on access/write. A file lease serializes instances;
-writes replace the file atomically. This adds no app display or reset control;
-those remain open. Checks use temporary ledgers, fixed clocks and fake HTTP.
-The app build is checked in CI; no Windows desktop acceptance is claimed here.
+`UsageLedger` bietet heute, die letzten sieben lokalen Kalendertage, diesen
+Monat und Zurücksetzen mit vorgebbarer Uhr und Zeitzone. Einträge, die strikt
+älter als 13 lokale Kalendermonate sind, werden beim Lesen/Schreiben entfernt.
+Eine Dateisperre ordnet die Zugriffe; die Datei wird in einem Schritt ersetzt.
+Anzeige und Rücksetzknopf in der App bleiben offen. Die Prüfungen nutzen
+temporäre Zähler, feste Uhren und HTTP-Attrappen. Der App-Build wird in der CI
+geprüft; eine neue Windows-Desktopabnahme ist damit nicht belegt.
 
 ## Vokabular im plattformneutralen Kern
 
