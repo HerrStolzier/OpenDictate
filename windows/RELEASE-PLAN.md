@@ -57,9 +57,10 @@ Installation, Beschaffung eines Zertifikats oder echte Provider-/Mikrofonprobe.
    markiert es so, dass Windows es nicht in den Zwischenablageverlauf und nicht
    in die Cloud-Zwischenablage übernimmt; ein Programm, das die Zwischenablage
    selbst mitliest, kann es trotzdem sehen.
-   Einstellungen (Modell, Sprache, Übersetzung, Server-Adresse) liegen ohne
+   Einstellungen (Dienst, Modelle, Sprache, Übersetzung, Server-Adresse) liegen ohne
    Geheimnis in `%APPDATA%\OpenDictate\settings.json`. Die Aufnahme geht an
-   OpenAI oder an den eingetragenen eigenen Server; ist eine Übersetzung
+   den gewählten Dienst: OpenAI oder den eingetragenen eigenen Server, nie
+   von selbst an den anderen; ist eine Übersetzung
    eingestellt, geht danach das Transkript an denselben Server. Ein Server auf
    diesem Computer bekommt keinen Schlüssel; jeder andere eigene Server, auch
    einer aus `OPENAI_BASE_URL`, bekommt den gespeicherten OpenAI-Schlüssel als

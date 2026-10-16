@@ -34,7 +34,7 @@ internal static class ShortcutChecks
                     Check(gesture.KeyUp(first, 900).Gesture == ShortcutGestureKind.HoldEnded);
                 }
             }),
-            ("A short press of Ctrl+Win does nothing; a short right Ctrl is a tap", () =>
+            ("Hold mode ignores short presses of either shortcut", () =>
             {
                 var chord = new ShortcutGesture(ShortcutKey.CtrlWin);
                 chord.KeyDown(LeftCtrl, 0); chord.KeyDown(LeftWin, 0);
@@ -42,9 +42,34 @@ internal static class ShortcutChecks
                 var single = new ShortcutGesture(ShortcutKey.RightCtrl);
                 var press = single.KeyDown(RightCtrl, 0);
                 Check(press.HoldDeadline is not null && !press.MaskStartMenu);
+                Check(single.KeyUp(RightCtrl, 120) == default);
+            }),
+            ("Tap mode: a short press of either shortcut is a tap, a long one nothing, and no hold begins", () =>
+            {
+                var single = new ShortcutGesture(ShortcutKey.RightCtrl, TriggerMode.Tap);
+                var press = single.KeyDown(RightCtrl, 0);
+                Check(press.HoldDeadline is null && !press.MaskStartMenu && single.Mode == TriggerMode.Tap);
                 Check(single.KeyUp(RightCtrl, 120).Gesture == ShortcutGestureKind.Tap);
                 single.KeyDown(RightCtrl, 1000);
-                Check(single.KeyUp(RightCtrl, 1400) == default);
+                Check(single.HoldDeadlineReached(2) == default && single.KeyUp(RightCtrl, 1400) == default);
+                var chord = new ShortcutGesture(ShortcutKey.CtrlWin, TriggerMode.Tap);
+                chord.KeyDown(LeftCtrl, 0);
+                press = chord.KeyDown(LeftWin, 20);
+                Check(press.HoldDeadline is null && press.MaskStartMenu);
+                Check(chord.KeyUp(LeftWin, 150).Gesture == ShortcutGestureKind.Tap && chord.KeyUp(LeftCtrl, 160) == default);
+                chord.KeyDown(LeftWin, 1000); chord.KeyDown(LeftCtrl, 1010);
+                Check(chord.KeyUp(LeftCtrl, 1100).Gesture == ShortcutGestureKind.Tap && chord.KeyUp(LeftWin, 1110) == default);
+            }),
+            ("Tap mode keeps Ctrl+Win+D and right Ctrl+C working", () =>
+            {
+                var chord = new ShortcutGesture(ShortcutKey.CtrlWin, TriggerMode.Tap);
+                chord.KeyDown(LeftCtrl, 0); chord.KeyDown(LeftWin, 0); chord.KeyDown(0x44, 40);
+                Check(chord.KeyUp(0x44, 60) == default && chord.KeyUp(LeftWin, 80) == default && chord.KeyUp(LeftCtrl, 90) == default);
+                var single = new ShortcutGesture(ShortcutKey.RightCtrl, TriggerMode.Tap);
+                single.KeyDown(RightCtrl, 0); single.KeyDown(0x43, 30); single.KeyUp(0x43, 60);
+                Check(single.KeyUp(RightCtrl, 90) == default);
+                single.KeyDown(RightCtrl, 500);
+                Check(single.KeyUp(RightCtrl, 600).Gesture == ShortcutGestureKind.Tap);
             }),
             ("Left Ctrl alone never triggers the right Ctrl shortcut", () =>
             {
@@ -63,11 +88,11 @@ internal static class ShortcutChecks
                 next = gesture.KeyDown(LeftWin, 1001);
                 Check(gesture.HoldDeadlineReached(next.HoldDeadline!.Value).Gesture == ShortcutGestureKind.HoldBegan);
             }),
-            ("Right Ctrl+C stays a copy and no tap", () =>
+            ("Right Ctrl+C stays a copy and no hold", () =>
             {
                 var gesture = new ShortcutGesture(ShortcutKey.RightCtrl);
-                gesture.KeyDown(RightCtrl, 0); gesture.KeyDown(0x43, 30); gesture.KeyUp(0x43, 60);
-                Check(gesture.KeyUp(RightCtrl, 90) == default);
+                var press = gesture.KeyDown(RightCtrl, 0); gesture.KeyDown(0x43, 30); gesture.KeyUp(0x43, 60);
+                Check(gesture.HoldDeadlineReached(press.HoldDeadline!.Value) == default && gesture.KeyUp(RightCtrl, 400) == default);
             }),
             ("Another key during the hold interrupts it once", () =>
             {
@@ -102,14 +127,14 @@ internal static class ShortcutChecks
                 var blocked = new ShortcutGesture(ShortcutKey.RightCtrl);
                 blocked.KeyDown(0x4C, 0);
                 Check(blocked.KeyDown(RightCtrl, 5000) == default);
-                var pruned = new ShortcutGesture(ShortcutKey.RightCtrl, key => key == RightCtrl);
+                var pruned = new ShortcutGesture(ShortcutKey.RightCtrl, physicallyDown: key => key == RightCtrl);
                 pruned.KeyDown(0x4C, 0);
                 Check(pruned.KeyDown(RightCtrl, 5000).HoldDeadline is not null);
             }),
             ("A shortcut key-up lost while a press was spoiled does not block the next press", () =>
             {
                 var held = new HashSet<int>();
-                var gesture = new ShortcutGesture(ShortcutKey.CtrlWin, held.Contains);
+                var gesture = new ShortcutGesture(ShortcutKey.CtrlWin, physicallyDown: held.Contains);
                 foreach (int key in new[] { LeftCtrl, LeftWin, 0x44 }) { held.Add(key); gesture.KeyDown(key, 0); }
                 // Win's key-up is lost; D and Ctrl come up normally.
                 held.Clear();
@@ -122,7 +147,7 @@ internal static class ShortcutChecks
             ("A lost right Ctrl key-up behind another key does not swallow the next press", () =>
             {
                 var held = new HashSet<int>();
-                var gesture = new ShortcutGesture(ShortcutKey.RightCtrl, held.Contains);
+                var gesture = new ShortcutGesture(ShortcutKey.RightCtrl, physicallyDown: held.Contains);
                 held.Add(LeftShift); gesture.KeyDown(LeftShift, 0);
                 held.Add(RightCtrl); gesture.KeyDown(RightCtrl, 10);
                 // Right Ctrl's key-up is lost; Shift comes up normally.
@@ -173,29 +198,32 @@ internal static class ShortcutChecks
                 Check(!PastePolicy.MayPaste(true, target, target, "Text", "Text", true, 7));
                 Check(!PastePolicy.MayPaste(true, new WindowTarget(0, 7, 1000), new WindowTarget(0, 7, 1000), "Text", "Text", true, 99));
             }),
-            ("Settings default to Ctrl+Win, automatic paste and an unconfirmed shortcut", () =>
+            ("Settings default to holding Ctrl+Win, automatic paste and an unconfirmed shortcut", () =>
             {
                 var settings = DictationSettings.Default;
                 Check(settings.ShortcutKey == ShortcutKey.CtrlWin && settings.Shortcut == "ctrl-win");
+                Check(settings.TriggerMode == TriggerMode.Hold && settings.ShortcutMode == "hold");
+                Check(ShortcutGesture.ParseMode("tap") == TriggerMode.Tap && ShortcutGesture.ParseMode("toggle") is null);
                 Check(settings.AutoInsert && !settings.ShortcutConfirmed);
                 Check(ShortcutGesture.Parse("right-ctrl") == ShortcutKey.RightCtrl && ShortcutGesture.Parse("Ctrl+Win") is null);
             }),
             ("Shortcut settings round-trip; an unknown shortcut is refused, the file kept", () => InTemporaryDirectory(folder =>
             {
                 string path = Path.Combine(folder, "settings.json");
-                var saved = DictationSettings.Default with { Shortcut = "right-ctrl", ShortcutConfirmed = true, AutoInsert = false };
+                var saved = DictationSettings.Default with { Shortcut = "right-ctrl", ShortcutMode = "tap", ShortcutConfirmed = true, AutoInsert = false };
                 SettingsFile.Save(path, saved);
                 string json = File.ReadAllText(path);
-                Check(json.Contains("\"shortcut\": \"right-ctrl\"") && json.Contains("\"auto_insert\": false") &&
-                    json.Contains("\"shortcut_confirmed\": true") && !json.Contains("shortcut_key"));
-                Check(SettingsFile.Load(path) == saved);
+                Check(json.Contains("\"shortcut\": \"right-ctrl\"") && json.Contains("\"auto_insert\": false") && json.Contains("\"shortcut_mode\": \"tap\"") &&
+                    json.Contains("\"shortcut_confirmed\": true") && !json.Contains("shortcut_key") && !json.Contains("trigger_mode"));
+                Check(SettingsFile.Load(path) == saved && SettingsFile.Load(path).TriggerMode == TriggerMode.Tap);
                 Throws<UserFacingException>(() => SettingsFile.Save(path, saved with { Shortcut = "f9" }));
+                Throws<UserFacingException>(() => SettingsFile.Save(path, saved with { ShortcutMode = "toggle" }));
                 File.WriteAllText(path, "{\"shortcut\": \"f9\"}");
                 Throws<UserFacingException>(() => SettingsFile.Load(path));
                 Check(File.ReadAllText(path) == "{\"shortcut\": \"f9\"}");
                 File.WriteAllText(path, "{\"model\": \"gpt-transcribe\"}");
                 var older = SettingsFile.Load(path);
-                Check(older.ShortcutKey == ShortcutKey.CtrlWin && older.AutoInsert && !older.ShortcutConfirmed);
+                Check(older.ShortcutKey == ShortcutKey.CtrlWin && older.TriggerMode == TriggerMode.Hold && older.AutoInsert && !older.ShortcutConfirmed);
             })),
             ("Indicator words and lines follow the brand in German and English", () =>
             {

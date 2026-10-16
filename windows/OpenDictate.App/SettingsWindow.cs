@@ -9,7 +9,7 @@ using OpenDictate.Windows;
 
 namespace OpenDictate.App;
 
-// Key, shortcut, language, translation, paste and custom server. Choices are
+// Shortcut, service, key, language, translation, paste and custom server. Choices are
 // saved as soon as they change; a failed save puts the previous value back.
 // While this window is in front, the shortcut only shows "recognized" here.
 internal sealed class SettingsWindow : Window
@@ -28,14 +28,21 @@ internal sealed class SettingsWindow : Window
     private readonly bool firstRun;
     private readonly PasswordBox apiKey = new() { MaxLength = 2048, MinWidth = 260 };
     private readonly TextBlock keyState = new() { TextWrapping = TextWrapping.Wrap };
-    private readonly RadioButton ctrlWin = new() { Content = UiText.T("Strg+Win halten (empfohlen)", "Hold Ctrl+Win (recommended)") };
-    private readonly RadioButton rightCtrl = new() { Content = UiText.T("Rechte Strg-Taste halten oder antippen (für Spiele)", "Hold or tap right Ctrl (for games)") };
+    private readonly RadioButton ctrlWin = new() { Content = UiText.T("Strg+Win (empfohlen)", "Ctrl+Win (recommended)") };
+    private readonly RadioButton rightCtrl = new() { Content = UiText.T("Rechte Strg-Taste (für Spiele)", "Right Ctrl (for games)") };
+    private readonly ComboBox shortcutMode = new() { MinWidth = 260 };
+    private readonly TextBlock intro;
     private readonly TextBlock detected = new() { TextWrapping = TextWrapping.Wrap };
+    private readonly ComboBox service = new() { MinWidth = 260 };
+    private readonly ComboBoxItem openAiService = new() { Content = "OpenAI", Tag = DictationSettings.OpenAiService };
+    private readonly ComboBoxItem serverService = new() { Tag = DictationSettings.ServerService };
     private readonly ComboBox spoken = new() { MinWidth = 260 };
     private readonly ComboBox target = new() { MinWidth = 260 };
     private readonly CheckBox autoInsert = new() { Content = UiText.T("Automatisch einfügen (sonst nur Zwischenablage)", "Paste automatically (otherwise clipboard only)") };
     private readonly CheckBox autostart = new() { Content = UiText.T("Mit Windows starten", "Start with Windows") };
     private readonly TextBox server = new() { MinWidth = 260, MaxLength = 512 };
+    private readonly TextBox serverModel = new() { MinWidth = 260, MaxLength = 128 };
+    private readonly TextBox serverTranslationModel = new() { MinWidth = 260, MaxLength = 128 };
     private readonly TextBox model = new() { MinWidth = 260, MaxLength = 128 };
     private readonly TextBox translationModel = new() { MinWidth = 260, MaxLength = 128 };
     private readonly TextBlock status = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, DesignMetric.Space3, 0, 0) };
@@ -57,19 +64,22 @@ internal sealed class SettingsWindow : Window
         FontSize = DesignFont.Body.Size;
         var panel = new StackPanel { Margin = new Thickness(DesignMetric.Space6) };
         panel.Children.Add(Brand.Text("opendictate", DesignFont.Heading, DesignColor.Ink, Theme));
-        panel.Children.Add(Brand.Text(firstRun
-            ? UiText.T("Willkommen. Halte das Kürzel gedrückt, sprich und lass los. Der Text landet dort, wo du gerade schreibst.",
-                "Welcome. Hold the shortcut, speak and let go. The text lands where you are typing.")
-            : UiText.T("Halte das Kürzel gedrückt, sprich und lass los.", "Hold the shortcut, speak and let go."),
-            DesignFont.Small, DesignColor.InkMuted, Theme));
+        intro = Brand.Text("", DesignFont.Small, DesignColor.InkMuted, Theme);
+        panel.Children.Add(intro);
 
         Section(panel, UiText.T("Tastenkürzel", "Shortcut"));
         Option(panel, ctrlWin); Option(panel, rightCtrl);
-        detected.Text = UiText.T("Halte jetzt das Kürzel, um es zu testen.", "Hold the shortcut now to test it.");
-        detected.Foreground = Brand.Brush(DesignColor.InkMuted, Theme);
+        Field(panel, UiText.T("So nimmst du auf", "How you record"), shortcutMode);
         detected.Margin = new Thickness(0, DesignMetric.Space2, 0, 0);
         AutomationProperties.SetLiveSetting(detected, AutomationLiveSetting.Polite);
         panel.Children.Add(detected);
+
+        Section(panel, UiText.T("Dienst", "Service"));
+        Field(panel, UiText.T("Wer macht aus deiner Aufnahme Text?", "Who turns your recording into text?"), service);
+        var serviceHint = Brand.Text(UiText.T("Einen eigenen Server trägst du unten unter „Eigener Server und Modelle“ ein. Die Adresse bleibt gespeichert, auch wenn du OpenAI wählst.",
+            "Enter a custom server below under “Custom server and models”. Its address stays saved when you choose OpenAI."), DesignFont.Small, DesignColor.InkMuted, Theme);
+        serviceHint.Margin = new Thickness(0, DesignMetric.Space1, 0, 0);
+        panel.Children.Add(serviceHint);
 
         Section(panel, UiText.T("OpenAI-API-Schlüssel", "OpenAI API key"));
         panel.Children.Add(Brand.Text(UiText.T("Er wird sicher in der Windows-Anmeldeinformationsverwaltung gespeichert. Die Kosten rechnet OpenAI direkt mit dir ab.",
@@ -90,14 +100,18 @@ internal sealed class SettingsWindow : Window
         Option(panel, autostart);
 
         var serverFields = new StackPanel();
+        Subsection(serverFields, UiText.T("Eigener Server", "Custom server"));
         Field(serverFields, UiText.T("Server-Adresse", "Server address"), server);
-        var serverHint = Brand.Text(UiText.T($"Leer bedeutet OpenAI (oder {ProviderServer.BaseUrlVariable}, wenn gesetzt). Beispiel: http://127.0.0.1:8080/v1",
-            $"Empty means OpenAI (or {ProviderServer.BaseUrlVariable} when set). Example: http://127.0.0.1:8080/v1"), DesignFont.Small, DesignColor.InkMuted, Theme);
+        var serverHint = Brand.Text(UiText.T($"Beispiel: http://127.0.0.1:8080/v1. Leer heißt: kein eigener Server (oder {ProviderServer.BaseUrlVariable}, wenn gesetzt).",
+            $"Example: http://127.0.0.1:8080/v1. Empty means no custom server (or {ProviderServer.BaseUrlVariable} when set)."), DesignFont.Small, DesignColor.InkMuted, Theme);
         serverHint.Margin = new Thickness(0, DesignMetric.Space1, 0, 0);
         serverFields.Children.Add(serverHint);
-        Field(serverFields, UiText.T("Modell für die Erkennung", "Transcription model"), model);
-        Field(serverFields, UiText.T("Modell für die Übersetzung", "Translation model"), translationModel);
-        var saveServer = new Button { Content = UiText.T("Speichern", "Save"), HorizontalAlignment = HorizontalAlignment.Left, Padding = new Thickness(10, 4, 10, 4) };
+        Field(serverFields, UiText.T("Modell für die Erkennung", "Transcription model"), serverModel, UiText.T("Eigener Server: Modell für die Erkennung", "Custom server: transcription model"));
+        Field(serverFields, UiText.T("Modell für die Übersetzung", "Translation model"), serverTranslationModel, UiText.T("Eigener Server: Modell für die Übersetzung", "Custom server: translation model"));
+        Subsection(serverFields, "OpenAI");
+        Field(serverFields, UiText.T("Modell für die Erkennung", "Transcription model"), model, UiText.T("OpenAI: Modell für die Erkennung", "OpenAI: transcription model"));
+        Field(serverFields, UiText.T("Modell für die Übersetzung", "Translation model"), translationModel, UiText.T("OpenAI: Modell für die Übersetzung", "OpenAI: translation model"));
+        var saveServer = new Button { Content = UiText.T("Speichern", "Save"), HorizontalAlignment = HorizontalAlignment.Left, Padding = new Thickness(10, 4, 10, 4), Margin = new Thickness(0, DesignMetric.Space3, 0, 0) };
         serverFields.Children.Add(saveServer);
         panel.Children.Add(new Expander { Header = UiText.T("Eigener Server und Modelle", "Custom server and models"), Content = serverFields, Margin = new Thickness(0, DesignMetric.Space4, 0, 0) });
 
@@ -115,9 +129,21 @@ internal sealed class SettingsWindow : Window
             spoken.Items.Add(new Choice(code, UiText.T(german, english)));
             target.Items.Add(new Choice(code, UiText.T(german, english)));
         }
+        shortcutMode.Items.Add(new Choice(ShortcutGesture.ModeName(TriggerMode.Hold), UiText.T("Gedrückt halten, solange du sprichst", "Hold while you speak")));
+        shortcutMode.Items.Add(new Choice(ShortcutGesture.ModeName(TriggerMode.Tap), UiText.T("Antippen: einmal zum Starten, einmal zum Stoppen", "Tap: once to start, once to stop")));
+        service.Items.Add(openAiService);
+        service.Items.Add(serverService);
         Load();
         ctrlWin.Checked += (_, _) => Change(s => s with { Shortcut = ShortcutGesture.SettingsName(ShortcutKey.CtrlWin) });
         rightCtrl.Checked += (_, _) => Change(s => s with { Shortcut = ShortcutGesture.SettingsName(ShortcutKey.RightCtrl) });
+        shortcutMode.SelectionChanged += (_, _) =>
+        {
+            if (shortcutMode.SelectedItem is Choice { Code: { } mode }) Change(s => s with { ShortcutMode = mode });
+        };
+        service.SelectionChanged += (_, _) =>
+        {
+            if (service.SelectedItem is ComboBoxItem { Tag: string choice } && Change(s => s with { Service = choice })) ShowDestination();
+        };
         spoken.SelectionChanged += (_, _) => Change(s => s with { Language = (spoken.SelectedItem as Choice)?.Code });
         target.SelectionChanged += (_, _) => Change(s => s.WithTarget((target.SelectedItem as Choice)?.Code));
         autoInsert.Click += (_, _) => Change(s => s with { AutoInsert = autoInsert.IsChecked == true });
@@ -154,16 +180,24 @@ internal sealed class SettingsWindow : Window
         panel.Children.Add(heading);
     }
 
+    private void Subsection(Panel panel, string title)
+    {
+        var heading = Brand.Text(title, DesignFont.Strong, DesignColor.Ink, Theme);
+        heading.Margin = new Thickness(0, DesignMetric.Space4, 0, 0);
+        panel.Children.Add(heading);
+    }
+
     private static void Option(Panel panel, Control option)
     {
         option.Margin = new Thickness(0, DesignMetric.Space1, 0, DesignMetric.Space1);
         panel.Children.Add(option);
     }
 
-    private static void Field(Panel panel, string label, Control field)
+    // spokenName: what a screen reader announces when the label alone is ambiguous.
+    private static void Field(Panel panel, string label, Control field, string? spokenName = null)
     {
         panel.Children.Add(new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, DesignMetric.Space2, 0, DesignMetric.Space1) });
-        AutomationProperties.SetName(field, label);
+        AutomationProperties.SetName(field, spokenName ?? label);
         panel.Children.Add(field);
     }
 
@@ -174,10 +208,12 @@ internal sealed class SettingsWindow : Window
         {
             readable = false;
             status.Text = error.Message + " " + UiText.T("Die Datei bleibt unverändert.", "The file stays unchanged.");
-            foreach (var control in new Control[] { ctrlWin, rightCtrl, spoken, target, autoInsert, server, model, translationModel })
+            foreach (var control in new Control[] { ctrlWin, rightCtrl, shortcutMode, service, spoken, target, autoInsert, server,
+                serverModel, serverTranslationModel, model, translationModel })
                 control.IsEnabled = false;
         }
         Display(stored);
+        ShowHints();
         autostart.IsChecked = Autostart.IsEnabled;
         ShowKeyState();
         if (readable && stored.Server is null)
@@ -199,14 +235,34 @@ internal sealed class SettingsWindow : Window
         {
             ctrlWin.IsChecked = settings.ShortcutKey == ShortcutKey.CtrlWin;
             rightCtrl.IsChecked = settings.ShortcutKey == ShortcutKey.RightCtrl;
+            shortcutMode.SelectedItem = Choose(shortcutMode, ShortcutGesture.ModeName(settings.TriggerMode));
+            // The custom server can only be chosen once an address is known.
+            string? host = ServerHost(settings);
+            serverService.Content = host is null
+                ? UiText.T("Eigener Server (noch keine Adresse)", "Custom server (no address yet)")
+                : UiText.T($"Eigener Server ({host})", $"Custom server ({host})");
+            bool usesServer = settings.UsesServer(Environment.GetEnvironmentVariable(ProviderServer.BaseUrlVariable));
+            serverService.IsEnabled = host is not null || usesServer;
+            service.SelectedItem = usesServer ? serverService : openAiService;
             spoken.SelectedItem = Choose(spoken, settings.Language);
             target.SelectedItem = Choose(target, settings.TargetLanguage);
             autoInsert.IsChecked = settings.AutoInsert;
             server.Text = settings.Server ?? "";
+            serverModel.Text = settings.ServerModel;
+            serverTranslationModel.Text = settings.ServerTranslationModel;
             model.Text = settings.Model;
             translationModel.Text = settings.TranslationModel;
         }
         finally { showing = false; }
+    }
+
+    // The stored address, else OPENAI_BASE_URL; a broken one still shows as set.
+    private static string? ServerHost(DictationSettings settings)
+    {
+        string? address = settings.Server ?? Environment.GetEnvironmentVariable(ProviderServer.BaseUrlVariable);
+        if (string.IsNullOrWhiteSpace(address)) return null;
+        try { return ProviderServer.Parse(address).Host; }
+        catch (UserFacingException) { return UiText.T("Adresse ungültig", "invalid address"); }
     }
 
     // A stored code outside the list stays selectable instead of being dropped.
@@ -227,8 +283,10 @@ internal sealed class SettingsWindow : Window
         try
         {
             SettingsFile.Save(SettingsFile.DefaultPath, next);
+            bool shortcutChanged = next.ShortcutKey != stored.ShortcutKey || next.TriggerMode != stored.TriggerMode;
             stored = next;
-            controller.UseShortcut(stored.ShortcutKey);
+            controller.UseShortcut(stored.ShortcutKey, stored.TriggerMode);
+            if (shortcutChanged) ShowHints();
             status.Text = UiText.T("Gespeichert.", "Saved.");
             return true;
         }
@@ -245,22 +303,50 @@ internal sealed class SettingsWindow : Window
         string address = server.Text.Trim();
         try
         {
-            var next = stored with
+            string? saved = address.Length == 0 ? null : ProviderServer.Parse(address).Base;
+            var next = stored.WithServerAddress(saved, Environment.GetEnvironmentVariable(ProviderServer.BaseUrlVariable)) with
             {
-                Server = address.Length == 0 ? null : ProviderServer.Parse(address).Base,
+                ServerModel = serverModel.Text.Trim(),
+                ServerTranslationModel = serverTranslationModel.Text.Trim(),
                 Model = model.Text.Trim(),
                 TranslationModel = translationModel.Text.Trim(),
             };
-            var resolved = next.ResolveServer();
-            DictationSettings.ValidateModelFor(next.Model, resolved);
+            DictationSettings.ValidateModelFor(next.Model, ProviderServer.OpenAi);
+            var (request, resolved) = next.ForDictation();
+            DictationSettings.ValidateModelFor(request.Model, resolved);
             if (!Change(_ => next)) return;
             Display(stored);
+            ShowDestination();
+        }
+        catch (UserFacingException error) { status.Text = error.Message + " " + UiText.T("Nicht gespeichert.", "Not saved."); }
+    }
+
+    private void ShowDestination()
+    {
+        try
+        {
+            var resolved = stored.ResolveServer();
             string where = resolved.IsCustom ? UiText.T($"den eigenen Server ({resolved.Host})", $"your server ({resolved.Host})") : "OpenAI";
             status.Text = resolved.LacksPath
                 ? UiText.T("Gespeichert. Die Server-Adresse hat keinen Pfad; meist fehlt /v1.", "Saved. The server address has no path; usually /v1 is missing.")
                 : UiText.T($"Gespeichert. Diktate gehen an {where}.", $"Saved. Dictations go to {where}.");
         }
-        catch (UserFacingException error) { status.Text = error.Message + " " + UiText.T("Nicht gespeichert.", "Not saved."); }
+        catch (UserFacingException error) { status.Text = UiText.T("Gespeichert. ", "Saved. ") + error.Message; }
+    }
+
+    private void ShowHints()
+    {
+        bool tap = stored.TriggerMode == TriggerMode.Tap;
+        string how = tap
+            ? UiText.T("Tipp das Kürzel an, sprich und tipp es nochmal an.", "Tap the shortcut, speak and tap it again.")
+            : UiText.T("Halte das Kürzel gedrückt, sprich und lass los.", "Hold the shortcut, speak and let go.");
+        intro.Text = firstRun
+            ? UiText.T($"Willkommen. {how} Der Text landet dort, wo du gerade schreibst.", $"Welcome. {how} The text lands where you are typing.")
+            : how;
+        detected.Foreground = Brand.Brush(DesignColor.InkMuted, Theme);
+        detected.Text = tap
+            ? UiText.T("Tipp jetzt das Kürzel an, um es zu testen.", "Tap the shortcut now to test it.")
+            : UiText.T("Halte jetzt das Kürzel, um es zu testen.", "Hold the shortcut now to test it.");
     }
 
     private void SaveKey()
@@ -295,7 +381,7 @@ internal sealed class SettingsWindow : Window
         {
             ShortcutGestureKind.HoldBegan => UiText.T($"Erkannt: {name} wird gehalten. Hier wird nichts aufgenommen.", $"Recognized: {name} is held. Nothing is recorded here."),
             ShortcutGestureKind.HoldEnded => UiText.T($"Erkannt: {name} losgelassen. Das Kürzel funktioniert.", $"Recognized: {name} released. The shortcut works."),
-            ShortcutGestureKind.Tap => UiText.T($"Erkannt: {name} angetippt.", $"Recognized: {name} tapped."),
+            ShortcutGestureKind.Tap => UiText.T($"Erkannt: {name} angetippt. Das Kürzel funktioniert.", $"Recognized: {name} tapped. The shortcut works."),
             _ => UiText.T("Da kam eine andere Taste dazu – halte nur das Kürzel.", "Another key was pressed – hold only the shortcut."),
         };
     }
