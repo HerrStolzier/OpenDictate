@@ -29,11 +29,17 @@ GIT = r"(?:^|[;&|(\s])git(?:\s+(?:-[cC]\s+(?:\"[^\"]*\"|'[^']*'|\S+)|--[\w-]+(?:
 RE_COMMIT = re.compile(GIT + r"commit(?=\s|$)")
 RE_PUSH = re.compile(GIT + r"push(?=\s|$)")
 RE_ADD = re.compile(GIT + r"add(?=\s|$)")
-RE_MERGE = re.compile(r"(?:^|[;&|(\s])gh\s+pr\s+(?:(?:-R|--repo)(?:\s+|=)\S+\s+)?merge(?=\s|$)")
+# `gh [optionen] pr [optionen] merge`, etwa `gh -R o/r pr merge` oder `gh pr -Ro/r merge`. Läuft auf dem Befehl
+# ohne Texte in Anführungszeichen (ein Wert wie 'o/r' ist dort leer); der Wert jeder Option ist optional.
+GH_OPT = r"(?:\s+-\S*(?:\s+(?!-|pr\b|merge\b)(?:'[^']*'|\"[^\"]*\"|\S+))?)*"
+RE_MERGE = re.compile(r"(?:^|[;&|(\s])gh" + GH_OPT + r"\s+pr" + GH_OPT + r"\s+merge(?=\s|$)")
 # Merge über die REST-API (`gh api -X PUT repos/o/r/pulls/7/merge`), ebenso Auto-Merge per GraphQL.
 RE_GH_API = re.compile(r"(?:^|[;&|(\s])gh\s+api(?=\s)")
-RE_API_MERGE = re.compile(r"repos/([^/\s'\"]+/[^/\s'\"]+)/pulls/(\d+)/merge\b")
-RE_GRAPHQL_MERGE = re.compile(r"\bgh\s+api\s+graphql\b.*\b(?:mergePullRequest|enablePullRequestAutoMerge)\b", re.S)
+# Endpunkt von `gh api` (erstes Argument, auch als volle URL): Merge eines PRs. Die Nummer darf eine Variable sein, dann wird gesperrt.
+RE_API_MERGE = re.compile(r"(?:https?://[^/]+(?:/api/v3)?)?/?repos/([^/]+/[^/]+)/pulls/([^/]+)/merge/?(?:\?.*)?")
+RE_GRAPHQL_MERGE = re.compile(r"\b(?:mergePullRequest|enablePullRequestAutoMerge)\b")
+GH_API_VALUE_OPTS = {"-X", "--method", "-f", "--raw-field", "-F", "--field", "-H", "--header", "--input", "-q", "--jq",
+                     "-t", "--template", "--hostname", "--cache", "-p", "--preview"}
 RE_CD = re.compile(r"(?:^|[;&|(])\s*cd\s+(?=\S)")
 SEPARATOR = re.compile(r"[;&|\n]")
 OK_CONCLUSIONS = {"SUCCESS", "NEUTRAL", "SKIPPED"}
@@ -396,7 +402,7 @@ def blocked(what):
 
 
 # Auslöser `pull_request:`/`pull_request_target:`, `- pull_request`, `on: [push, pull_request]`; kein `if:`-Ausdruck.
-PR_TRIGGER = re.compile(r"^\s*(?:-\s*)?pull_request(?:_target)?\s*(?::|$)|^\s*['\"]?on['\"]?\s*:[^#\n]*\bpull_request(?:_target)?\b", re.M)
+PR_TRIGGER = re.compile(r"^\s*(?:-\s*)?['\"]?pull_request(?:_target)?['\"]?\s*(?::|$)|^\s*['\"]?on['\"]?\s*:[^#\n]*\bpull_request(?:_target)?\b", re.M)
 
 
 def pr_workflows(repo, ref, cwd) -> bool:
@@ -503,6 +509,85 @@ def check_pr(repo, target, cwd):
         deny(f"PR #{num}: Mindestens dieser Commit ändert Code ohne Zeile `Reviewed-by:`: {missing[0]}. {HOW}")
 
 
+def gh_api_calls(raw, bare, cwd):
+    """(Position, Wörter) je `gh api`-Aufruf; Wörter nach `api`, bis zum nächsten Trenner."""
+    out = []
+    for m in RE_GH_API.finditer(bare):
+        end = (SEPARATOR.search(bare, m.end()) or re.search("$", bare)).start()
+        try:
+            words = shlex.split(raw[m.end():end])
+        except ValueError:
+            words = None
+        out.append((m.start(), words))
+    return out
+
+
+def api_file_text(path, cwd):
+    try:
+        with open(expand(path, cwd), encoding="utf-8", errors="ignore") as f:
+            return f.read()
+    except OSError:
+        return None
+
+
+def option_values(words, long, short=None):
+    """Werte einer Option in allen Schreibweisen: `--long v`, `--long=v`, `-s v`, `-sv`, gebündelt `-is v`."""
+    out = []
+    for i, w in enumerate(words):
+        nxt = words[i + 1] if i + 1 < len(words) else ""
+        if w in (long, short):
+            out.append(nxt)
+        elif w.startswith(long + "="):
+            out.append(w[len(long) + 1:])
+        elif short and re.fullmatch(r"-[a-zA-Z]+", w) and short[1] in w[1:]:
+            rest = w[w.index(short[1], 1) + 1:]  # gebündelt: `-XPUT`, `-iX PUT`
+            out.append(rest or nxt)
+        elif short and w.startswith(short) and len(w) > 2 and not w.startswith("--"):
+            out.append(w[2:])
+    return out
+
+
+def api_files(words):
+    """Dateien, aus denen `gh api` den Inhalt liest: `--input p` und Felder `-F k=@p`."""
+    files = option_values(words, "--input")
+    files += [v.split("=@", 1)[1] for v in option_values(words, "--field", "-F") if "=@" in v]
+    return files
+
+
+def api_method(words):
+    """HTTP-Methode von `gh api`, nur wenn ausdrücklich gesetzt; eine Variable (`-X $M`) gilt als PUT."""
+    values = option_values(words, "--method", "-X")
+    if not values:
+        return None
+    value = values[-1]
+    return "PUT" if "$" in value or not value else value
+
+
+def check_gh_api(words, cwd):
+    """Gibt (repo, nummer) zurück, wenn der Aufruf einen PR mergt; sperrt, was sich nicht sicher lesen lässt."""
+    if words is None:
+        deny("Einen `gh api`-Aufruf konnte ich nicht lesen. Schreib ihn ohne offene Anführungszeichen.")
+    endpoint = (positional(words, GH_API_VALUE_OPTS, short_value="XfFHqtp") or [""])[0]
+    if endpoint == "graphql":
+        texts = list(words) + [api_file_text(p, cwd) if p != "-" else None for p in api_files(words)]
+        # Eine Anfrage aus einer Shell-Variable (`-f query="$Q"`) oder `$(…)` ist erst beim Ausführen bekannt.
+        texts += [None for w in words if "$(" in w or "`" in w or re.search(r"(?:^|=)\$\{?\w+\}?$", w)]
+        if any(t is None for t in texts) or any(RE_GRAPHQL_MERGE.search(t) for t in texts):
+            deny("Merge oder Auto-Merge per GraphQL (oder eine Anfrage aus einer Datei, die ich nicht lesen kann) "
+                 "prüfe ich nicht. Nimm `gh pr merge` oder `gh api -X PUT repos/<owner>/<repo>/pulls/<n>/merge`.")
+        return None
+    m = RE_API_MERGE.fullmatch(endpoint)
+    if not m:
+        return None
+    method = api_method(words)
+    if method is None or method.upper() in ("GET", "HEAD", "POST", "PATCH", "DELETE"):
+        return None  # nur PUT mergt; ohne `-X` nimmt gh GET (oder POST mit Feldern)
+    repo, num = m.group(1), m.group(2)
+    if not num.isdigit():
+        deny(f"Merge über `gh api` mit unbekannter PR-Nummer ({num}). Setz die Nummer direkt ein.")
+    return (None if "{" in repo else repo), num
+
+
 def check_gh_merge(raw, bare, seg, cwd):
     with_value = {"-R", "--repo", "-t", "--subject", "-b", "--body", "-F", "--body-file",
                   "-A", "--author-email", "--match-head-commit"}
@@ -512,12 +597,14 @@ def check_gh_merge(raw, bare, seg, cwd):
     except ValueError:
         pre = seg.prefix.split()
     repo = None
-    w_all = pre + w  # `-R` darf auch zwischen `pr` und `merge` stehen
+    w_all = pre + w  # `-R` darf auch vor `pr` oder zwischen `pr` und `merge` stehen
     for i, x in enumerate(w_all):
         if x in ("-R", "--repo") and i + 1 < len(w_all):
             repo = w_all[i + 1]
         elif x.startswith("--repo="):
             repo = x.split("=", 1)[1]
+        elif x.startswith("-R") and len(x) > 2:
+            repo = x[2:].lstrip("=")
     if repo:
         repo = re.sub(r"^(?:https?://)?github\.com/", "", repo).strip("/")
     target = (positional(w, with_value, short_value="RtbFA") or [None])[0]
@@ -549,12 +636,12 @@ def main():
         return
     bare = strip_text(raw)
     merges = segments(raw, bare, RE_MERGE)
-    # Nur Argumente echter `gh api`-Aufrufe, nicht etwa eine Commit-Nachricht, die so einen Aufruf erwähnt.
-    api_merges = [(m.start(), a) for m in RE_GH_API.finditer(bare)
-                  for a in RE_API_MERGE.finditer(raw[m.end():(SEPARATOR.search(bare, m.end()) or re.search("$", bare)).start()])]
-    if RE_GH_API.search(bare) and RE_GRAPHQL_MERGE.search(raw):
-        deny("Merge oder Auto-Merge per GraphQL prüfe ich nicht. Nimm `gh pr merge` oder "
-             "`gh api -X PUT repos/<owner>/<repo>/pulls/<n>/merge`.")
+    # Nur der Endpunkt echter `gh api`-Aufrufe zählt, nicht ein Feldwert oder eine Commit-Nachricht.
+    api_merges = []
+    for start, words in gh_api_calls(raw, bare, cwd):
+        target = check_gh_api(words, cwd)
+        if target:
+            api_merges.append((start, target))
     pushes = segments(raw, bare, RE_PUSH)
     first_merge = min([s.start for s in merges] + [start for start, _ in api_merges], default=None)
     if first_merge is not None and any(s.start < first_merge and not {"-d", "--delete"} & set(s.words)
@@ -568,8 +655,8 @@ def main():
         check_push(raw, bare, seg, cwd)
     for seg in merges:
         check_gh_merge(raw, bare, seg, cwd)
-    for _, m in api_merges:
-        check_pr(m.group(1), m.group(2), cwd)
+    for _, (repo, num) in api_merges:
+        check_pr(repo, num, cwd)
 
 
 if __name__ == "__main__":

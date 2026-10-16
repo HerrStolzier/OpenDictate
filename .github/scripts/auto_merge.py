@@ -58,18 +58,23 @@ def latest_checks(check_runs):
     return list(latest.values())
 
 
-# ci/, hooks/, agents/, config/ und der Installer sind in claude-config die Vorlagen der Wächter aller Repos.
-GUARDED_PREFIXES = (".github/", "scripts/ci/", ".claude/", "ci/", "hooks/", "agents/", "config/")
-GUARDED_FILES = {"CLAUDE.md", "AGENTS.md", ".gitleaksignore", ".gitattributes", "scripts/install-repo-gate.py"}
+GUARDED_PREFIXES = (".github/", "scripts/ci/", ".claude/")
+GUARDED_FILES = {"CLAUDE.md", "AGENTS.md", ".gitleaksignore", ".gitattributes"}
+# Nur in claude-config: Dort liegen die Vorlagen der Wächter aller Repos.
+SOURCE_PREFIXES = ("ci/", "hooks/", "agents/", "config/")
+SOURCE_FILES = {"scripts/install-repo-gate.py"}
+IS_SOURCE_REPO = os.environ.get("GITHUB_REPOSITORY", "").lower().endswith("/claude-config")
 LINT_CONFIGS = {"ruff.toml", ".ruff.toml", ".shellcheckrc", ".ignore"}  # gelten auch in Unterordnern; .ignore blendet Dateien für ruff aus
 
 
-def guarded(path):
+def guarded(path, source_repo=None):
     """Dateien, die über das Mergen selbst entscheiden: Workflows, Auto-Merge, CI-Skripte, Claudes Regeln und
     Hooks, die Regeln von ruff und shellcheck sowie die Ausnahmen des Secret-Scans. Solche PRs mergt Claude
     selbst (GITHUB_TOKEN darf Workflow-Dateien nicht mergen), denn ein PR soll nicht automatisch rein, wenn
     er die Prüfungen oder Regeln ändert, die über ihn urteilen."""
-    return path.startswith(GUARDED_PREFIXES) or path in GUARDED_FILES or path.rsplit("/", 1)[-1] in LINT_CONFIGS
+    source_repo = IS_SOURCE_REPO if source_repo is None else source_repo
+    return (path.startswith(GUARDED_PREFIXES) or path in GUARDED_FILES or path.rsplit("/", 1)[-1] in LINT_CONFIGS
+            or source_repo and (path.startswith(SOURCE_PREFIXES) or path in SOURCE_FILES))
 
 
 def evaluate(pr, owner, default_branch, commits, files, check_runs, status, waited, runs=(), has_ci=False,
