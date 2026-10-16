@@ -485,3 +485,13 @@ Omarchy Lua nutzt den dokumentierten Helfer `o.bind_hold`, klassische
 Konfiguration zwei Zeilen. Lass bei klassischen/einfachen Lua-Kombinationen
 die Haupttaste vor dem Modifier los. Omarchys Helfer behandelt Modifierwechsel.
 Ein echter Tastaturtest unter Hyprland steht noch aus.
+
+## Fehler melden
+
+`opendictate report` zeigt dir den vollständigen Diagnosebericht im Terminal.
+Erst nach deiner Antwort `j` öffnet sich das Support-Formular im Browser.
+Die CLI sendet nichts an den Support. Du prüfst das Formular und schickst es
+selbst ab. `opendictate report --print` gibt nur die Adresse aus. Ohne grafische
+Sitzung oder funktionierendes `xdg-open` wird sie nach der Bestätigung ausgegeben.
+Aus dem Protokoll bleiben höchstens 30 bekannte Fehler-/Warnkategorien;
+freie Meldungen, freie Modellnamen und Server-Adressen werden verworfen.

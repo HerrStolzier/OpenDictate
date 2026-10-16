@@ -467,3 +467,13 @@ prints `shortcut-mode`. Omarchy Lua uses the documented `o.bind_hold` helper;
 classic config writes a press/release pair. With classic/plain Lua chord
 bindings, release the main key before its modifier. Omarchy's helper handles
 modifier changes. A live Hyprland keyboard test is still outstanding.
+
+## Report a problem
+
+`opendictate report` previews the whole diagnostic report in your terminal.
+Only after you answer `y` does it open the support form in your browser.
+The CLI sends nothing to support. You review and submit the form yourself.
+Use `opendictate report --print` for just the address. Without a graphical
+session or working `xdg-open`, confirmation prints the address instead.
+Only known error/warning categories survive from the log, at most 30; raw
+messages, free-form model names and server addresses are discarded.

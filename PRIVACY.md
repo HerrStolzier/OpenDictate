@@ -288,6 +288,18 @@ including a custom server. It is never logged or learned automatically;
 `opendictate vocabulary clear` removes it locally. Existing retained recordings
 use the vocabulary selected at retry time.
 
+### Linux explicit problem reports
+
+`opendictate report` constructs and fully previews a report locally before
+asking for confirmation to open the browser. `report --print` prints only its
+address. No support request is made by the CLI. The form receives the report
+in the URI fragment, and the user decides whether to submit it. Included:
+app/version, allowlisted distribution/version/compositor, key presence (or
+unknown if unavailable), bounded settings and at most 30 recognized warning/
+error event categories. Raw log messages, paths, server addresses/hosts,
+arbitrary model names, target apps/titles, transcripts, clipboard and audio
+are never copied. The encoded address is at most 12,000 characters.
+
 ## Windows provider core
 
 ### Explicit Windows vocabulary

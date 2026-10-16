@@ -8,6 +8,7 @@ mod paths;
 mod policy;
 mod record;
 mod recovery;
+mod report;
 mod server;
 mod settings;
 mod setup;
@@ -53,6 +54,7 @@ Befehle:
   status                 Zustand (idle, starting, recording, processing, delivering)
   bar                    Status als JSON-Zeile für Omarchy-Leiste oder Waybar
   cancel                 Aufnahme oder Verarbeitung sicher abbrechen
+  report                 Fehlerbericht prüfen und im Browser öffnen; --print nur Adresse
   retry                  letzte gesicherte Aufnahme nochmal senden
   retry --skipped        letzte zu kurze oder stille Aufnahme trotzdem senden
   copy-status            festen Statustext in die Zwischenablage
@@ -90,6 +92,7 @@ Commands:
   status                 state (idle, starting, recording, processing, delivering)
   bar                    status as a JSON line for the Omarchy bar or Waybar
   cancel                 safely cancel a recording or processing
+  report                 review a problem report and open the browser; --print prints URL
   retry                  send the last kept recording again
   retry --skipped        send the last too short or silent recording anyway
   copy-status            put a fixed status text in the clipboard
@@ -154,6 +157,8 @@ fn run(args: Vec<String>) -> Result<(), String> {
         ["status"] => status(),
         ["bar"] | ["waybar"] => waybar_status(),
         ["cancel"] => cancel(),
+        ["report"] => report::run(false),
+        ["report", "--print"] => report::run(true),
         ["retry"] => retry(false),
         ["retry", "--skipped"] => retry(true),
         ["copy-status"] => copy_status(),
