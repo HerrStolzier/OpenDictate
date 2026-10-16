@@ -30,6 +30,7 @@ internal static class Program
             return 0;
         }
         var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+        Brand.Install(app);
         var tray = new TrayApp(app.Dispatcher);
         var wait = ThreadPool.RegisterWaitForSingleObject(show, (_, _) => app.Dispatcher.BeginInvoke(tray.OpenSettings), null, Timeout.Infinite, false);
         app.Startup += (_, _) => tray.Start();

@@ -3,6 +3,10 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Shapes;
 using OpenDictate.Core;
 using OpenDictate.Provider;
 using OpenDictate.Windows;
@@ -14,7 +18,6 @@ namespace OpenDictate.App;
 // While this window is in front, the shortcut only shows "recognized" here.
 internal sealed class SettingsWindow : Window
 {
-    private const DesignTheme Theme = DesignTheme.Papier;
     private static readonly (string Code, string German, string English)[] Languages =
     [
         ("de", "Deutsch", "German"), ("en", "Englisch", "English"), ("fr", "Französisch", "French"),
@@ -26,101 +29,149 @@ internal sealed class SettingsWindow : Window
 
     private readonly DictationController controller;
     private readonly bool firstRun;
-    private readonly PasswordBox apiKey = new() { MaxLength = 2048, MinWidth = 260 };
-    private readonly TextBlock keyState = new() { TextWrapping = TextWrapping.Wrap };
-    private readonly RadioButton ctrlWin = new() { Content = UiText.T("Strg+Win (empfohlen)", "Ctrl+Win (recommended)") };
-    private readonly RadioButton rightCtrl = new() { Content = UiText.T("Rechte Strg-Taste (für Spiele)", "Right Ctrl (for games)") };
-    private readonly ComboBox shortcutMode = new() { MinWidth = 260 };
-    private readonly TextBlock intro;
-    private readonly TextBlock detected = new() { TextWrapping = TextWrapping.Wrap };
-    private readonly ComboBox service = new() { MinWidth = 260 };
-    private readonly ComboBoxItem openAiService = new() { Content = "OpenAI", Tag = DictationSettings.OpenAiService };
-    private readonly ComboBoxItem serverService = new() { Tag = DictationSettings.ServerService };
-    private readonly ComboBox spoken = new() { MinWidth = 260 };
-    private readonly ComboBox target = new() { MinWidth = 260 };
-    private readonly CheckBox autoInsert = new() { Content = UiText.T("Automatisch einfügen (sonst nur Zwischenablage)", "Paste automatically (otherwise clipboard only)") };
-    private readonly CheckBox autostart = new() { Content = UiText.T("Mit Windows starten", "Start with Windows") };
-    private readonly TextBox server = new() { MinWidth = 260, MaxLength = 512 };
-    private readonly TextBox serverModel = new() { MinWidth = 260, MaxLength = 128 };
-    private readonly TextBox serverTranslationModel = new() { MinWidth = 260, MaxLength = 128 };
-    private readonly TextBox model = new() { MinWidth = 260, MaxLength = 128 };
-    private readonly TextBox translationModel = new() { MinWidth = 260, MaxLength = 128 };
-    private readonly TextBlock status = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, DesignMetric.Space3, 0, 0) };
+    private readonly PasswordBox apiKey = new() { MaxLength = 2048 };
+    private readonly TextBlock keyState = Brand.Text("", DesignFont.Small, DesignColor.Ink);
+    private readonly UIElement keyCheck = Check();
+    private readonly Button deleteKey = new() { Content = UiText.T("Entfernen", "Remove") };
+    private readonly RadioButton ctrlWin = new() { GroupName = "shortcut" };
+    private readonly RadioButton rightCtrl = new() { GroupName = "shortcut" };
+    private readonly RadioButton holdMode = new() { GroupName = "mode", Content = UiText.T("Gedrückt halten", "Hold") };
+    private readonly RadioButton tapMode = new() { GroupName = "mode", Content = UiText.T("Antippen", "Tap") };
+    private readonly TextBlock modeHint = Brand.Text("", DesignFont.Small, DesignColor.InkMuted);
+    private readonly TextBlock intro = Brand.Text("", DesignFont.Small, DesignColor.InkMuted);
+    private readonly Rectangle readyMark = Brand.Mark(DesignColor.Signal);
+    private readonly TextBlock ready = Brand.Text("", DesignFont.Label, DesignColor.Signal);
+    private readonly TextBlock detected = Brand.Text("", DesignFont.Code, DesignColor.InkMuted);
+    private readonly RadioButton openAiService = new() { GroupName = "service", Content = "OpenAI" };
+    private readonly RadioButton serverService = new() { GroupName = "service" };
+    private readonly ComboBox spoken = new();
+    private readonly ComboBox target = new();
+    private readonly CheckBox autoInsert = new();
+    private readonly CheckBox autostart = new();
+    private readonly TextBox server = new() { MaxLength = 512 };
+    private readonly TextBox serverModel = new() { MaxLength = 128 };
+    private readonly TextBox serverTranslationModel = new() { MaxLength = 128 };
+    private readonly TextBox model = new() { MaxLength = 128 };
+    private readonly TextBox translationModel = new() { MaxLength = 128 };
+    private readonly TextBlock status = Brand.Text("", DesignFont.Small, DesignColor.InkMuted);
     private DictationSettings stored = DictationSettings.Default;
     private bool readable = true;
     private bool showing;
+    private bool? keyPresent;
 
     internal SettingsWindow(DictationController controller, bool firstRun)
     {
         this.controller = controller;
         this.firstRun = firstRun;
         Title = UiText.T("OpenDictate · Einstellungen", "OpenDictate · Settings");
-        Width = 520; SizeToContent = SizeToContent.Height; MaxHeight = SystemParameters.WorkArea.Height - 40;
+        Width = 600; SizeToContent = SizeToContent.Height; MaxHeight = SystemParameters.WorkArea.Height - 40;
         ResizeMode = ResizeMode.CanMinimize;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
-        Background = Brand.Brush(DesignColor.Bg, Theme);
-        Foreground = Brand.Brush(DesignColor.Ink, Theme);
+        Background = Brand.Brush(DesignColor.Bg);
+        Foreground = Brand.Brush(DesignColor.Ink);
         FontFamily = Brand.Font(DesignFont.Sans);
         FontSize = DesignFont.Body.Size;
-        var panel = new StackPanel { Margin = new Thickness(DesignMetric.Space6) };
-        panel.Children.Add(Brand.Text("opendictate", DesignFont.Heading, DesignColor.Ink, Theme));
-        intro = Brand.Text("", DesignFont.Small, DesignColor.InkMuted, Theme);
-        panel.Children.Add(intro);
+        SourceInitialized += (_, _) => Brand.DarkTitleBar(this);
 
-        Section(panel, UiText.T("Tastenkürzel", "Shortcut"));
-        Option(panel, ctrlWin); Option(panel, rightCtrl);
-        Field(panel, UiText.T("So nimmst du auf", "How you record"), shortcutMode);
-        detected.Margin = new Thickness(0, DesignMetric.Space2, 0, 0);
-        AutomationProperties.SetLiveSetting(detected, AutomationLiveSetting.Polite);
-        panel.Children.Add(detected);
+        var panel = new StackPanel { Margin = new Thickness(DesignMetric.Space6, DesignMetric.Space4, DesignMetric.Space6, DesignMetric.Space2) };
+        panel.Children.Add(Hero());
 
-        Section(panel, UiText.T("Dienst", "Service"));
-        Field(panel, UiText.T("Wer macht aus deiner Aufnahme Text?", "Who turns your recording into text?"), service);
-        var serviceHint = Brand.Text(UiText.T("Einen eigenen Server trägst du unten unter „Eigener Server und Modelle“ ein. Die Adresse bleibt gespeichert, auch wenn du OpenAI wählst.",
-            "Enter a custom server below under “Custom server and models”. Its address stays saved when you choose OpenAI."), DesignFont.Small, DesignColor.InkMuted, Theme);
-        serviceHint.Margin = new Thickness(0, DesignMetric.Space1, 0, 0);
-        panel.Children.Add(serviceHint);
+        var shortcut = Card(panel, UiText.T("Tastenkürzel", "Shortcut"), "01");
+        ctrlWin.Content = Tile(["Strg", "Win"], UiText.T("Strg + Win", "Ctrl + Win"), UiText.T("Empfohlen", "Recommended"), DesignColor.Signal);
+        rightCtrl.Content = Tile([UiText.T("Strg rechts", "Right Ctrl")], UiText.T("Rechte Strg-Taste", "Right Ctrl"), UiText.T("Für Spiele", "For games"), DesignColor.InkMuted);
+        AutomationProperties.SetName(ctrlWin, UiText.T("Strg+Win (empfohlen)", "Ctrl+Win (recommended)"));
+        AutomationProperties.SetName(rightCtrl, UiText.T("Rechte Strg-Taste (für Spiele)", "Right Ctrl (for games)"));
+        shortcut.Children.Add(Pair(ctrlWin, rightCtrl, "Tile", DesignMetric.Space3));
+        Label(shortcut, UiText.T("So nimmst du auf", "How you record"));
+        shortcut.Children.Add(Segments(holdMode, tapMode, UiText.T("So nimmst du auf", "How you record")));
+        modeHint.Margin = new Thickness(0, DesignMetric.Space2, 0, 0);
+        shortcut.Children.Add(modeHint);
+        shortcut.Children.Add(TestLine());
 
-        Section(panel, UiText.T("OpenAI-API-Schlüssel", "OpenAI API key"));
-        panel.Children.Add(Brand.Text(UiText.T("Er wird sicher in der Windows-Anmeldeinformationsverwaltung gespeichert. Die Kosten rechnet OpenAI direkt mit dir ab.",
-            "It is stored safely in Windows Credential Manager. OpenAI bills you directly."), DesignFont.Small, DesignColor.InkMuted, Theme));
+        var service = Card(panel, UiText.T("Dienst", "Service"), "02");
+        service.Children.Add(Segments(openAiService, serverService, UiText.T("Wer macht aus deiner Aufnahme Text?", "Who turns your recording into text?")));
+        Hint(service, UiText.T("Einen eigenen Server trägst du unten unter „Eigener Server und Modelle“ ein. Die Adresse bleibt gespeichert, auch wenn du OpenAI wählst.",
+            "Enter a custom server below under “Custom server and models”. Its address stays saved when you choose OpenAI."));
+        Label(service, UiText.T("OpenAI-API-Schlüssel", "OpenAI API key"));
         AutomationProperties.SetName(apiKey, UiText.T("OpenAI-API-Schlüssel", "OpenAI API key"));
-        var keyRow = new WrapPanel { Margin = new Thickness(0, DesignMetric.Space2, 0, 0) };
-        var saveKey = new Button { Content = UiText.T("Speichern", "Save"), Margin = new Thickness(DesignMetric.Space2, 0, 0, 0), Padding = new Thickness(10, 4, 10, 4) };
-        var deleteKey = new Button { Content = UiText.T("Entfernen", "Remove"), Margin = new Thickness(DesignMetric.Space2, 0, 0, 0), Padding = new Thickness(10, 4, 10, 4) };
-        keyRow.Children.Add(apiKey); keyRow.Children.Add(saveKey); keyRow.Children.Add(deleteKey);
-        panel.Children.Add(keyRow); panel.Children.Add(keyState);
+        var saveKey = new Button { Content = UiText.T("Speichern", "Save"), Style = Brand.Style("SecondaryButton"), Margin = new Thickness(DesignMetric.Space3, 0, 0, 0) };
+        var keyRow = new DockPanel();
+        DockPanel.SetDock(saveKey, Dock.Right);
+        keyRow.Children.Add(saveKey); keyRow.Children.Add(apiKey);
+        service.Children.Add(keyRow);
+        deleteKey.Style = Brand.Style("LinkButton");
+        var stateRow = new DockPanel { Margin = new Thickness(0, DesignMetric.Space2, 0, 0) };
+        DockPanel.SetDock(deleteKey, Dock.Right); DockPanel.SetDock(keyCheck, Dock.Left);
+        keyState.VerticalAlignment = VerticalAlignment.Center;
+        stateRow.Children.Add(deleteKey); stateRow.Children.Add(keyCheck); stateRow.Children.Add(keyState);
+        AutomationProperties.SetLiveSetting(keyState, AutomationLiveSetting.Polite);
+        service.Children.Add(stateRow);
+        Hint(service, UiText.T("Er wird sicher in der Windows-Anmeldeinformationsverwaltung gespeichert. Die Kosten rechnet OpenAI direkt mit dir ab.",
+            "It is stored safely in Windows Credential Manager. OpenAI bills you directly."));
 
-        Section(panel, UiText.T("Sprache und Übersetzung", "Language and translation"));
-        Field(panel, UiText.T("Gesprochene Sprache", "Spoken language"), spoken);
-        Field(panel, UiText.T("Übersetzung nach dem Sprechen", "Translation after speaking"), target);
-        Section(panel, UiText.T("Einfügen", "Pasting"));
-        Option(panel, autoInsert);
-        Section(panel, UiText.T("Start", "Startup"));
-        Option(panel, autostart);
+        var language = Card(panel, UiText.T("Sprache", "Language"), "03");
+        language.Children.Add(Pair(
+            Field(UiText.T("Du sprichst", "You speak"), spoken, UiText.T("Gesprochene Sprache", "Spoken language")),
+            Field(UiText.T("Übersetzen in", "Translate into"), target, UiText.T("Übersetzung nach dem Sprechen", "Translation after speaking")),
+            null, DesignMetric.Space3));
+
+        var switches = new StackPanel();
+        autoInsert.Content = SwitchLabel(UiText.T("Automatisch einfügen", "Paste automatically"), UiText.T("Aus: Der Text liegt nur in der Zwischenablage.", "Off: the text is only on the clipboard."));
+        autostart.Content = SwitchLabel(UiText.T("Mit Windows starten", "Start with Windows"), UiText.T("OpenDictate wartet dann im Infobereich der Taskleiste.", "OpenDictate then waits in the notification area."));
+        AutomationProperties.SetName(autoInsert, UiText.T("Automatisch einfügen (sonst nur Zwischenablage)", "Paste automatically (otherwise clipboard only)"));
+        AutomationProperties.SetName(autostart, UiText.T("Mit Windows starten", "Start with Windows"));
+        foreach (var row in new[] { autoInsert, autostart })
+        {
+            row.Style = Brand.Style("Switch");
+            row.Padding = new Thickness(0);
+            row.Margin = new Thickness(0, DesignMetric.Space3, 0, DesignMetric.Space3);
+        }
+        switches.Children.Add(autoInsert);
+        switches.Children.Add(new Rectangle { Height = 1, Fill = Brand.Brush(DesignColor.Line) });
+        switches.Children.Add(autostart);
+        panel.Children.Add(new Border
+        {
+            Background = Brand.Brush(DesignColor.Surface), CornerRadius = new CornerRadius(DesignMetric.RadiusCard),
+            Padding = new Thickness(DesignMetric.Space6, DesignMetric.Space2, DesignMetric.Space6, DesignMetric.Space2),
+            Margin = new Thickness(0, 0, 0, DesignMetric.Space4), Child = switches,
+        });
 
         var serverFields = new StackPanel();
         Subsection(serverFields, UiText.T("Eigener Server", "Custom server"));
-        Field(serverFields, UiText.T("Server-Adresse", "Server address"), server);
-        var serverHint = Brand.Text(UiText.T($"Beispiel: http://127.0.0.1:8080/v1. Leer heißt: kein eigener Server (oder {ProviderServer.BaseUrlVariable}, wenn gesetzt).",
-            $"Example: http://127.0.0.1:8080/v1. Empty means no custom server (or {ProviderServer.BaseUrlVariable} when set)."), DesignFont.Small, DesignColor.InkMuted, Theme);
-        serverHint.Margin = new Thickness(0, DesignMetric.Space1, 0, 0);
-        serverFields.Children.Add(serverHint);
-        Field(serverFields, UiText.T("Modell für die Erkennung", "Transcription model"), serverModel, UiText.T("Eigener Server: Modell für die Erkennung", "Custom server: transcription model"));
-        Field(serverFields, UiText.T("Modell für die Übersetzung", "Translation model"), serverTranslationModel, UiText.T("Eigener Server: Modell für die Übersetzung", "Custom server: translation model"));
+        serverFields.Children.Add(Field(UiText.T("Server-Adresse", "Server address"), server));
+        Hint(serverFields, UiText.T($"Beispiel: http://127.0.0.1:8080/v1. Leer heißt: kein eigener Server (oder {ProviderServer.BaseUrlVariable}, wenn gesetzt).",
+            $"Example: http://127.0.0.1:8080/v1. Empty means no custom server (or {ProviderServer.BaseUrlVariable} when set)."));
+        serverFields.Children.Add(Field(UiText.T("Modell für die Erkennung", "Transcription model"), serverModel, UiText.T("Eigener Server: Modell für die Erkennung", "Custom server: transcription model")));
+        serverFields.Children.Add(Field(UiText.T("Modell für die Übersetzung", "Translation model"), serverTranslationModel, UiText.T("Eigener Server: Modell für die Übersetzung", "Custom server: translation model")));
         Subsection(serverFields, "OpenAI");
-        Field(serverFields, UiText.T("Modell für die Erkennung", "Transcription model"), model, UiText.T("OpenAI: Modell für die Erkennung", "OpenAI: transcription model"));
-        Field(serverFields, UiText.T("Modell für die Übersetzung", "Translation model"), translationModel, UiText.T("OpenAI: Modell für die Übersetzung", "OpenAI: translation model"));
-        var saveServer = new Button { Content = UiText.T("Speichern", "Save"), HorizontalAlignment = HorizontalAlignment.Left, Padding = new Thickness(10, 4, 10, 4), Margin = new Thickness(0, DesignMetric.Space3, 0, 0) };
+        serverFields.Children.Add(Field(UiText.T("Modell für die Erkennung", "Transcription model"), model, UiText.T("OpenAI: Modell für die Erkennung", "OpenAI: transcription model")));
+        serverFields.Children.Add(Field(UiText.T("Modell für die Übersetzung", "Translation model"), translationModel, UiText.T("OpenAI: Modell für die Übersetzung", "OpenAI: translation model")));
+        var saveServer = new Button { Content = UiText.T("Speichern", "Save"), Style = Brand.Style("SecondaryButton"), HorizontalAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, DesignMetric.Space4, 0, 0) };
         serverFields.Children.Add(saveServer);
-        panel.Children.Add(new Expander { Header = UiText.T("Eigener Server und Modelle", "Custom server and models"), Content = serverFields, Margin = new Thickness(0, DesignMetric.Space4, 0, 0) });
+        var header = new StackPanel();
+        header.Children.Add(Brand.Text(UiText.T("Eigener Server und Modelle", "Custom server and models"), DesignFont.Strong, DesignColor.Ink));
+        header.Children.Add(Brand.Text(UiText.T("Adresse deines Servers und welche Modelle erkennen und übersetzen.", "Your server's address and which models transcribe and translate."), DesignFont.Small, DesignColor.InkMuted));
+        var expander = new Expander { Header = header, Content = serverFields, Style = Brand.Style("Disclosure") };
+        AutomationProperties.SetName(expander, UiText.T("Eigener Server und Modelle", "Custom server and models"));
+        panel.Children.Add(expander);
 
-        var done = new Button { Content = UiText.T("Fertig", "Done"), HorizontalAlignment = HorizontalAlignment.Right, Padding = new Thickness(16, 6, 16, 6), Margin = new Thickness(0, DesignMetric.Space4, 0, 0), IsDefault = true };
+        var done = new Button { Content = UiText.T("Fertig", "Done"), Style = Brand.Style("PrimaryButton"), IsDefault = true };
         done.Click += (_, _) => Close();
         AutomationProperties.SetLiveSetting(status, AutomationLiveSetting.Polite);
-        panel.Children.Add(status);
-        panel.Children.Add(done);
-        Content = new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+        var footer = new DockPanel { Margin = new Thickness(DesignMetric.Space6, DesignMetric.Space4, DesignMetric.Space6, DesignMetric.Space4) };
+        DockPanel.SetDock(done, Dock.Right);
+        status.VerticalAlignment = VerticalAlignment.Center;
+        status.Margin = new Thickness(0, 0, DesignMetric.Space4, 0);
+        footer.Children.Add(done); footer.Children.Add(status);
+        var bottom = new Border { BorderBrush = Brand.Brush(DesignColor.Line), BorderThickness = new Thickness(0, 1, 0, 0), Child = footer };
+        // Rows instead of docking keep the settings first in the tab order.
+        var root = new Grid();
+        root.RowDefinitions.Add(new RowDefinition());
+        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        Grid.SetRow(bottom, 1);
+        root.Children.Add(new ScrollViewer { Content = panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
+        root.Children.Add(bottom);
+        Content = root;
 
         spoken.Items.Add(new Choice(null, UiText.T("Automatisch erkennen", "Detect automatically")));
         target.Items.Add(new Choice(null, UiText.T("Aus", "Off")));
@@ -129,21 +180,13 @@ internal sealed class SettingsWindow : Window
             spoken.Items.Add(new Choice(code, UiText.T(german, english)));
             target.Items.Add(new Choice(code, UiText.T(german, english)));
         }
-        shortcutMode.Items.Add(new Choice(ShortcutGesture.ModeName(TriggerMode.Hold), UiText.T("Gedrückt halten, solange du sprichst", "Hold while you speak")));
-        shortcutMode.Items.Add(new Choice(ShortcutGesture.ModeName(TriggerMode.Tap), UiText.T("Antippen: einmal zum Starten, einmal zum Stoppen", "Tap: once to start, once to stop")));
-        service.Items.Add(openAiService);
-        service.Items.Add(serverService);
         Load();
         ctrlWin.Checked += (_, _) => Change(s => s with { Shortcut = ShortcutGesture.SettingsName(ShortcutKey.CtrlWin) });
         rightCtrl.Checked += (_, _) => Change(s => s with { Shortcut = ShortcutGesture.SettingsName(ShortcutKey.RightCtrl) });
-        shortcutMode.SelectionChanged += (_, _) =>
-        {
-            if (shortcutMode.SelectedItem is Choice { Code: { } mode }) Change(s => s with { ShortcutMode = mode });
-        };
-        service.SelectionChanged += (_, _) =>
-        {
-            if (service.SelectedItem is ComboBoxItem { Tag: string choice } && Change(s => s with { Service = choice })) ShowDestination();
-        };
+        holdMode.Checked += (_, _) => Change(s => s with { ShortcutMode = ShortcutGesture.ModeName(TriggerMode.Hold) });
+        tapMode.Checked += (_, _) => Change(s => s with { ShortcutMode = ShortcutGesture.ModeName(TriggerMode.Tap) });
+        openAiService.Checked += (_, _) => ChooseService(DictationSettings.OpenAiService);
+        serverService.Checked += (_, _) => ChooseService(DictationSettings.ServerService);
         spoken.SelectionChanged += (_, _) => Change(s => s with { Language = (spoken.SelectedItem as Choice)?.Code });
         target.SelectionChanged += (_, _) => Change(s => s.WithTarget((target.SelectedItem as Choice)?.Code));
         autoInsert.Click += (_, _) => Change(s => s with { AutoInsert = autoInsert.IsChecked == true });
@@ -173,32 +216,175 @@ internal sealed class SettingsWindow : Window
         };
     }
 
-    private void Section(Panel panel, string title)
+    // Blink, the wordmark, whether dictating works right now and how.
+    private UIElement Hero()
     {
-        var heading = Brand.Text(title, DesignFont.Strong, DesignColor.Ink, Theme);
-        heading.Margin = new Thickness(0, DesignMetric.Space6, 0, DesignMetric.Space2);
-        panel.Children.Add(heading);
+        var stage = new Border
+        {
+            Width = 112, Height = 112, Background = Brand.Brush(DesignColor.SurfaceSunken),
+            BorderBrush = Brand.Brush(DesignColor.Line), BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(DesignMetric.RadiusCard), Padding = new Thickness(0, 0, 0, 14),
+            Child = new Border { VerticalAlignment = VerticalAlignment.Bottom, HorizontalAlignment = HorizontalAlignment.Center, Child = Brand.Blink(64) },
+        };
+        var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(DesignMetric.Space6, 0, 0, 0) };
+        text.Children.Add(Brand.Text("opendictate", DesignFont.Heading with { Size = 32, LineHeight = 36 }, DesignColor.Ink));
+        var line = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, DesignMetric.Space1, 0, DesignMetric.Space1) };
+        readyMark.Margin = new Thickness(0, 0, DesignMetric.Space2, 0);
+        line.Children.Add(readyMark); line.Children.Add(ready);
+        AutomationProperties.SetLiveSetting(ready, AutomationLiveSetting.Polite);
+        text.Children.Add(line);
+        text.Children.Add(intro);
+        var hero = new DockPanel { Margin = new Thickness(0, DesignMetric.Space2, 0, DesignMetric.Space6) };
+        DockPanel.SetDock(stage, Dock.Left);
+        hero.Children.Add(stage); hero.Children.Add(text);
+        return hero;
     }
 
-    private void Subsection(Panel panel, string title)
+    // "> Hold the shortcut now ..." with a cursor that blinks like Blink at rest.
+    private UIElement TestLine()
     {
-        var heading = Brand.Text(title, DesignFont.Strong, DesignColor.Ink, Theme);
+        var cursor = new Rectangle { Width = 8, Height = 16, Fill = Brand.Brush(DesignColor.Signal), VerticalAlignment = VerticalAlignment.Center };
+        if (SystemParameters.ClientAreaAnimation)
+        {
+            var blink = new DoubleAnimationUsingKeyFrames { Duration = TimeSpan.FromSeconds(1.1), RepeatBehavior = RepeatBehavior.Forever };
+            blink.KeyFrames.Add(new DiscreteDoubleKeyFrame(1, KeyTime.FromTimeSpan(TimeSpan.Zero)));
+            blink.KeyFrames.Add(new DiscreteDoubleKeyFrame(0, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0.55))));
+            cursor.BeginAnimation(OpacityProperty, blink);
+        }
+        var prompt = Brand.Text("›", DesignFont.Code, DesignColor.Signal);
+        prompt.Margin = new Thickness(0, 0, DesignMetric.Space3, 0);
+        detected.VerticalAlignment = VerticalAlignment.Center;
+        detected.Margin = new Thickness(0, 0, DesignMetric.Space3, 0);
+        AutomationProperties.SetLiveSetting(detected, AutomationLiveSetting.Polite);
+        var row = new DockPanel();
+        DockPanel.SetDock(prompt, Dock.Left); DockPanel.SetDock(cursor, Dock.Right);
+        row.Children.Add(prompt); row.Children.Add(cursor); row.Children.Add(detected);
+        return new StepBorder
+        {
+            Background = Brand.Brush(DesignColor.Bg), Padding = new Thickness(DesignMetric.Space4, DesignMetric.Space3, DesignMetric.Space4, DesignMetric.Space3),
+            Margin = new Thickness(0, DesignMetric.Space4, 0, 0), Child = row,
+        };
+    }
+
+    private static StackPanel Card(Panel parent, string title, string number)
+    {
+        var body = new StackPanel();
+        var head = new DockPanel { Margin = new Thickness(0, 0, 0, DesignMetric.Space4) };
+        var index = Brand.Text(number, DesignFont.Label, DesignColor.InkMuted);
+        index.VerticalAlignment = VerticalAlignment.Center;
+        DockPanel.SetDock(index, Dock.Right);
+        head.Children.Add(index);
+        head.Children.Add(Brand.Text(title, DesignFont.Heading, DesignColor.Ink));
+        body.Children.Add(head);
+        parent.Children.Add(new Border
+        {
+            Background = Brand.Brush(DesignColor.Surface), CornerRadius = new CornerRadius(DesignMetric.RadiusCard),
+            Padding = new Thickness(DesignMetric.Space6), Margin = new Thickness(0, 0, 0, DesignMetric.Space4), Child = body,
+        });
+        return body;
+    }
+
+    private static UIElement Tile(string[] keys, string name, string note, DesignColor noteColor)
+    {
+        var caps = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, DesignMetric.Space3) };
+        for (int i = 0; i < keys.Length; i++)
+        {
+            if (i > 0)
+            {
+                var plus = Brand.Text("+", DesignFont.Code, DesignColor.InkMuted);
+                plus.VerticalAlignment = VerticalAlignment.Center;
+                plus.Margin = new Thickness(DesignMetric.Space2, 0, DesignMetric.Space2, 0);
+                caps.Children.Add(plus);
+            }
+            caps.Children.Add(Brand.Keycap(keys[i]));
+        }
+        var tile = new StackPanel();
+        tile.Children.Add(caps);
+        tile.Children.Add(Brand.Text(name, DesignFont.Strong, DesignColor.Ink));
+        tile.Children.Add(Brand.Text(note, DesignFont.Small, noteColor));
+        return tile;
+    }
+
+    // Two controls side by side in equal columns.
+    private static UIElement Pair(FrameworkElement left, FrameworkElement right, string? style, double gap)
+    {
+        var grid = new Grid();
+        grid.ColumnDefinitions.Add(new ColumnDefinition());
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(gap) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition());
+        if (style is not null) left.Style = right.Style = Brand.Style(style);
+        Grid.SetColumn(right, 2);
+        grid.Children.Add(left); grid.Children.Add(right);
+        return grid;
+    }
+
+    // question: read out with each choice, since the track itself has no name for screen readers.
+    private static UIElement Segments(RadioButton first, RadioButton second, string question)
+    {
+        second.Margin = new Thickness(DesignMetric.Space1, 0, 0, 0);
+        AutomationProperties.SetHelpText(first, question);
+        AutomationProperties.SetHelpText(second, question);
+        return new StepBorder
+        {
+            Background = Brand.Brush(DesignColor.SurfaceSunken), Padding = new Thickness(DesignMetric.Space1),
+            Child = Pair(first, second, "Segment", 0),
+        };
+    }
+
+    private static UIElement SwitchLabel(string title, string hint)
+    {
+        var label = new StackPanel();
+        label.Children.Add(Brand.Text(title, DesignFont.Strong, DesignColor.Ink));
+        label.Children.Add(Brand.Text(hint, DesignFont.Small, DesignColor.InkMuted));
+        return label;
+    }
+
+    private static TextBlock LabelText(string text)
+    {
+        var label = Brand.Text(text.ToUpperInvariant(), DesignFont.Label, DesignColor.InkMuted);
+        label.Margin = new Thickness(0, DesignMetric.Space4, 0, DesignMetric.Space2);
+        return label;
+    }
+
+    private static void Label(Panel panel, string text) => panel.Children.Add(LabelText(text));
+
+    private static void Hint(Panel panel, string text)
+    {
+        var hint = Brand.Text(text, DesignFont.Small, DesignColor.InkMuted);
+        hint.Margin = new Thickness(0, DesignMetric.Space2, 0, 0);
+        panel.Children.Add(hint);
+    }
+
+    private static void Subsection(Panel panel, string title)
+    {
+        var heading = Brand.Text(title, DesignFont.Strong, DesignColor.Ink);
         heading.Margin = new Thickness(0, DesignMetric.Space4, 0, 0);
         panel.Children.Add(heading);
     }
 
-    private static void Option(Panel panel, Control option)
+    // spokenName: what a screen reader announces when the label alone is ambiguous.
+    private static FrameworkElement Field(string label, Control field, string? spokenName = null)
     {
-        option.Margin = new Thickness(0, DesignMetric.Space1, 0, DesignMetric.Space1);
-        panel.Children.Add(option);
+        var stack = new StackPanel();
+        var text = LabelText(label);
+        text.Margin = new Thickness(0, DesignMetric.Space3, 0, DesignMetric.Space2);
+        stack.Children.Add(text);
+        AutomationProperties.SetName(field, spokenName ?? label);
+        stack.Children.Add(field);
+        return stack;
     }
 
-    // spokenName: what a screen reader announces when the label alone is ambiguous.
-    private static void Field(Panel panel, string label, Control field, string? spokenName = null)
+    // Pixel check mark from the design system's symbol grid.
+    private static UIElement Check()
     {
-        panel.Children.Add(new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, DesignMetric.Space2, 0, DesignMetric.Space1) });
-        AutomationProperties.SetName(field, spokenName ?? label);
-        panel.Children.Add(field);
+        var path = new Path
+        {
+            Data = Geometry.Parse("M1,6h2v2h-2z M3,8h2v2h-2z M5,6h2v2h-2z M7,4h2v2h-2z M9,2h2v2h-2z"),
+            Fill = Brand.Brush(DesignColor.Signal), Width = 12, Height = 12,
+            Margin = new Thickness(0, 0, DesignMetric.Space2, 0), VerticalAlignment = VerticalAlignment.Center,
+        };
+        RenderOptions.SetEdgeMode(path, EdgeMode.Aliased);
+        return path;
     }
 
     private void Load()
@@ -208,7 +394,7 @@ internal sealed class SettingsWindow : Window
         {
             readable = false;
             status.Text = error.Message + " " + UiText.T("Die Datei bleibt unverändert.", "The file stays unchanged.");
-            foreach (var control in new Control[] { ctrlWin, rightCtrl, shortcutMode, service, spoken, target, autoInsert, server,
+            foreach (var control in new Control[] { ctrlWin, rightCtrl, holdMode, tapMode, openAiService, serverService, spoken, target, autoInsert, server,
                 serverModel, serverTranslationModel, model, translationModel })
                 control.IsEnabled = false;
         }
@@ -235,15 +421,18 @@ internal sealed class SettingsWindow : Window
         {
             ctrlWin.IsChecked = settings.ShortcutKey == ShortcutKey.CtrlWin;
             rightCtrl.IsChecked = settings.ShortcutKey == ShortcutKey.RightCtrl;
-            shortcutMode.SelectedItem = Choose(shortcutMode, ShortcutGesture.ModeName(settings.TriggerMode));
+            holdMode.IsChecked = settings.TriggerMode == TriggerMode.Hold;
+            tapMode.IsChecked = settings.TriggerMode == TriggerMode.Tap;
             // The custom server can only be chosen once an address is known.
             string? host = ServerHost(settings);
-            serverService.Content = host is null
+            serverService.Content = UiText.T("Eigener Server", "Custom server") + " · " + (host ?? UiText.T("keine Adresse", "no address"));
+            AutomationProperties.SetName(serverService, host is null
                 ? UiText.T("Eigener Server (noch keine Adresse)", "Custom server (no address yet)")
-                : UiText.T($"Eigener Server ({host})", $"Custom server ({host})");
+                : UiText.T($"Eigener Server ({host})", $"Custom server ({host})"));
             bool usesServer = settings.UsesServer(Environment.GetEnvironmentVariable(ProviderServer.BaseUrlVariable));
-            serverService.IsEnabled = host is not null || usesServer;
-            service.SelectedItem = usesServer ? serverService : openAiService;
+            serverService.IsEnabled = readable && (host is not null || usesServer);
+            openAiService.IsChecked = !usesServer;
+            serverService.IsChecked = usesServer;
             spoken.SelectedItem = Choose(spoken, settings.Language);
             target.SelectedItem = Choose(target, settings.TargetLanguage);
             autoInsert.IsChecked = settings.AutoInsert;
@@ -254,6 +443,7 @@ internal sealed class SettingsWindow : Window
             translationModel.Text = settings.TranslationModel;
         }
         finally { showing = false; }
+        ShowReady();
     }
 
     // The stored address, else OPENAI_BASE_URL; a broken one still shows as set.
@@ -275,6 +465,11 @@ internal sealed class SettingsWindow : Window
         return added;
     }
 
+    private void ChooseService(string choice)
+    {
+        if (Change(s => s with { Service = choice })) ShowDestination();
+    }
+
     private bool Change(Func<DictationSettings, DictationSettings> edit)
     {
         if (showing || !readable) return false;
@@ -287,6 +482,7 @@ internal sealed class SettingsWindow : Window
             stored = next;
             controller.UseShortcut(stored.ShortcutKey, stored.TriggerMode);
             if (shortcutChanged) ShowHints();
+            ShowReady();
             status.Text = UiText.T("Gespeichert.", "Saved.");
             return true;
         }
@@ -334,6 +530,29 @@ internal sealed class SettingsWindow : Window
         catch (UserFacingException error) { status.Text = UiText.T("Gespeichert. ", "Saved. ") + error.Message; }
     }
 
+    // "Ready" needs a destination that can take the recording: a custom server
+    // with a valid address, or OpenAI with a saved key.
+    private void ShowReady()
+    {
+        bool usesServer = stored.UsesServer(Environment.GetEnvironmentVariable(ProviderServer.BaseUrlVariable));
+        bool broken = !readable || (usesServer ? !ServerResolves() : keyPresent is null);
+        bool isReady = !broken && (usesServer || keyPresent == true);
+        string where = usesServer ? UiText.T("Eigener Server", "Custom server") : "OpenAI";
+        string state = isReady ? UiText.T("Bereit", "Ready")
+            : broken ? UiText.T("Hoppla", "Oops")
+            : UiText.T("Schlüssel fehlt", "Key missing");
+        ready.Text = $"{state} · {where}".ToUpperInvariant();
+        var color = isReady ? DesignColor.Signal : broken ? DesignColor.Rec : DesignColor.InkMuted;
+        ready.Foreground = Brand.Brush(color);
+        readyMark.Fill = Brand.Brush(color);
+    }
+
+    private bool ServerResolves()
+    {
+        try { stored.ResolveServer(); return true; }
+        catch (UserFacingException) { return false; }
+    }
+
     private void ShowHints()
     {
         bool tap = stored.TriggerMode == TriggerMode.Tap;
@@ -342,8 +561,11 @@ internal sealed class SettingsWindow : Window
             : UiText.T("Halte das Kürzel gedrückt, sprich und lass los.", "Hold the shortcut, speak and let go.");
         intro.Text = firstRun
             ? UiText.T($"Willkommen. {how} Der Text landet dort, wo du gerade schreibst.", $"Welcome. {how} The text lands where you are typing.")
-            : how;
-        detected.Foreground = Brand.Brush(DesignColor.InkMuted, Theme);
+            : UiText.T($"{how} Der Text landet dort, wo du gerade schreibst.", $"{how} The text lands where you are typing.");
+        modeHint.Text = tap
+            ? UiText.T("Einmal antippen startet die Aufnahme, nochmal antippen beendet sie.", "Tap once to start recording, tap again to stop.")
+            : UiText.T("Solange du das Kürzel hältst, hört OpenDictate zu. Beim Loslassen endet die Aufnahme.", "OpenDictate listens while you hold the shortcut. Letting go ends the recording.");
+        detected.Foreground = Brand.Brush(DesignColor.InkMuted);
         detected.Text = tap
             ? UiText.T("Tipp jetzt das Kürzel an, um es zu testen.", "Tap the shortcut now to test it.")
             : UiText.T("Halte jetzt das Kürzel, um es zu testen.", "Hold the shortcut now to test it.");
@@ -364,19 +586,23 @@ internal sealed class SettingsWindow : Window
 
     private void ShowKeyState()
     {
-        bool present;
-        try { present = !string.IsNullOrEmpty(new CredentialStore().Read()); }
-        catch (Exception) { keyState.Text = UiText.T("Die Windows-Anmeldeinformationsverwaltung ist nicht erreichbar.", "Windows Credential Manager is not available."); return; }
-        keyState.Text = present
-            ? UiText.T("Ein Schlüssel ist gespeichert.", "A key is saved.")
-            : UiText.T("Noch kein Schlüssel gespeichert. Für einen eigenen Server auf diesem Computer ist keiner nötig.",
-                "No key saved yet. A server on this computer needs none.");
+        try { keyPresent = !string.IsNullOrEmpty(new CredentialStore().Read()); }
+        catch (Exception) { keyPresent = null; }
+        keyState.Text = keyPresent switch
+        {
+            true => UiText.T("Ein Schlüssel ist gespeichert.", "A key is saved."),
+            false => UiText.T("Noch kein Schlüssel gespeichert. Für einen eigenen Server auf diesem Computer ist keiner nötig.",
+                "No key saved yet. A server on this computer needs none."),
+            null => UiText.T("Die Windows-Anmeldeinformationsverwaltung ist nicht erreichbar.", "Windows Credential Manager is not available."),
+        };
+        keyCheck.Visibility = deleteKey.Visibility = keyPresent == true ? Visibility.Visible : Visibility.Collapsed;
+        ShowReady();
     }
 
     private void ShowDetected(ShortcutGestureKind gesture)
     {
         string name = stored.ShortcutKey == ShortcutKey.CtrlWin ? UiText.T("Strg+Win", "Ctrl+Win") : UiText.T("Rechte Strg-Taste", "Right Ctrl");
-        detected.Foreground = Brand.Brush(DesignColor.SignalInk, Theme);
+        detected.Foreground = Brand.Brush(DesignColor.Signal);
         detected.Text = gesture switch
         {
             ShortcutGestureKind.HoldBegan => UiText.T($"Erkannt: {name} wird gehalten. Hier wird nichts aufgenommen.", $"Recognized: {name} is held. Nothing is recorded here."),

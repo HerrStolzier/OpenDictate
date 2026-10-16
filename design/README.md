@@ -52,7 +52,7 @@ in der Reihenfolge der Tabelle unten ([Entscheidungs-Log](../PROJECT.md#entschei
 | Linux | Leistenanzeige mit Blink (`▮`), „REC“ und den Zustandswörtern im Tooltip, Farben aus `gtk-colors.css` im Waybar-Beispiel; ein Test prüft, dass sie zu den Tokens passen. Bekannte Abweichung: Beim Schreiben zeigt die Leiste aus Platzgründen nur `▮ …`, das Wort „Schreibt“ steht im Tooltip |
 | Support-Formular und Dashboard | `tokens.css` und Schriften übernehmen; der Support ist seit 11. Oktober live (privates Repo `support-desk`) |
 | iOS | dieselbe Swift-Datei wie macOS |
-| Windows | Der WPF-Prototyp braucht ein XAML-ResourceDictionary; dafür bekommt der Generator eine weitere Ausgabe |
+| Windows | Im Code, Theme Nacht: `windows/OpenDictate.Core/DesignTokens.cs` kommt vom Generator, `windows/OpenDictate.App/Brand.cs` legt daraus die Farb- und Schrift-Ressourcen an, `Theme.xaml` gestaltet damit Knöpfe (Stufenecken), Umschalter, Felder und Listen; Blink ist aus `blink-32.svg` übertragen. Bauen und live prüfen auf xmg |
 
 ## Englische Markentexte (Vorschlag)
 

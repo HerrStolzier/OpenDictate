@@ -17,7 +17,7 @@ namespace OpenDictate.App;
 // was in, and it lets clicks through except on an error's buttons.
 internal sealed class IndicatorWindow : Window
 {
-    private const DesignTheme Theme = DesignTheme.Nacht;
+    private const DesignTheme Theme = Brand.Theme;
     private readonly TextBlock word = Brand.Text("", DesignFont.Heading with { Size = 20, LineHeight = 24 }, DesignColor.Ink, Theme);
     private readonly TextBlock detail = Brand.Text("", DesignFont.Label, DesignColor.InkMuted, Theme);
     private readonly Ellipse dot = new() { Width = 10, Height = 10, VerticalAlignment = VerticalAlignment.Center };
@@ -38,8 +38,8 @@ internal sealed class IndicatorWindow : Window
         Topmost = true; ShowInTaskbar = false; ShowActivated = false; Focusable = false;
         ResizeMode = ResizeMode.NoResize; SizeToContent = SizeToContent.WidthAndHeight;
         Title = "OpenDictate";
-        retry = MakeButton(UiText.T("Nochmal senden", "Send again"), DesignColor.Signal, DesignColor.OnSignal);
-        close = MakeButton(UiText.T("Schließen", "Close"), DesignColor.Surface, DesignColor.Ink);
+        retry = MakeButton(UiText.T("Nochmal senden", "Send again"), "PrimaryButton");
+        close = MakeButton(UiText.T("Schließen", "Close"), "SecondaryButton");
         retry.Click += (_, _) => { Hide(IndicatorPhase.Closed); RetryRequested?.Invoke(); };
         close.Click += (_, _) => Hide(IndicatorPhase.Closed);
         buttons.Children.Add(retry); buttons.Children.Add(close);
@@ -73,14 +73,11 @@ internal sealed class IndicatorWindow : Window
         SizeChanged += (_, _) => Place();
     }
 
-    private static Button MakeButton(string text, DesignColor background, DesignColor foreground) => new()
+    private static Button MakeButton(string text, string style) => new()
     {
-        Content = Brand.Text(text, DesignFont.Ui, foreground, Theme),
-        Background = Brand.Brush(background, Theme),
-        BorderBrush = Brand.Brush(DesignColor.Line, Theme),
-        Padding = new Thickness(DesignMetric.Space4, DesignMetric.Space2, DesignMetric.Space4, DesignMetric.Space2),
+        Content = text,
+        Style = Brand.Style(style),
         Margin = new Thickness(0, 0, DesignMetric.Space2, 0),
-        MinHeight = 36,
         Focusable = false,
     };
 

@@ -120,6 +120,11 @@ Windows-Beta.
   Abstände und Schriften (Geist, mitgeliefert unter der SIL Open Font License)
   kommen aus dem Designsystem (`OpenDictate.Core/DesignTokens.cs`, erzeugt von
   `scripts/design-tokens.py`); das Symbol baut `scripts/make-icon.py` aus Blink.
+- Das Einstellungsfenster ist seit 16. Oktober dunkel (Theme Nacht) wie die
+  Anzeige: Blink mit „Bereit“, Karten für Tastenkürzel, Dienst und Sprache,
+  Umschalter statt Häkchen, Knöpfe mit Stufenecken. Die Stile stehen in
+  `OpenDictate.App/Theme.xaml`, ihre Farben und Schriften setzt `Brand.cs` aus
+  `DesignTokens.cs`; unter Windows 11 nimmt die Titelleiste die Hintergrundfarbe an.
 - Beim ersten Start öffnen sich die Einstellungen mit einer Begrüßung und dem
   Kürzeltest: Solange das Fenster vorne ist, meldet es „Erkannt“, statt
   aufzunehmen. Jede Wahl wird sofort gespeichert; scheitert das Speichern,
