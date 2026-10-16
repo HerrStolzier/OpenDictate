@@ -93,3 +93,12 @@ ausprobierst, freuen wir uns über eine
 
 Mac: `brew uninstall whisper-cpp` und den Ordner `~/whisper-modelle` löschen.
 Linux: das Paket entfernen und den Modellordner löschen.
+
+### Linux: Dienst wechseln
+
+Mit `opendictate settings service openai|custom` wechselst du, ohne die eigene
+Server-Adresse oder beide Modellpaare zu verlieren. `settings server off`
+bleibt als Alias erhalten. Die bestehende Umgebungsvariable `OPENAI_BASE_URL`
+leitet ohne aktiv gespeicherte eigene Adresse weiterhin um; entferne sie,
+wenn du OpenAI selbst nutzen willst. Die Anzeige nennt den tatsächlich
+aufgelösten Dienst. Details stehen in der [Linux-Anleitung](../linux/README.de.md#dienst-wechseln-und-server-behalten).

@@ -62,6 +62,7 @@ Befehle:
   settings target toggle Übersetzung aus- oder mit letzter Zielsprache einschalten
   settings insert on|off automatisch ins Fenster einfügen, in dem du gestartet hast
   settings translation-model NAME  Modell für die Übersetzung setzen
+  settings service openai|custom  Dienst wählen, Adresse und Modelle behalten
   settings server URL    Eigener Server: Server-Adresse inkl. /v1; `off` = OpenAI
   shortcut status        Kürzel und freie Tasten anzeigen
   shortcut set KÜRZEL    super-d, f9 oder right-alt in die Hyprland-Konfiguration
@@ -93,6 +94,7 @@ Commands:
   settings target toggle turn translation off, or on with the last language
   settings insert on|off paste the text into the window you started in
   settings translation-model NAME  set the model for translation
+  settings service openai|custom  choose service, keep address and models
   settings server URL    custom server: server address incl. /v1; `off` = OpenAI
   shortcut status        show the shortcut and which keys are free
   shortcut set KEY       write super-d, f9 or right-alt into the Hyprland config
@@ -146,6 +148,8 @@ fn run(args: Vec<String>) -> Result<(), String> {
         ["settings", "insert", "on"] => settings_insert(true),
         ["settings", "insert", "off"] => settings_insert(false),
         ["settings", "translation-model", model] => settings_translation_model(model),
+        ["settings", "service", "openai"] => settings_service(settings::Service::Openai),
+        ["settings", "service", "custom"] => settings_service(settings::Service::Custom),
         ["settings", "server", "off"] => settings_server_off(),
         ["settings", "server", address] => settings_server(address),
         ["record", "--daemon"] => worker(),
@@ -326,12 +330,14 @@ fn waybar_status() -> Result<(), String> {
     let socket = paths::socket_path().map_err(path_error)?;
     let state_path = paths::state_path().map_err(path_error)?;
     let state = state::read(&state_path, &socket);
-    // A broken settings file must not blank the bar; show the state alone.
+    // A broken settings file must not claim a service was read successfully.
     let settings = paths::settings_path()
         .map_err(path_error)
-        .and_then(|path| settings::Settings::load(&path))
-        .unwrap_or_default();
-    println!("{}", waybar::render(state, &settings));
+        .and_then(|path| settings::Settings::load(&path));
+    match settings {
+        Ok(settings) => println!("{}", waybar::render(state, &settings)),
+        Err(_) => println!("{}", waybar::render_settings_error(state)),
+    }
     Ok(())
 }
 
@@ -452,7 +458,16 @@ fn init_auth() -> Result<(), String> {
 fn settings_show() -> Result<(), String> {
     let path = paths::settings_path().map_err(path_error)?;
     let settings = settings::Settings::load(&path)?;
-    let (server, source) = server::Server::resolve(settings.server.as_deref())?;
+    let (server, source) = settings.resolve_server()?;
+    println!(
+        "{}",
+        if server.is_custom() {
+            i18n::t("Dienst: Eigener Server", "Service: Custom server")
+        } else {
+            i18n::t("Dienst: OpenAI", "Service: OpenAI")
+        }
+    );
+    let settings = settings.for_request()?.0;
     let server = match source {
         server::Source::Default => "openai".to_string(),
         server::Source::Settings => server.base().to_string(),
@@ -473,9 +488,13 @@ fn settings_show() -> Result<(), String> {
 fn settings_model(model: &str) -> Result<(), String> {
     let path = paths::settings_path().map_err(path_error)?;
     let mut settings = settings::Settings::load(&path)?;
-    let (server, _) = server::Server::resolve(settings.server.as_deref())?;
+    let (server, _) = settings.resolve_server()?;
     settings::validate_model_for(model, &server)?;
-    settings.model = model.to_string();
+    if server.is_custom() {
+        settings.custom_model = model.to_string();
+    } else {
+        settings.model = model.to_string();
+    }
     settings.save(&path)?;
     println!("{}", i18n::t("Modell gespeichert", "Model saved"));
     Ok(())
@@ -545,7 +564,11 @@ fn settings_translation_model(model: &str) -> Result<(), String> {
     settings::validate_translation_model(model)?;
     let path = paths::settings_path().map_err(path_error)?;
     let mut settings = settings::Settings::load(&path)?;
-    settings.translation_model = model.to_string();
+    if settings.resolve_server()?.0.is_custom() {
+        settings.custom_translation_model = model.to_string();
+    } else {
+        settings.translation_model = model.to_string();
+    }
     settings.save(&path)?;
     println!(
         "{}",
@@ -632,7 +655,11 @@ fn settings_server(address: &str) -> Result<(), String> {
     if !server.is_custom() {
         return settings_server_off();
     }
+    let first = settings.server.is_none();
     settings.server = Some(server.base().to_string());
+    if first {
+        settings.service = Some(settings::Service::Custom);
+    }
     settings.save(&path)?;
     println!(
         "{}",
@@ -670,65 +697,24 @@ fn settings_server(address: &str) -> Result<(), String> {
         tr!(
             "Die Modellnamen deines Servers setzt du mit `opendictate settings model NAME`, für Übersetzungen mit `opendictate settings translation-model NAME` (jetzt: {}, {}).",
             "Set your server's model names with `opendictate settings model NAME`, for translations with `opendictate settings translation-model NAME` (now: {}, {}).",
-            settings.model,
-            settings.translation_model
+            settings.custom_model,
+            settings.custom_translation_model
         )
     );
     Ok(())
 }
 
-/// Back to OpenAI. A transcription model OpenAI does not offer is reset to
-/// the default, so the next dictation does not fail.
+/// The legacy alias keeps the saved address and both model choices.
 fn settings_server_off() -> Result<(), String> {
+    settings_service(settings::Service::Openai)
+}
+
+fn settings_service(service: settings::Service) -> Result<(), String> {
     let path = paths::settings_path().map_err(path_error)?;
     let mut settings = settings::Settings::load(&path)?;
-    settings.server = None;
-    let (server, source) = server::Server::resolve(None)?;
-    let reset_model = settings::validate_model_for(&settings.model, &server).is_err();
-    if reset_model {
-        settings.model = settings::DEFAULT_MODEL.to_string();
-    }
+    settings.choose_service(service)?;
     settings.save(&path)?;
-    match source {
-        server::Source::Environment => println!(
-            "{}",
-            tr!(
-                "Gespeicherter Server entfernt; {} zeigt weiter auf {}.",
-                "Stored server removed; {} still points to {}.",
-                server::BASE_URL_ENV,
-                server.base()
-            )
-        ),
-        _ => println!(
-            "{}",
-            i18n::t(
-                "Eigener Server aus; OpenDictate nutzt OpenAI.",
-                "Custom server off; OpenDictate uses OpenAI."
-            )
-        ),
-    }
-    if reset_model {
-        println!(
-            "{}",
-            tr!(
-                "Modell für die Abschrift auf {} zurückgesetzt.",
-                "Transcription model reset to {}.",
-                settings::DEFAULT_MODEL
-            )
-        );
-    }
-    if settings.translation_model != settings::DEFAULT_TRANSLATION_MODEL {
-        println!(
-            "{}",
-            tr!(
-                "Übersetzungsmodell bleibt {}; `opendictate settings translation-model {}` stellt den Standard wieder her.",
-                "Translation model stays {}; `opendictate settings translation-model {}` restores the default.",
-                settings.translation_model,
-                settings::DEFAULT_TRANSLATION_MODEL
-            )
-        );
-    }
-    Ok(())
+    settings_show()
 }
 
 /// The key for the server, or none for an address on this computer, which
@@ -922,8 +908,8 @@ fn process_new_recording(
             record::Upload::Skipped(message) => return Ok(Some(message)),
         };
         ensure_not_cancelled(state_guard)?;
-        let settings = settings::Settings::load(&paths::settings_path().map_err(path_error)?)?;
-        let (server, _) = server::Server::resolve(settings.server.as_deref())?;
+        let saved = settings::Settings::load(&paths::settings_path().map_err(path_error)?)?;
+        let (settings, server) = saved.for_request()?;
         let api_key = api_key_for(&server)?;
         log_ops(&format!("transcription-started{}", server_log(&server)));
         let transcript = transcribe::Transcriber::new(&server).transcribe(
@@ -1060,8 +1046,8 @@ fn retry(skipped: bool) -> Result<(), String> {
         ));
     };
     ensure_not_cancelled(&state_guard)?;
-    let settings = settings::Settings::load(&paths::settings_path().map_err(path_error)?)?;
-    let (server, _) = server::Server::resolve(settings.server.as_deref())?;
+    let saved = settings::Settings::load(&paths::settings_path().map_err(path_error)?)?;
+    let (settings, server) = saved.for_request()?;
     let api_key = api_key_for(&server)?;
     log_ops(&format!("retry-started{}", server_log(&server)));
     let transcript = transcribe::Transcriber::new(&server).transcribe_bytes(

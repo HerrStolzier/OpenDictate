@@ -436,3 +436,19 @@ sind echte Verzeichnisse mit Modus `0700`; Audiodateien und Nachweise `0600`.
 - Das Arch-Paket ist auf einem Rechner (omarchy) installiert und mit einem
   Diktat geprüft ([Nachweis](../docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026));
   nicht im AUR, kein zweites Distro-Ziel.
+
+## Dienst wechseln und Server behalten
+
+`opendictate settings service openai` behält die eigene Adresse und deren
+Modelle; `settings service custom` nutzt sie wieder und braucht eine gespeicherte
+Adresse. `settings server off` ist ein Alias für die OpenAI-Auswahl. Die erste
+eigene Adresse wählt den eigenen Server; spätere Adressänderungen behalten die
+Auswahl. Beide Dienste behalten getrennte Abschrift- und Übersetzungsmodelle.
+`settings model` und `settings translation-model` ändern den aktiven Dienst.
+Alte Einstellungen mit eigener Adresse ziehen ihre Modellnamen dorthin um.
+
+Die bisherige Rangfolge bleibt: Eine aktiv gewählte gespeicherte Server-Adresse
+geht vor `OPENAI_BASE_URL`. Ohne aktive gespeicherte Adresse leitet die Variable
+Anfragen weiterhin um, auch nach `service openai` oder `server off`. Entferne
+sie für OpenAI selbst. `settings show` und der Leisten-Tooltip zeigen den
+tatsächlichen Dienst; im Tooltip steht nur der Host, nie die volle Adresse.
