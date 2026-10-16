@@ -73,8 +73,8 @@ Notiz vom 12. September 2026, die bisher außerhalb des Repositorys lag.
 - Reihenfolge beim Verkauf: macOS, iOS, Windows, Linux, Android. Mit dem
   Verkaufsstart der Mac-App wird OpenDictate angekündigt.
 
-Nicht entschieden: Bezahlweg, Firma, Name oder Marke. Ein Abo ist nicht
-vorgesehen.
+Nicht entschieden: Bezahlweg, Firma. Ein neuer Name wird gesucht
+(Entscheidung vom 16. Oktober 2026). Ein Abo ist nicht vorgesehen.
 
 ## Plattformen und belegter Umfang
 
@@ -178,6 +178,7 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
+| 16. Oktober 2026 | OpenDictate bekommt vor der bezahlten App einen neuen Namen; das ersetzt das „Behalten“ vom 15. Oktober. Grund: Der Name beschreibt nur, was die App tut, ist als Marke schwach, und mehrere andere Projekte heißen schon so; ein Wechsel ist vor iPhone-App, Microsoft Store und Ankündigung am günstigsten. Gesucht werden Namen, die als Marke, Domain und App-Store-Name frei sind; der Favorit wird vor der Anmeldung anwaltlich geprüft. Blink bleibt. Außerdem: Das Vokabular darf auf Wunsch selbst lernen. Die Nutzer wählen offen, ob die App wie bisher nur ihr eingetragenes Vokabular nutzt oder lokal aus ihren Diktaten und Korrekturen lernt; aus ist der Standard, das Gelernte bleibt auf dem Gerät, ist sichtbar und löschbar. | [TRADEMARKS.md](TRADEMARKS.md), [ROADMAP](ROADMAP.md#plattformübergreifend); Bastis Nachricht im Thread zur Monetarisierung, 16. Oktober 08:30 |
 | 16. Oktober 2026 | Die fertige App kostet einmalig 9 Euro für alle Desktop-Plattformen; die iPhone-App wird einzeln im App Store verkauft. Verkauft wird in der Reihenfolge macOS, iOS, Windows, Linux, Android. Vokabular und Verbrauchsanzeige werden auf allen Plattformen gebaut. Ein sichtbarer Schalter zum Glätten (Zeichensetzung, Füllwörter) darf kommen; Standard bleibt die treue Abschrift. Angekündigt wird mit dem Verkaufsstart der Mac-App; bis dahin gilt weiter „nirgends ankündigen“. | [ROADMAP](ROADMAP.md#plattformübergreifend); Bastis Antworten im Thread zur Monetarisierung, 16. Oktober 08:21 |
 | 15. Oktober 2026 | Der Name „OpenDictate“ bleibt vorerst. Weil weitere Projekte so heißen (unter anderem ein Linux-Programm mit dem Snap „opendictate“) und keine Marke eingetragen ist, sagen die READMEs kurz, welches Projekt dieses ist. Kein Snap; ein Linux-Paket außerhalb dieses Repos käme ins AUR unter `opendictate`. Ob die Wortmarke angemeldet (vorher anwaltlich prüfen) oder der Name gewechselt wird, entscheidet Basti vor der bezahlten App. | [README.md](README.md#good-to-know), [linux/README.md](linux/README.md#install), [linux/README.de.md](linux/README.de.md#installieren), [TRADEMARKS.md](TRADEMARKS.md); Bastis Karte „Namen ‚OpenDictate‘ vorerst behalten?“ im Thread „Projektübersicht und offene Punkte“, 15. Oktober 10:21 („Behalten“) |
 | 14. Oktober 2026 | Liegengebliebene Original-Aufnahmen (App endete vor dem Sichern oder die gesicherte Kopie ließ sich nicht anlegen) löschen Mac, Linux und Windows beim Start, sobald sie 24 Stunden alt sind, nie früher und ohne Obergrenze von fünf. Die Grenze von fünf gilt weiter nur für die gesicherten Kopien, damit kein Diktat vor Ablauf der 24 Stunden verloren geht. | [PRIVACY.md](PRIVACY.md); Bastis Entscheidung im Thread „Sicherheits-PRs aus dem Bundle“, 14. Oktober 15:17 („So lassen“) |
