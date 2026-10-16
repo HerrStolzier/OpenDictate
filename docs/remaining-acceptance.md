@@ -322,8 +322,12 @@ wunderbar“).
 Danach, ebenfalls am 16. Oktober, kamen die Auswahl „Dienst“ (OpenAI oder
 eigener Server; die Adresse bleibt gespeichert, jede Seite hat eigene Modelle)
 und „So nimmst du auf“ (gedrückt halten oder antippen: einmal starten, einmal
-stoppen) dazu. Auf Linux bestanden 58 von 58 Offline-Prüfungen und beide
-Builds ohne Warnung; auf xmg ist das noch nicht getestet.
+stoppen) dazu. Auf Linux und auf xmg bestanden 58 von 58 Offline-Prüfungen,
+auf xmg auch alle 15 Schutzprüfungen. Dort ließen sich beide Auswahlen
+bedienen; ein gewählter eigener Server, der nicht antwortet (127.0.0.1:9),
+beendete das Menü-Diktat mit einer Meldung, ohne Verbindung zu OpenAI und mit
+gesicherter Aufnahme; nach dem Wechsel auf OpenAI blieb die Adresse erhalten
+und das Diktat kam an. Antippen mit echten Tasten ist noch offen.
 
 **Offen / bekannte Grenzen:** Kein Diktat gegen ein lokales Modell; Spielchat im
 Vollbild (Anzeige über Spielen, Strg+V mit Scancode) und Skalierung ungeprüft; in Programme mit

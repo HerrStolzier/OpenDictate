@@ -150,7 +150,13 @@ Windows-Beta.
   (Windows-Plan, Schritt 7).
 - Dienst und Art des Kürzels (16. Oktober): auf Linux offline geprüft, 58 von
   58 Prüfungen (8 Kern-, 9 Ablauf-, 19 Provider- und 22 Kürzel-/App-Prüfungen),
-  Beta-App und Schutzprüfer bauen ohne Warnung; auf xmg noch nicht gestartet.
+  Beta-App und Schutzprüfer bauen ohne Warnung. Auf xmg aus `37518c3`:
+  58 von 58 Prüfungen, 15 von 15 Schutzprüfungen, beide Auswahlen bedienbar.
+  Mit Adresse `http://127.0.0.1:9/v1` und „Eigener Server“ endete ein
+  Menü-Diktat mit „Dein Server (127.0.0.1) ist nicht erreichbar …“, ohne
+  Verbindung zu OpenAI, und die Aufnahme blieb gesichert; nach dem Wechsel auf
+  OpenAI blieb die Adresse gespeichert und das Diktat ging an OpenAI. Antippen
+  mit echten Tasten prüft Basti in der Abnahme.
 
 ## Heutige Offline-Prüfung, 28. September 2026
 
