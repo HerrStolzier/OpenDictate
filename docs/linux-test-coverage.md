@@ -5,7 +5,7 @@ Gemessen am 17. Oktober 2026 lokal auf omarchy mit vorhandenem Rust/Cargo
 geändert. Ausgangsstand: `8dbf0f85a2d37558917cd5cc8792111ea9f27130`.
 Die Baseline wurde im Paket-Checkout `10ba599` gemessen, dessen `linux/src/`
 gegen diesen Ausgangsstand identisch ist. Endstand:
-`accf145249ac8ba2ba26566c3839bade9882d902`. Die SHA-256-Werte aller Rust-Dateien
+`6b4620dbc40b9f22468ca677494f30d1edae5e40`. Die SHA-256-Werte aller Rust-Dateien
 des gemessenen Checkouts wurden mit diesem Endstand verglichen: identisch.
 
 ## Ergebnis und Zählweise
@@ -13,7 +13,7 @@ des gemessenen Checkouts wurden mit diesem Endstand verglichen: identisch.
 - Vorher: 135 Offline-Tests. Nachher: 141 Offline-Tests. Beide Messläufe bestanden.
 - Produktionszeilen: **2044/4213 (48,52 %) → 2644/4221 (62,64 %)**.
 - Ungefilterter LLVM-Zeilenbericht einschließlich Testcode:
-  **64,32 % → 74,68 %**. Diese höhere Zahl ist keine Produktionsabdeckung.
+  **64,32 % → 74,69 %**. Diese höhere Zahl ist keine Produktionsabdeckung.
 - Der unveränderte Linux-Prüfeinstieg bestand für den Endstand ebenfalls:
   Formatierung, gesperrte Abhängigkeiten, alle Tests, Clippy mit Warnungen als
   Fehler und Release-Build.
