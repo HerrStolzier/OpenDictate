@@ -17,6 +17,13 @@ const MAX_REQUEST_TIMEOUT: Duration = Duration::from_secs(60);
 const CUSTOM_RESPONSE_BUDGET: Duration = Duration::from_secs(120);
 const CUSTOM_MAX_REQUEST_TIMEOUT: Duration = Duration::from_secs(180);
 
+#[derive(Debug)]
+pub struct TranslationResult {
+    pub text: String,
+    pub input_tokens: Option<u64>,
+    pub output_tokens: Option<u64>,
+}
+
 pub struct Translator {
     server: Server,
     url: String,
@@ -53,7 +60,7 @@ impl Translator {
         target_language: &str,
         model: &str,
         api_key: Option<&str>,
-    ) -> Result<String, String> {
+    ) -> Result<TranslationResult, String> {
         // Never sent to an address on this computer, required elsewhere.
         let api_key = match api_key {
             _ if !self.server.sends_api_key() => None,
@@ -147,7 +154,7 @@ fn language_name(code: &str) -> String {
 fn decode_response(
     response: Result<ureq::Response, ureq::Error>,
     server: &Server,
-) -> Result<String, String> {
+) -> Result<TranslationResult, String> {
     let response = match response {
         Ok(response) => response,
         Err(ureq::Error::Status(status, response)) => {
@@ -212,6 +219,7 @@ fn decode_response(
     #[derive(Deserialize)]
     struct Response {
         choices: Vec<Choice>,
+        usage: Option<serde_json::Value>,
     }
     #[derive(Deserialize)]
     struct Choice {
@@ -233,13 +241,45 @@ fn decode_response(
         .next()
         .and_then(|choice| choice.message.content)
         .unwrap_or_default();
-    Ok(crate::policy::sanitize_transcript(&text))
+    Ok(TranslationResult {
+        text: crate::policy::sanitize_transcript(&text),
+        input_tokens: parsed
+            .usage
+            .as_ref()
+            .and_then(|usage| usage.get("prompt_tokens"))
+            .and_then(serde_json::Value::as_u64),
+        output_tokens: parsed
+            .usage
+            .as_ref()
+            .and_then(|usage| usage.get("completion_tokens"))
+            .and_then(serde_json::Value::as_u64),
+    })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::test_http::{serve, serve_without_answer};
+
+    #[test]
+    fn translation_usage_is_optional_metadata() {
+        for (usage, expected) in [
+            (
+                r#", "usage":{"prompt_tokens":1000,"completion_tokens":200}"#,
+                (Some(1000), Some(200)),
+            ),
+            (r#", "usage":{"prompt_tokens":"bad"}"#, (None, None)),
+        ] {
+            let body = format!(r#"{{"choices":[{{"message":{{"content":"Hello"}}}}]{usage}}}"#);
+            let (endpoint, stub) = serve("200 OK", &body);
+            let result = openai_stub(&endpoint)
+                .translate("Hallo", "en", "test-model", Some("test-key"))
+                .unwrap();
+            assert_eq!(result.text, "Hello");
+            assert_eq!((result.input_tokens, result.output_tokens), expected);
+            stub.join().unwrap();
+        }
+    }
 
     /// OpenAI's rules, but talking to the local stub.
     fn openai_stub(endpoint: &str) -> Translator {
@@ -257,7 +297,8 @@ mod tests {
         let text = openai_stub(&endpoint)
             .translate("Hallo Linux.", "en", "test-model", Some("test-key"))
             .unwrap();
-        assert_eq!(text, "Hello Linux.");
+        assert_eq!(text.text, "Hello Linux.");
+        assert!(text.input_tokens.is_none() && text.output_tokens.is_none());
         let request = server.join().unwrap();
         let request = String::from_utf8_lossy(&request);
         let body = &request[request.find("\r\n\r\n").unwrap() + 4..];
@@ -336,7 +377,7 @@ mod tests {
         let text = Translator::new(&local)
             .translate("Hallo.", "en", "llama3.1:8b", Some("test-key"))
             .unwrap();
-        assert_eq!(text, "Hello.");
+        assert_eq!(text.text, "Hello.");
         let request = server.join().unwrap();
         let request = String::from_utf8_lossy(&request);
         assert!(request.starts_with("POST /v1/chat/completions "));

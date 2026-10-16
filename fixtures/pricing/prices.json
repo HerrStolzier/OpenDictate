@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-16",
+  "currency": "USD",
+  "source": "https://developers.openai.com/api/docs/pricing",
+  "transcription": {
+    "gpt-transcribe": 0.0045,
+    "gpt-4o-mini-transcribe": 0.003,
+    "gpt-4o-transcribe": 0.006,
+    "whisper-1": 0.006,
+    "gpt-live-transcribe": 0.017
+  },
+  "translation": {
+    "gpt-5.4-mini": { "input_per_million": 0.75, "output_per_million": 4.5, "source": "https://developers.openai.com/api/docs/models/gpt-5.4-mini" }
+  }
+}

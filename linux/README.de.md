@@ -436,3 +436,24 @@ sind echte Verzeichnisse mit Modus `0700`; Audiodateien und Nachweise `0600`.
 - Das Arch-Paket ist auf einem Rechner (omarchy) installiert und mit einem
   Diktat geprüft ([Nachweis](../docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026));
   nicht im AUR, kein zweites Distro-Ziel.
+
+## Lokale Verbrauchsschätzung
+
+`opendictate usage` zeigt Diktate, Audiominuten und geschätzte USD-Kosten für
+heute, die letzten sieben lokalen Kalendertage und den laufenden lokalen Monat.
+Der Leisten-Tooltip zeigt heute gezählte Diktate und geschätzte US-Cent. Das ist
+ein lokaler Zähler, kein Kontostand beim Anbieter. Er zählt vollständig
+abgeschlossene, nicht leere Erkennung/Übersetzung, auch wenn danach das Kopieren
+scheitert. Abgebrochene, fehlgeschlagene oder leere Verarbeitung zählt nicht;
+der Anbieter kann dafür trotzdem Kosten berechnen. Erfolgreiche Wiederholungen
+zählen als neue Anfragen.
+
+Die private `usage.json` im Zustandsordner enthält nur Zeitpunkt, Dienstart,
+Modell, Audiosekunden und gegebenenfalls Übersetzungs-Tokenzahlen. Einträge über
+13 Kalendermonate werden beim Zugriff/Schreiben entfernt; `usage reset` leert
+den Zähler. Eigene Server zählen Minuten mit null geschätzten Anbieterkosten.
+Fehlende Tokenzahlen oder unbekannte Modelle bedeuten unbekannte Kosten.
+Die Preise stammen aus der datierten gemeinsamen `fixtures/pricing/prices.json`;
+Rechnung, Steuern, regionale Zuschläge und Cache-Rabatte können abweichen.
+Scheitert das Speichern des Zählers, bleibt das Diktat nutzbar; das Protokoll
+nennt `usage-write-failed`. Der Zähler ersetzt keine Abrechnung.
