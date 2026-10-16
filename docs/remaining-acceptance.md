@@ -314,18 +314,19 @@ Menü im Infobereich (Computerstimme, eine Anfrage an OpenAI) zeigte „Hört zu
 „Schreibt“ und „Kopiert“ und legte den Text in die Zwischenablage; das
 Startmenü blieb zu. „Mit Windows starten“ setzt und entfernt den Run-Eintrag.
 Das Kürzel lässt sich nicht automatisch testen, weil die App künstliche
-Tastendrücke absichtlich ignoriert.
+Tastendrücke absichtlich ignoriert. Danach diktierte Basti selbst mit echter
+Tastatur und Stimme in Notepad: Mit Strg+Win und mit der rechten Strg-Taste
+wurde der Text samt Satzzeichen automatisch eingefügt („funktioniert
+wunderbar“).
 
-**Offen / bekannte Grenzen:** Kein Diktat über das Kürzel und keins gegen ein
-lokales Modell; Bastis Abnahme mit echter Tastatur und Stimme steht aus (Hook,
-Startmenü nach Strg+Win, rechte Strg, automatisches Einfügen mit Strg+V,
-Anzeige über Spielen, Strg+V mit Scancode in Spielen, Skalierung); in Programme mit
+**Offen / bekannte Grenzen:** Kein Diktat gegen ein lokales Modell; Spielchat im
+Vollbild (Anzeige über Spielen, Strg+V mit Scancode) und Skalierung ungeprüft; in Programme mit
 Adminrechten lässt Windows nicht einfügen, und die Anzeige erkennt das nicht
 (Text bleibt in der Zwischenablage); kein Prompt (Vokabular); keine Maus-Seitentaste; keine
 reproduzierbare Paketierung, keine Signatur, kein Installer; Update- und
 Deinstallationsweg; Pflichtprogramme nicht festgelegt.
 
-**Letzter Nachweis:** 16. Oktober 2026 (xmg, ohne Kürzel).
+**Letzter Nachweis:** 16. Oktober 2026 (xmg, Bastis Diktat in Notepad).
 
 ## iOS
 

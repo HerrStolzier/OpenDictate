@@ -128,8 +128,10 @@ Windows-Beta.
   54 Prüfungen und alle 15 Schutzprüfungen bestanden; ein Diktat über das
   Menü im Infobereich lief mit Mikrofon, Anzeige und Zwischenablage durch, das
   Startmenü blieb zu, „Mit Windows starten“ schaltet an und aus. Kürzel und
-  Strg+V brauchen echte Tasten, weil die App künstliche Tastendrücke ignoriert;
-  sie prüft Basti in der Abnahme (Windows-Plan, Schritt 7).
+  Strg+V brauchen echte Tasten, weil die App künstliche Tastendrücke ignoriert:
+  Basti diktierte mit Strg+Win und mit der rechten Strg-Taste in Notepad, der
+  Text wurde automatisch eingefügt. Offen ist der Spielchat im Vollbild
+  (Windows-Plan, Schritt 7).
 
 ## Heutige Offline-Prüfung, 28. September 2026
 
