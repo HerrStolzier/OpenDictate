@@ -16,6 +16,7 @@ mod shortcut;
 mod state;
 mod transcribe;
 mod translate;
+mod usage;
 mod waybar;
 mod window;
 
@@ -73,6 +74,7 @@ Befehle:
   settings server URL    Eigener Server: Server-Adresse inkl. /v1; `off` = OpenAI
   shortcut status        Kürzel und freie Tasten anzeigen
   shortcut set KÜRZEL    super-d, f9 oder right-alt in die Hyprland-Konfiguration
+  usage                  lokale Verbrauchsschätzung; `usage reset` setzt sie zurück
   version                Version anzeigen
 ";
 const USAGE_EN: &str = "\
@@ -111,6 +113,7 @@ Commands:
   settings server URL    custom server: server address incl. /v1; `off` = OpenAI
   shortcut status        show the shortcut and which keys are free
   shortcut set KEY       write super-d, f9 or right-alt into the Hyprland config
+  usage                  local usage estimate; `usage reset` clears it
   version                show the version
 ";
 
@@ -149,6 +152,9 @@ fn run(args: Vec<String>) -> Result<(), String> {
             settings.vocabulary.clear();
             settings.save(&path)
         }
+
+        ["usage"] => usage::show(false),
+        ["usage", "reset"] => usage::show(true),
         ["shortcut", "status"] => shortcut_status(),
         ["shortcut", "set", id] => shortcut_set(id),
         ["toggle"] => toggle(),
@@ -391,10 +397,18 @@ fn waybar_status() -> Result<(), String> {
     let settings = paths::settings_path()
         .map_err(path_error)
         .and_then(|path| settings::Settings::load(&path));
-    match settings {
-        Ok(settings) => println!("{}", waybar::render(state, &settings)),
-        Err(_) => println!("{}", waybar::render_settings_error(state)),
-    }
+    let rendered = match settings {
+        Ok(settings) => waybar::render(state, &settings),
+        Err(_) => waybar::render_settings_error(state),
+    };
+    let mut value: serde_json::Value = serde_json::from_str(&rendered)
+        .map_err(|_| tr!("Leistenanzeige nicht verfügbar.", "Bar unavailable."))?;
+    let hint = usage::tooltip().unwrap_or_else(|_| tr!("Verbrauch unbekannt", "Usage unknown"));
+    value["tooltip"] = serde_json::Value::String(format!(
+        "{}\n{hint}",
+        value["tooltip"].as_str().unwrap_or("")
+    ));
+    println!("{value}");
     Ok(())
 }
 
@@ -834,9 +848,9 @@ fn deliverable_text(
     server: &server::Server,
     api_key: Option<&str>,
     state_guard: &state::StateGuard,
-) -> Result<String, String> {
+) -> Result<(String, Option<usage::Translation>), String> {
     let Some(target) = settings.target_language.as_deref() else {
-        return Ok(transcript);
+        return Ok((transcript, None));
     };
     log_ops(&format!(
         "translation-started target={target}{}",
@@ -849,10 +863,17 @@ fn deliverable_text(
         api_key,
     )?;
     ensure_not_cancelled(state_guard)?;
-    if translation.is_empty() {
+    if translation.text.is_empty() {
         return Err(tr!("Leere Übersetzung.", "Empty translation."));
     }
-    Ok(translation)
+    Ok((
+        translation.text,
+        Some(usage::Translation {
+            model: settings.translation_model.clone(),
+            input_tokens: translation.input_tokens,
+            output_tokens: translation.output_tokens,
+        }),
+    ))
 }
 
 /// Pastes into the window captured at recording start when allowed and
@@ -890,6 +911,21 @@ fn auto_insert(
             )))
         }
     }
+}
+
+fn finish_usage(
+    state_guard: &state::StateGuard,
+    receipt: Option<usage::Receipt>,
+) -> Result<(), String> {
+    if let Err(error) = ensure_not_cancelled(state_guard) {
+        if let Some(receipt) = receipt {
+            if receipt.rollback().is_err() {
+                log_ops("usage-rollback-failed");
+            }
+        }
+        return Err(error);
+    }
+    Ok(())
 }
 
 fn delivered_status(settings: &settings::Settings, retry: bool) -> String {
@@ -1013,13 +1049,25 @@ fn process_new_recording(
                 "No text came back. Your recording is kept."
             ));
         }
-        let text = deliverable_text(
+        let (text, translation_usage) = deliverable_text(
             transcript,
             &settings,
             &server,
             api_key.as_deref(),
             state_guard,
         )?;
+        ensure_not_cancelled(state_guard)?;
+        let usage_receipt = fs::read(prepared.path()).map_err(|_| ()).and_then(|audio| {
+            usage::record(&audio, &server, &settings, translation_usage).map_err(|_| ())
+        });
+        let usage_receipt = match usage_receipt {
+            Ok(receipt) => Some(receipt),
+            Err(()) => {
+                log_ops("usage-write-failed");
+                None
+            }
+        };
+        finish_usage(state_guard, usage_receipt)?;
         state_guard
             .set(state::State::Delivering)
             .map_err(path_error)?;
@@ -1151,13 +1199,23 @@ fn retry(skipped: bool) -> Result<(), String> {
             "No text came back. Your recording is kept."
         ));
     }
-    let text = deliverable_text(
+    let (text, translation_usage) = deliverable_text(
         transcript,
         &settings,
         &server,
         api_key.as_deref(),
         &state_guard,
     )?;
+    ensure_not_cancelled(&state_guard)?;
+    let usage_receipt =
+        match usage::record(&authenticated_bytes, &server, &settings, translation_usage) {
+            Ok(receipt) => Some(receipt),
+            Err(_) => {
+                log_ops("usage-write-failed");
+                None
+            }
+        };
+    finish_usage(&state_guard, usage_receipt)?;
     state_guard
         .set(state::State::Delivering)
         .map_err(path_error)?;

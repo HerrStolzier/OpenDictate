@@ -66,7 +66,7 @@ Nachweise: [Live-Nachweise 5. bis 7. Oktober](docs/linux-live-2026-10-05-bis-07.
 2. Beta laufen lassen: Issues zeitnah beantworten, Rückmeldungen sammeln,
    danach entscheiden, was gebaut wird (Kandidaten: Echtzeit-Übersetzung,
    Feinjustierung der Zeitlimits, Stufe 2 mit Modell im Programm).
-3. Vokabular: Linux-CLI mit expliziter Liste umgesetzt (Issue #164, offline geprüft; Live-Abnahme offen). Verbrauchsanzeige bauen (am 16. Oktober 2026 für alle
+3. Vokabular und Verbrauchsanzeige sind im Linux-CLI-Code umgesetzt (Issues #164/#165; Offline-Prüfung und Live-Abnahme getrennt). Am 16. Oktober 2026 für alle
    Plattformen beauftragt, siehe [Plattformübergreifend](#plattformübergreifend)).
 
 **Bekannte Grenzen, den Beta-Nutzern überlassen:** Einfügen in Chromium-,
