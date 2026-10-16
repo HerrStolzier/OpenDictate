@@ -438,3 +438,7 @@ a new processing attempt clears it. HTTP error replies such as 404 do not
 produce this network-fallback offer. Short/silent skipped audio still requires
 the separate explicit `retry --skipped` command and is never uploaded by this
 one-off command.
+
+Explicit OpenAI retry also covers a connection failure during translation; it
+uses the default OpenAI translation model for this one request. Saved settings
+remain unchanged.

@@ -19,36 +19,7 @@ const CUSTOM_RESPONSE_BUDGET: Duration = Duration::from_secs(120);
 /// Upload allowance for a slow uplink of about 2 Mbit/s.
 const SLOW_UPLINK_BYTES_PER_SECOND: u64 = 250_000;
 
-#[derive(Debug)]
-pub struct Failure {
-    message: String,
-    pub custom_network: bool,
-}
-
-impl From<String> for Failure {
-    fn from(message: String) -> Self {
-        Self {
-            message,
-            custom_network: false,
-        }
-    }
-}
-impl From<Failure> for String {
-    fn from(error: Failure) -> Self {
-        error.message
-    }
-}
-impl std::ops::Deref for Failure {
-    type Target = str;
-    fn deref(&self) -> &str {
-        &self.message
-    }
-}
-impl std::fmt::Display for Failure {
-    fn fmt(&self, output: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.message.fmt(output)
-    }
-}
+use crate::server::{custom_network_failure, Failure};
 
 pub struct Transcriber {
     server: Server,
@@ -250,12 +221,6 @@ fn decode_response(
     }
     let parsed: Response = serde_json::from_slice(&data).map_err(|_| invalid_response())?;
     Ok(crate::policy::sanitize_transcript(&parsed.text))
-}
-
-fn custom_network_failure(server: &Server) -> Failure {
-    Failure { custom_network: true, message: crate::tr!(
-        "Dein Server ({}) ist nicht erreichbar oder zu langsam. Prüf, ob er läuft. Mit `opendictate retry --openai` kannst du die gesicherte Aufnahme einmal an OpenAI senden.",
-        "Your server ({}) is unreachable or too slow. Check that it is running. `opendictate retry --openai` sends the kept recording to OpenAI once.", server.log_host()) }
 }
 
 fn invalid_response() -> String {

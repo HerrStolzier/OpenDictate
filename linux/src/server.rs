@@ -7,6 +7,43 @@ pub const OPENAI_BASE: &str = "https://api.openai.com/v1";
 pub const BASE_URL_ENV: &str = "OPENAI_BASE_URL";
 const MAX_ADDRESS_CHARS: usize = 512;
 
+#[derive(Debug)]
+pub struct Failure {
+    message: String,
+    pub custom_network: bool,
+}
+
+impl From<String> for Failure {
+    fn from(message: String) -> Self {
+        Self {
+            message,
+            custom_network: false,
+        }
+    }
+}
+impl From<Failure> for String {
+    fn from(error: Failure) -> Self {
+        error.message
+    }
+}
+impl std::ops::Deref for Failure {
+    type Target = str;
+    fn deref(&self) -> &str {
+        &self.message
+    }
+}
+impl std::fmt::Display for Failure {
+    fn fmt(&self, output: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.message.fmt(output)
+    }
+}
+
+pub fn custom_network_failure(server: &Server) -> Failure {
+    Failure { custom_network: true, message: crate::tr!(
+        "Dein Server ({}) ist nicht erreichbar oder zu langsam. Prüf, ob er läuft. Mit `opendictate retry --openai` kannst du die gesicherte Aufnahme einmal an OpenAI senden.",
+        "Your server ({}) is unreachable or too slow. Check that it is running. `opendictate retry --openai` sends the kept recording to OpenAI once.", server.log_host()) }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Server {
     base: String,

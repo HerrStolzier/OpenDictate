@@ -780,12 +780,9 @@ fn deliverable_text(
         "translation-started target={target}{}",
         server_log(server)
     ));
-    let translation = translate::Translator::new(server).translate(
-        &transcript,
-        target,
-        &settings.translation_model,
-        api_key,
-    )?;
+    let translation = translate::Translator::new(server)
+        .translate(&transcript, target, &settings.translation_model, api_key)
+        .inspect_err(mark_network_failure)?;
     ensure_not_cancelled(state_guard)?;
     if translation.is_empty() {
         return Err(tr!("Leere Übersetzung.", "Empty translation."));
@@ -1032,7 +1029,7 @@ fn clear_network_hint() {
     }
 }
 
-fn mark_network_failure(error: &transcribe::Failure) {
+fn mark_network_failure(error: &server::Failure) {
     if !error.custom_network {
         return;
     }
@@ -1055,9 +1052,8 @@ fn openai_retry_settings(saved: &settings::Settings) -> settings::Settings {
     if settings::validate_model(&request.model).is_err() {
         request.model = settings::DEFAULT_MODEL.to_string();
     }
-    if !request.translation_model.starts_with("gpt-") {
-        request.translation_model = settings::DEFAULT_TRANSLATION_MODEL.to_string();
-    }
+    // A custom model name, including a gpt-* name, does not prove OpenAI support.
+    request.translation_model = settings::DEFAULT_TRANSLATION_MODEL.to_string();
     request
 }
 
@@ -1337,12 +1333,17 @@ mod tests {
     fn one_off_openai_settings_do_not_change_the_saved_service() {
         let saved = crate::settings::Settings {
             model: "large-v3".to_string(),
+            translation_model: "gpt-local".to_string(),
             server: Some("http://127.0.0.1:8080/v1".to_string()),
             ..crate::settings::Settings::default()
         };
         let before = serde_json::to_vec(&saved).unwrap();
         let request = super::openai_retry_settings(&saved);
         assert_eq!(request.model, crate::settings::DEFAULT_MODEL);
+        assert_eq!(
+            request.translation_model,
+            crate::settings::DEFAULT_TRANSLATION_MODEL
+        );
         assert_eq!(serde_json::to_vec(&saved).unwrap(), before);
         assert!(crate::server::Server::openai().sends_api_key());
     }

@@ -453,3 +453,7 @@ Abbruch bleibt die Aufnahme nach den bisherigen Regeln erhalten.
 ein neuer Verarbeitungsversuch entfernt den Hinweis. HTTP-Fehler wie 404 bieten
 diesen Netzwerk-Rückweg nicht an. Zu kurze/stille skipped-Aufnahmen brauchen
 weiter `retry --skipped` und werden durch diesen Einmal-Befehl nie hochgeladen.
+
+Die ausdrückliche OpenAI-Wiederholung gilt auch bei einem Verbindungsfehler
+während der Übersetzung. Sie nutzt einmal das Standard-Übersetzungsmodell
+von OpenAI. Deine gespeicherten Einstellungen bleiben erhalten.
