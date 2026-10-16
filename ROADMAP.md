@@ -179,10 +179,11 @@ Paketierung, keine Signatur. Details: [Windows-Plan](docs/windows-plan.md#weg-zu
    Adminrechte. Ein CI-Job dafür braucht Bastis Wort. Signatur: Empfehlung
    Microsoft Store mit MSIX (kostenlos, Microsoft signiert); Konto und Wahl
    liegen bei Basti. Ohne Signatur warnt Windows jeden Nutzer beim Start.
-4. Ein echtes Diktat auf einem Windows-PC mit Bastis Go: Installation, Mikrofon,
-   Upload, Einfügen in den Editor und in den Spielchat im Vollbild, beide
-   Kürzel. Einmal, als Installationsprüfung, auf Bastis Windows-PC (am
-   11. Oktober bestätigt) mit angeschlossenem Mikrofon.
+4. Ein echtes Diktat auf einem Windows-PC: Installation, Mikrofon, Upload,
+   Einfügen in den Editor und in den Spielchat im Vollbild, beide Kürzel.
+   Einmal, als Installationsprüfung, auf Bastis Windows-PC xmg mit
+   angeschlossenem Mikrofon; seit 16. Oktober testet Claude dort ohne Go und
+   holt Basti nur für Schritte, die Hände brauchen (AGENTS.md).
 5. Windows-Beta nach der iOS-Beta: Pre-Release oder Store-Testgruppe,
    Issue-Vorlage.
 

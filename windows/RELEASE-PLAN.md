@@ -87,10 +87,11 @@ Installation, Beschaffung eines Zertifikats oder echte Provider-/Mikrofonprobe.
    öffentliche Downloads.
 8. **Sichtbare Abnahme durchführen.** Installierten, signierten Kandidaten mit
    Quellcommit und Prüfsummen in einem normalen Benutzerkonto testen. Echte
-   Mikrofon- und Providerläufe brauchen eine separate konkrete Freigabe für
-   Audioübertragung, Kosten und Testumfang. Bis dahin bleiben die Offline-
-   Checks (siehe [README](README.md#beta-app-11-oktober-2026)) der aktuelle
-   technische Nachweis, keine Live-Diktatabnahme.
+   Mikrofon- und Providerläufe auf Bastis PC xmg (wenige Anfragen je Lauf)
+   brauchen seit dem 16. Oktober keine eigene Freigabe mehr (AGENTS.md). Bis
+   zu einem bestandenen Lauf bleiben die Offline-Checks (siehe
+   [README](README.md#beta-app-11-oktober-2026)) der aktuelle technische
+   Nachweis, keine Live-Diktatabnahme.
 9. **Veröffentlichung freigeben.** Erst nach allen Gates Produkttexte,
    Datenschutzhinweise, Supportumfang, Installations-/Deinstallationsanleitung,
    Downloadhashes und Websiteversion abstimmen. Öffentliche Veröffentlichung
