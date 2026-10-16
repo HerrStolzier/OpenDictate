@@ -61,7 +61,8 @@ greift, sobald das Mikrofon antwortet; geprüft ist das nur mit einer nachgestel
 Zustandsdatei, nicht mit einem langsamen Mikrofon. Einfügen in Chromium-, Electron- und
 Discord-Fenstern; gemischtes Deutsch/Englisch; Abbruch genau während der
 Übersetzung; andere Compositoren als Hyprland; andere Distributionen;
-Vokabular. Eigener Server und `opendictate setup` mit Kürzel-Abfrage
+Vokabular ist im CLI-Code umgesetzt (#164), seine Erkennungswirkung ist noch
+nicht live abgenommen. Eigener Server und `opendictate setup` mit Kürzel-Abfrage
 (11. Oktober) sind nur offline geprüft: Tests mit lokalem HTTP-Stub (kein
 Schlüssel an Loopback, Schlüssel an Fremdserver) und ein Durchlauf im
 Test-Terminal mit Attrappen für `hyprctl` und `secret-tool`. Ebenso nur mit

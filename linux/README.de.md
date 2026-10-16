@@ -268,7 +268,8 @@ meisten:
 - Abbruch oder Netzausfall genau während der Übersetzung.
 - Die Zeitlimits (Netzfehler nach etwa 20 Sekunden) sind nur offline geprüft.
 - Nur Hyprland, nur Arch-basierte Systeme. Kein Settings-Fenster, kein
-  Halten-zum-Sprechen, kein eigenes Vokabular. Geprüft ist nur OpenAI; eigene
+  Halten-zum-Sprechen. Eigenes Vokabular ist im CLI-Code umgesetzt; die
+  Erkennung damit ist noch nicht live abgenommen. Geprüft ist nur OpenAI; eigene
   Server sind ungetestet.
 - Höchstens 90 Sekunden pro Diktat.
 
@@ -436,3 +437,15 @@ sind echte Verzeichnisse mit Modus `0700`; Audiodateien und Nachweise `0600`.
 - Das Arch-Paket ist auf einem Rechner (omarchy) installiert und mit einem
   Diktat geprüft ([Nachweis](../docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026));
   nicht im AUR, kein zweites Distro-Ziel.
+
+## Vokabular
+
+Eigene Wörter und Namen speicherst du mit
+`opendictate vocabulary add "Pull Request"`. Mit `vocabulary list`,
+`vocabulary remove "Pull Request"` und `vocabulary clear` verwaltest du sie.
+Die Liste liegt in deiner privaten Einstellungsdatei und geht als `prompt` an
+deinen gewählten Transkriptionsdienst, auch an einen eigenen Server.
+Grenzen: 64 Einträge und 800 UTF-8-Bytes einschließlich Trennzeichen; keine
+leeren Einträge, Steuerzeichen oder Leerzeichen am Rand. Die Liste lernt nicht
+von selbst. Einstellungen und Berichte zeigen nur die Anzahl; im Protokoll
+stehen die Wörter nie.

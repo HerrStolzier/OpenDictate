@@ -261,7 +261,8 @@ most:
 - The timeouts (network error after about 20 seconds) are only tested
   offline.
 - Hyprland only, Arch-based systems only. No settings window, no
-  push-to-talk, no custom vocabulary. Only OpenAI is verified; custom
+  push-to-talk. Explicit vocabulary is implemented in the CLI; live recognition
+  with those hints is not yet accepted. Only OpenAI is verified; custom
   servers are untested.
 - At most 90 seconds per dictation.
 
@@ -422,3 +423,13 @@ files and proofs `0600`.
 - The Arch package is installed on one machine (omarchy) and checked with a
   dictation ([evidence](../docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026));
   not in the AUR, no second distribution.
+
+## Vocabulary
+
+Add your own words and names with `opendictate vocabulary add "Pull Request"`.
+Use `vocabulary list`, `vocabulary remove "Pull Request"` and `vocabulary clear`
+to manage them. The list stays in your private settings file and is sent as
+`prompt` to your chosen transcription service, including a custom server.
+Limits: 64 entries and 800 UTF-8 bytes including separators; no empty entries,
+controls or surrounding whitespace. Nothing learns automatically. Settings and
+reports show only the number of entries; operational logs never include them.
