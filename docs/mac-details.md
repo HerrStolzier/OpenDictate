@@ -124,11 +124,13 @@ Changes apply to the next dictation, no restart needed.
   you chose under **Sprache**, or with Auto from the language it recognises in
   the text. Apple needs the languages on this Mac once; right after the choice
   the app tells you if they are missing and opens System Settings → General →
-  Language & Region → Translation Languages. Without them, or for a pair Apple
-  does not translate, a dictation does not start and says what is missing, so
-  nothing is transcribed in vain. If translating fails later, the dictation
-  keeps its recording; it never falls back to the service, and "Nochmal
-  senden" goes to your Dienst as usual. Before macOS 26 the option is shown as
+  Language & Region → Translation Languages. With a dictation language chosen,
+  a dictation or resend without them, or for a pair Apple does not translate,
+  does not start and says what is missing, so nothing is transcribed in vain.
+  With Auto the pair is known only from the text, so it is checked after
+  transcribing. If translating fails then, the dictation keeps its recording;
+  it never falls back to the service, and "Nochmal senden" goes to your Dienst
+  as usual. Before macOS 26 the option is shown as
   "ab macOS 26" and cannot be chosen.
 - **Anzeige** — how the indicator appears on screens without a notch:
   floating below the menu bar (default), inside the menu bar, or off.

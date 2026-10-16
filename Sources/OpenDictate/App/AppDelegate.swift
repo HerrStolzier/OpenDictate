@@ -523,11 +523,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let translationProblem = await onDeviceTranslationProblem(options)
         guard lifecycle.isCurrent(operation), !Task.isCancelled, flow.state.canStart else { return }
         if let translationProblem {
-            AppLog.write("Dictation did not start: translation on this Mac is not ready")
-            let message = translationProblem.errorDescription ?? ""
-            updateStatus(message)
-            dictationPanel.updateFailure(message)
-            indicator.showProblem(message)
+            report(translationProblem, log: "Dictation did not start: translation on this Mac is not ready")
             return
         }
         let permitted = await AudioRecorder.requestPermission()
@@ -593,6 +589,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let loadedOptions = await loadOptions(service: service)
         guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
         guard let options = usableOptions(loadedOptions, for: operation) else { return }
+        let translationProblem = await onDeviceTranslationProblem(options)
+        guard lifecycle.isCurrent(operation), !Task.isCancelled, flow.state.canRetry else { return }
+        if let translationProblem {
+            report(translationProblem, log: "Saved recording not resent: translation on this Mac is not ready")
+            return
+        }
         let target = currentFrontmostApplication()
         let loaded = await recordingLibrary.load(filename: filename)
         guard lifecycle.isCurrent(operation), !Task.isCancelled else { return }
@@ -629,15 +631,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// waits for one, and an invalid address is reported on its own.
     private static var needsAPIKey: Bool { Config.settings.endpoint?.isLoopback == false }
 
-    /// Missing languages for translating on this Mac stop before recording,
-    /// so no dictation is transcribed and paid for only to fail afterwards.
+    /// Missing languages for translating on this Mac stop before recording or
+    /// resending, so no audio is transcribed and paid for only to fail
+    /// afterwards. With automatic language the source is known only from the
+    /// transcript, so the translation itself checks the pair then.
     private func onDeviceTranslationProblem(_ options: TranscriptionOptions) async -> OpenDictateError? {
         guard options.translationEngine == .device, let target = options.translationTarget else { return nil }
-        switch await OnDeviceTranslator.readiness(into: target, dictationLanguage: options.language) {
+        guard OnDeviceTranslator.isSupported else { return .translationUnavailable }
+        guard let language = options.language else { return nil }
+        switch await OnDeviceTranslator.readiness(into: target, dictationLanguage: language) {
         case .ready: return nil
         case .needsLanguages: return .translationLanguagesMissing
         case .unavailable: return .translationUnavailable
         }
+    }
+
+    private func report(_ problem: OpenDictateError, log: String) {
+        AppLog.write(log)
+        let message = problem.errorDescription ?? ""
+        updateStatus(message)
+        dictationPanel.updateFailure(message)
+        indicator.showProblem(message)
     }
 
     /// An invalid configured address stops before the key or microphone is

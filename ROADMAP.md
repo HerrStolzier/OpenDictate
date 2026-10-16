@@ -138,9 +138,9 @@ die Quelle der Prüfkriterien; ihr Umfang ist am 8. Oktober wie unten verkleiner
      Übersetzung auf dem Gerät (offline und kostenlos). Ohne Fenster geht das
      erst ab macOS 26; davor bleibt es beim Dienst, die Wahl zeigt
      „ab macOS 26“. Fehlen die Sprachen, sagt die App das gleich bei der Wahl
-     und öffnet die Systemeinstellungen; ohne Sprachen startet kein Diktat,
-     ein späterer Fehler behält die Aufnahme. Live-Test mit dem nächsten
-     Kandidaten.
+     und öffnet die Systemeinstellungen; bei fester Diktatsprache startet ohne
+     Sprachen kein Diktat, ein späterer Fehler behält die Aufnahme.
+     Live-Test mit dem nächsten Kandidaten.
 
 **Bekannte Grenzen, den Beta-Nutzern überlassen:** Feldtypen und Programme
 jenseits der [Kompatibilitätsmatrix](docs/compatibility-matrix.md); gehörte
