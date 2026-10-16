@@ -3,3 +3,8 @@
 # The Arch package installs the program as /usr/bin/opendictate.
 
 bind = SUPER, D, exec, opendictate toggle
+
+# Alternative: hold to record (choose this pair instead of the toggle bind).
+# Release D before the modifier; classic bindr follows the same chord.
+# bind = SUPER, D, exec, opendictate start
+# bindr = SUPER, D, exec, opendictate stop

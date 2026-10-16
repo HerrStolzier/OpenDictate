@@ -1,0 +1,9 @@
+{
+  "product": "Product",
+  "logs": [
+    "transcript private-words",
+    "transcription-failed host=private.invalid key=sk-private",
+    "clipboard private-clipboard"
+  ],
+  "address": "https://support.opendictate.app/kontakt?lang=de#app=Product+0.1.0&system=Windows+10.0.26100+%28x64%29&fehler=Transkription+fehlgeschlagen&diagnose=custom_server%3Dyes%0Aloopback%3Dyes%0Aapi_key%3Dno%0Amodel%3Dgpt-transcribe%0Atranslation%3Dno%0Atarget%3Doff%0Ashortcut%3Dtap%0Aauto_insert%3Dyes%0Avocabulary_entries%3D0%0Atranscription-failed"
+}

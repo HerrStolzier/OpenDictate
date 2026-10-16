@@ -5,5 +5,8 @@
     <ProjectReference Include="../OpenDictate.Provider/OpenDictate.Provider.csproj" />
     <!-- The provider contract shared with macOS and Linux. -->
     <None Include="../../fixtures/provider/*.json" Link="fixtures/provider/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../fixtures/provider/*.html" Link="fixtures/provider/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../fixtures/text/*.json" Link="fixtures/text/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../fixtures/report/*.json" Link="fixtures/report/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

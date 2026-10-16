@@ -215,7 +215,8 @@ internal static class ShortcutChecks
                 string json = File.ReadAllText(path);
                 Check(json.Contains("\"shortcut\": \"right-ctrl\"") && json.Contains("\"auto_insert\": false") && json.Contains("\"shortcut_mode\": \"tap\"") &&
                     json.Contains("\"shortcut_confirmed\": true") && !json.Contains("shortcut_key") && !json.Contains("trigger_mode"));
-                Check(SettingsFile.Load(path) == saved && SettingsFile.Load(path).TriggerMode == TriggerMode.Tap);
+                var loaded = SettingsFile.Load(path);
+                Check(loaded with { Vocabulary = saved.Vocabulary } == saved && loaded.Vocabulary.SequenceEqual(saved.Vocabulary) && loaded.TriggerMode == TriggerMode.Tap);
                 Throws<UserFacingException>(() => SettingsFile.Save(path, saved with { Shortcut = "f9" }));
                 Throws<UserFacingException>(() => SettingsFile.Save(path, saved with { ShortcutMode = "toggle" }));
                 File.WriteAllText(path, "{\"shortcut\": \"f9\"}");

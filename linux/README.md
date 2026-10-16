@@ -261,7 +261,8 @@ most:
 - The timeouts (network error after about 20 seconds) are only tested
   offline.
 - Hyprland only, Arch-based systems only. No settings window, no
-  push-to-talk, no custom vocabulary. Only OpenAI is verified; custom
+  push-to-talk. Explicit vocabulary is implemented in the CLI; live recognition
+  with those hints is not yet accepted. Only OpenAI is verified; custom
   servers are untested.
 - At most 90 seconds per dictation.
 
@@ -422,3 +423,97 @@ files and proofs `0600`.
 - The Arch package is installed on one machine (omarchy) and checked with a
   dictation ([evidence](../docs/linux-live-2026-10-05-bis-07.md#live-nachweis-arch-paket--8-oktober-2026));
   not in the AUR, no second distribution.
+
+## Vocabulary
+
+Add your own words and names with `opendictate vocabulary add "Pull Request"`.
+Use `vocabulary list`, `vocabulary remove "Pull Request"` and `vocabulary clear`
+to manage them. The list stays in your private settings file and is sent as
+`prompt` to your chosen transcription service, including a custom server.
+Limits: 64 entries and 800 UTF-8 bytes including separators; no empty entries,
+controls or surrounding whitespace. Nothing learns automatically. Settings and
+reports show only the number of entries; operational logs never include them.
+
+## Switch services without losing the server
+
+`opendictate settings service openai` keeps the custom address and its models;
+`settings service custom` restores them and requires a stored address.
+`settings server off` is an alias for the OpenAI choice. Setting the first
+custom address selects it; later address edits keep the existing choice.
+Each service retains its own transcription and translation models; `settings
+model` and `settings translation-model` edit the active service. Existing
+settings with a server migrate their model names to the custom side.
+
+The existing environment precedence remains: a selected stored custom address
+wins over `OPENAI_BASE_URL`. Without an active stored address, that variable
+still redirects requests, including after `service openai` or `server off`.
+Unset it to use OpenAI itself. `settings show` and the bar tooltip show the
+actual service; the tooltip includes only a custom host, never its full URL.
+
+## Tap or hold the shortcut
+
+`opendictate setup` asks how to record. Tap remains the default: the existing
+`toggle` binding still works. Hold uses `start` on press and `stop` on release,
+with the same recording/request lock. Repeated `start` during recording and
+`stop` without recording do nothing. A quick release waits for a microphone
+start already in progress, rather than losing the stop command. Very short or
+silent audio follows the existing retained/skipped recovery path; it is not
+silently deleted. Unlike Windows' 300 ms gesture threshold, Linux starts on
+press because Hyprland supplies separate commands rather than raw key events.
+
+The mode is saved only after the binding is installed/loaded; configuration
+restoration follows a failed write, load or settings save. `settings show`
+prints `shortcut-mode`. Omarchy Lua uses the documented `o.bind_hold` helper;
+classic config writes a press/release pair. With classic/plain Lua chord
+bindings, release the main key before its modifier. Omarchy's helper handles
+modifier changes. A live Hyprland keyboard test is still outstanding.
+
+## Report a problem
+
+`opendictate report` previews the whole diagnostic report in your terminal.
+Only after you answer `y` does it open the support form in your browser.
+The CLI sends nothing to support. You review and submit the form yourself.
+Use `opendictate report --print` for just the address. Without a graphical
+session or working `xdg-open`, confirmation prints the address instead.
+Only known error/warning categories survive from the log, at most 30; raw
+messages, free-form model names and server addresses are discarded.
+
+## Local usage estimate
+
+`opendictate usage` shows dictations, audio minutes and estimated USD cost for
+today, the last seven local calendar days and the current local month. The
+bar tooltip shows today's dictations and estimated US cents. This is a local
+counter, not your provider account balance. It counts completed, non-empty
+transcription/translation work, even when subsequent clipboard delivery fails.
+Cancelled/failed/empty processing is excluded, so a provider may still charge
+for work absent from this counter. Retries that succeed count as new requests.
+
+The private `usage.json` under the state directory holds only timestamp,
+service kind, model, audio seconds and optional translation token counts.
+Entries older than 13 calendar months are pruned at access/write; `usage reset`
+clears the counter. Custom servers count minutes with zero estimated provider
+cost. Missing token usage and unknown models mean unknown cost. Prices come
+from the dated shared `fixtures/pricing/prices.json`; actual invoices, taxes,
+regional surcharges and cached-token discounts can differ. A ledger write
+failure does not destroy an otherwise delivered dictation; it is logged as
+`usage-write-failed` and is not a billing claim.
+
+## Send one kept recording to OpenAI
+
+A custom-server connection failure/timeout offers `opendictate retry --openai`.
+It explicitly sends only the newest authenticated, unexpired, non-skipped
+recording once to OpenAI itself, ignoring OPENAI_BASE_URL for this one request.
+It requires your stored OpenAI key. There is no automatic switch: normal retry
+and subsequent dictations keep using your configured service and model pairs.
+The OpenAI model is used when known; legacy custom-only settings use the
+default OpenAI model. No saved setting is changed. Failed/empty/cancelled
+requests retain the recording under the existing recovery rules.
+`status` also shows a recent custom network-failure hint (at most 24 hours);
+a new processing attempt clears it. HTTP error replies such as 404 do not
+produce this network-fallback offer. Short/silent skipped audio still requires
+the separate explicit `retry --skipped` command and is never uploaded by this
+one-off command.
+
+Explicit OpenAI retry also covers a connection failure during translation; it
+uses the default OpenAI translation model for this one request. Saved settings
+remain unchanged.

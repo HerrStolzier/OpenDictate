@@ -154,3 +154,55 @@ Keep results for native AX, Safari, Brave and Obsidian event policies scoped to
 the exact tested combinations. Heard VoiceOver and macOS 14 runtime checks remain
 separate outstanding checks. Current limitations and the next action belong in
 [remaining acceptance](remaining-acceptance.md), with dated evidence linked there.
+
+## Erkennungen auf dem iPhone vergleichen
+
+Der feste, selbst geschriebene Satzkatalog liegt unter
+[`scripts/fixtures/german-dictation-sentences.json`](../scripts/fixtures/german-dictation-sentences.json)
+(CC0, 36 Sätze in sechs Gruppen). Jede Erkennung bekommt dieselben Sätze.
+Die Gruppe „Satzzeichen“ enthält die erwartete Schriftsprache; die sprechende
+Person spricht passende Pausen. Gesprochene Befehle wie „Komma“ sind kein
+vereinheitlichter Erkennungsvertrag und gehören bei Bedarf in einen eigenen Lauf.
+
+Eine JSON-Lines-Datei enthält einen Durchlauf, höchstens ein Ergebnis je
+Erkennung und Satz-ID:
+
+```json
+{"engine":"OpenAI","sentence_id":"zahlen-01","hypothesis":"Wir brauchen 3 Äpfel und 12 Eier.","duration_seconds":2.4,"background":true}
+```
+
+`duration_seconds` ist eine gemessene, endliche, nicht negative Dauer in
+Sekunden vom Aufnahmeende bis zum fertigen Text. `background` beschreibt,
+ob die App während der Verarbeitung im Hintergrund war. Gerät, App-Build,
+Modell und Messmethode gehören in die begleitende Nachweisnotiz. Wiederholte
+Durchläufe werden in getrennten Dateien ausgewertet; doppelte Paare werden
+abgelehnt. Leere Hypothesen sind gültig und zählen als ausgelassene Wörter.
+
+```bash
+python3 scripts/compare-engines.py /path/to/runs.jsonl --output /path/to/new-comparison.json
+```
+
+Das Skript druckt eine Markdown-Tabelle und schreibt auf Wunsch eine neue
+JSON-Datei. Vorhandene Dateien werden nicht überschrieben. Die Wortfehlerrate
+(WER) wird insgesamt und je Gruppe über die Zahl der Referenzwörter gewichtet.
+Wie bei `evaluate-transcripts.py` werden Unicode NFKC, Groß-/Kleinschreibung
+und Satzzeichen normalisiert; die Tabelle bewertet deshalb keine Zeichensetzung.
+Die zweite WER-Spalte setzt zusätzlich deutsche ganze Zahlwörter von null bis
+neunundneunzig mit Ziffern gleich, einschließlich „einundzwanzig“. Die Artikel
+„ein“ und „eine“, Dezimalzahlen, Datumsformate und höhere Zahlwörter bleiben
+unverändert. Führende Nullen in Ziffernfolgen werden entfernt.
+Zusammengesetzte Ziffernformate und Ziffern mit Punkt werden vor der
+Satzzeichenentfernung geschützt, auch am Textende. Das ist konservativ:
+„3.“ und „drei.“ gelten in dieser Zusatzspalte nicht als gleich. Die rohe WER
+bleibt daneben sichtbar und ignoriert Satzzeichen weiterhin.
+
+Median und P90 beziehen sich auf die gemeldeten Dauern; P90 nutzt den
+nächsten Rang (`ceil(0.9 * n)`). Fehlende Sätze werden angezeigt und nicht
+als erfolgreiche Erkennung oder als Fehler in die WER gerechnet. Nicht
+vertretene Gruppen zeigen keine Rate. Erkennungen ohne jeden Lauf kann die
+Datei nicht nachweisen. Vergleiche nur vollständig und unter denselben
+Bedingungen gemessene Durchläufe.
+
+Die Tests verwenden synthetische Texte. Skript und Katalog nehmen nichts
+auf und senden nichts. Es liegen damit noch keine Messwerte vom iPhone und
+kein Nachweis allgemeiner Sprachqualität vor.
