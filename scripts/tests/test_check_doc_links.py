@@ -36,6 +36,8 @@ Another lone ` backtick.
             ])
             (root / 'README.md').write_text('A lone ` backtick.\n  \n[bad](missing.md)\n  \nAnother lone ` backtick.\n\n```\n> [literal](missing.md)\n```\n')
             self.assertEqual(MODULE.check(root), ['README.md:3: missing.md → Ziel fehlt'])
+            (root / 'README.md').write_text('```\n- ```\n[example](missing.md)\n```\n')
+            self.assertEqual(MODULE.check(root), [])
 
     def test_multiline_links_list_content_and_quoted_fences(self):
         with tempfile.TemporaryDirectory() as directory:

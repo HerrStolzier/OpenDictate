@@ -34,14 +34,14 @@ def prose_lines(text: str):
         indentation = len(line) - len(line.lstrip(" "))
         if fence_character and (quote_depth != fence_container[0] or line.strip() and indentation < fence_container[1]):
             fence_character = ""
-        if line.strip():
+        if line.strip() and not root_code:
             while list_indents and indentation < list_indents[-1]:
                 list_indents.pop()
-        item = re.match(r"^( *)(?:[-+*]|\d+[.)])([ \t]+)", line)
+        item = re.match(r"^( *)(?:[-+*]|\d+[.)])([ \t]+)", line) if not root_code else None
         if item:
             list_indents.append(item.end())
             line = line[item.end():]
-        elif list_indents and indentation >= list_indents[-1]:
+        elif not root_code and list_indents and indentation >= list_indents[-1]:
             line = line[list_indents[-1]:]
         fence = re.match(r"^ {0,3}(`{3,}|~{3,})", line)
         if fence:
