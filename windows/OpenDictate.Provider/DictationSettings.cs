@@ -88,12 +88,13 @@ public sealed record DictationSettings
     }
 
     // As setServerAddress on macOS: without any address (stored or from
-    // OPENAI_BASE_URL) OpenAI is chosen, a first stored address chooses the
+    // OPENAI_BASE_URL) OpenAI is chosen, the very first address chooses the
     // custom server, and otherwise the choice stays.
     public DictationSettings WithServerAddress(string? address, string? environment)
     {
+        bool hadAddress = Server is not null || !string.IsNullOrWhiteSpace(environment);
         bool known = address is not null || !string.IsNullOrWhiteSpace(environment);
-        bool server = known && ((Server is null && address is not null) || UsesServer(environment));
+        bool server = known && ((!hadAddress && address is not null) || UsesServer(environment));
         return this with { Server = address, Service = server ? ServerService : OpenAiService };
     }
 
@@ -102,7 +103,7 @@ public sealed record DictationSettings
     // migrateServiceChoice does on macOS. A known OpenAI model stays. Unlike
     // macOS, an address from OPENAI_BASE_URL alone migrates too: if the
     // variable goes away later, dictation stops with a message instead of
-    // silently going to OpenAI.
+    // silently going to OpenAI. SettingsFile.Load stores the result.
     public DictationSettings Migrated(string? environment)
     {
         if (Service is not null || !UsesServer(environment)) return this;
@@ -195,13 +196,21 @@ public static class SettingsFile
         try { settings = JsonSerializer.Deserialize<DictationSettings>(File.ReadAllBytes(path), Options); }
         catch (Exception error) when (error is JsonException or IOException or UnauthorizedAccessException) { throw Damaged(path); }
         if (settings is null) throw Damaged(path);
-        try { settings.Validate(); settings = settings.Migrated(Environment.GetEnvironmentVariable(ProviderServer.BaseUrlVariable)); }
+        try { settings.Validate(); }
         catch (UserFacingException error)
         {
             throw new UserFacingException(UiText.T($"{error.Message} Korrigier den Wert in {path} oder lösch die Zeile.",
                 $"{error.Message} Fix the stored value in {path} or delete its line."));
         }
-        return settings;
+        // The migrated choice is stored, so it still holds once
+        // OPENAI_BASE_URL is gone.
+        var migrated = settings.Migrated(Environment.GetEnvironmentVariable(ProviderServer.BaseUrlVariable));
+        if (migrated != settings)
+        {
+            try { Save(path, migrated); }
+            catch (UserFacingException) { /* Used for this run; stored at the next load or change. */ }
+        }
+        return migrated;
     }
 
     private static UserFacingException Damaged(string path) => new(UiText.T(

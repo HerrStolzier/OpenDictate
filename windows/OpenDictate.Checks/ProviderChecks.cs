@@ -182,6 +182,8 @@ internal static class ProviderChecks
                 Check(new DictationSettings { Service = "server" }.WithServerAddress(null, "https://example.org/v1").Service == "server");
                 Check(new DictationSettings { Service = "openai" }.WithServerAddress(local, null) is { Service: "server", Server: local });
                 Check(new DictationSettings { Service = "openai", Server = local }.WithServerAddress("http://127.0.0.1:9000/v1", null).Service == "openai");
+                // An address from OPENAI_BASE_URL counts as known: replacing it keeps OpenAI chosen.
+                Check(new DictationSettings { Service = "openai" }.WithServerAddress(local, "https://example.org/v1").Service == "openai");
                 Check(new DictationSettings { Service = "server", Server = local }.WithServerAddress("http://127.0.0.1:9000/v1", null).Service == "server");
                 return Task.CompletedTask;
             }),
@@ -192,6 +194,7 @@ internal static class ProviderChecks
                 var moved = SettingsFile.Load(path);
                 Check(moved.Service == "server" && moved.ServerModel == "large-v3" && moved.ServerTranslationModel == "llama3.1:8b");
                 Check(moved.Model == "gpt-transcribe" && moved.TranslationModel == "gpt-5.4-mini");
+                Check(File.ReadAllText(path).Contains("\"service\": \"server\"") && SettingsFile.Load(path) == moved);
                 var known = new DictationSettings { Server = "http://127.0.0.1:8080/v1", Model = "whisper-1" }.Migrated(null);
                 Check(known.Model == "whisper-1" && known.ServerModel == "whisper-1");
                 Check(new DictationSettings { Model = "whisper-1" }.Migrated(null).Service is null);

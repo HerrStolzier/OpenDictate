@@ -62,7 +62,8 @@ dort noch unter ihrem alten Namen).
   erste Adresse wählt den eigenen Server; sonst bleibt die Wahl, wie sie ist. Die App wechselt nie von
   selbst: Fehlt beim eigenen Server die Adresse oder ist sie ungültig, bricht
   das Diktat mit einer Meldung ab. Ältere Einstellungen mit Server-Adresse
-  wählen den eigenen Server und geben ihm ihre Modellnamen; ein bekanntes
+  (auch einer nur aus `OPENAI_BASE_URL`) wählen den eigenen Server, geben ihm
+  ihre Modellnamen und schreiben diese Wahl in `settings.json`; ein bekanntes
   OpenAI-Modell bleibt für OpenAI. „Mit OpenAI senden“ für eine einzelne
   Aufnahme wie am Mac gibt es auf Windows noch nicht.
 - Meldungen erscheinen auf Deutsch oder Englisch nach der Anzeigesprache von
