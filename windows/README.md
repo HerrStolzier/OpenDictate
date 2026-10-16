@@ -47,12 +47,25 @@ dort noch unter ihrem alten Namen).
   Eine beschädigte Datei wird abgelehnt und nicht überschrieben. Die
   Server-Adresse ist die Basis-URL mit `/v1`. Ohne Eintrag gilt
   `OPENAI_BASE_URL`, wenn gesetzt (die Einstellungen nennen dann das Ziel), sonst
-  OpenAI; ein gespeicherter Eintrag gewinnt. `http://` geht nur für
+  OpenAI; ein gespeicherter Eintrag gewinnt. Ist unter „Dienst“ OpenAI
+  gewählt, gilt auch die Variable nicht. `http://` geht nur für
   diesen Computer, und dorthin geht kein Schlüssel. Jeder andere eigene
   Server, auch einer aus `OPENAI_BASE_URL`, bekommt den gespeicherten
   OpenAI-Schlüssel als Bearer-Token. Trag darum nur Server ein, denen du
   vertraust. Ein eigener Server nimmt freie Modellnamen, OpenAI nur die
   bekannten.
+- **Dienst** (seit 16. Oktober): Eine Auswahl „OpenAI“ oder „Eigener Server“
+  bestimmt, wohin Diktate gehen. Die Adresse bleibt gespeichert, wenn OpenAI
+  gewählt ist, und jede Seite hat eigene Modelle für Erkennung und
+  Übersetzung, damit ein Wechsel keinen falschen Modellnamen schickt. Ein
+  leeres Adressfeld wählt OpenAI, wenn auch `OPENAI_BASE_URL` leer ist; die
+  erste Adresse wählt den eigenen Server; sonst bleibt die Wahl, wie sie ist. Die App wechselt nie von
+  selbst: Fehlt beim eigenen Server die Adresse oder ist sie ungültig, bricht
+  das Diktat mit einer Meldung ab. Ältere Einstellungen mit Server-Adresse
+  (auch einer nur aus `OPENAI_BASE_URL`) wählen den eigenen Server, geben ihm
+  ihre Modellnamen und schreiben diese Wahl in `settings.json`; ein bekanntes
+  OpenAI-Modell bleibt für OpenAI. „Mit OpenAI senden“ für eine einzelne
+  Aufnahme wie am Mac gibt es auf Windows noch nicht.
 - Meldungen erscheinen auf Deutsch oder Englisch nach der Anzeigesprache von
   Windows und enthalten nie die Antwort des Servers; eine Netzwerkmeldung zum
   eigenen Server nennt nur dessen Host.
@@ -71,12 +84,15 @@ Windows-Beta.
   nur Zwischenablage), Letzten Text kopieren, Letzte Aufnahme nochmal senden
   (mit Rückfrage, weil es bei OpenAI erneut kostet; danach nur Zwischenablage),
   Einstellungen, Beenden. Ein zweiter Start öffnet die Einstellungen.
-- Kürzel: **Strg+Win halten** (Standard) oder **rechte Strg** halten oder
-  antippen (für Spiele, deren Tastaturen die Win-Taste sperren). Nach 0,3
-  Sekunden Halten beginnt die Aufnahme, Loslassen beendet sie. Kommt eine andere
-  Taste dazu, zählt das Kürzel nicht (Strg+Win+D oder rechte Strg+C bleiben
-  frei); kommt sie während einer Aufnahme dazu, wird abgebrochen und die
-  Aufnahme gesichert. Ein systemweiter Tastatur-Hook beobachtet nur und gibt
+- Kürzel: **Strg+Win** (Standard) oder **rechte Strg** (für Spiele, deren
+  Tastaturen die Win-Taste sperren). Seit 16. Oktober wählt „So nimmst du
+  auf“, wie es startet: **Gedrückt halten** (Standard): Nach 0,3 Sekunden
+  Halten beginnt die Aufnahme, Loslassen beendet sie; kommt während der
+  Aufnahme eine andere Taste dazu, wird abgebrochen und die Aufnahme
+  gesichert. **Antippen**: Ein kurzer Druck (unter 0,3 Sekunden) startet, der
+  nächste stoppt; längeres Drücken tut nichts. Kommt eine andere Taste dazu,
+  zählt der Druck in beiden Arten nicht (Strg+Win+D oder rechte Strg+C bleiben
+  frei). Bei Strg+Win müssen vor dem nächsten Druck beide Tasten los sein. Ein systemweiter Tastatur-Hook beobachtet nur und gibt
   jede Taste unverändert weiter. Damit beim Loslassen von Strg+Win kein
   Startmenü aufgeht, sendet die App einmal die unbelegte Taste `0xE8`.
 - Einfügen: Der Text kommt in die Zwischenablage, markiert als nicht für den
@@ -132,6 +148,15 @@ Windows-Beta.
   Basti diktierte mit Strg+Win und mit der rechten Strg-Taste in Notepad, der
   Text wurde automatisch eingefügt. Offen ist der Spielchat im Vollbild
   (Windows-Plan, Schritt 7).
+- Dienst und Art des Kürzels (16. Oktober): auf Linux offline geprüft, 58 von
+  58 Prüfungen (8 Kern-, 9 Ablauf-, 19 Provider- und 22 Kürzel-/App-Prüfungen),
+  Beta-App und Schutzprüfer bauen ohne Warnung. Auf xmg aus `37518c3`:
+  58 von 58 Prüfungen, 15 von 15 Schutzprüfungen, beide Auswahlen bedienbar.
+  Mit Adresse `http://127.0.0.1:9/v1` und „Eigener Server“ endete ein
+  Menü-Diktat mit „Dein Server (127.0.0.1) ist nicht erreichbar …“, ohne
+  Verbindung zu OpenAI, und die Aufnahme blieb gesichert; nach dem Wechsel auf
+  OpenAI blieb die Adresse gespeichert und das Diktat ging an OpenAI. Antippen
+  mit echten Tasten prüft Basti in der Abnahme.
 
 ## Heutige Offline-Prüfung, 28. September 2026
 
@@ -165,7 +190,7 @@ beliebiger Editoren, Browser oder Webseiten.
 Das vorhandene Skript:
 
 1. zeigt die SDK-Version an und führt `OpenDictate.Checks` aus (8 Kern-,
-   9 Ablauf-, 17 Provider- und 20 Kürzel-/App-Checks),
+   9 Ablauf-, 19 Provider- und 22 Kürzel-/App-Checks),
 2. baut `OpenDictate.App`,
 3. baut `OpenDictate.WindowsChecks`.
 

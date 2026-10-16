@@ -1,9 +1,13 @@
 namespace OpenDictate.Core;
 
 // The dictation shortcuts of the Windows app (settings value in brackets):
-// Ctrl+Win held [ctrl-win], or right Ctrl alone [right-ctrl] for games whose
-// keyboards lock the Windows key. Right Ctrl also toggles with a short tap.
+// Ctrl+Win [ctrl-win], or right Ctrl alone [right-ctrl] for games whose
+// keyboards lock the Windows key.
 public enum ShortcutKey { CtrlWin, RightCtrl }
+
+// How the shortcut records: held while speaking [hold], or tapped once to
+// start and once more to stop [tap].
+public enum TriggerMode { Hold, Tap }
 
 public static class VirtualKey
 {
@@ -17,9 +21,9 @@ public static class VirtualKey
 
 public enum ShortcutGestureKind
 {
-    // Short press and release on its own (only for keys that support taps).
+    // Short press and release on its own (tap mode only).
     Tap,
-    // Held past the threshold on its own.
+    // Held past the threshold on its own (hold mode only).
     HoldBegan,
     // Released after HoldBegan.
     HoldEnded,
@@ -36,7 +40,7 @@ public readonly record struct ShortcutStep(ShortcutGestureKind? Gesture = null, 
 // down, so combinations such as Ctrl+Win+D or Right Ctrl+C keep working. The
 // caller feeds timestamps and reports deadlines, so the recognizer stays free
 // of timers and hooks. Injected keys (including the app's own) never reach it.
-public sealed class ShortcutGesture(ShortcutKey key, Func<int, bool>? physicallyDown = null)
+public sealed class ShortcutGesture(ShortcutKey key, TriggerMode mode = TriggerMode.Hold, Func<int, bool>? physicallyDown = null)
 {
     public static readonly TimeSpan HoldThreshold = TimeSpan.FromMilliseconds(300);
     private enum Phase { Idle, Pressed, Holding, Spoiled }
@@ -46,7 +50,7 @@ public sealed class ShortcutGesture(ShortcutKey key, Func<int, bool>? physically
     private long pressedAt;
 
     public ShortcutKey Key { get; } = key;
-    public bool SupportsTap => Key == ShortcutKey.RightCtrl;
+    public TriggerMode Mode { get; } = mode;
 
     public ShortcutStep KeyDown(int virtualKey, long timestampMs)
     {
@@ -68,7 +72,8 @@ public sealed class ShortcutGesture(ShortcutKey key, Func<int, bool>? physically
         if (!ChordDown()) return default;
         phase = Phase.Pressed;
         pressedAt = timestampMs;
-        return new(HoldDeadline: ++pressId, MaskStartMenu: Key == ShortcutKey.CtrlWin);
+        ++pressId;
+        return new(HoldDeadline: Mode == TriggerMode.Hold ? pressId : null, MaskStartMenu: Key == ShortcutKey.CtrlWin);
     }
 
     public ShortcutStep KeyUp(int virtualKey, long timestampMs)
@@ -85,7 +90,8 @@ public sealed class ShortcutGesture(ShortcutKey key, Func<int, bool>? physically
         {
             case Phase.Pressed:
                 phase = down.Any(IsShortcutKey) ? Phase.Spoiled : Phase.Idle;
-                return SupportsTap && timestampMs - pressedAt < HoldThreshold.TotalMilliseconds
+                // A longer press in tap mode was probably not meant for us.
+                return Mode == TriggerMode.Tap && timestampMs - pressedAt < HoldThreshold.TotalMilliseconds
                     ? new(ShortcutGestureKind.Tap) : default;
             case Phase.Holding:
                 // Releasing either key of the chord ends the hold; the other key
@@ -102,7 +108,7 @@ public sealed class ShortcutGesture(ShortcutKey key, Func<int, bool>? physically
 
     public ShortcutStep HoldDeadlineReached(long id)
     {
-        if (phase != Phase.Pressed || id != pressId) return default;
+        if (Mode != TriggerMode.Hold || phase != Phase.Pressed || id != pressId) return default;
         phase = Phase.Holding;
         return new(ShortcutGestureKind.HoldBegan);
     }
@@ -130,6 +136,15 @@ public sealed class ShortcutGesture(ShortcutKey key, Func<int, bool>? physically
         "right-ctrl" => ShortcutKey.RightCtrl,
         _ => null,
     };
+
+    public static string ModeName(TriggerMode mode) => mode == TriggerMode.Hold ? "hold" : "tap";
+
+    public static TriggerMode? ParseMode(string? name) => name switch
+    {
+        "hold" => TriggerMode.Hold,
+        "tap" => TriggerMode.Tap,
+        _ => null,
+    };
 }
 
 public enum TriggerAction { None, Start, Stop, CancelKeepingAudio }
@@ -137,6 +152,8 @@ public enum TriggerAction { None, Start, Stop, CancelKeepingAudio }
 // What a gesture does to the dictation, as handleModifierGesture on macOS:
 // a tap toggles, a hold records while held, and a hold that another key
 // joined was not meant as dictation, so it cancels and keeps the audio.
+// In tap mode a key joining a press only spoils that press: a running
+// recording keeps going until the next tap.
 public sealed class TriggerControl
 {
     private enum Hold { None, Started, StopsRecording }

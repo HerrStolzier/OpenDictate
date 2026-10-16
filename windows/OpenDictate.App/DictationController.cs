@@ -38,10 +38,10 @@ internal sealed class DictationController : IDisposable
     private Guid? retryable;
     private bool closing;
 
-    internal DictationController(Dispatcher dispatcher, ShortcutKey key)
+    internal DictationController(Dispatcher dispatcher, ShortcutKey key, TriggerMode mode)
     {
         this.dispatcher = dispatcher;
-        gesture = NewGesture(key);
+        gesture = NewGesture(key, mode);
         indicator.RetryRequested += () => { if (retryable is { } id) Retry(id); };
         clock.Tick += (_, _) =>
         {
@@ -71,14 +71,14 @@ internal sealed class DictationController : IDisposable
         catch (Exception) { /* Kept; tried again at the next start. */ }
     }
 
-    private static ShortcutGesture NewGesture(ShortcutKey key) => new(key, Native.IsDown);
+    private static ShortcutGesture NewGesture(ShortcutKey key, TriggerMode mode) => new(key, mode, Native.IsDown);
 
     // Called only after the new choice was saved, so a failed save keeps the
     // working shortcut and the stored preference together.
-    internal void UseShortcut(ShortcutKey key)
+    internal void UseShortcut(ShortcutKey key, TriggerMode mode)
     {
-        if (gesture.Key == key) return;
-        gesture = NewGesture(key);
+        if (gesture.Key == key && gesture.Mode == mode) return;
+        gesture = NewGesture(key, mode);
         trigger.Reset();
     }
 
@@ -123,8 +123,7 @@ internal sealed class DictationController : IDisposable
         ProviderServer server;
         try
         {
-            settings = SettingsFile.Load(SettingsFile.DefaultPath);
-            server = settings.ResolveServer();
+            (settings, server) = SettingsFile.Load(SettingsFile.DefaultPath).ForDictation();
             DictationSettings.ValidateModelFor(settings.Model, server);
         }
         catch (UserFacingException error) { Oops(error.Message); return null; }
@@ -262,13 +261,15 @@ internal sealed class DictationController : IDisposable
     // and the text only reaches the clipboard, never an automatic paste.
     internal void Retry(Guid id)
     {
-        if (closing || IsBusy) return;
-        string where = SettingsTarget();
+        // Settings, server and key are checked first, so the question names
+        // where the recording really goes.
+        if (closing || IsBusy || Prepare() is not { } prepared) return;
+        string where = prepared.Server.IsCustom ? UiText.T($"den eigenen Server ({prepared.Server.Host})", $"your server ({prepared.Server.Host})") : "OpenAI";
         var answer = MessageBox.Show(
             UiText.T($"Diese Aufnahme nochmal an {where} senden? OpenAI rechnet jedes Senden ab.",
                 $"Send this recording to {where} again? OpenAI bills every send."),
             "OpenDictate", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
-        if (answer != MessageBoxResult.Yes || IsBusy || Prepare() is not { } prepared) return;
+        if (answer != MessageBoxResult.Yes || IsBusy) return;
         indicator.Anchor = 0;
         operation = RetryAsync(id, prepared.Settings, prepared.Server, prepared.Key);
     }
@@ -301,16 +302,6 @@ internal sealed class DictationController : IDisposable
         Finish(result, readable ? id : null, clipboard, canResend: !tooShort);
     }
 
-    private static string SettingsTarget()
-    {
-        try
-        {
-            var server = SettingsFile.Load(SettingsFile.DefaultPath).ResolveServer();
-            return server.IsCustom ? UiText.T($"den eigenen Server ({server.Host})", $"your server ({server.Host})") : "OpenAI";
-        }
-        catch (UserFacingException) { return "OpenAI"; }
-    }
-
     // Sealing removed the journal's audio; its format note and folder are
     // all that is left of this operation's own journal.
     private static void RemoveEmptyJournal(PcmJournal journal)
@@ -337,7 +328,9 @@ internal sealed class DictationController : IDisposable
         catch (Exception error) when (error is IOException or UnauthorizedAccessException) { }
     }
 
-    private static string TooShortMessage => UiText.T("Zu kurz. Halte das Kürzel, solange du sprichst.", "Too short. Hold the shortcut while you speak.");
+    private string TooShortMessage => gesture.Mode == TriggerMode.Tap
+        ? UiText.T("Zu kurz. Tipp das Kürzel an, sprich und tipp es dann nochmal an.", "Too short. Tap the shortcut, speak, then tap it again.")
+        : UiText.T("Zu kurz. Halte das Kürzel, solange du sprichst.", "Too short. Hold the shortcut while you speak.");
 
     private static string MicrophoneMessage => UiText.T(
         "Kein Mikrofon verfügbar. Erlaube Desktop-Apps den Zugriff unter Einstellungen → Datenschutz und Sicherheit → Mikrofon und prüf, ob das Mikrofon angeschlossen ist.",
