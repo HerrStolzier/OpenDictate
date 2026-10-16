@@ -449,3 +449,19 @@ Grenzen: 64 Einträge und 800 UTF-8-Bytes einschließlich Trennzeichen; keine
 leeren Einträge, Steuerzeichen oder Leerzeichen am Rand. Die Liste lernt nicht
 von selbst. Einstellungen und Berichte zeigen nur die Anzahl; im Protokoll
 stehen die Wörter nie.
+
+## Dienst wechseln und Server behalten
+
+`opendictate settings service openai` behält die eigene Adresse und deren
+Modelle; `settings service custom` nutzt sie wieder und braucht eine gespeicherte
+Adresse. `settings server off` ist ein Alias für die OpenAI-Auswahl. Die erste
+eigene Adresse wählt den eigenen Server; spätere Adressänderungen behalten die
+Auswahl. Beide Dienste behalten getrennte Abschrift- und Übersetzungsmodelle.
+`settings model` und `settings translation-model` ändern den aktiven Dienst.
+Alte Einstellungen mit eigener Adresse ziehen ihre Modellnamen dorthin um.
+
+Die bisherige Rangfolge bleibt: Eine aktiv gewählte gespeicherte Server-Adresse
+geht vor `OPENAI_BASE_URL`. Ohne aktive gespeicherte Adresse leitet die Variable
+Anfragen weiterhin um, auch nach `service openai` oder `server off`. Entferne
+sie für OpenAI selbst. `settings show` und der Leisten-Tooltip zeigen den
+tatsächlichen Dienst; im Tooltip steht nur der Host, nie die volle Adresse.

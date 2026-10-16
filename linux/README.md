@@ -433,3 +433,19 @@ to manage them. The list stays in your private settings file and is sent as
 Limits: 64 entries and 800 UTF-8 bytes including separators; no empty entries,
 controls or surrounding whitespace. Nothing learns automatically. Settings and
 reports show only the number of entries; operational logs never include them.
+
+## Switch services without losing the server
+
+`opendictate settings service openai` keeps the custom address and its models;
+`settings service custom` restores them and requires a stored address.
+`settings server off` is an alias for the OpenAI choice. Setting the first
+custom address selects it; later address edits keep the existing choice.
+Each service retains its own transcription and translation models; `settings
+model` and `settings translation-model` edit the active service. Existing
+settings with a server migrate their model names to the custom side.
+
+The existing environment precedence remains: a selected stored custom address
+wins over `OPENAI_BASE_URL`. Without an active stored address, that variable
+still redirects requests, including after `service openai` or `server off`.
+Unset it to use OpenAI itself. `settings show` and the bar tooltip show the
+actual service; the tooltip includes only a custom host, never its full URL.

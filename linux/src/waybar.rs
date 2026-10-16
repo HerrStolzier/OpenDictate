@@ -11,6 +11,19 @@ const BLINK: &str = "\u{25ae}";
 const REC: &str = "REC";
 const BUSY: &str = "\u{2026}";
 
+pub fn render_settings_error(state: State) -> String {
+    let progress = match state {
+        State::Recording => format!("{BLINK} {REC} !"),
+        State::Starting | State::Processing | State::Delivering => format!("{BLINK} {BUSY} !"),
+        State::Idle => format!("{BLINK} !"),
+    };
+    let mut classes = vec![state.as_str(), "error"];
+    if state == State::Recording {
+        classes.push("active");
+    }
+    json!({"text": progress, "tooltip": crate::tr!("Einstellungen nicht lesbar. Dienst: Einrichtung prüfen", "Settings unavailable. Service: Check setup"), "class": classes, "alt": state.as_str()}).to_string()
+}
+
 /// Renders one Waybar-style JSON line, which Waybar and the Omarchy shell
 /// bar both read from a command module. It carries only state and
 /// settings, never transcript text.
@@ -41,7 +54,16 @@ pub fn render(state: State, settings: &Settings) -> String {
         "Klick schaltet die Übersetzung um",
         "Click to switch the translation",
     );
-    let tooltip = format!("OpenDictate \u{b7} {word}\n{translation}\n{hint}");
+    let service = match settings.resolve_server() {
+        Ok((server, _)) if server.is_custom() => crate::tr!(
+            "Dienst: Eigener Server ({})",
+            "Service: Custom server ({})",
+            server.log_host()
+        ),
+        Ok(_) => crate::tr!("Dienst: OpenAI", "Service: OpenAI"),
+        Err(_) => crate::tr!("Dienst: Einrichtung prüfen", "Service: Check setup"),
+    };
+    let tooltip = format!("OpenDictate \u{b7} {word}\n{translation}\n{service}\n{hint}");
     let mut classes = vec![state.as_str()];
     // The Omarchy shell bar highlights a command module only for `active`.
     if state == State::Recording {
@@ -62,6 +84,24 @@ pub fn render(state: State, settings: &Settings) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn unreadable_settings_never_claim_openai_is_selected() {
+        let value = parse(&render_settings_error(State::Processing));
+        assert!(value["tooltip"]
+            .as_str()
+            .unwrap()
+            .contains("Einrichtung prüfen"));
+        assert!(!value["tooltip"].as_str().unwrap().contains("OpenAI"));
+        assert_eq!(value["alt"], "processing");
+        let recording = parse(&render_settings_error(State::Recording));
+        assert!(recording["text"].as_str().unwrap().contains("REC"));
+        assert!(recording["class"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|class| class == "active"));
+    }
 
     fn parse(line: &str) -> serde_json::Value {
         assert!(!line.contains('\n'), "Waybar expects one line: {line}");

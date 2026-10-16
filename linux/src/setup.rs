@@ -5,7 +5,7 @@ use std::io::{self, BufRead, IsTerminal, Read, Write};
 use std::time::{Duration, Instant};
 
 use crate::i18n::t;
-use crate::server::{Server, Source};
+use crate::server::Server;
 use crate::settings::{self, Settings};
 use crate::shortcut::{self, Availability, Choice};
 use crate::{keyring, path_error, paths, tr};
@@ -55,7 +55,7 @@ pub fn run() -> Result<(), String> {
 fn service_step() -> Result<(), String> {
     let path = paths::settings_path().map_err(path_error)?;
     let settings = Settings::load(&path)?;
-    let (server, _) = Server::resolve(settings.server.as_deref())?;
+    let (server, _) = settings.resolve_server()?;
     println!(
         "{}",
         t(
@@ -79,21 +79,8 @@ fn service_step() -> Result<(), String> {
     );
     let default = if server.is_custom() { 2 } else { 1 };
     if ask_number(2, default)? == 1 {
-        if settings.server.is_some() {
-            crate::settings_server_off()?;
-        }
-        let (server, source) = Server::resolve(None)?;
-        if source == Source::Environment {
-            println!(
-                "{}",
-                tr!(
-                    "Hinweis: {} ist gesetzt; solange die Variable besteht, geht die Aufnahme an {}.",
-                    "Note: {} is set; as long as it is, recordings go to {}.",
-                    crate::server::BASE_URL_ENV,
-                    server.base()
-                )
-            );
-        }
+        crate::settings_server_off()?;
+        let (server, _) = Server::resolve(None)?;
         ensure_key(&server)
     } else {
         custom_server(&path)
@@ -144,25 +131,26 @@ fn custom_server(path: &std::path::Path) -> Result<(), String> {
             )
         );
     }
-    settings.model = ask_model(
+    settings.custom_model = ask_model(
         t(
             "Modellname für die Abschrift",
             "Model name for transcription",
         ),
-        &settings.model,
+        &settings.custom_model,
     )?;
     if settings.target_language.is_some() {
-        settings.translation_model = ask_model(
+        settings.custom_translation_model = ask_model(
             t(
                 "Modellname für die Übersetzung",
                 "Model name for translation",
             ),
-            &settings.translation_model,
+            &settings.custom_translation_model,
         )?;
     }
     // Saved together, so a cancelled setup never leaves the new server with
     // OpenAI's model names.
     settings.server = Some(server.base().to_string());
+    settings.service = Some(crate::settings::Service::Custom);
     settings.save(path)?;
     if server.sends_api_key() {
         println!(

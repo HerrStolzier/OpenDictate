@@ -9,6 +9,13 @@ pub const DEFAULT_MODEL: &str = "gpt-transcribe";
 pub const DEFAULT_TRANSLATION_MODEL: &str = "gpt-5.4-mini";
 const DEFAULT_TOGGLE_TARGET: &str = "en";
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Service {
+    Openai,
+    Custom,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Settings {
     pub model: String,
@@ -29,9 +36,19 @@ pub struct Settings {
     /// uses `OPENAI_BASE_URL` when set, otherwise OpenAI.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub server: Option<String>,
-    /// Explicit, local vocabulary; never learned from dictation automatically.
+    /// Explicit local vocabulary, never learned automatically.
     #[serde(default)]
     pub vocabulary: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service: Option<Service>,
+    #[serde(default = "default_custom_model")]
+    pub custom_model: String,
+    #[serde(default = "default_translation_model")]
+    pub custom_translation_model: String,
+}
+
+fn default_custom_model() -> String {
+    DEFAULT_MODEL.to_string()
 }
 
 fn default_auto_insert() -> bool {
@@ -55,6 +72,9 @@ impl Default for Settings {
             auto_insert: default_auto_insert(),
             server: None,
             vocabulary: Vec::new(),
+            service: None,
+            custom_model: default_custom_model(),
+            custom_translation_model: default_translation_model(),
         }
     }
 }
@@ -70,12 +90,39 @@ impl Settings {
                 "Settings could not be read."
             )
         })?;
-        let settings: Self = serde_json::from_slice(&data).map_err(|_| {
+        let value: serde_json::Value = serde_json::from_slice(&data).map_err(|_| {
             crate::tr!(
                 "Einstellungen sind beschädigt.",
                 "Settings file is corrupted."
             )
         })?;
+        let legacy_models = value.get("custom_model").is_none();
+        let mut settings: Self = serde_json::from_value(value).map_err(|_| {
+            crate::tr!(
+                "Einstellungen sind beschädigt.",
+                "Settings file is corrupted."
+            )
+        })?;
+        if legacy_models
+            && settings.service.is_none()
+            && (settings.server.is_some()
+                || std::env::var(crate::server::BASE_URL_ENV)
+                    .is_ok_and(|value| !value.trim().is_empty()))
+        {
+            settings.custom_model.clone_from(&settings.model);
+            settings
+                .custom_translation_model
+                .clone_from(&settings.translation_model);
+            if validate_model(&settings.model).is_err() {
+                settings.model = DEFAULT_MODEL.to_string();
+            }
+            settings.translation_model = default_translation_model();
+            // Only a stored address makes an explicit custom choice. The
+            // environment keeps its existing precedence and lifetime.
+            if settings.server.is_some() {
+                settings.service = Some(Service::Custom);
+            }
+        }
         settings.validate()?;
         Ok(settings)
     }
@@ -84,8 +131,16 @@ impl Settings {
         validate_vocabulary(&self.vocabulary)?;
         // Which models a server offers is checked when it is used: a custom
         // server names its models freely, OpenAI only takes the known ones.
-        validate_model_name(&self.model)?;
+        validate_model(&self.model)?;
+        validate_model_name(&self.custom_model)?;
         validate_translation_model(&self.translation_model)?;
+        validate_translation_model(&self.custom_translation_model)?;
+        if self.service == Some(Service::Custom) && self.server.is_none() {
+            return Err(crate::tr!(
+                "Kein eigener Server gespeichert.",
+                "No custom server stored."
+            ));
+        }
         if let Some(server) = self.server.as_deref() {
             crate::server::Server::parse(server).map_err(|error| {
                 crate::tr!(
@@ -104,6 +159,46 @@ impl Settings {
         {
             validate_language(language)?;
         }
+        Ok(())
+    }
+
+    /// Stored custom address wins over the environment. Choosing OpenAI
+    /// ignores the stored address but retains the legacy environment override.
+    pub fn resolve_server(&self) -> Result<(crate::server::Server, crate::server::Source), String> {
+        let stored = if self.service == Some(Service::Openai) {
+            None
+        } else {
+            self.server.as_deref()
+        };
+        if self.service == Some(Service::Custom) && stored.is_none() {
+            return Err(crate::tr!(
+                "Kein eigener Server gespeichert.",
+                "No custom server stored."
+            ));
+        }
+        crate::server::Server::resolve(stored)
+    }
+
+    pub fn for_request(&self) -> Result<(Self, crate::server::Server), String> {
+        let (server, _) = self.resolve_server()?;
+        let mut request = self.clone();
+        if server.is_custom() {
+            request.model.clone_from(&self.custom_model);
+            request
+                .translation_model
+                .clone_from(&self.custom_translation_model);
+        }
+        Ok((request, server))
+    }
+
+    pub fn choose_service(&mut self, service: Service) -> Result<(), String> {
+        if service == Service::Custom && self.server.is_none() {
+            return Err(crate::tr!(
+                "Kein eigener Server gespeichert.",
+                "No custom server stored."
+            ));
+        }
+        self.service = Some(service);
         Ok(())
     }
 
@@ -308,6 +403,55 @@ mod tests {
     }
 
     #[test]
+    fn service_switch_keeps_address_and_both_model_pairs() {
+        let dir = crate::test_support::unique_temp_dir("service-switch");
+        let path = dir.join("settings.json");
+        let mut settings = Settings {
+            server: Some("http://127.0.0.1:8080/v1".to_string()),
+            service: Some(Service::Custom),
+            vocabulary: vec!["Hyprland".to_string()],
+            custom_model: "large-v3".to_string(),
+            custom_translation_model: "local-text".to_string(),
+            ..Settings::default()
+        };
+        assert_eq!(settings.for_request().unwrap().0.model, "large-v3");
+        settings.choose_service(Service::Openai).unwrap();
+        settings.save(&path).unwrap();
+        let mut loaded = Settings::load(&path).unwrap();
+        assert_eq!(loaded.server, settings.server);
+        assert_eq!(loaded.custom_model, "large-v3");
+        assert_eq!(loaded.model, DEFAULT_MODEL);
+        loaded.choose_service(Service::Custom).unwrap();
+        let (request, server) = loaded.for_request().unwrap();
+        assert!(server.is_custom() && !server.sends_api_key());
+        assert_eq!(request.model, "large-v3");
+        assert_eq!(request.vocabulary, vec!["Hyprland".to_string()]);
+        assert_eq!(request.translation_model, "local-text");
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn legacy_server_models_migrate_without_losing_openai_defaults() {
+        let dir = crate::test_support::unique_temp_dir("service-migration");
+        let path = dir.join("settings.json");
+        fs::write(&path, r#"{"model":"large-v3","language":"de","translation_model":"local-text","server":"http://127.0.0.1:8080/v1"}"#).unwrap();
+        let settings = Settings::load(&path).unwrap();
+        assert_eq!(settings.service, Some(Service::Custom));
+        assert_eq!(settings.custom_model, "large-v3");
+        assert_eq!(settings.custom_translation_model, "local-text");
+        assert_eq!(settings.model, DEFAULT_MODEL);
+        settings.save(&path).unwrap();
+        assert_eq!(Settings::load(&path).unwrap(), settings);
+        let mut invalid = Settings::default();
+        assert!(invalid.choose_service(Service::Custom).is_err());
+        assert_eq!(invalid.service, None);
+        invalid.model = "large-v3".to_string();
+        assert!(invalid.save(&path).is_err());
+        assert_eq!(Settings::load(&path).unwrap(), settings);
+        let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
     fn realtime_model_is_rejected() {
         assert!(validate_model("gpt-live-transcribe").is_err());
         assert!(validate_model(DEFAULT_MODEL).is_ok());
@@ -326,6 +470,9 @@ mod tests {
             auto_insert: false,
             server: Some("http://localhost:8080/v1".to_string()),
             vocabulary: vec!["Hyprland".to_string()],
+            service: Some(Service::Custom),
+            custom_model: "large-v3".to_string(),
+            custom_translation_model: "local-text".to_string(),
         };
         settings.save(&path).unwrap();
         assert_eq!(Settings::load(&path).unwrap(), settings);
