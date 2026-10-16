@@ -331,7 +331,8 @@ und das Diktat kam an. Danach diktierte Basti mit „Antippen“ und echter
 Tastatur in Notepad („Ja, hat funktioniert. Läuft super.“).
 
 **Offen / bekannte Grenzen:** Kein Diktat gegen ein lokales Modell; Spielchat im
-Vollbild (Anzeige über Spielen, Strg+V mit Scancode) und Skalierung ungeprüft; in Programme mit
+Vollbild (Anzeige über Spielen, Strg+V mit Scancode) und Skalierung ungeprüft,
+den Spielchat prüfen laut Basti (16. Oktober) die Beta-Nutzer; in Programme mit
 Adminrechten lässt Windows nicht einfügen, und die Anzeige erkennt das nicht
 (Text bleibt in der Zwischenablage); kein Prompt (Vokabular); keine Maus-Seitentaste; keine
 reproduzierbare Paketierung, keine Signatur, kein Installer; Update- und
