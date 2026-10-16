@@ -300,7 +300,14 @@ Die `Range`-Antworten des Workers (ganze Datei, Anfang–Ende, ab Stelle, letzte
 n Bytes, ungültig, `If-Range`, HEAD) sind mit einer nachgebauten KV-Umgebung in
 Node geprüft.
 
-Live seit 2026-10-13, 20:53 UTC, auf Commit `f887c31`: Player mit fünf
+Live seit 2026-10-16, 07:57 UTC, auf Commit `5f07fe1`: die Seite in acht
+Sprachen mit Sprachwahl und `hreflang` (Bastis Karte „Live schalten“ 07:17
+UTC). Per Browser Rendering geprüft: `/`, `/en/`, `/pl/` und
+`/fr/tutoriels.html` kommen in ihrer Sprache mit allen Alternativen, `/en`
+leitet auf `/en/` um, die englischen Untertitel und die Sitemap mit
+Alternativen werden ausgeliefert, `/i18n/` nicht.
+
+Davor live seit 2026-10-13, 20:53 UTC, auf Commit `f887c31`: Player mit fünf
 Kapiteln, „Einmal zahlen, nicht jeden Monat“, „Mit lokalem Modell / Deine
 Stimme bleibt bei dir“, Untertitel und Tokens (Bastis Karten „Live schalten“
 19:06 und „Mit live“ 20:00 UTC). Per Browser Rendering geprüft: Überschriften,
