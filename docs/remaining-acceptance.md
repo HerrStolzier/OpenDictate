@@ -327,7 +327,8 @@ auf xmg auch alle 15 Schutzprüfungen. Dort ließen sich beide Auswahlen
 bedienen; ein gewählter eigener Server, der nicht antwortet (127.0.0.1:9),
 beendete das Menü-Diktat mit einer Meldung, ohne Verbindung zu OpenAI und mit
 gesicherter Aufnahme; nach dem Wechsel auf OpenAI blieb die Adresse erhalten
-und das Diktat kam an. Antippen mit echten Tasten ist noch offen.
+und das Diktat kam an. Danach diktierte Basti mit „Antippen“ und echter
+Tastatur in Notepad („Ja, hat funktioniert. Läuft super.“).
 
 **Offen / bekannte Grenzen:** Kein Diktat gegen ein lokales Modell; Spielchat im
 Vollbild (Anzeige über Spielen, Strg+V mit Scancode) und Skalierung ungeprüft; in Programme mit
