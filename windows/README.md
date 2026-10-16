@@ -64,7 +64,10 @@ dort noch unter ihrem alten Namen).
   das Diktat mit einer Meldung ab. Ältere Einstellungen mit Server-Adresse
   (auch einer nur aus `OPENAI_BASE_URL`) wählen den eigenen Server, geben ihm
   ihre Modellnamen und schreiben diese Wahl in `settings.json`; ein bekanntes
-  OpenAI-Modell bleibt für OpenAI. „Mit OpenAI senden“ für eine einzelne
+  OpenAI-Modell bleibt für OpenAI. Das Adressfeld steht direkt unter der
+  Wahl „Eigener Server“; ohne Adresse wird diese Wahl erst mit dem Speichern
+  einer Adresse wirksam. Die Modellnamen stehen im aufklappbaren Bereich
+  „Modelle“. „Mit OpenAI senden“ für eine einzelne
   Aufnahme wie am Mac gibt es auf Windows noch nicht.
 - Meldungen erscheinen auf Deutsch oder Englisch nach der Anzeigesprache von
   Windows und enthalten nie die Antwort des Servers; eine Netzwerkmeldung zum
@@ -120,6 +123,13 @@ Windows-Beta.
   Abstände und Schriften (Geist, mitgeliefert unter der SIL Open Font License)
   kommen aus dem Designsystem (`OpenDictate.Core/DesignTokens.cs`, erzeugt von
   `scripts/design-tokens.py`); das Symbol baut `scripts/make-icon.py` aus Blink.
+- Das Einstellungsfenster ist seit 16. Oktober dunkel (Theme Nacht) wie die
+  Anzeige: Blink mit dem Zustand („Bereit“, „Schlüssel fehlt“ oder „Hoppla“)
+  und dem Ziel, Karten für Tastenkürzel, Dienst und Sprache, Schalter statt
+  Häkchen, Knöpfe mit Stufenecken. Das Fenster ist höchstens 780 Pixel hoch,
+  der Inhalt scrollt, „Fertig“ bleibt unten. Die Stile stehen in
+  `OpenDictate.App/Theme.xaml`, ihre Farben und Schriften setzt `Brand.cs` aus
+  `DesignTokens.cs`; unter Windows 11 nimmt die Titelleiste die Hintergrundfarbe an.
 - Beim ersten Start öffnen sich die Einstellungen mit einer Begrüßung und dem
   Kürzeltest: Solange das Fenster vorne ist, meldet es „Erkannt“, statt
   aufzunehmen. Jede Wahl wird sofort gespeichert; scheitert das Speichern,

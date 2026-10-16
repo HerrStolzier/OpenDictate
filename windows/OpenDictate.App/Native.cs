@@ -14,6 +14,7 @@ internal static class Native
     private const uint InputKeyboard = 1, KeyEventUp = 0x0002, KeyEventScanCode = 0x0008, MapToScanCode = 0;
     internal const int ExStyle = -20;
     internal const long NoActivate = 0x08000000, ToolWindow = 0x00000080, Transparent = 0x00000020;
+    internal const int DwmUseImmersiveDarkMode = 20, DwmBorderColor = 34, DwmCaptionColor = 35;
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct KeyboardHookData { public uint VirtualKey, ScanCode, Flags, Time; public nuint ExtraInfo; }
@@ -35,6 +36,7 @@ internal static class Native
     [DllImport("user32.dll")] internal static extern int GetMessageW(out Message message, nint window, uint first, uint last);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] internal static extern bool PostThreadMessageW(uint thread, uint message, nint wParam, nint lParam);
     [DllImport("user32.dll")] internal static extern nint GetForegroundWindow();
+    [DllImport("dwmapi.dll")] internal static extern int DwmSetWindowAttribute(nint window, int attribute, ref int value, int size);
     [DllImport("user32.dll")] internal static extern short GetAsyncKeyState(int key);
     [DllImport("user32.dll")] internal static extern uint GetWindowThreadProcessId(nint window, out uint process);
     [DllImport("user32.dll", SetLastError = true)] private static extern uint SendInput(uint count, Input[] inputs, int size);
