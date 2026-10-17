@@ -797,6 +797,18 @@ fn settings_server(address: &str) -> Result<(), String> {
             )
         );
     }
+    let (active, _) = settings.resolve_server()?;
+    settings_show()?;
+    if active.base() != server.base() {
+        println!(
+            "{}",
+            i18n::t(
+                "Die gespeicherte Adresse ist nicht aktiv. Mit `opendictate settings service custom` nutzt du sie für Diktate.",
+                "The stored address is not active. Use `opendictate settings service custom` to use it for dictation."
+            )
+        );
+        return Ok(());
+    }
     println!(
         "{}",
         if server.sends_api_key() {
@@ -874,9 +886,13 @@ fn deliverable_text(
     ));
     let translation = translate::Translator::new(server)
         .translate(&transcript, target, &settings.translation_model, api_key)
-        .inspect_err(mark_network_failure)?;
+        .inspect_err(|error| {
+            mark_network_failure(error);
+            log_ops("translation-failed");
+        })?;
     ensure_not_cancelled(state_guard)?;
     if translation.text.is_empty() {
+        log_ops("translation-failed");
         return Err(tr!("Leere Übersetzung.", "Empty translation."));
     }
     Ok((
@@ -991,7 +1007,10 @@ fn worker() -> Result<(), String> {
     restrict_file_parent(&path)?;
     // This process runs detached: `toggle` reports a started recording only
     // once the state says so, and a failed start is shown as a notification.
-    let handle = record::start(&path).inspect_err(|error| notify::status(error))?;
+    let handle = record::start(&path).inspect_err(|error| {
+        log_ops("recording-failed");
+        notify::status(error);
+    })?;
     if SystemTime::now() > deadline {
         abort_start(handle, &path, "timeout");
         let error = tr!(
@@ -1053,9 +1072,13 @@ fn process_new_recording(
         log_ops(&format!("transcription-started{}", server_log(&server)));
         let transcript = transcribe::Transcriber::new(&server)
             .transcribe(prepared.path(), api_key.as_deref(), &settings)
-            .inspect_err(mark_network_failure)?;
+            .inspect_err(|error| {
+                mark_network_failure(error);
+                log_ops("transcription-failed");
+            })?;
         ensure_not_cancelled(state_guard)?;
         if transcript.is_empty() {
+            log_ops("transcription-failed");
             return Err(tr!(
                 "Kein Text erkannt. Die Aufnahme bleibt gesichert.",
                 "No text came back. Your recording is kept."
@@ -1246,9 +1269,13 @@ fn retry(skipped: bool, openai: bool) -> Result<(), String> {
     log_ops(&format!("retry-started{}", server_log(&server)));
     let transcript = transcribe::Transcriber::new(&server)
         .transcribe_bytes(&authenticated_bytes, api_key.as_deref(), &settings)
-        .inspect_err(mark_network_failure)?;
+        .inspect_err(|error| {
+            mark_network_failure(error);
+            log_ops("transcription-failed");
+        })?;
     ensure_not_cancelled(&state_guard)?;
     if transcript.is_empty() {
+        log_ops("transcription-failed");
         return Err(tr!(
             "Kein Text erkannt. Die Aufnahme bleibt gesichert.",
             "No text came back. Your recording is kept."

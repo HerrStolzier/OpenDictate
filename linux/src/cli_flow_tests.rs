@@ -209,6 +209,10 @@ fn failed_empty_cancelled_and_undelivered_processing_keeps_authenticated_audio()
         let guard = fixture.guard(state::State::Processing);
         let error = process_new_recording(&path, None, &guard).unwrap_err();
         assert!(error.contains(expected_error), "{name}");
+        if name != "undelivered.wav" {
+            let log = fs::read_to_string(paths::worker_log_path().unwrap()).unwrap();
+            assert!(log.lines().any(|line| line == "transcription-failed"));
+        }
         stub.join().unwrap();
         let recovery_dir = paths::recovery_dir().unwrap();
         let kept = recovery_dir.join(name);
@@ -234,6 +238,29 @@ fn failed_empty_cancelled_and_undelivered_processing_keeps_authenticated_audio()
         fs::read(paths::recovery_dir().unwrap().join("cancelled.wav")).unwrap(),
         original
     );
+}
+
+#[test]
+fn translation_failure_is_logged_without_provider_details() {
+    let fixture = Fixture::new();
+    let (endpoint, stub) = test_http::serve("503 Unavailable", "private-response");
+    fixture.server(&endpoint);
+    let mut settings = fixture.settings();
+    settings.target_language = Some("en".to_string());
+    let server = server::Server::parse(&endpoint).unwrap();
+    let guard = fixture.guard(state::State::Processing);
+    assert!(deliverable_text(
+        "Private words.".to_string(),
+        &settings,
+        &server,
+        None,
+        &guard
+    )
+    .is_err());
+    stub.join().unwrap();
+    let log = fs::read_to_string(paths::worker_log_path().unwrap()).unwrap();
+    assert!(log.lines().any(|line| line == "translation-failed"));
+    assert!(!log.contains("Private words") && !log.contains("private-response"));
 }
 
 #[test]

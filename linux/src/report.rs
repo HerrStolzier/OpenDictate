@@ -23,8 +23,10 @@ fn category(event: &str) -> Option<&'static str> {
     })
 }
 
-fn safe_events(log: &str) -> VecDeque<&str> {
+fn safe_events(log: &str) -> (VecDeque<&str>, &'static str) {
     let mut events = VecDeque::new();
+    let mut error = "";
+    let mut previous = "";
     for line in log.lines() {
         let mut words = line.split_whitespace();
         let Some(mut event) = words.next() else {
@@ -33,14 +35,23 @@ fn safe_events(log: &str) -> VecDeque<&str> {
         if event.bytes().all(|byte| byte.is_ascii_digit()) {
             event = words.next().unwrap_or("");
         }
-        if category(event).is_some() {
+        if let Some(current) = category(event) {
+            // Keeping the audio is the consequence of a provider failure,
+            // not a more useful diagnosis. Only the immediately preceding
+            // event may supply that failure, never an older dictation.
+            if event != "recording-kept"
+                || !matches!(previous, "transcription-failed" | "translation-failed")
+            {
+                error = current;
+            }
             events.push_back(event);
             if events.len() > 30 {
                 events.pop_front();
             }
         }
+        previous = event;
     }
-    events
+    (events, error)
 }
 
 fn encode(text: &str) -> String {
@@ -84,11 +95,7 @@ fn summary(settings: &Settings, custom: bool, loopback: bool, key: Option<bool>)
 }
 
 fn build(app: &str, system: &str, german: bool, summary: &str, log: &str) -> (String, String) {
-    let mut events = safe_events(log);
-    let error = events
-        .back()
-        .and_then(|event| category(event))
-        .unwrap_or("");
+    let (mut events, error) = safe_events(log);
     loop {
         let mut diagnostic = summary.to_string();
         for event in &events {
@@ -221,6 +228,36 @@ use std::os::unix::fs::OpenOptionsExt;
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn report_reads_real_operation_log_lines_and_discards_their_details() {
+        let dir = crate::test_support::unique_temp_dir("report-operations");
+        let _environment =
+            crate::test_support::Environment::new(&[("XDG_STATE_HOME", Some(dir.as_os_str()))]);
+        for (event, expected) in [
+            ("recording-failed", "Aufnahme fehlgeschlagen"),
+            ("transcription-failed", "Transkription fehlgeschlagen"),
+            ("translation-failed", "Übersetzung fehlgeschlagen"),
+        ] {
+            crate::log_ops(&format!(
+                "{event} host=private.invalid transcript=private-words"
+            ));
+            if event != "recording-failed" {
+                crate::log_ops("recording-kept");
+            }
+            let log = fs::read_to_string(crate::paths::worker_log_path().unwrap()).unwrap();
+            let (address, preview) = build("Product", "Linux", true, "", &log);
+            assert!(preview.contains(&format!("fehler: {expected}\n")));
+            assert!(!preview.contains("private") && !address.contains("private"));
+        }
+        crate::log_ops("transcription-started");
+        crate::log_ops("transcription-copied");
+        crate::log_ops("recording-kept");
+        let log = fs::read_to_string(crate::paths::worker_log_path().unwrap()).unwrap();
+        let (_, preview) = build("Product", "Linux", true, "", &log);
+        assert!(preview.contains("fehler: Diktat nicht zugestellt\n"));
+        fs::remove_dir_all(dir).unwrap();
+    }
 
     #[test]
     fn shared_address_and_private_log_details() {

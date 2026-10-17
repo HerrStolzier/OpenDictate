@@ -27,7 +27,14 @@ pub fn run() -> Result<(), String> {
     let choice = shortcut_step(mode)?;
     println!();
     match choice {
-        Some(choice) if mode == settings::ShortcutMode::Hold => println!("{}", tr!("Fertig. Halte {} zum Sprechen, lass zum Beenden los.", "Done. Hold {} while speaking, release to stop.", choice.label())),
+        Some(choice) if mode == settings::ShortcutMode::Hold => println!(
+            "{}",
+            tr!(
+                "Fertig. Halte {} zum Sprechen, lass zum Beenden los.",
+                "Done. Hold {} while speaking, release to stop.",
+                choice.label()
+            )
+        ),
         Some(choice) => println!(
             "{}",
             tr!(
@@ -39,8 +46,8 @@ pub fn run() -> Result<(), String> {
         None => println!(
             "{}",
             t(
-                "Fertig. Mit deinem Kürzel für `opendictate toggle` startest und stoppst du ein Diktat.",
-                "Done. Your shortcut for `opendictate toggle` starts and stops a dictation."
+                "Aufnahmeart gespeichert. Trag zuerst die angezeigte Kürzel-Belegung ein.",
+                "Recording mode saved. Add the displayed shortcut binding first."
             )
         ),
     }
@@ -358,18 +365,19 @@ fn save_recording_mode(
     target: &shortcut::Target,
     installed: &shortcut::Installed,
 ) -> Result<(), String> {
-    let result = (|| {
-        let path = paths::settings_path().map_err(path_error)?;
-        let mut settings = Settings::load(&path)?;
-        settings.shortcut_mode = mode;
-        settings.save(&path)
-    })();
-    if let Err(error) = result {
+    if let Err(error) = store_recording_mode(mode) {
         shortcut::restore(target, installed)?;
         let _ = shortcut::reload();
         return Err(error);
     }
     Ok(())
+}
+
+fn store_recording_mode(mode: settings::ShortcutMode) -> Result<(), String> {
+    let path = paths::settings_path().map_err(path_error)?;
+    let mut settings = Settings::load(&path)?;
+    settings.shortcut_mode = mode;
+    settings.save(&path)
 }
 
 fn shortcut_step(mode: settings::ShortcutMode) -> Result<Option<Choice>, String> {
@@ -382,6 +390,7 @@ fn shortcut_step(mode: settings::ShortcutMode) -> Result<Option<Choice>, String>
     );
     let binds = shortcut::active_binds();
     let current = shortcut::current(binds.as_deref());
+    let current_mode = Settings::load(&paths::settings_path().map_err(path_error)?)?.shortcut_mode;
     let right_alt = shortcut::right_alt_suits() == Some(true) || current == Some(Choice::RightAlt);
     let options: Vec<Choice> = Choice::ALL
         .into_iter()
@@ -437,13 +446,12 @@ fn shortcut_step(mode: settings::ShortcutMode) -> Result<Option<Choice>, String>
     loop {
         let answer = ask_number(skip, default.unwrap_or(skip))?;
         if answer == skip {
-            if current.is_none() {
-                print_manual_line(Choice::SuperD, mode);
-            }
-            return Ok(current);
+            print_manual_line(current.unwrap_or(Choice::SuperD), mode);
+            store_recording_mode(mode)?;
+            return Ok(None);
         }
         let choice = options[answer - 1];
-        if Some(choice) == current {
+        if Some(choice) == current && mode == current_mode {
             println!(
                 "{}",
                 t(
@@ -492,6 +500,7 @@ fn apply_mode(
             )
         );
         print_manual_line(choice, mode);
+        store_recording_mode(mode)?;
         return Ok(choice);
     };
     if !target.writable() {
@@ -504,6 +513,7 @@ fn apply_mode(
             )
         );
         println!("  {}", choice.lines(target.style, mode));
+        store_recording_mode(mode)?;
         return Ok(choice);
     }
     if ask_first {
@@ -521,6 +531,7 @@ fn apply_mode(
                 tr!("Trag diese Zeile selbst ein:", "Add this line yourself:")
             );
             println!("  {}", choice.lines(target.style, mode));
+            store_recording_mode(mode)?;
             return Ok(choice);
         }
     }
@@ -858,6 +869,40 @@ impl Drop for RawTerminal {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn manual_shortcut_paths_save_the_chosen_recording_mode() {
+        let dir = crate::test_support::unique_temp_dir("manual-shortcut");
+        let _environment = crate::test_support::Environment::new(&[
+            ("XDG_CONFIG_HOME", Some(dir.as_os_str())),
+            (crate::server::BASE_URL_ENV, None),
+        ]);
+        let path = paths::settings_path().unwrap();
+        let original = Settings::default();
+        original.save(&path).unwrap();
+        apply_mode(Choice::F9, false, settings::ShortcutMode::Hold).unwrap();
+        assert_eq!(
+            Settings::load(&path).unwrap().shortcut_mode,
+            settings::ShortcutMode::Hold
+        );
+        assert!(!dir.join("hypr").exists());
+
+        // Plain Lua is deliberately never edited automatically.
+        std::fs::create_dir(dir.join("hypr")).unwrap();
+        let config = dir.join("hypr/hyprland.lua");
+        std::fs::write(&config, "-- user's config\n").unwrap();
+        original.save(&path).unwrap();
+        apply_mode(Choice::F9, false, settings::ShortcutMode::Hold).unwrap();
+        assert_eq!(
+            Settings::load(&path).unwrap().shortcut_mode,
+            settings::ShortcutMode::Hold
+        );
+        assert_eq!(
+            std::fs::read_to_string(config).unwrap(),
+            "-- user's config\n"
+        );
+        std::fs::remove_dir_all(dir).unwrap();
+    }
 
     fn type_in(bytes: &[u8]) -> (Step, String) {
         let mut input = HiddenInput::default();

@@ -15,6 +15,39 @@ pub fn env_lock() -> MutexGuard<'static, ()> {
         .unwrap_or_else(|poisoned| poisoned.into_inner())
 }
 
+/// Restores isolated test settings even when an assertion panics. Hold this
+/// guard for every environment-dependent call, including subprocesses.
+pub struct Environment {
+    saved: Vec<(String, Option<std::ffi::OsString>)>,
+    _lock: MutexGuard<'static, ()>,
+}
+
+impl Environment {
+    pub fn new(values: &[(&str, Option<&std::ffi::OsStr>)]) -> Self {
+        let lock = env_lock();
+        let mut saved = Vec::new();
+        for (name, value) in values {
+            saved.push((name.to_string(), std::env::var_os(name)));
+            match value {
+                Some(value) => std::env::set_var(name, value),
+                None => std::env::remove_var(name),
+            }
+        }
+        Self { saved, _lock: lock }
+    }
+}
+
+impl Drop for Environment {
+    fn drop(&mut self) {
+        for (name, value) in self.saved.iter().rev() {
+            match value {
+                Some(value) => std::env::set_var(name, value),
+                None => std::env::remove_var(name),
+            }
+        }
+    }
+}
+
 /// A fresh, empty directory under the system temp folder whose name another
 /// local user cannot predict: it carries random bytes besides the process
 /// id, and creation fails instead of reusing an existing path.

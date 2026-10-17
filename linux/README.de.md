@@ -479,6 +479,10 @@ eigene Adresse wählt den eigenen Server; spätere Adressänderungen behalten di
 Auswahl. Beide Dienste behalten getrennte Abschrift- und Übersetzungsmodelle.
 `settings model` und `settings translation-model` ändern den aktiven Dienst.
 Alte Einstellungen mit eigener Adresse ziehen ihre Modellnamen dorthin um.
+Alte eigene Modellnamen werden auch ohne Adresse oder Umgebungsvariable
+übernommen; die Einstellungen bleiben lesbar und OpenAI bekommt sein Standardmodell.
+Nach einer Adressänderung nennt die Ausgabe den tatsächlich aktiven Dienst.
+Ist die gespeicherte Adresse inaktiv, erklärt sie das Umschalten; dorthin geht kein Schlüssel.
 
 Die bisherige Rangfolge bleibt: Eine aktiv gewählte gespeicherte Server-Adresse
 geht vor `OPENAI_BASE_URL`. Ohne aktive gespeicherte Adresse leitet die Variable
@@ -498,9 +502,13 @@ sie werden nicht still gelöscht. Anders als bei der 300-ms-Schwelle unter
 Windows startet Linux beim Drücken: Hyprland liefert einzelne Befehle statt
 roher Tastaturereignisse.
 
-Die Aufnahmeart wird erst nach erfolgreichem Eintragen/Laden gespeichert;
-bei fehlgeschlagenem Schreiben, Laden oder Speichern der Einstellung wird die
-Konfiguration wiederhergestellt. `settings show` nennt `shortcut-mode`.
+Bei automatisch bearbeiteten Belegungen wird die Aufnahmeart erst nach
+erfolgreichem Eintragen/Laden gespeichert; bei fehlgeschlagenem Schreiben,
+Laden oder Speichern der Einstellung wird die Konfiguration wiederhergestellt.
+Ohne bearbeitbare Konfiguration oder wenn du die Belegung selbst eintragen
+möchtest, wird die gewählte Aufnahmeart zusammen mit der angezeigten Anleitung
+gespeichert. Trag die Zeilen vor dem Verwenden des Kürzels ein.
+`settings show` nennt `shortcut-mode`.
 Omarchy Lua nutzt den dokumentierten Helfer `o.bind_hold`, klassische
 Konfiguration zwei Zeilen. Lass bei klassischen/einfachen Lua-Kombinationen
 die Haupttaste vor dem Modifier los. Omarchys Helfer behandelt Modifierwechsel.
