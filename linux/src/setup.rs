@@ -27,7 +27,14 @@ pub fn run() -> Result<(), String> {
     let choice = shortcut_step(mode)?;
     println!();
     match choice {
-        Some(choice) if mode == settings::ShortcutMode::Hold => println!("{}", tr!("Fertig. Halte {} zum Sprechen, lass zum Beenden los.", "Done. Hold {} while speaking, release to stop.", choice.label())),
+        Some(choice) if mode == settings::ShortcutMode::Hold => println!(
+            "{}",
+            tr!(
+                "Fertig. Halte {} zum Sprechen, lass zum Beenden los.",
+                "Done. Hold {} while speaking, release to stop.",
+                choice.label()
+            )
+        ),
         Some(choice) => println!(
             "{}",
             tr!(
@@ -38,9 +45,10 @@ pub fn run() -> Result<(), String> {
         ),
         None => println!(
             "{}",
-            t(
-                "Fertig. Mit deinem Kürzel für `opendictate toggle` startest und stoppst du ein Diktat.",
-                "Done. Your shortcut for `opendictate toggle` starts and stops a dictation."
+            tr!(
+                "Manuelle Einrichtung ausstehend. Gespeicherte Aufnahmeart: {}. Ersetze die bisherige OpenDictate-Belegung durch die angezeigten Zeilen.",
+                "Manual setup pending. Stored recording mode: {}. Replace the previous OpenDictate binding with the displayed lines.",
+                Settings::load(&paths::settings_path().map_err(path_error)?)?.shortcut_mode.name()
             )
         ),
     }
@@ -358,18 +366,19 @@ fn save_recording_mode(
     target: &shortcut::Target,
     installed: &shortcut::Installed,
 ) -> Result<(), String> {
-    let result = (|| {
-        let path = paths::settings_path().map_err(path_error)?;
-        let mut settings = Settings::load(&path)?;
-        settings.shortcut_mode = mode;
-        settings.save(&path)
-    })();
-    if let Err(error) = result {
+    if let Err(error) = store_recording_mode(mode) {
         shortcut::restore(target, installed)?;
         let _ = shortcut::reload();
         return Err(error);
     }
     Ok(())
+}
+
+fn store_recording_mode(mode: settings::ShortcutMode) -> Result<(), String> {
+    let path = paths::settings_path().map_err(path_error)?;
+    let mut settings = Settings::load(&path)?;
+    settings.shortcut_mode = mode;
+    settings.save(&path)
 }
 
 fn shortcut_step(mode: settings::ShortcutMode) -> Result<Option<Choice>, String> {
@@ -437,13 +446,16 @@ fn shortcut_step(mode: settings::ShortcutMode) -> Result<Option<Choice>, String>
     loop {
         let answer = ask_number(skip, default.unwrap_or(skip))?;
         if answer == skip {
-            if current.is_none() {
-                print_manual_line(Choice::SuperD, mode);
-            }
-            return Ok(current);
+            print_manual_line(current.unwrap_or(Choice::SuperD), mode);
+            return Ok(None);
         }
         let choice = options[answer - 1];
-        if Some(choice) == current {
+        if Some(choice) == current
+            && binds
+                .as_deref()
+                .is_some_and(|binds| shortcut::loaded(choice, binds, mode))
+        {
+            store_recording_mode(mode)?;
             println!(
                 "{}",
                 t(
@@ -466,7 +478,7 @@ fn shortcut_step(mode: settings::ShortcutMode) -> Result<Option<Choice>, String>
                 continue;
             }
         }
-        return apply_mode(choice, true, mode).map(Some);
+        return apply_mode(choice, true, mode);
     }
 }
 
@@ -474,14 +486,14 @@ fn shortcut_step(mode: settings::ShortcutMode) -> Result<Option<Choice>, String>
 /// `ask_first` the user confirms the file change first.
 pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
     let settings = Settings::load(&paths::settings_path().map_err(path_error)?)?;
-    apply_mode(choice, ask_first, settings.shortcut_mode)
+    apply_mode(choice, ask_first, settings.shortcut_mode).map(|_| choice)
 }
 
 fn apply_mode(
     choice: Choice,
     ask_first: bool,
     mode: settings::ShortcutMode,
-) -> Result<Choice, String> {
+) -> Result<Option<Choice>, String> {
     let hypr_dir = shortcut::hypr_dir().map_err(|error| error.to_string())?;
     let Some(target) = shortcut::detect(&hypr_dir) else {
         println!(
@@ -492,19 +504,19 @@ fn apply_mode(
             )
         );
         print_manual_line(choice, mode);
-        return Ok(choice);
+        return Ok(None);
     };
     if !target.writable() {
         println!(
             "{}",
             tr!(
-                "Trag diese Zeile in {} ein (Hyprland lädt sie beim Speichern):",
-                "Add this line to {} (Hyprland loads it when you save):",
+                "Ersetze die bisherige OpenDictate-Belegung in {} durch diese Zeilen (nicht zusätzlich eintragen):",
+                "Replace the previous OpenDictate binding in {} with these lines (do not add them alongside it):",
                 shortcut::display_path(&target.path)
             )
         );
         println!("  {}", choice.lines(target.style, mode));
-        return Ok(choice);
+        return Ok(None);
     }
     if ask_first {
         let confirmed = ask_yes(
@@ -518,10 +530,13 @@ fn apply_mode(
         if !confirmed {
             println!(
                 "{}",
-                tr!("Trag diese Zeile selbst ein:", "Add this line yourself:")
+                tr!(
+                    "Ersetze die bisherige OpenDictate-Belegung selbst durch diese Zeilen:",
+                    "Replace the previous OpenDictate binding yourself with these lines:"
+                )
             );
             println!("  {}", choice.lines(target.style, mode));
-            return Ok(choice);
+            return Ok(None);
         }
     }
     let running = shortcut::active_binds().is_some();
@@ -628,7 +643,7 @@ fn apply_mode(
             return Err(t("Kürzel nicht geändert.", "Shortcut not changed.").to_string());
         }
     }
-    Ok(choice)
+    Ok(Some(choice))
 }
 
 /// Whether Hyprland shows the bind within `timeout`; `None` when Hyprland
@@ -660,8 +675,8 @@ fn print_manual_line(choice: Choice, mode: settings::ShortcutMode) {
     println!(
         "{}",
         t(
-            "Beispiel für Omarchy (~/.config/hypr/bindings.lua) und klassische Konfiguration:",
-            "Example for Omarchy (~/.config/hypr/bindings.lua) and classic config:"
+            "Ersetze eine bisherige OpenDictate-Belegung (nicht zusätzlich eintragen). Beispiele für Omarchy (~/.config/hypr/bindings.lua) und klassische Konfiguration:",
+            "Replace any previous OpenDictate binding (do not add these alongside it). Examples for Omarchy (~/.config/hypr/bindings.lua) and classic config:"
         )
     );
     println!("  {}", choice.lines(shortcut::Style::OmarchyLua, mode));

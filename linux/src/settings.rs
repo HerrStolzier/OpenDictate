@@ -126,6 +126,7 @@ impl Settings {
         if legacy_models
             && settings.service.is_none()
             && (settings.server.is_some()
+                || validate_model(&settings.model).is_err()
                 || std::env::var(crate::server::BASE_URL_ENV)
                     .is_ok_and(|value| !value.trim().is_empty()))
         {
@@ -470,6 +471,28 @@ mod tests {
         assert!(invalid.save(&path).is_err());
         assert_eq!(Settings::load(&path).unwrap(), settings);
         let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn legacy_custom_model_without_address_or_environment_still_loads() {
+        let _environment =
+            crate::test_support::Environment::new(&[(crate::server::BASE_URL_ENV, None)]);
+        let dir = crate::test_support::unique_temp_dir("legacy-model-only");
+        let path = dir.join("settings.json");
+        let old = r#"{"model":"large-v3","language":"de","translation_model":"local-text"}"#;
+        fs::write(&path, old).unwrap();
+        let migrated = Settings::load(&path).unwrap();
+        assert_eq!(migrated.custom_model, "large-v3");
+        assert_eq!(migrated.custom_translation_model, "local-text");
+        assert_eq!(migrated.model, DEFAULT_MODEL);
+        assert_eq!(migrated.translation_model, DEFAULT_TRANSLATION_MODEL);
+        assert_eq!(migrated.service, None);
+        assert_eq!(migrated.server, None);
+        assert!(!migrated.resolve_server().unwrap().0.is_custom());
+        assert_eq!(fs::read_to_string(&path).unwrap(), old);
+        migrated.save(&path).unwrap();
+        assert_eq!(Settings::load(&path).unwrap(), migrated);
+        fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]

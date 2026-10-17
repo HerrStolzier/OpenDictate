@@ -462,7 +462,11 @@ reports show only the number of entries; operational logs never include them.
 custom address selects it; later address edits keep the existing choice.
 Each service retains its own transcription and translation models; `settings
 model` and `settings translation-model` edit the active service. Existing
-settings with a server migrate their model names to the custom side.
+settings with a server migrate their model names to the custom side. Legacy
+custom model names also migrate when no address or environment override is
+present, keeping the settings readable and restoring OpenAI's default model.
+After an address edit, the output shows the actual active service. If the
+stored address is inactive, it explains how to select it; no key is sent there.
 
 The existing environment precedence remains: a selected stored custom address
 wins over `OPENAI_BASE_URL`. Without an active stored address, that variable
@@ -481,8 +485,14 @@ silent audio follows the existing retained/skipped recovery path; it is not
 silently deleted. Unlike Windows' 300 ms gesture threshold, Linux starts on
 press because Hyprland supplies separate commands rather than raw key events.
 
-The mode is saved only after the binding is installed/loaded; configuration
-restoration follows a failed write, load or settings save. `settings show`
+For automatically edited bindings, the mode is saved only after the binding is
+installed/loaded; configuration restoration follows a failed write, load or
+settings save. When no editable config is found, or you choose to edit it
+yourself, the stored mode stays unchanged and setup reports the pending manual
+work. Replace the previous OpenDictate binding with the shown lines; do not add
+a second binding alongside it. Then rerun setup and select that shortcut: the
+mode is saved once Hyprland reports the matching binding without conflicting
+tap/hold commands. `settings show`
 prints `shortcut-mode`. Omarchy Lua uses the documented `o.bind_hold` helper;
 classic config writes a press/release pair. With classic/plain Lua chord
 bindings, release the main key before its modifier. Omarchy's helper handles
