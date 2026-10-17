@@ -151,21 +151,54 @@ fn saved_address_output_tracks_the_actual_service_in_both_languages() {
 }
 
 #[test]
-fn setup_saves_hold_for_manual_and_existing_shortcut_choices() {
-    for (binds, answer, manual) in [
-        ("[]", "2", false),
-        ("[]", "3", true),
+fn setup_reports_manual_work_and_persists_only_installed_bindings() {
+    let hold = r#"[{"modmask":64,"key":"D","arg":"opendictate start"},{"modmask":64,"key":"D","release":true,"arg":"opendictate stop"}]"#;
+    let mixed = r#"[{"modmask":64,"key":"D","arg":"opendictate toggle"},{"modmask":64,"key":"D","arg":"opendictate start"},{"modmask":64,"key":"D","release":true,"arg":"opendictate stop"}]"#;
+    for (binds, answer, config_style, confirmed) in [
+        ("[]", "2", "missing", false),
+        ("[]", "3", "missing", false),
         (
             r#"[{"modmask":64,"key":"D","arg":"opendictate toggle"}]"#,
             "1",
+            "missing",
             false,
         ),
+        (
+            r#"[{"modmask":64,"key":"D","arg":"opendictate toggle"}]"#,
+            "1",
+            "lua",
+            false,
+        ),
+        (
+            r#"[{"modmask":64,"key":"D","arg":"opendictate toggle"}]"#,
+            "1",
+            "classic",
+            true,
+        ),
+        (hold, "1", "lua", true),
+        (mixed, "1", "lua", false),
     ] {
         let fixture = Fixture::new();
+        let automatic = config_style == "classic";
+        let original = if automatic {
+            "bind = SUPER, D, exec, opendictate toggle\n"
+        } else {
+            "hl.bind(\"SUPER + D\", hl.dsp.exec_cmd(\"opendictate toggle\"))\n"
+        };
+        let config = fixture.0.join(if automatic {
+            "hypr/bindings.conf"
+        } else {
+            "hypr/hyprland.lua"
+        });
+        if config_style != "missing" {
+            fs::create_dir_all(config.parent().unwrap()).unwrap();
+            fs::write(&config, original).unwrap();
+        }
         fixture.stub("secret-tool", "printf 'fixture-present'");
+        let installed = r#"[{"modmask":64,"key":"D","arg":"opendictate start"},{"modmask":64,"key":"D","release":true,"arg":"opendictate stop"}]"#;
         fixture.stub(
             "hyprctl",
-            &format!("[ \"$1\" = binds ] || exit 1\nprintf '%s' '{binds}'"),
+            &format!("[ \"$1\" = binds ] || exit 1\nif [ -f '{config}' ] && /bin/grep -q 'opendictate start' '{config}'; then printf '%s' '{installed}'; else printf '%s' '{binds}'; fi", config=config.display()),
         );
         let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
         let address = listener.local_addr().unwrap();
@@ -202,18 +235,36 @@ fn setup_saves_hold_for_manual_and_existing_shortcut_choices() {
                 .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\n{}")
                 .unwrap();
         });
-        let output = fixture.setup(&format!("2\nhttp://{address}/v1\nlarge-v3\n2\n{answer}\n"));
+        let output = fixture.setup(&format!(
+            "2\nhttp://{address}/v1\nlarge-v3\n2\n{answer}\n\n"
+        ));
         server.join().unwrap();
         let saved: serde_json::Value =
             serde_json::from_slice(&fs::read(fixture.0.join("opendictate/settings.json")).unwrap())
                 .unwrap();
-        assert_eq!(saved["shortcut_mode"], "hold");
-        assert!(output.contains("opendictate start") && output.contains("opendictate stop"));
-        assert!(output.contains(if manual {
-            "Recording mode saved."
+        assert_eq!(
+            saved["shortcut_mode"],
+            if confirmed { "hold" } else { "tap" }
+        );
+        if confirmed {
+            assert!(output.contains("Done. Hold"));
+            if automatic {
+                assert!(!fs::read_to_string(&config)
+                    .unwrap()
+                    .contains("opendictate toggle"));
+            } else {
+                assert_eq!(fs::read_to_string(config).unwrap(), original);
+            }
         } else {
-            "Done. Hold"
-        }));
-        assert!(!fixture.0.join("hypr").exists());
+            assert!(output.contains("opendictate start") && output.contains("opendictate stop"));
+            assert!(output.contains("Manual setup pending. Stored recording mode: tap."));
+            assert!(!output.contains("Done. Hold"));
+            assert!(output.contains("Replace") && output.contains("OpenDictate binding"));
+            if config_style == "missing" {
+                assert!(!fixture.0.join("hypr").exists());
+            } else {
+                assert_eq!(fs::read_to_string(config).unwrap(), original);
+            }
+        }
     }
 }

@@ -505,9 +505,12 @@ roher Tastaturereignisse.
 Bei automatisch bearbeiteten Belegungen wird die Aufnahmeart erst nach
 erfolgreichem Eintragen/Laden gespeichert; bei fehlgeschlagenem Schreiben,
 Laden oder Speichern der Einstellung wird die Konfiguration wiederhergestellt.
-Ohne bearbeitbare Konfiguration oder wenn du die Belegung selbst eintragen
-möchtest, wird die gewählte Aufnahmeart zusammen mit der angezeigten Anleitung
-gespeichert. Trag die Zeilen vor dem Verwenden des Kürzels ein.
+Ohne bearbeitbare Konfiguration oder wenn du sie selbst ändern möchtest,
+bleibt die gespeicherte Aufnahmeart unverändert; die Abschlussmeldung nennt die
+ausstehende manuelle Einrichtung. Ersetze die bisherige OpenDictate-Belegung
+durch die angezeigten Zeilen, statt eine zweite hinzuzufügen. Wähle das Kürzel
+danach erneut in `setup`: Erst wenn Hyprland die passende Belegung ohne
+widersprüchliche Antipp-/Haltebefehle meldet, wird die Aufnahmeart gespeichert.
 `settings show` nennt `shortcut-mode`.
 Omarchy Lua nutzt den dokumentierten Helfer `o.bind_hold`, klassische
 Konfiguration zwei Zeilen. Lass bei klassischen/einfachen Lua-Kombinationen

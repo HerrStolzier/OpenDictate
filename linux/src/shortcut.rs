@@ -252,16 +252,19 @@ pub fn loaded(choice: Choice, binds: &[Bind], mode: ShortcutMode) -> bool {
         .iter()
         .filter(|bind| bind.opendictate && choice.matches(bind.modmask, &bind.key))
         .collect();
-    if mode == ShortcutMode::Tap {
-        return ours.iter().any(|bind| bind.command.contains(COMMAND));
-    }
-    ours.iter().any(|bind| {
+    let tap = ours.iter().any(|bind| bind.command.contains(COMMAND));
+    let start = ours.iter().any(|bind| {
         !bind.release
             && (bind.command.contains("opendictate start") || bind.action == "OpenDictate start")
-    }) && ours.iter().any(|bind| {
+    });
+    let stop = ours.iter().any(|bind| {
         bind.release
             && (bind.command.contains("opendictate stop") || bind.action == "OpenDictate stop")
-    })
+    });
+    match mode {
+        ShortcutMode::Tap => tap && !start && !stop,
+        ShortcutMode::Hold => !tap && start && stop,
+    }
 }
 
 fn shorten(text: &str) -> String {

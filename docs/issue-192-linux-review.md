@@ -18,11 +18,13 @@ Auftrag: [Issue #192](https://github.com/HerrStolzier/OpenDictate/issues/192).
   Ein unmittelbar folgendes `recording-kept` verdeckt den Providerfehler im
   Bericht nicht. Zwischenereignisse verhindern die Zuordnung eines alten
   Providerfehlers zu einem späteren Diktat.
-- Die manuelle Kürzel-Einrichtung speichert die gewählte Aufnahmeart auch
-  ohne automatisch bearbeitbare Konfiguration. Das gilt auch für „selbst
-  eintragen“. Beim Wechsel der Aufnahmeart wird ein bisheriges Kürzel erneut
-  eingerichtet. Manuelles Überspringen endet mit der Aufforderung, die
-  angezeigte Belegung zuerst einzutragen.
+- Ohne bestätigte passende Kürzel-Belegung bleibt die gespeicherte Aufnahmeart
+  erhalten. Der Abschluss nennt die ausstehende manuelle Einrichtung statt
+  „Fertig. Halte …“. Die Anleitung fordert zum Ersetzen der bisherigen
+  Belegung auf, damit keine doppelten Befehle entstehen. Nach manueller
+  Änderung kann `setup` die geladene Belegung prüfen und die Aufnahmeart
+  speichern; Mischungen aus Antippen und Halten werden nicht bestätigt.
+  Automatische Änderungen behalten ihre Sicherung und Rücknahme bei Fehlern.
 
 Der optionale Windows-Punkt ist nicht Teil dieser Änderung.
 
@@ -35,10 +37,12 @@ und ALSA 1.2.16.1, aus einer eigenen temporären Quellkopie:
 bash scripts/ci/check-linux.sh
 ```
 
-Exitcode 0: Formatierung, **145 Unit-Tests und 2 CLI-Integrationstests**,
+Exitcode 0: Formatierung, **144 Unit-Tests und 2 CLI-Integrationstests**,
 Clippy mit `-D warnings` und gesperrter Release-Build bestanden.
-Der geprüfte vollständige Patch vor Ergänzung dieser Nachweisdokumentation
-hat SHA-256 `c3c3df6795429638aa8f9a13c76bdf5fae6ed5683c46445a5a07314c626d4885`.
+Der abschließende Kandidat ist im [PR #193](https://github.com/HerrStolzier/OpenDictate/pull/193)
+gebunden; die dortigen CI-Prüfungen nennen den genauen Commit. Das unabhängige
+Review prüfte zuerst den Gesamtpatch, danach gezielt die Korrekturen aus dem
+Review einschließlich der unveränderten Aufnahmeart bei manueller Einrichtung.
 
 Die neuen Tests schützen jeweils die betroffene Grenze:
 
@@ -54,19 +58,20 @@ Die neuen Tests schützen jeweils die betroffene Grenze:
 - `report_reads_real_operation_log_lines_and_discards_their_details`: echte
   `log_ops`-Dateizeilen samt `recording-kept` durch den Bericht, einschließlich
   späterer Ereignisse und verworfener privater Details.
-- `manual_shortcut_paths_save_the_chosen_recording_mode`: fehlende und reine
-  Lua-Konfiguration; Aufnahmeart gespeichert, Nutzerkonfiguration unverändert.
-- `setup_saves_hold_for_manual_and_existing_shortcut_choices`: vollständiger
-  `setup`-Befehl in einem Pseudoterminal, F9-Auswahl, manuelles Überspringen und
-  bisheriges Super+D; gespeichertes `hold`, Start-/Stop-Zeilen und Abschlusstext.
+- `setup_reports_manual_work_and_persists_only_installed_bindings`:
+  vollständiger `setup`-Befehl in einem Pseudoterminal. Sieben Fälle decken
+  F9 ohne Konfiguration, Überspringen, bisheriges Super+D, reine Lua-Datei,
+  automatische klassische Ersetzung, bereits geladenes Halten und gemischte
+  Antipp-/Haltebefehle ab. Gespeicherter Modus, Abschlussmeldung und
+  unveränderte beziehungsweise ersetzte Konfiguration werden geprüft.
 
 Rotnachweis in einer getrennten Quellkopie: Produktionscode aus `cf349a0`
-für `main.rs`, `settings.rs`, `setup.rs` und `report.rs`, dieselben neuen
+für `main.rs`, `settings.rs`, `setup.rs` und `report.rs` sowie `shortcut.rs`, dieselben neuen
 Testmodule und Testhilfen beibehalten. Quelldateizeit vor dem erneuten Bau
 aktualisiert, damit Cargo keine jüngeren Kandidatenartefakte wiederverwendet.
 `cargo test --locked --no-fail-fast --manifest-path linux/Cargo.toml` endet dort
-mit 101: 140 Unit-Tests bestehen, die fünf betroffenen Unit-Tests und beide
-CLI-Tests scheitern gezielt. Mit der Reparatur bestehen alle 147 Tests.
+mit 101: 140 Unit-Tests bestehen, die vier betroffenen Unit-Tests und beide
+CLI-Tests scheitern gezielt. Mit der Reparatur bestehen alle 146 Tests.
 
 Zusätzlich bestanden: 56 Python-Tests, lokale Markdown-Linkprüfung,
 Swift-Formatprüfung, die sieben Shell-Syntaxprüfungen aus `CHECKS.md` und

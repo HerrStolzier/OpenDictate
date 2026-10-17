@@ -45,9 +45,10 @@ pub fn run() -> Result<(), String> {
         ),
         None => println!(
             "{}",
-            t(
-                "Aufnahmeart gespeichert. Trag zuerst die angezeigte Kürzel-Belegung ein.",
-                "Recording mode saved. Add the displayed shortcut binding first."
+            tr!(
+                "Manuelle Einrichtung ausstehend. Gespeicherte Aufnahmeart: {}. Ersetze die bisherige OpenDictate-Belegung durch die angezeigten Zeilen.",
+                "Manual setup pending. Stored recording mode: {}. Replace the previous OpenDictate binding with the displayed lines.",
+                Settings::load(&paths::settings_path().map_err(path_error)?)?.shortcut_mode.name()
             )
         ),
     }
@@ -390,7 +391,6 @@ fn shortcut_step(mode: settings::ShortcutMode) -> Result<Option<Choice>, String>
     );
     let binds = shortcut::active_binds();
     let current = shortcut::current(binds.as_deref());
-    let current_mode = Settings::load(&paths::settings_path().map_err(path_error)?)?.shortcut_mode;
     let right_alt = shortcut::right_alt_suits() == Some(true) || current == Some(Choice::RightAlt);
     let options: Vec<Choice> = Choice::ALL
         .into_iter()
@@ -447,11 +447,15 @@ fn shortcut_step(mode: settings::ShortcutMode) -> Result<Option<Choice>, String>
         let answer = ask_number(skip, default.unwrap_or(skip))?;
         if answer == skip {
             print_manual_line(current.unwrap_or(Choice::SuperD), mode);
-            store_recording_mode(mode)?;
             return Ok(None);
         }
         let choice = options[answer - 1];
-        if Some(choice) == current && mode == current_mode {
+        if Some(choice) == current
+            && binds
+                .as_deref()
+                .is_some_and(|binds| shortcut::loaded(choice, binds, mode))
+        {
+            store_recording_mode(mode)?;
             println!(
                 "{}",
                 t(
@@ -474,7 +478,7 @@ fn shortcut_step(mode: settings::ShortcutMode) -> Result<Option<Choice>, String>
                 continue;
             }
         }
-        return apply_mode(choice, true, mode).map(Some);
+        return apply_mode(choice, true, mode);
     }
 }
 
@@ -482,14 +486,14 @@ fn shortcut_step(mode: settings::ShortcutMode) -> Result<Option<Choice>, String>
 /// `ask_first` the user confirms the file change first.
 pub fn apply(choice: Choice, ask_first: bool) -> Result<Choice, String> {
     let settings = Settings::load(&paths::settings_path().map_err(path_error)?)?;
-    apply_mode(choice, ask_first, settings.shortcut_mode)
+    apply_mode(choice, ask_first, settings.shortcut_mode).map(|_| choice)
 }
 
 fn apply_mode(
     choice: Choice,
     ask_first: bool,
     mode: settings::ShortcutMode,
-) -> Result<Choice, String> {
+) -> Result<Option<Choice>, String> {
     let hypr_dir = shortcut::hypr_dir().map_err(|error| error.to_string())?;
     let Some(target) = shortcut::detect(&hypr_dir) else {
         println!(
@@ -500,21 +504,19 @@ fn apply_mode(
             )
         );
         print_manual_line(choice, mode);
-        store_recording_mode(mode)?;
-        return Ok(choice);
+        return Ok(None);
     };
     if !target.writable() {
         println!(
             "{}",
             tr!(
-                "Trag diese Zeile in {} ein (Hyprland lädt sie beim Speichern):",
-                "Add this line to {} (Hyprland loads it when you save):",
+                "Ersetze die bisherige OpenDictate-Belegung in {} durch diese Zeilen (nicht zusätzlich eintragen):",
+                "Replace the previous OpenDictate binding in {} with these lines (do not add them alongside it):",
                 shortcut::display_path(&target.path)
             )
         );
         println!("  {}", choice.lines(target.style, mode));
-        store_recording_mode(mode)?;
-        return Ok(choice);
+        return Ok(None);
     }
     if ask_first {
         let confirmed = ask_yes(
@@ -528,11 +530,13 @@ fn apply_mode(
         if !confirmed {
             println!(
                 "{}",
-                tr!("Trag diese Zeile selbst ein:", "Add this line yourself:")
+                tr!(
+                    "Ersetze die bisherige OpenDictate-Belegung selbst durch diese Zeilen:",
+                    "Replace the previous OpenDictate binding yourself with these lines:"
+                )
             );
             println!("  {}", choice.lines(target.style, mode));
-            store_recording_mode(mode)?;
-            return Ok(choice);
+            return Ok(None);
         }
     }
     let running = shortcut::active_binds().is_some();
@@ -639,7 +643,7 @@ fn apply_mode(
             return Err(t("Kürzel nicht geändert.", "Shortcut not changed.").to_string());
         }
     }
-    Ok(choice)
+    Ok(Some(choice))
 }
 
 /// Whether Hyprland shows the bind within `timeout`; `None` when Hyprland
@@ -671,8 +675,8 @@ fn print_manual_line(choice: Choice, mode: settings::ShortcutMode) {
     println!(
         "{}",
         t(
-            "Beispiel für Omarchy (~/.config/hypr/bindings.lua) und klassische Konfiguration:",
-            "Example for Omarchy (~/.config/hypr/bindings.lua) and classic config:"
+            "Ersetze eine bisherige OpenDictate-Belegung (nicht zusätzlich eintragen). Beispiele für Omarchy (~/.config/hypr/bindings.lua) und klassische Konfiguration:",
+            "Replace any previous OpenDictate binding (do not add these alongside it). Examples for Omarchy (~/.config/hypr/bindings.lua) and classic config:"
         )
     );
     println!("  {}", choice.lines(shortcut::Style::OmarchyLua, mode));
@@ -869,40 +873,6 @@ impl Drop for RawTerminal {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn manual_shortcut_paths_save_the_chosen_recording_mode() {
-        let dir = crate::test_support::unique_temp_dir("manual-shortcut");
-        let _environment = crate::test_support::Environment::new(&[
-            ("XDG_CONFIG_HOME", Some(dir.as_os_str())),
-            (crate::server::BASE_URL_ENV, None),
-        ]);
-        let path = paths::settings_path().unwrap();
-        let original = Settings::default();
-        original.save(&path).unwrap();
-        apply_mode(Choice::F9, false, settings::ShortcutMode::Hold).unwrap();
-        assert_eq!(
-            Settings::load(&path).unwrap().shortcut_mode,
-            settings::ShortcutMode::Hold
-        );
-        assert!(!dir.join("hypr").exists());
-
-        // Plain Lua is deliberately never edited automatically.
-        std::fs::create_dir(dir.join("hypr")).unwrap();
-        let config = dir.join("hypr/hyprland.lua");
-        std::fs::write(&config, "-- user's config\n").unwrap();
-        original.save(&path).unwrap();
-        apply_mode(Choice::F9, false, settings::ShortcutMode::Hold).unwrap();
-        assert_eq!(
-            Settings::load(&path).unwrap().shortcut_mode,
-            settings::ShortcutMode::Hold
-        );
-        assert_eq!(
-            std::fs::read_to_string(config).unwrap(),
-            "-- user's config\n"
-        );
-        std::fs::remove_dir_all(dir).unwrap();
-    }
 
     fn type_in(bytes: &[u8]) -> (Step, String) {
         let mut input = HiddenInput::default();

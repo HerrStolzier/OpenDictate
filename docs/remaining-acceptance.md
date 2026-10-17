@@ -373,8 +373,9 @@ oder Release wurde veröffentlicht.
 
 Nacharbeiten aus [Issue #192](https://github.com/HerrStolzier/OpenDictate/issues/192)
 beheben alte Modelleinstellungen ohne Server-Umgebung, irreführende
-Adressänderungsmeldungen, fehlende Fehlerereignisse und den Aufnahmeart-Speicherpfad
-bei manueller Kürzel-Einrichtung. 145 Unit- und zwei echte CLI-Prozesstests
+Adressänderungsmeldungen, fehlende Fehlerereignisse und die Abschlussmeldung
+bei manueller Kürzel-Einrichtung. Die Aufnahmeart bleibt bis zur bestätigten
+Belegung erhalten. 144 Unit- und zwei echte CLI-Prozesstests
 bestanden auf omarchy; Terminal, HTTP und Schlüsselbund dabei wie im
 [Nachweis](issue-192-linux-review.md) abgegrenzt. Keine zusätzliche Live-Abnahme.
 

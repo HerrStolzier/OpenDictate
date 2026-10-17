@@ -487,9 +487,12 @@ press because Hyprland supplies separate commands rather than raw key events.
 
 For automatically edited bindings, the mode is saved only after the binding is
 installed/loaded; configuration restoration follows a failed write, load or
-settings save. When no editable config is found, or you choose to add the
-binding yourself, the chosen mode is saved with the displayed manual binding
-instructions. Add those lines before using the shortcut. `settings show`
+settings save. When no editable config is found, or you choose to edit it
+yourself, the stored mode stays unchanged and setup reports the pending manual
+work. Replace the previous OpenDictate binding with the shown lines; do not add
+a second binding alongside it. Then rerun setup and select that shortcut: the
+mode is saved once Hyprland reports the matching binding without conflicting
+tap/hold commands. `settings show`
 prints `shortcut-mode`. Omarchy Lua uses the documented `o.bind_hold` helper;
 classic config writes a press/release pair. With classic/plain Lua chord
 bindings, release the main key before its modifier. Omarchy's helper handles
