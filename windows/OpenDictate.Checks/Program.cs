@@ -7,14 +7,16 @@ var tests = new (string Name, Action Run)[]
     {
         Check(TranscriptText.Sanitize(" a\u001bb\u0007c\u0000\u0085d\u202ee\u200f ") == "abcde");
         Check(TranscriptText.Sanitize("eins\r\nzwei\rdrei\tvier") == "eins\nzwei\ndrei\tvier");
+        Check(TranscriptText.Sanitize("eins\u2028zwei\u2029drei") == "eins\nzwei\ndrei");
         Check(TranscriptText.Sanitize("Grüße 🧪") == "Grüße 🧪");
         Check(TranscriptText.IsMultiline("a\nb") && !TranscriptText.IsMultiline("a b"));
+        Check(TranscriptText.IsMultiline("a\u2028b"));
     }),
-    ("Multi-line text stays on the clipboard for consoles", () =>
+    ("Multi-line text stays on the clipboard for every target", () =>
     {
-        Check(!PastePolicy.MayPasteText("ls\nrm -rf x", "WindowsTerminal") && !PastePolicy.MayPasteText("a\nb", "pwsh"));
-        Check(PastePolicy.MayPasteText("one line", "WindowsTerminal") && PastePolicy.MayPasteText("a\nb", "notepad"));
-        Check(PastePolicy.MayPasteText("a\nb", null) && PastePolicy.IsConsole("conhost") && !PastePolicy.IsConsole("Code"));
+        Check(!PastePolicy.MayPasteText("ls\nrm -rf x") && !PastePolicy.MayPasteText("a\nb"));
+        Check(!PastePolicy.MayPasteText(TranscriptText.Sanitize("ls\u2028rm -rf x")));
+        Check(PastePolicy.MayPasteText("one line"));
     }),
     ("WAV export has exact sample data and keeps original", () => InTemporaryDirectory(root =>
     {

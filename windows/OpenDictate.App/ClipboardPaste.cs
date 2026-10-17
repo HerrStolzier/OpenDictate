@@ -22,7 +22,7 @@ internal static class ClipboardPaste
     {
         if (!await RetryAsync(() => { Clipboard.SetDataObject(Private(text), copy: true); return true; })) return Result.ClipboardUnavailable;
         if (!autoInsert || captured is null) return Result.ClipboardOnly;
-        if (!PastePolicy.MayPasteText(text, Native.ProcessName(captured.ProcessId))) return Result.ClipboardOnly;
+        if (!PastePolicy.MayPasteText(text)) return Result.ClipboardOnly;
         // The shortcut may still be held after a tap; Ctrl+V must not merge
         // with it into another shortcut.
         var waited = Stopwatch.StartNew();
