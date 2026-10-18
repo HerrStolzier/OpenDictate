@@ -61,11 +61,11 @@
   --edge: #7A7E80;
   --ink: #14161A;
   --ink-muted: #585D63;
-  --signal: #1A4FE0;
-  --signal-light: #7F9DFF;
-  --signal-shade: #1440B8;
-  --signal-deep: #12389F;
-  --signal-ink: #0C2A7A;
+  --signal: #2D6A0C;
+  --signal-light: #7FC23A;
+  --signal-shade: #245A05;
+  --signal-deep: #1E4E04;
+  --signal-ink: #163B00;
   --on-signal: #FFFFFF;
   --rec: #B52A1A;
   --warn: #8A5A00;
@@ -74,8 +74,8 @@
   --sole: #585D63;
   --floor: #C9CCC3;
   --glitch: #008C95;
-  --focus-ring: #1A4FE0;
-  --glow: 0 0 16px rgba(26,79,224,.20);
+  --focus-ring: #2D6A0C;
+  --glow: 0 0 16px rgba(45,106,12,.20);
   --elevation-icon: 0 28px 56px rgba(0,0,0,.55);
 }
 

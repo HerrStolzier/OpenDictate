@@ -79,31 +79,31 @@ public enum DesignColor: String, CaseIterable, Sendable {
         case (.signal, .bernstein):
             return 0xFFB23F
         case (.signal, .papier):
-            return 0x1A4FE0
+            return 0x2D6A0C
         case (.signalLight, .nacht):
             return 0xDDFFA8
         case (.signalLight, .bernstein):
             return 0xFFD796
         case (.signalLight, .papier):
-            return 0x7F9DFF
+            return 0x7FC23A
         case (.signalShade, .nacht):
             return 0x86CC2E
         case (.signalShade, .bernstein):
             return 0xD98E22
         case (.signalShade, .papier):
-            return 0x1440B8
+            return 0x245A05
         case (.signalDeep, .nacht):
             return 0x7AB82A
         case (.signalDeep, .bernstein):
             return 0xB8741A
         case (.signalDeep, .papier):
-            return 0x12389F
+            return 0x1E4E04
         case (.signalInk, .nacht):
             return 0x5E9420
         case (.signalInk, .bernstein):
             return 0x8F5810
         case (.signalInk, .papier):
-            return 0x0C2A7A
+            return 0x163B00
         case (.onSignal, .nacht):
             return 0x0E1014
         case (.onSignal, .bernstein):
@@ -157,7 +157,7 @@ public enum DesignColor: String, CaseIterable, Sendable {
         case (.focusRing, .bernstein):
             return 0xFFB23F
         case (.focusRing, .papier):
-            return 0x1A4FE0
+            return 0x2D6A0C
         }
     }
 }

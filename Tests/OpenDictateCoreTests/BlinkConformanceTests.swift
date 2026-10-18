@@ -77,3 +77,22 @@ private struct WebScene: Decodable {
     let box: String
     let layers: [Layer]
 }
+
+/// Blink is the brand's green figure. A theme may darken the green for a light
+/// background, but never swap it for another hue (Papier was once blue).
+@Suite("Blink stays green")
+struct BlinkColourTests {
+    @Test(arguments: [DesignTheme.nacht, .papier], BlinkPose.allCases)
+    func bodyIsGreen(theme: DesignTheme, pose: BlinkPose) {
+        let figure: Set<DesignColor> = [.signal, .signalLight, .signalShade, .signalDeep, .signalInk]
+        // The full figure and the 16-pt one in the menu.
+        let scenes = [BlinkFigure.scene(pose), BlinkFigure.small(pose)]
+        let runs = scenes.flatMap(\.layers).flatMap(\.runs).filter { figure.contains($0.color.0) }
+        #expect(!runs.isEmpty)
+        for run in runs {
+            let value = run.color.0.rgb(in: theme)
+            let (red, green, blue) = ((value >> 16) & 255, (value >> 8) & 255, value & 255)
+            #expect(green > red && green > blue, "\(run.color.0) in \(theme) is #\(String(value, radix: 16))")
+        }
+    }
+}
