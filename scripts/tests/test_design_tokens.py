@@ -50,6 +50,33 @@ class DesignTokensTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             MODULE.resolve_colors(tokens)
 
+    def test_blink_stays_green_in_app_themes(self):
+        # Nacht and Papier are the themes the apps show; Bernstein is the
+        # amber alternative. Papier once made Blink blue and no check noticed.
+        colours = dict(MODULE.resolve_colors(MODULE.load()))
+        for name in ("signal", "signal-light", "signal-shade", "signal-deep", "signal-ink"):
+            for theme in ("nacht", "papier"):
+                red, green, blue = (int(colours[name][theme][i : i + 2], 16) for i in (1, 3, 5))
+                self.assertGreater(green, max(red, blue), f"{name} in {theme}")
+
+    def test_signal_keeps_its_contrast(self):
+        colours = dict(MODULE.resolve_colors(MODULE.load()))
+
+        def luminance(hex_value: str) -> float:
+            channels = [int(hex_value[i : i + 2], 16) / 255 for i in (1, 3, 5)]
+            linear = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in channels]
+            return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+        def ratio(a: str, b: str) -> float:
+            high, low = sorted((luminance(a), luminance(b)), reverse=True)
+            return (high + 0.05) / (low + 0.05)
+
+        for theme in MODULE.themes(MODULE.load()):
+            signal = colours["signal"][theme]
+            for surface in ("bg", "surface", "surface-sunken"):
+                self.assertGreaterEqual(ratio(signal, colours[surface][theme]), 5, f"signal on {surface} in {theme}")
+            self.assertGreaterEqual(ratio(colours["on-signal"][theme], signal), 6.4, f"on-signal in {theme}")
+
     def test_waybar_example_uses_token_colours(self):
         css = (Path(__file__).parents[2] / "linux" / "waybar.example.css").read_text()
         colours = dict(MODULE.resolve_colors(MODULE.load()))
