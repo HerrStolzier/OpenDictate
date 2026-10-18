@@ -88,6 +88,19 @@ tests do not launch the app, access a microphone or change a user's signing
 identity, Keychain or permissions. CI runs them before packaging its development
 archive and verifies the archive again after extraction.
 
+## Visual check of a changed surface
+
+A change that alters how a window, menu, indicator, page or app screen looks
+is not ready until someone has looked at it in a light and a dark appearance
+(Papier and Nacht), with a screenshot of each in the PR or the thread. Token
+and test conformity is not enough: in October 2026 the design system itself
+made Blink blue in Papier, every review compared against it, and nobody looked
+at the light menu until Basti did. Compare each screenshot against
+`design/brand.md` (Blink and `signal` are green in Nacht and Papier, text and
+control contrast), not only against the tokens. The token tests in
+`scripts/tests/test_design_tokens.py` and `BlinkColourTests` guard the green
+and the `signal` contrast offline; they do not replace the look.
+
 ## Developer ID release candidate
 
 This path prepares and validates a private release candidate. It does not

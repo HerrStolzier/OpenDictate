@@ -14,6 +14,7 @@ OpenDictate ist eine Diktier-App für die Menüleiste: Tastenkürzel drücken, s
 - Flächen: `bg` für Seite und Fenster, `surface` für Karten und Panels, `surface-sunken` für eingelassene Flächen wie die Bühne hinter Blink. `line` nur als Haarlinie zur Gliederung und als Fläche von Zweitknöpfen und Tastenkappen. `edge` für die Grenzen von Bedienelementen: Kachelrahmen, Feldkanten, Schalterspuren. Karten heben sich sichtbar vom Grund ab, auch auf matten Bildschirmen.
 - Text: `ink` für Inhalte, `ink-muted` für Labels, Zeiten und Hinweise. Beide lesen sich auf `bg`, `surface` und `surface-sunken` in allen Themes.
 - `signal` ist die Markenfarbe: Blinks Körper, der Hauptknopf, Fortschritt, aktive Zustände. Text auf einer `signal`-Fläche ist immer `on-signal`.
+- Blink und `signal` sind in Nacht und Papier grün. Papier nimmt ein dunkles Grün, damit es auf hellem Grund lesbar bleibt; nie ein anderer Farbton. Bernstein ist die bernsteinfarbene Alternative.
 - `rec` heißt Aufnahme oder Fehler und steht nie allein: immer mit „REC“, „Hoppla“ oder einem Symbol.
 - `signal-light`, `signal-shade`, `signal-deep`, `signal-ink`, `sneaker`, `sneaker-light`, `sole`, `floor` und `glitch` gehören zur Figur und zu Pixel-Elementen, nicht zu Flächen oder Text.
 - Keine Verläufe auf Flächen. Einzige Ausnahme ist das leise Leuchten hinter Blink im App-Icon und im Hero (`glow`).
@@ -55,7 +56,7 @@ OpenDictate ist eine Diktier-App für die Menüleiste: Tastenkürzel drücken, s
 ## Layout
 
 - 4-px-Raster: `space-1` bis `space-16`. Karten haben `space-6` Innenabstand, Karten im Raster `space-4` Abstand, Seitenabschnitte `space-12`.
-- Dunkel zuerst: Entwürfe immer in Nacht anlegen und in Papier gegenprüfen.
+- Dunkel zuerst: Entwürfe immer in Nacht anlegen und in Papier gegenprüfen, mit je einem Bildschirmfoto.
 
 ## Zugänglichkeit
 
