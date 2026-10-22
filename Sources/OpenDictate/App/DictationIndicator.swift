@@ -393,10 +393,6 @@ final class IndicatorView: NSView {
 
     private var detailColor: NSColor { content.isRecordingLine ? NSColor(design: .rec) : muted }
 
-    private var buttonRowWidth: CGFloat {
-        closeButton.intrinsicContentSize.width + (canRetry ? 8 + retryButton.intrinsicContentSize.width : 0)
-    }
-
     private func plan() -> Plan {
         let target = target
         switch placement {
