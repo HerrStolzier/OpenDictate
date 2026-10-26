@@ -101,7 +101,7 @@ fn translate_body(
 }
 
 #[test]
-fn security_rules_block_terminal_auto_paste_on_line_breaks() {
+fn security_rules_block_auto_paste_on_line_breaks() {
     let rules = rules();
     let paste = &rules["auto_paste"];
     let breaks: Vec<char> = paste["line_breaks"]
@@ -116,7 +116,7 @@ fn security_rules_block_terminal_auto_paste_on_line_breaks() {
             character
         })
         .collect();
-    let blocked: Vec<&str> = paste["blocked_in_terminal"]
+    let blocked: Vec<&str> = paste["blocked"]
         .as_array()
         .unwrap()
         .iter()
@@ -136,19 +136,24 @@ fn security_rules_block_terminal_auto_paste_on_line_breaks() {
         );
         assert_blocked(sample);
     }
+    assert_eq!(paste["scope"].as_str(), Some("every target"));
+    assert_eq!(
+        paste["enforcement"].as_str(),
+        Some(
+            "Linux tests in this change block these breaks in every target. macOS and Windows on main still block multi-line auto-paste only in known terminals; those platforms are not changed here."
+        )
+    );
     for case in paste["allowed"].as_array().unwrap() {
         let text = case["text"].as_str().unwrap();
-        let class = if case["terminal"].as_bool().unwrap() {
-            "Alacritty"
-        } else {
-            "chromium"
-        };
+        assert!(!policy::is_multiline(text), "{text:?}");
         let delivered = policy::text_for_delivery(text);
-        assert_ne!(
-            paste_into(&window(class), &delivered),
-            Err(Skip::MultilineIntoTerminal),
-            "{text:?}"
-        );
+        for class in ["Alacritty", "chromium", "code", "unknown"] {
+            assert_ne!(
+                paste_into(&window(class), &delivered),
+                Err(Skip::MultilineText),
+                "{class} {text:?}"
+            );
+        }
     }
 
     let nel = blocked
@@ -178,14 +183,16 @@ fn assert_blocked(sample: &str) {
     let delivered = policy::text_for_delivery(sample);
     assert!(policy::is_multiline(sample), "{sample:?}");
     assert!(policy::is_multiline(&delivered), "{delivered:?}");
-    assert_eq!(
-        paste_into(&window("Alacritty"), sample),
-        Err(Skip::MultilineIntoTerminal),
-        "{sample:?}"
-    );
-    assert_eq!(
-        paste_into(&window("Alacritty"), &delivered),
-        Err(Skip::MultilineIntoTerminal),
-        "{delivered:?}"
-    );
+    for class in ["Alacritty", "code", "chromium", "unknown"] {
+        assert_eq!(
+            paste_into(&window(class), sample),
+            Err(Skip::MultilineText),
+            "{class} {sample:?}"
+        );
+        assert_eq!(
+            paste_into(&window(class), &delivered),
+            Err(Skip::MultilineText),
+            "{class} {delivered:?}"
+        );
+    }
 }

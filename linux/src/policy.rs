@@ -19,13 +19,13 @@ pub fn sanitize_transcript(text: &str) -> String {
 }
 
 /// Text copied to the clipboard. Next line (U+0085), vertical tab and form
-/// feed become LF before other controls are stripped, so terminal auto-paste
-/// sees the same breaks as LF, CR and U+2028/U+2029.
+/// feed become LF before other controls are stripped, so auto-paste sees the
+/// same breaks as LF, CR and U+2028/U+2029.
 pub fn text_for_delivery(text: &str) -> String {
     sanitize_transcript(&text.replace(['\u{0085}', '\u{000B}', '\u{000C}'], "\n"))
 }
 
-/// True when `text` contains a break a terminal can treat as a new line:
+/// True when `text` contains a break that starts another line:
 /// LF, CR, U+2028, U+2029, next line (U+0085), vertical tab or form feed.
 pub fn is_multiline(text: &str) -> bool {
     text.contains([

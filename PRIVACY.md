@@ -217,7 +217,7 @@ returned text is written to the Wayland clipboard (`wl-copy`). Unless
 window captured at recording start is still frontmost, sends that window a
 paste shortcut via `hyprctl`. Control characters and invisible text-direction
 marks are removed from the returned text first. Text with a line break is not
-pasted into known terminals; it stays in the clipboard. Retry never pastes
+pasted into any app automatically; it stays in the clipboard. Retry never pastes
 automatically. A clipboard history manager on Wayland (such as cliphist or
 clipman) keeps its own copy of every text copied via `wl-copy`; OpenDictate
 cannot prevent or remove that copy. The optional

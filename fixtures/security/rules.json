@@ -105,8 +105,10 @@
     }
   },
   "auto_paste": {
+    "scope": "every target",
+    "enforcement": "Linux tests in this change block these breaks in every target. macOS and Windows on main still block multi-line auto-paste only in known terminals; those platforms are not changed here.",
     "line_breaks": ["\n", "\r", "\u2028", "\u2029", "\u0085", "\u000b", "\u000c"],
-    "blocked_in_terminal": [
+    "blocked": [
       "echo hi\nrm -rf /",
       "echo hi\rrm -rf /",
       "echo hi\u2028rm -rf /",
@@ -116,8 +118,7 @@
       "echo hi\u000crm -rf /"
     ],
     "allowed": [
-      {"text": "echo hi", "terminal": true},
-      {"text": "echo hi\nrm -rf /", "terminal": false}
+      {"text": "echo hi"}
     ]
   }
 }
