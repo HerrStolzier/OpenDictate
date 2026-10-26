@@ -51,37 +51,21 @@ fn security_rules_accept_https_and_http_only_for_loopback() {
     }
 }
 
-fn response_limits() -> (usize, usize) {
-    let rules = rules();
-    let limits = &rules["response_limits"];
-    let shared = limits["shared_transcription_bytes"].as_u64().unwrap();
+fn linux_response_limits() -> (usize, usize) {
+    let limits = &rules()["response_limits"]["linux"];
+    let transcription = limits["transcription_bytes"].as_u64().unwrap();
     let translation = limits["translation_bytes"].as_u64().unwrap();
-    let platforms = &limits["by_platform"];
-    for platform in ["linux", "macos", "ios", "windows"] {
-        assert_eq!(
-            platforms[platform]["transcription"].as_u64().unwrap(),
-            shared,
-            "{platform}"
-        );
-        assert_eq!(
-            platforms[platform]["translation"].as_u64().unwrap(),
-            translation,
-            "{platform}"
-        );
-    }
-    assert!(limits["windows_transcription_exception"]
-        .as_str()
-        .unwrap()
-        .contains("128"));
+    assert_eq!(transcription, 131_072);
+    assert_eq!(translation, 1_048_576);
     (
-        usize::try_from(platforms["linux"]["transcription"].as_u64().unwrap()).unwrap(),
-        usize::try_from(platforms["linux"]["translation"].as_u64().unwrap()).unwrap(),
+        usize::try_from(transcription).unwrap(),
+        usize::try_from(translation).unwrap(),
     )
 }
 
 #[test]
 fn security_rules_cap_transcription_responses() {
-    let (limit, _) = response_limits();
+    let (limit, _) = linux_response_limits();
     assert_eq!(
         transcribe_body(&padded(r#"{"text":"ok"}"#, limit)).unwrap(),
         "ok"
@@ -91,7 +75,7 @@ fn security_rules_cap_transcription_responses() {
 
 #[test]
 fn security_rules_cap_translation_responses() {
-    let (_, limit) = response_limits();
+    let (_, limit) = linux_response_limits();
     let prefix = r#"{"choices":[{"message":{"content":"ok"}}]}"#;
     assert_eq!(translate_body(&padded(prefix, limit)).unwrap().text, "ok");
     assert!(translate_body(&padded(prefix, limit + 1)).is_err());

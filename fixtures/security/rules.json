@@ -1,5 +1,5 @@
 {
-  "macos_keychain_note": "The Keychain approved-server-address store (TrustedServerAddressStore) exists only on macOS, in PR #159. It is not part of these rules.",
+  "macos_keychain_note": "The Keychain approved-server-address store (TrustedServerAddressStore) exists only on macOS, in PR #159. Linux, Windows, and iOS have no approved-address store. It is not part of these rules.",
   "addresses": [
     {
       "input": "https://api.openai.com/v1",
@@ -76,14 +76,32 @@
     {"input": "ftp://127.0.0.1/v1", "accept": false}
   ],
   "response_limits": {
-    "shared_transcription_bytes": 131072,
-    "translation_bytes": 1048576,
-    "windows_transcription_exception": "Windows transcription stays at 128 KiB (131072 bytes), not the 1 MiB translation cap.",
-    "by_platform": {
-      "linux": {"transcription": 131072, "translation": 1048576},
-      "macos": {"transcription": 131072, "translation": 1048576},
-      "ios": {"transcription": 131072, "translation": 1048576},
-      "windows": {"transcription": 131072, "translation": 1048576}
+    "linux": {
+      "transcription_bytes": 131072,
+      "translation_bytes": 1048576,
+      "enforcement": "enforced by the Linux tests in this change",
+      "transcription_code": "linux/src/transcribe.rs",
+      "translation_code": "linux/src/translate.rs"
+    },
+    "windows": {
+      "transcription_bytes": 131072,
+      "translation_bytes": 1048576,
+      "enforcement": "observed in code at the paths below; not yet enforced by tests on this platform",
+      "transcription_code": "windows/OpenDictate.Provider/OpenAiTranscriber.cs",
+      "translation_code": "windows/OpenDictate.Provider/Translator.cs"
+    },
+    "macos": {
+      "transcription_bytes": null,
+      "translation_bytes": null,
+      "enforcement": "no response-body cap in code on main; not a conformance claim",
+      "transcription_code": "Sources/OpenDictate/Transcription/OpenAITranscriber.swift",
+      "translation_code": "Sources/OpenDictate/Transcription/OpenAITranslator.swift"
+    },
+    "ios": {
+      "transcription_bytes": null,
+      "translation_bytes": null,
+      "enforcement": "no response-body cap in code on main; not a conformance claim",
+      "code": "ios/App/Dictation/ServiceClient.swift"
     }
   },
   "auto_paste": {
