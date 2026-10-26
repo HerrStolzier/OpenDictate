@@ -362,17 +362,21 @@ def check_push(raw, bare, seg, cwd):
             name = re.sub(r"^refs/(heads|tags)/", "", dst or src)
             base = f"{remote}/{name}" if git(top, "rev-parse", "--verify", "-q", f"{remote}/{name}") else None
         base = base or default_base(top, remote)
-        # Ohne Vergleichsstand zählen alle Commits, die noch auf keinem Remote liegen.
-        rng = [f"{base}..{src}"] if base else [src, "--not", "--remotes"]
-        for c in lines(git(top, "rev-list", "--no-merges", *rng)):
+        # Es zählen nur Commits, die noch auf keinem Remote liegen. Ein aus main eingemischter, schon gemergter
+        # Commit kommt mit diesem Push nicht neu dazu und sperrt ihn darum nicht.
+        for c in lines(git(top, "rev-list", "--no-merges", src, "--not", "--remotes")):
             files = lines(git(top, "diff-tree", "--root", "--no-commit-id", "--name-only", "-r", c))
             if needs_review(files) and not TRAILER.search(git(top, "log", "-1", "--format=%B", c) or ""):
-                missing.append((c[:8], base))
+                missing.append((c[:8], base, src))
     if missing:
-        hashes = ", ".join(sorted({h for h, _ in missing})[:10])
-        base = missing[0][1]
+        hashes = ", ".join(sorted({h for h, _, _ in missing})[:10])
+        _, base, src = missing[0]
+        # `reset --soft` fasst alles ab base zusammen. Ist base nicht Vorfahr oder liegt ein Merge dazwischen,
+        # landeten fremde Änderungen (etwa aus eingemischtem main) im eigenen Commit; dann kein Tipp.
+        linear = base and git(top, "merge-base", "--is-ancestor", base, src) is not None and \
+            not lines(git(top, "rev-list", "--merges", f"{base}..{src}"))
         tip = (f" Da sie noch nicht auf {base} liegen, kannst du sie mit `git reset --soft {base}` zusammenfassen "
-               "und nach dem Review als einen Commit neu anlegen.") if base else ""
+               "und nach dem Review als einen Commit neu anlegen.") if linear else ""
         deny(f"Diese noch nicht gepushten Commits ändern Code ohne Zeile `Reviewed-by:`: {hashes}. {HOW}{tip}")
 
 

@@ -9,7 +9,7 @@ on:
   pull_request:
     types: [opened, reopened, ready_for_review, synchronize]
   workflow_run:
-    workflows: ["Swift checks", "iOS prototype", "Linux checks", "Repository hygiene", "Windows checks"]
+    workflows: ["Swift checks", "iOS prototype", "Linux checks", "Repository hygiene", "Windows checks", "Claude Review"]
     types: [completed]
   schedule:
     - cron: "23 5 * * *"

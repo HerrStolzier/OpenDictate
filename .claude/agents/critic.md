@@ -2,8 +2,8 @@
 name: critic
 description: Unabhängiges, lesendes Review der eigenen Änderungen vor einem Code-Commit oder Merge – Lesbarkeit, Logikfehler, fehlende Tests, Notlösungen in Kommentaren, Abweichungen von CLAUDE.md. Use proactively before code commits and merges; nicht bei reinen Text- oder Doku-Korrekturen; geänderte Kommentare im Code zählen als Code. Keine Sicherheitstests oder Angriffe.
 tools: Read, Grep, Glob, Bash
-model: fable
-effort: high
+model: opus
+effort: xhigh
 color: purple
 hooks:
   PreToolUse:
