@@ -45,7 +45,7 @@ def needs_review(paths):
                                                or os.path.basename(p).upper().startswith("LICENSE")))]
 
 
-def latest_checks(check_runs):
+def latest_checks(check_runs, runs=()):
     """Ohne die eigene Prüfung; je Workflow-Lauf (check suite) und Name zählt nur der jüngste Versuch.
     Gleich benannte Jobs aus verschiedenen Workflows zählen getrennt."""
     latest = {}
@@ -55,7 +55,21 @@ def latest_checks(check_runs):
         key = ((c.get("check_suite") or {}).get("id"), c.get("name"))
         if key not in latest or c.get("id", 0) > latest[key].get("id", 0):
             latest[key] = c
-    return list(latest.values())
+    # Ein abgebrochener Lauf, den ein neuerer gleichnamiger Lauf desselben Workflows auf demselben Stand abgelöst
+    # hat, zählt nicht (z. B. Claude Review, wenn ein PR auf demselben Stand erneut bereit gestellt wird).
+    # Ist der Workflow einer Suite unbekannt, bleibt sie für sich und ein abgebrochener Lauf dort rot.
+    workflow = {r.get("check_suite_id"): r.get("workflow_id") for r in runs
+                if r.get("check_suite_id") and r.get("workflow_id")}
+
+    def group(c):
+        suite = (c.get("check_suite") or {}).get("id")
+        return (workflow.get(suite) or ("suite", suite), c.get("name"))
+
+    newest = {}
+    for c in latest.values():
+        newest[group(c)] = max(newest.get(group(c), 0), c.get("id", 0))
+    return [c for c in latest.values()
+            if not (c.get("conclusion") == "cancelled" and c.get("id", 0) < newest[group(c)])]
 
 
 GUARDED_PREFIXES = (".github/", "scripts/ci/", ".claude/")
@@ -115,7 +129,7 @@ def evaluate(pr, owner, default_branch, commits, files, check_runs, status, wait
     if unresolved:
         return "block", f"hinweise:{unresolved}"
 
-    checks = latest_checks(check_runs)
+    checks = latest_checks(check_runs, runs)
     failed = [c["name"] for c in checks if c.get("status") == "completed"
               and (c.get("conclusion") or "") not in OK_CONCLUSIONS]
     failed += [r.get("name") or "Workflow" for r in runs if r.get("status") == "completed"
