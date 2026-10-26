@@ -201,7 +201,7 @@ opendictate settings server off              # back to OpenAI
   for translation; both go to the same address. A server that only
   transcribes works with translation off.
 - `https://` works for any address. Plain `http://` only for this computer
-  (`localhost`, `127.0.0.1`, `[::1]`). Addresses with credentials, `?` or `#`
+  (`localhost`, `127.0.0.1`, `::1`, `[::1]`). Addresses with credentials, `?` or `#`
   are rejected.
 - A server on this computer is only private on a computer you use alone:
   another local user could start a program on the same port first and would

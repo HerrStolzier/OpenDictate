@@ -227,7 +227,7 @@ With a custom server (`settings server`, or `OPENAI_BASE_URL` when no address
 is stored), the recording and, with translation on, the transcript go to that
 server's `/audio/transcriptions` and `/chat/completions` instead of OpenAI;
 nothing goes to OpenAI then. Plain `http://` is accepted only for loopback
-addresses (`localhost`, `127.0.0.1`, `[::1]`), which never receive the API key.
+addresses (`localhost`, `127.0.0.1`, `::1`, `[::1]`), which never receive the API key.
 Any other custom server is reached over HTTPS and receives the stored API key
 as a bearer token, even when that key was created for OpenAI. `OPENAI_BASE_URL` set in
 the session therefore redirects the audio, the transcript and, for a

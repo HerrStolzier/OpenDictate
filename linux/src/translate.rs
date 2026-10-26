@@ -7,6 +7,8 @@ use serde_json::json;
 use crate::server::{custom_network_failure, Failure, Server};
 
 const MAX_INPUT_CHARS: usize = 20_000;
+/// Provider JSON larger than this is rejected, not parsed in part.
+const MAX_RESPONSE_BYTES: usize = 1024 * 1024;
 /// Waiting time for a short translation. A request that stalls because the
 /// network is gone ends after this budget plus a share for longer texts,
 /// instead of an open-ended read timeout.
@@ -153,6 +155,13 @@ fn language_name(code: &str) -> String {
     }
 }
 
+fn unexpected_translation() -> String {
+    crate::tr!(
+        "Der Dienst hat bei der Übersetzung unerwartet geantwortet.",
+        "The service gave an unexpected answer to the translation."
+    )
+}
+
 fn decode_response(
     response: Result<ureq::Response, ureq::Error>,
     server: &Server,
@@ -207,19 +216,18 @@ fn decode_response(
     let mut data = Vec::new();
     response
         .into_reader()
-        .take(1_024 * 1_024)
+        .take(u64::try_from(MAX_RESPONSE_BYTES + 1).expect("response cap fits in u64"))
         .read_to_end(&mut data)
         .map_err(|_| {
             if server.is_custom() {
                 custom_network_failure(server)
             } else {
-                crate::tr!(
-                    "Der Dienst hat bei der Übersetzung unerwartet geantwortet.",
-                    "The service gave an unexpected answer to the translation."
-                )
-                .into()
+                unexpected_translation().into()
             }
         })?;
+    if data.len() > MAX_RESPONSE_BYTES {
+        return Err(unexpected_translation().into());
+    }
     #[derive(Deserialize)]
     struct Response {
         choices: Vec<Choice>,
@@ -233,12 +241,7 @@ fn decode_response(
     struct Message {
         content: Option<String>,
     }
-    let parsed: Response = serde_json::from_slice(&data).map_err(|_| {
-        crate::tr!(
-            "Der Dienst hat bei der Übersetzung unerwartet geantwortet.",
-            "The service gave an unexpected answer to the translation."
-        )
-    })?;
+    let parsed: Response = serde_json::from_slice(&data).map_err(|_| unexpected_translation())?;
     let text = parsed
         .choices
         .into_iter()
@@ -246,7 +249,7 @@ fn decode_response(
         .and_then(|choice| choice.message.content)
         .unwrap_or_default();
     Ok(TranslationResult {
-        text: crate::policy::sanitize_transcript(&text),
+        text: crate::policy::text_for_delivery(&text),
         input_tokens: parsed
             .usage
             .as_ref()

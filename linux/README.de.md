@@ -205,7 +205,7 @@ opendictate settings server off              # zurück zu OpenAI
   die Übersetzung an; beides geht an dieselbe Adresse. Ein Server, der nur
   abschreibt, funktioniert mit ausgeschalteter Übersetzung.
 - `https://` geht für jede Adresse, einfaches `http://` nur für diesen Rechner
-  (`localhost`, `127.0.0.1`, `[::1]`). Adressen mit Zugangsdaten, `?` oder `#`
+  (`localhost`, `127.0.0.1`, `::1`, `[::1]`). Adressen mit Zugangsdaten, `?` oder `#`
   werden abgelehnt.
 - Ein Server auf diesem Rechner bleibt nur privat, wenn du den Rechner allein
   nutzt: Ein anderer lokaler Nutzer könnte zuerst ein Programm auf demselben
