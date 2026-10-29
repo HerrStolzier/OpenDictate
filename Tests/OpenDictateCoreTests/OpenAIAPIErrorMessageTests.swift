@@ -4,7 +4,7 @@ import Testing
 @testable import OpenDictateCore
 
 @Suite("OpenAI error messages")
-struct OpenAIAPIErrorTests {
+struct OpenAIAPIErrorMessageTests {
     private func message(_ json: String, status: Int) -> String {
         OpenAIAPIErrorMessage.humanReadableMessage(from: Data(json.utf8), statusCode: status)
     }
