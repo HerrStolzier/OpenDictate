@@ -47,7 +47,11 @@ selbst (siehe Grenzen).
    Nochmal-Senden an.
 3. Die Aufnahme geht an OpenAI oder den eigenen Server, oder Apples
    Spracherkennung oder Parakeet schreibt sie auf dem iPhone (Einstellung
-   „Erkennung“, siehe unten); mit Zielsprache folgt die Übersetzung. Ist die App vorn, kopiert sie den Text selbst, nur
+   „Erkennung“, siehe unten). Deutsche Uhrzeiten und Zahlen ab 13 schreibt
+   die App danach als Ziffern („zehn Uhr dreißig“ wird „10:30 Uhr“,
+   „fünfundzwanzig“ wird „25“); kleinere Zahlen bleiben Wörter, außer vor
+   „Uhr“, „Prozent“, „Euro“ oder „Cent“. Mit Zielsprache folgt die
+   Übersetzung. Ist die App vorn, kopiert sie den Text selbst, nur
    lokal und mit Ablaufzeit: Nach zehn Minuten nimmt iOS ihn wieder aus der
    Zwischenablage („Nochmal kopieren“ legt ihn erneut ab). Im
    Hintergrund verweigert iOS ihr die Zwischenablage; dann gibt sie den Text
@@ -141,6 +145,9 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
 
 ## Grenzen der ersten Beta
 
+- Ziffern für Uhrzeiten und Zahlen gibt es bisher nur auf dem iPhone und nur
+  für Deutsch. „Halb elf“, „Viertel nach zehn“ und Ordnungszahlen bleiben
+  Wörter, und am Gerät ist das noch nicht geprüft.
 - Der Start im Hintergrund scheiterte beim ersten iPhone-Test am 12. Oktober
   („Die Aufnahme konnte nicht starten“). Seitdem nimmt die App im Hintergrund
   so auf, dass sie mit anderer Wiedergabe mischt (die wird leiser), nennt bei

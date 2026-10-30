@@ -323,6 +323,7 @@ final class DictationRunner {
         case .parakeet: text = try await ParakeetTranscriber.transcribe(audio)
         }
         guard !text.isEmpty else { throw DictationFailure.nothingRecognized }
+        text = SpokenNumbers.written(text)
         if let target = configuration.translationTarget {
             switch configuration.translationEngine {
             // Parakeet does not translate; `AppSettings.translationEngine` never picks it.
