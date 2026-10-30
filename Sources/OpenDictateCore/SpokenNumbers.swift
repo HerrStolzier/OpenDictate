@@ -64,13 +64,13 @@ public enum SpokenNumbers {
         return ("\(hourWord.leading)\(hour) Uhr\(clock.trailing)", 2)
     }
 
-    /// "zehn Uhr zwei Termine": a small number before a noun counts it and is
-    /// no minute.
+    /// "zehn Uhr zwei Termine", "acht Uhr zwanzig Prozent": a number before a
+    /// unit, or a small number before a noun, counts it and is no minute.
     private static func countsNoun(after minuteWord: Word, minutes: Int, in tokens: [String], at index: Int) -> Bool {
-        guard minutes <= 12, minuteWord.trailing.isEmpty, index < tokens.count, let noun = Word(tokens[index]),
+        guard minuteWord.trailing.isEmpty, index < tokens.count, let noun = Word(tokens[index]),
             noun.leading.isEmpty, noun.text != "Uhr"
         else { return false }
-        return noun.text.first?.isUppercase == true
+        return units.contains(noun.lowered) || (minutes <= 12 && noun.text.first?.isUppercase == true)
     }
 
     /// German groups thousands from five digits on: 50.000, but 2026.
