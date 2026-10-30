@@ -47,7 +47,8 @@ public enum SpokenNumbers {
         else { return nil }
         if clock.trailing.isEmpty, index + 2 < tokens.count, let minuteWord = Word(tokens[index + 2]),
             minuteWord.leading.isEmpty, minuteWord.text.count <= 2 || minuteWord.text.contains(where: \.isLetter),
-            let minutes = number(minuteWord.lowered), minutes <= 59
+            // "acht Uhr ein Meeting": "ein" is the article, a minute is said "eins".
+            minuteWord.lowered != "ein", let minutes = number(minuteWord.lowered), minutes <= 59
         {
             var trailing = minuteWord.trailing
             var used = 3
