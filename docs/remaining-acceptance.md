@@ -477,7 +477,7 @@ Einrichtens von Parakeet, die
 Übersetzung „Auf dem iPhone“ (ab iOS 26) am Gerät, Abfrage
 „Lokales Netzwerk“, Abbruch-/Unterbrechungsfälle, Dateischutz am Gerät, Verteilung über TestFlight,
 Barrierefreiheit, wann die Kurzbefehle-App vor der Ausgabe fragt (auch beim
-Doppeltippen?). Das Doppeltippen auf die Rückseite prüft Basti selbst; alles
+Tippen auf die Rückseite?), dreimal Tippen und der AssistiveTouch-Knopf am Gerät (Anleitung seit 30. Oktober). Das Tippen auf die Rückseite prüft Basti selbst; alles
 andere am Gerät laufen die UI-Tests.
 
 **Letzter Nachweis:** 14. Oktober 2026.

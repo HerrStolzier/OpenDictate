@@ -32,8 +32,9 @@ selbst (siehe Grenzen).
 
 ## Ablauf
 
-1. Auslösen (Kurzbefehl „Diktieren“ per „Auf Rückseite tippen“, Aktionstaste,
-   Siri oder Taste in der App): Die App prüft Mikrofon, Schlüssel und
+1. Auslösen (Kurzbefehl „Diktieren“ per Aktionstaste, dreimal Tippen auf
+   die Rückseite, den schwebenden AssistiveTouch-Knopf, Siri oder Taste in
+   der App): Die App prüft Mikrofon, Schlüssel und
    Einstellungen, startet die Live-Aktivität und dann die Aufnahme. Ohne
    Live-Aktivität beendet iOS eine Aufnahme im Hintergrund, darum bricht der
    Start ab, wenn sie aus ist.
@@ -79,7 +80,10 @@ Kurzbefehl einmal lief, denn iOS verrät nicht, ob er eingerichtet ist. Das
 Rückseiten-Tippen bietet nur eigene Kurzbefehle an; darum legt man einmal
 einen eigenen Kurzbefehl an: Aktion „Diktieren“, darunter „In Zwischenablage
 kopieren“ mit „Nur lokal“; „Beim Ausführen öffnen“ bleibt aus (so am
-13. Oktober 2026 am Gerät bestätigt). Ob der Kurzbefehl den Text kopiert hat, sieht die
+13. Oktober 2026 am Gerät bestätigt). Die Anleitung empfiehlt ohne
+Aktionstaste dreimal statt zweimal Tippen, weil zweimal Tippen im Alltag oft
+nicht auslöste (Basti, 30. Oktober 2026); AssistiveTouch („Eigene Aktionen →
+Einmal tippen“) nennt sie als zweiten Weg. Ob der Kurzbefehl den Text kopiert hat, sieht die
 App nicht; darum behält sie die Aufnahme und bietet sie nach dem nächsten
 Diktat unter „Nochmal senden“ an, bis sie nach 24 Stunden verfällt.
 
@@ -164,7 +168,7 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
 - Kein Kontrollzentrum-Schalter, kein Vokabular und keine feste Sprache; die
   Sprache erkennt der Dienst. Die Erkennung auf dem iPhone nutzt die Sprache
   des iPhones und ist am Gerät noch nicht geprüft; ob sie im Hintergrund nach
-  dem Doppeltippen schreibt und wie gut sie gegen OpenAI abschneidet, zeigt
+  dem Tippen auf die Rückseite schreibt und wie gut sie gegen OpenAI abschneidet, zeigt
   erst der Vergleich am iPhone.
 - Parakeet ist eine Probe. Am 14. Oktober schrieb es am iPhone 15 auch über
   den Kurzbefehl im Hintergrund. Nach einer Installation dauerte das

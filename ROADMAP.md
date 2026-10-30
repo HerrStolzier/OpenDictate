@@ -221,7 +221,10 @@ Hintergrund auf; die Zwischenablage verweigert iOS der App dort, darum
 kopiert der Kurzbefehl selbst, und so lässt sich der Text einfügen. Vorgaben für die erste Beta (11. Oktober): das
 Kontrollzentrum folgt später; der
 Tastatur-Prototyp bleibt als Nachweis im Repository, Draft-PR #40 ist
-geschlossen ([Richtung](docs/ios-direction.md)).
+geschlossen ([Richtung](docs/ios-direction.md)). Am 30. Oktober verwarf
+Basti eine eigene Tastatur, die zum Aufnehmen kurz in die App springt; ohne
+Aktionstaste empfiehlt die Anleitung seitdem dreimal statt zweimal Tippen auf
+die Rückseite, AssistiveTouch als zweiten Weg.
 
 **Nächste Schritte:**
 
@@ -270,7 +273,10 @@ GitHub Issues. Verteilung als interner Test in Google Play oder als APK.
 
 **Stand:** Kein Code, kein Plan. Android erlaubt eigene Tastaturen mit
 Mikrofon, anders als iOS; die Nutzerrecherche vom 8. Oktober zeigt Bedarf an
-Mehrsprachigkeit ohne Umschalten, Datenschutz und schnellem Zugriff.
+Mehrsprachigkeit ohne Umschalten, Datenschutz und schnellem Zugriff. Als
+Gegenstück zur Aktionstaste am iPhone kommen dazu der Assistent (langes
+Drücken der Seitentaste) und eine Kachel in den Schnelleinstellungen in Frage
+(30. Oktober).
 
 **Nächste Schritte:**
 

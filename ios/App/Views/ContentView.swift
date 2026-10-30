@@ -106,8 +106,8 @@ struct ContentView: View {
                 DeviceTrigger.hasActionButton
                     ? L10n.pick("Press the Action button to start.", "Drücke die Aktionstaste, um zu starten.")
                     : L10n.pick(
-                        "Double-tap the back of your iPhone to start.",
-                        "Tippe zweimal auf die Rückseite deines iPhones, um zu starten."))
+                        "Triple-tap the back of your iPhone to start.",
+                        "Tippe dreimal auf die Rückseite deines iPhones, um zu starten."))
         case .listening(let since):
             TimelineView(.periodic(from: since, by: 1)) { context in
                 let elapsed = context.date.timeIntervalSince(since)
@@ -230,9 +230,16 @@ struct ContentView: View {
                             "2. Settings → Action Button → Shortcut → “Dictate”.",
                             "2. Einstellungen → Aktionstaste → Kurzbefehl → „Diktieren“.")
                         : L10n.pick(
-                            "2. Settings → Accessibility → Touch → Back Tap → Double Tap → “Dictate”.",
+                            "2. Settings → Accessibility → Touch → Back Tap → Triple Tap → “Dictate”.",
                             "2. Einstellungen → Bedienungshilfen → Tippen → Auf Rückseite tippen → "
-                                + "Doppeltippen → „Diktieren“."))
+                                + "Dreimal tippen → „Diktieren“."))
+                Text(
+                    L10n.pick(
+                        "Or a floating button on the screen: Settings → Accessibility → Touch → "
+                            + "turn on AssistiveTouch → Custom Actions → Single-Tap → “Dictate”.",
+                        "Oder ein schwebender Knopf auf dem Bildschirm: Einstellungen → Bedienungshilfen → "
+                            + "Tippen → AssistiveTouch einschalten → Eigene Aktionen → Einmal tippen → "
+                            + "„Diktieren“."))
                 Text(
                     L10n.pick(
                         "3. Run the shortcut again to stop. The text is then on the clipboard. Tap into a "
