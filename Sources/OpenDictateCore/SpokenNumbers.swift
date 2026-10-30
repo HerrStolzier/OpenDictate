@@ -49,7 +49,7 @@ public enum SpokenNumbers {
             minuteWord.leading.isEmpty, minuteWord.text.count <= 2 || minuteWord.text.contains(where: \.isLetter),
             // "acht Uhr ein Meeting": "ein" is the article, a minute is said "eins".
             minuteWord.lowered != "ein", let minutes = number(minuteWord.lowered), minutes <= 59,
-            !countsNoun(after: minuteWord, minutes: minutes, in: tokens, at: index + 3)
+            !countsNoun(after: minuteWord, in: tokens, at: index + 3)
         {
             var trailing = minuteWord.trailing
             var used = 3
@@ -64,13 +64,13 @@ public enum SpokenNumbers {
         return ("\(hourWord.leading)\(hour) Uhr\(clock.trailing)", 2)
     }
 
-    /// "zehn Uhr zwei Termine", "acht Uhr zwanzig Prozent": a number before a
-    /// unit, or a small number before a noun, counts it and is no minute.
-    private static func countsNoun(after minuteWord: Word, minutes: Int, in tokens: [String], at index: Int) -> Bool {
+    /// "zehn Uhr zwei Termine", "acht Uhr zwanzig Minuten": a number right
+    /// before a noun or unit counts it and is no minute.
+    private static func countsNoun(after minuteWord: Word, in tokens: [String], at index: Int) -> Bool {
         guard minuteWord.trailing.isEmpty, index < tokens.count, let noun = Word(tokens[index]),
             noun.leading.isEmpty, noun.text != "Uhr"
         else { return false }
-        return units.contains(noun.lowered) || (minutes <= 12 && noun.text.first?.isUppercase == true)
+        return units.contains(noun.lowered) || noun.text.first?.isUppercase == true
     }
 
     /// German groups thousands from five digits on: 50.000, but 2026.

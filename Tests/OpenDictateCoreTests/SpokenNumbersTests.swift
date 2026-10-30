@@ -20,7 +20,9 @@ struct SpokenNumbersTests {
         ("um zehn Uhr zwei.", "um 10:02 Uhr."),
         ("um zehn Uhr zwei Uhr", "um 10:02 Uhr"),
         ("ab 18 Uhr 20 Euro", "ab 18 Uhr 20 Euro"),
-        ("um acht Uhr zwanzig Prozent Rabatt", "um 8 Uhr 20 Prozent Rabatt")
+        ("um acht Uhr zwanzig Prozent Rabatt", "um 8 Uhr 20 Prozent Rabatt"),
+        ("um acht Uhr zwanzig Minuten zu spät", "um 8 Uhr 20 Minuten zu spät"),
+        ("um zehn Uhr dreißig kommt Anna", "um 10:30 Uhr kommt Anna")
     ])
     func timesBecomeDigits(spoken: String, written: String) {
         #expect(SpokenNumbers.written(spoken) == written)

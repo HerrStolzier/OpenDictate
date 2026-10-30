@@ -151,7 +151,10 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
 
 - Ziffern für Uhrzeiten und Zahlen gibt es bisher nur auf dem iPhone und nur
   für Deutsch. „Halb elf“, „Viertel nach zehn“ und Ordnungszahlen bleiben
-  Wörter, und am Gerät ist das noch nicht geprüft.
+  Wörter. Folgt der Zahl nach „Uhr“ direkt ein großgeschriebenes Wort (etwa
+  ein Nomen oder Name), gilt sie als Anzahl:
+  „um zehn Uhr dreißig Leute“ wird „um 10 Uhr 30 Leute“, nicht 10:30 Uhr. Am
+  Gerät ist das noch nicht geprüft.
 - Der Start im Hintergrund scheiterte beim ersten iPhone-Test am 12. Oktober
   („Die Aufnahme konnte nicht starten“). Seitdem nimmt die App im Hintergrund
   so auf, dass sie mit anderer Wiedergabe mischt (die wird leiser), nennt bei
