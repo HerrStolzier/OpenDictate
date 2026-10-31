@@ -132,6 +132,11 @@ def set_box(body, key, state):
     return BOX_RE.sub(repl, body)
 
 
+def without_ticks(body):
+    """Kommentar ohne den Stand der Häkchen: zeigt, ob sich außer den Häkchen etwas geändert hat."""
+    return BOX_RE.sub(lambda m: m.group(0).replace(f"- [{m.group(1)}]", "- [ ]", 1), (body or "").replace("\r\n", "\n"))
+
+
 def render(data, kind, number, state=None, stand=""):
     """Der Erklär-Kommentar. kind: "pr" oder "issue". state: bisherige Häkchen (bleiben bei neuer Erklärung)."""
     state = state or {}
@@ -496,16 +501,16 @@ def cmd_schreiben(gh, number, kind, stand, result):
         # Hinweis liest. Sonst fiele „wartet-auf-basti“ weg und Auto-Merge mergte ohne Bastis „Ja“.
         data["braucht"] = "entscheidung"
         data["braucht_text"] = prev.get("braucht_text") or "Die Frage aus der PR-Beschreibung."
-    # Zur sicheren Seite hin zusammenführen. „Erst mal nicht“ bleibt angehakt, wenn es im Kommentar angehakt ist (der
-    # Knopf-Job hat das Label vielleicht noch nicht gesetzt) oder als Label am Eintrag steht. „Ja“ gilt nur, wenn
-    # Basti es im Kommentar angehakt hat: Ein Label, das noch steht, während der Knopf-Job eine Rücknahme noch nicht
-    # verarbeitet hat, darf das Häkchen nicht zurückbringen. Ohne Kommentar zählt das Label (das nimmt stale_yes
-    # unten ohnehin zurück).
+    # Gibt es schon einen Kommentar, zählen nur Bastis Häkchen darin: Ein Label, das noch steht, während der Knopf-Job
+    # eine Rücknahme noch nicht verarbeitet hat, darf das Häkchen nicht zurückbringen. Ein „Erst mal nicht“, dessen
+    # Label noch fehlt, bleibt so angehakt, und ein von Hand gesetztes Label `später` hält Auto-Merge auch ohne
+    # Häkchen an. Ohne Kommentar zeigen die Häkchen die Labels („Ja“ nimmt stale_yes unten ohnehin zurück).
     old = boxes(existing["body"]) if existing else {}
     state = {k: v for k, v in old.items() if k not in BOX_LABELS}
     state.update({k: name in labels or old.get(k, False) for k, name in BOX_LABELS.items()})
     if existing:
         state["ja"] = bool(old.get("ja"))
+        state["spaeter"] = bool(old.get("spaeter"))
     asks = kind == "pr" and data["braucht"] == "entscheidung"
     # Ein „Ja“ gilt für die Beschreibung, zu der Basti geantwortet hat. Hat sie sich seit der letzten Erklärung
     # geändert, wird neu gefragt. Ein Ja von Hand ohne frühere Erklärung lässt sich keiner Beschreibung zuordnen
@@ -595,6 +600,18 @@ def is_button_event(event, owner):
     return True
 
 
+def set_by_tick(gh, number, label):
+    """Kam das Label zuletzt vom Knopf-Job (also von Bastis Häkchen) und nicht von Hand?"""
+    try:
+        events = gh.pages(f"/repos/{gh.repo}/issues/{number}/events", limit=10)
+    except RuntimeError as e:  # im Zweifel gilt es als von Hand gesetzt: Es bleibt stehen
+        print(f"Label-Verlauf nicht lesbar: {e}")
+        return False
+    last = [e for e in events if isinstance(e, dict) and e.get("event") == "labeled"
+            and (e.get("label") or {}).get("name") == label]
+    return bool(last) and ((last[-1].get("actor") or {}).get("login") == BOT)
+
+
 def cmd_knopf(gh, event, owner):
     """Labels an Bastis Häkchen angleichen (schnell, ohne Claude). „Genauer“ macht ein eigener Job."""
     if not is_button_event(event, owner):
@@ -610,13 +627,24 @@ def cmd_knopf(gh, event, owner):
     previous = ((event.get("changes") or {}).get("body") or {}).get("from")
     before = boxes(previous) if previous is not None else dict(ticks)
     fixes = {}  # Häkchen, die am Ende frisch angeglichen werden
+    sent = ((event.get("comment") or {}).get("body")) or ""
+    said = boxes(sent).get("spaeter")
+    if (previous is not None and said and not before.get("spaeter", False) and not ticks.get("spaeter")
+            and without_ticks(body) != without_ticks(sent)):
+        # Basti hat eben „Erst mal nicht“ angehakt, aber eine neue Erklärung hat den Kommentar im selben Moment neu
+        # geschrieben und sein Häkchen dabei überschrieben. Dann gilt es trotzdem. Nur in diese Richtung, denn sie
+        # hält an: Ob ein fehlendes Häkchen danach von Basti selbst kam, lässt sich nicht sicher erkennen. Hat er nur
+        # selbst wieder abgehakt, ist der übrige Text gleich, und der neuere Lauf für dieses Antippen gleicht es an.
+        ticks["spaeter"] = fixes["spaeter"] = True
     kicked = False  # Auto-Merge schon angestoßen
     for key, state in label_actions(ticks, labels):
-        if before.get(key, False) == state and (key, state) == ("spaeter", False):
+        if (before.get(key, False) == state and (key, state) == ("spaeter", False)
+                and not set_by_tick(gh, number, BOX_LABELS[key])):
             # Nicht gerade von Basti geändert: Ein beliebiges Häkchen nimmt kein von Hand gesetztes „später“ ab.
-            # Alles andere wird nachgeholt, denn es zählt Bastis Häkchen. Das gilt auch für ein angehaktes „Ja“ ohne
-            # Label: GitHub verwirft den wartenden Lauf dieses Jobs, wenn Basti rasch ein zweites Häkchen setzt.
-            # Ob das Ja zur aktuellen Beschreibung gehört, prüft der nächste Schritt.
+            # Kam das Label dagegen vom Häkchen (gesetzt von diesem Job), wird es nachgeholt wie alles andere, denn es
+            # zählt Bastis Häkchen. GitHub verwirft den wartenden Lauf dieses Jobs, wenn Basti rasch ein zweites
+            # Häkchen setzt; so gehen weder ein „Ja“ noch das Abhaken von „Erst mal nicht“ verloren. Ob ein Ja zur
+            # aktuellen Beschreibung gehört, prüft der nächste Schritt.
             continue
         if key == "ja" and state and kind == "pr" and (parse_data(body) or {}).get("beschreibung") != description_mark(issue):
             # Die Frage im Kommentar passt nicht mehr zur Beschreibung (neue Erklärung fehlt noch oder scheiterte):
