@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Kopie aus HerrStolzier/claude-config (ci/erklaerseite.py); dort pflegen, dann scripts/install-repo-gate.py erneut ausführen.
 """Erklärseite: Jeder PR und jedes Issue bekommt eine Erklärung in einfachem Deutsch, jedes Repo eine Übersicht.
 
 Basti liest keinen Code, will aber verstehen, wozu er Ja sagt (Auftrag vom 31.10.2026, Vorbild: Fitz' „PR wiki“).
@@ -15,11 +16,14 @@ Die Knöpfe sind Häkchen im Erklär-Kommentar (gehen auch in der GitHub-App):
   „Erklär mir das genauer“  Claude antwortet mit einer längeren Erklärung.
   „Ja, mach das“            Label `ja-von-basti`; für Agenten das Zeichen, dass Basti zustimmt.
   „Erst mal nicht“          Label `später`; Auto-Merge mergt einen PR mit diesem Label nicht.
-Die Erklärung hält nichts auf: Auto-Merge wartet nicht auf sie (siehe IGNORED in auto_merge.py).
+Auto-Merge wartet nur, solange die Erklärung geschrieben wird, und bei einem PR mit Frage an Basti (Label
+`wartet-auf-basti`) auf sein „Ja“; eine gescheiterte Erklärung hält nichts auf (INFO_PREFIX in auto_merge.py).
 
 Quelle: HerrStolzier/claude-config (ci/erklaerseite.py), verteilt mit scripts/install-repo-gate.py.
 """
 import base64
+import hashlib
+import zlib
 import datetime
 import json
 import os
@@ -30,12 +34,13 @@ import urllib.request
 
 MARK = "<!-- erklaerseite -->"
 OVERVIEW_MARK = "<!-- erklaerseite-uebersicht -->"
-DATA_RE = re.compile(r"<!-- erklaerseite-daten ([A-Za-z0-9+/=]*) -->")
+DATA_RE = re.compile(r"<!-- erklaerseite-daten (z )?([A-Za-z0-9+/=]*) -->")  # „z “: gepackt (zlib), spart Platz
 BOX_RE = re.compile(r"^- \[( |x|X)\] .*<!-- k:(\w+) -->[ \t\r]*$", re.M)
 BOT = "github-actions[bot]"
 WORK = ".erklaerseite"
 
 LABEL_SPAETER, LABEL_JA, LABEL_OVERVIEW = "später", "ja-von-basti", "übersicht"
+LABEL_WARTET = "wartet-auf-basti"  # PR mit Frage an Basti: Auto-Merge wartet auf „Ja, mach das“
 ETIKETTEN = {  # Etikett: (Zeichen, Text, Label, Farbe)
     "sicher": ("🟢", "Sicher", "sicher", "2da44e"),
     "kleine-bedenken": ("🟡", "Kleine Bedenken", "kleine bedenken", "d4a72c"),
@@ -72,7 +77,8 @@ def cell(text):
 
 
 def encode(data):
-    return base64.b64encode(json.dumps(data, ensure_ascii=False).encode()).decode()
+    """Versteckte Daten: gepacktes JSON als base64 (ältere Fassungen ungepackt, parse_data liest beide)."""
+    return "z " + base64.b64encode(zlib.compress(json.dumps(data, ensure_ascii=False).encode(), 9)).decode()
 
 
 def parse_data(body):
@@ -80,8 +86,14 @@ def parse_data(body):
     if not m:
         return None
     try:
-        data = json.loads(base64.b64decode(m.group(1)).decode())
-    except (ValueError, UnicodeDecodeError):
+        raw = base64.b64decode(m.group(2))
+        if m.group(1):
+            unpack = zlib.decompressobj()
+            raw = unpack.decompress(raw, 5_000_000)  # Obergrenze: die Daten sind nie so groß
+            if unpack.unconsumed_tail:
+                return None
+        data = json.loads(raw.decode())
+    except (ValueError, UnicodeDecodeError, zlib.error):
         return None
     return data if isinstance(data, dict) else None
 
@@ -203,11 +215,17 @@ EXPLAIN_KEYS = ("kurztitel", "ein_satz", "etikett", "braucht", "braucht_text", "
 
 
 BODY_LIMIT = 60_000  # GitHub nimmt höchstens 65 536 Zeichen Text je Issue an
-SLIM_KEYS = ("art", "nummer", "fremd", "aktualisiert", "kurztitel", "etikett", "braucht")
-# Stufen, falls die Übersicht zu lang wird: (sichtbare Zeilen je Gruppe, Daten-Schlüssel oder None, fertige in den Daten?)
+# Schlanke Daten lassen nur weg, was jeder Lauf ohnehin frisch aus der Liste holt; die Erklärungen bleiben drin,
+# sonst müsste der nächste Lauf sie alle wieder einzeln abfragen.
+SLIM_KEYS = ("art", "nummer", "fremd", "aktualisiert") + EXPLAIN_KEYS
+MAX_FETCH = 25  # höchstens so viele Erklär-Kommentare je Lauf neu holen (Stunden-Kontingent, geteilt mit Auto-Merge)
+# Stufen, falls die Übersicht zu lang wird: (sichtbare Zeilen je Gruppe, Daten-Schlüssel oder None, welche Einträge in die Daten)
 # Daten: "alle", "offen" (ohne fertige) oder "eigene" (nur Bastis offene Einträge, ohne fremde).
-STEPS = [(MAX_ITEMS, DATA_KEYS, "alle"), (MAX_ITEMS, DATA_KEYS, "offen"), (MAX_ITEMS, SLIM_KEYS, "offen"),
-         (20, SLIM_KEYS, "offen"), (5, SLIM_KEYS, "offen"), (5, SLIM_KEYS, "eigene"), (10, None, "eigene")]
+# Zuletzt nur noch Nummer und Kurztitel: Die Seite auf claude.ai holt die Erklärungen dann selbst.
+MIN_KEYS = ("art", "nummer", "fremd", "aktualisiert", "kurztitel")
+STEPS = [(MAX_ITEMS, DATA_KEYS, "alle"), (MAX_ITEMS, SLIM_KEYS, "alle"), (20, SLIM_KEYS, "alle"),
+         (20, SLIM_KEYS, "offen"), (5, SLIM_KEYS, "offen"), (5, SLIM_KEYS, "eigene"), (5, MIN_KEYS, "eigene"),
+         (5, None, "eigene")]
 
 
 def render_overview(items, now):
@@ -393,6 +411,18 @@ def cmd_sammeln(gh, event_name, event, owner):
     return 0
 
 
+def start_auto_merge(gh, default):
+    # Labeländerungen über GITHUB_TOKEN starten keinen Workflow; Auto-Merge sonst erst am nächsten Morgen.
+    code, data, _ = gh.call("POST", f"/repos/{gh.repo}/actions/workflows/auto-merge.yml/dispatches", {"ref": default})
+    print(f"Auto-Merge angestoßen: {code}" + ("" if code == 204 else f" {data}"))
+
+
+def description_mark(issue):
+    """Fingerabdruck der PR-Beschreibung, in der die Frage an Basti steht: Ändert sie sich, gilt ein altes „Ja“
+    nicht mehr. (Claudes Wortlaut der Frage wechselt bei jeder Erklärung, die Beschreibung nicht.)"""
+    return hashlib.sha256((issue.get("body") or "").strip().encode()).hexdigest()[:16]
+
+
 def cmd_schreiben(gh, number, kind, stand, result):
     try:
         data = normalize(result)
@@ -400,12 +430,27 @@ def cmd_schreiben(gh, number, kind, stand, result):
         print(f"::warning::Claudes Erklärung war unbrauchbar ({e}); beim nächsten Push wird es erneut versucht.")
         return 0
     existing = own_comment(gh, number)
-    labels = {lb["name"] for lb in gh.ok("GET", f"/repos/{gh.repo}/issues/{number}").get("labels") or []}
+    issue = gh.ok("GET", f"/repos/{gh.repo}/issues/{number}")
+    labels = {lb["name"] for lb in issue.get("labels") or []}
+    data["beschreibung"] = description_mark(issue)
+    prev = (parse_data(existing["body"]) if existing else None) or {}
+    if (kind == "pr" and data["braucht"] != "entscheidung" and LABEL_WARTET in labels
+            and prev.get("braucht") == "entscheidung" and prev.get("beschreibung") == data["beschreibung"]):
+        # Die Frage steht unverändert in der Beschreibung: Sie bleibt offen, auch wenn Claude sie diesmal nur als
+        # Hinweis liest. Sonst fiele „wartet-auf-basti“ weg und Auto-Merge mergte ohne Bastis „Ja“.
+        data["braucht"] = "entscheidung"
+        data["braucht_text"] = prev.get("braucht_text") or "Die Frage aus der PR-Beschreibung."
     # Zur sicheren Seite hin zusammenführen: angehakt bleibt, was im Kommentar angehakt ist (der Knopf-Job hat das
     # Label vielleicht noch nicht gesetzt) oder was als Label am Eintrag steht.
     old = boxes(existing["body"]) if existing else {}
     state = {k: v for k, v in old.items() if k not in BOX_LABELS}
     state.update({k: name in labels or old.get(k, False) for k, name in BOX_LABELS.items()})
+    asks = kind == "pr" and data["braucht"] == "entscheidung"
+    # Ein „Ja“ gilt für die Frage, auf die Basti geantwortet hat. Steht jetzt eine andere in der Beschreibung (oder
+    # vorher gar keine), wird neu gefragt.
+    stale_yes = asks and state.get("ja") and prev.get("beschreibung") != data["beschreibung"]
+    if stale_yes:
+        state["ja"] = False
     body = render(data, kind, number, state, stand)
     if existing:
         gh.ok("PATCH", f"/repos/{gh.repo}/issues/comments/{existing['id']}", {"body": body})
@@ -418,7 +463,39 @@ def cmd_schreiben(gh, number, kind, stand, result):
             remove_label(gh, number, name)
     if wanted not in current:
         add_label(gh, number, wanted)
+    if stale_yes and LABEL_JA in current:
+        withdraw_yes(gh, number)
+    if asks and LABEL_WARTET not in current:
+        add_label(gh, number, LABEL_WARTET)
+    elif not asks and LABEL_WARTET in current:
+        remove_label(gh, number, LABEL_WARTET)
     print(f"#{number}: Erklärung gespeichert ({data['etikett']})")
+    return 0
+
+
+def withdraw_yes(gh, number):
+    remove_label(gh, number, LABEL_JA)
+    gh.ok("POST", f"/repos/{gh.repo}/issues/{number}/comments", {"body": (
+        "Die PR-Beschreibung hat sich geändert, Bastis früheres „Ja, mach das“ gilt dafür nicht mehr. "
+        "Auto-Merge wartet, bis er die Frage neu beantwortet.")})
+
+
+def cmd_danach(gh, number, default):
+    """Nach der Erklärung eines PRs (auch wenn Claude scheiterte): Hat sich die Beschreibung seit dem „Ja“ geändert,
+    gilt es nicht mehr. Dann Auto-Merge anstoßen; es hat vielleicht auf die Erklärung gewartet."""
+    issue = gh.ok("GET", f"/repos/{gh.repo}/issues/{number}")
+    if issue.get("pull_request") is None or issue.get("state") != "open":
+        return 0
+    labels = {lb["name"] for lb in issue.get("labels") or []}
+    comment = own_comment(gh, number)
+    data = (parse_data(comment["body"]) if comment else None) or {}
+    if LABEL_JA in labels and data.get("beschreibung") != description_mark(issue):
+        if comment and boxes(comment["body"]).get("ja"):
+            gh.ok("PATCH", f"/repos/{gh.repo}/issues/comments/{comment['id']}",
+                  {"body": set_box(comment["body"], "ja", False)})
+        withdraw_yes(gh, number)
+    if os.environ.get("ERKLAERT") != "skipped":  # ohne neue Erklärung (etwa nur der Titel geändert) kein Anstoß
+        start_auto_merge(gh, default)
     return 0
 
 
@@ -426,9 +503,9 @@ BOX_LABELS = {"spaeter": LABEL_SPAETER, "ja": LABEL_JA}
 
 
 def label_actions(ticks, labels):
-    """Abgleich Häkchen → Labels: [(Schlüssel, setzen?)]. Immer der volle Stand, nicht nur die letzte Änderung:
-    Geht ein Lauf verloren (GitHub behält je Gruppe nur einen wartenden Lauf), holt der nächste alles nach."""
-    # Nur Knöpfe, die im Kommentar stehen: Ein von Hand gesetztes Label ohne passendes Häkchen bleibt unberührt.
+    """Unterschiede Häkchen ↔ Labels: [(Schlüssel, setzen?)]. Welche davon gelten, entscheidet cmd_knopf: Bastis
+    gerade geänderte Häkchen und, falls ein Lauf verloren ging, nur das sichere Nachholen."""
+    # Nur Knöpfe, die im Kommentar stehen. Ob ein leeres Häkchen ein Label wirklich abnimmt, entscheidet cmd_knopf.
     return [(k, ticks[k]) for k, name in BOX_LABELS.items() if k in ticks and ticks[k] != (name in labels)]
 
 
@@ -453,21 +530,48 @@ def cmd_knopf(gh, event, owner):
     issue = gh.ok("GET", f"/repos/{gh.repo}/issues/{number}")
     kind = "pr" if issue.get("pull_request") is not None else "issue"
     labels = {lb["name"] for lb in issue.get("labels") or []}
+    # Stand vor Bastis Änderung. Fehlt er im Ereignis, gilt nichts als gerade geändert (nur sicheres Nachholen).
+    previous = ((event.get("changes") or {}).get("body") or {}).get("from")
+    before = boxes(previous) if previous is not None else dict(ticks)
+    fixes = {}  # Häkchen, die am Ende frisch angeglichen werden
     for key, state in label_actions(ticks, labels):
+        if before.get(key, False) == state and state != (key == "spaeter"):
+            # Nicht gerade von Basti geändert und kein Nachholen in die sichere Richtung („später“ setzen, „Ja“
+            # abnehmen): Das Label bleibt, wie es ist. So nimmt ein beliebiges Häkchen kein von Hand gesetztes
+            # „später“ ab und setzt kein von Hand entferntes „Ja“ wieder.
+            continue
+        if key == "ja" and state and kind == "pr" and (parse_data(body) or {}).get("beschreibung") != description_mark(issue):
+            # Die Frage im Kommentar passt nicht mehr zur Beschreibung (neue Erklärung fehlt noch oder scheiterte):
+            # Das „Ja“ gälte sonst für eine Frage, die Basti nicht gesehen hat.
+            fixes["ja"] = False
+            gh.ok("POST", f"/repos/{gh.repo}/issues/{number}/comments", {"body": (
+                "Die PR-Beschreibung hat sich geändert, seit diese Erklärung geschrieben wurde. Das „Ja“ zählt erst "
+                "für die neue Erklärung, die Erklärseite schreibt sie jetzt neu.")})
+            code, data, _ = gh.call("POST", f"/repos/{gh.repo}/actions/workflows/erklaerseite.yml/dispatches", {
+                "ref": (event.get("repository") or {}).get("default_branch") or "main",
+                "inputs": {"nummer": str(number)}})
+            print(f"Neue Erklärung angestoßen: {code}" + ("" if code == 204 else f" {data}"))
+            continue
         if state:
             add_label(gh, number, BOX_LABELS[key])
+            closed = issue.get("state") != "open"
             text = (f"Basti hat „{KNOEPFE[key]}“ angetippt."
-                    + (" Auto-Merge hält diesen PR an, bis das Häkchen wieder weg ist." if key == "spaeter" and kind == "pr"
+                    + (" Dieser PR ist aber schon gemergt oder geschlossen, das hält ihn nicht mehr an. Soll die "
+                       "Änderung zurückgenommen werden, muss ein Agent das tun." if key == "spaeter" and kind == "pr" and closed
+                       else " Auto-Merge hält diesen PR an, bis das Häkchen wieder weg ist." if key == "spaeter" and kind == "pr"
                        else "" if key == "spaeter" else " Ein Agent kann das jetzt umsetzen."))
             gh.ok("POST", f"/repos/{gh.repo}/issues/{number}/comments", {"body": text})
         else:
             remove_label(gh, number, BOX_LABELS[key])
-            if key == "spaeter" and kind == "pr":
-                # Labeländerungen über GITHUB_TOKEN starten keinen Workflow; Auto-Merge sonst erst am nächsten Morgen.
-                default = (event.get("repository") or {}).get("default_branch") or "main"
-                code, data, _ = gh.call("POST", f"/repos/{gh.repo}/actions/workflows/auto-merge.yml/dispatches",
-                                        {"ref": default})
-                print(f"Auto-Merge angestoßen: {code}" + ("" if code == 204 else f" {data}"))
+        if kind == "pr" and (key, state) in (("spaeter", False), ("ja", True)):
+            start_auto_merge(gh, (event.get("repository") or {}).get("default_branch") or "main")
+    if fixes:  # frisch lesen: Basti hat in der Zwischenzeit vielleicht schon wieder etwas angetippt
+        fresh = gh.ok("GET", f"/repos/{gh.repo}/issues/comments/{comment_id}")["body"]
+        changed = fresh
+        for key, state in fixes.items():
+            changed = set_box(changed, key, state)
+        if changed != fresh:
+            gh.ok("PATCH", f"/repos/{gh.repo}/issues/comments/{comment_id}", {"body": changed})
     output(mehr="1" if ticks.get("mehr") else "0")
     return 0
 
@@ -536,7 +640,7 @@ def cmd_uebersicht(gh, owner, now=None, fresh=None):
     # Stunden-Kontingent von GITHUB_TOKEN teilt sich die Übersicht mit Auto-Merge.
     cache = {e.get("nummer"): e for e in ((parse_data(overview.get("body")) if overview else None) or {}).get("eintraege") or []
              if isinstance(e, dict)}
-    seen, items = set(), []
+    seen, items, fetched = set(), [], 0
     for issue in issues:
         if issue["number"] in seen:
             continue
@@ -554,9 +658,12 @@ def cmd_uebersicht(gh, owner, now=None, fresh=None):
         elif (old and old.get("aktualisiert") == item["aktualisiert"] and issue["number"] != fresh
               and all(k in old for k in EXPLAIN_KEYS)):  # schlanke Daten (zu volle Übersicht) zählen nicht
             data = old if old.get("kurztitel") else None
-        else:
-            comment = own_comment(gh, issue["number"]) if issue.get("comments") else None
+        elif issue.get("comments") and (fetched < MAX_FETCH or issue["number"] == fresh):
+            fetched += 1
+            comment = own_comment(gh, issue["number"])
             data = parse_data(comment["body"]) if comment else None
+        else:  # Kontingent für diesen Lauf aufgebraucht: bleibt bis zum nächsten Lauf „noch nicht erklärt“
+            data = old if old and old.get("kurztitel") and all(k in old for k in EXPLAIN_KEYS) else None
         if data:
             item.update({k: data.get(k) for k in EXPLAIN_KEYS})
         items.append(item)
@@ -599,6 +706,8 @@ def main(argv):
     if cmd == "schreiben":
         return cmd_schreiben(gh, int(os.environ["NUMMER"]), os.environ["ART"], os.environ.get("STAND", ""),
                              os.environ["ERGEBNIS"])
+    if cmd == "danach":
+        return cmd_danach(gh, int(os.environ["NUMMER"]), os.environ.get("DEFAULT_BRANCH") or "main")
     if cmd == "knopf":
         return cmd_knopf(gh, event, owner)
     if cmd == "genauer":

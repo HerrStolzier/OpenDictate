@@ -2,13 +2,14 @@
 # Erklärseite (seit 31.10.2026): Jeder bereite PR und jedes Issue von Basti bekommt eine Erklärung in einfachem
 # Deutsch (was es macht, was kaputtgehen könnte, ob es sicher ist, was es von Basti braucht) als Kommentar mit
 # Häkchen als Knöpfen; dazu ein angeheftetes Übersichts-Issue je Repo. Läuft über Bastis Claude-Abo wie Claude
-# Review (Geheimnis CLAUDE_CODE_OAUTH_TOKEN). Hält nichts auf: Auto-Merge wartet nicht auf diese Prüfung.
+# Review (Geheimnis CLAUDE_CODE_OAUTH_TOKEN). Auto-Merge wartet nur, solange die Erklärung geschrieben wird, und
+# bei einer Frage an Basti auf sein „Ja“; scheitert die Erklärung, hält das nichts auf.
 # Anleitung: docs/erklaerseite.md in HerrStolzier/claude-config.
 name: Erklärseite
 
 on:
   pull_request:
-    types: [opened, reopened, ready_for_review, synchronize, closed, converted_to_draft]
+    types: [opened, reopened, ready_for_review, synchronize, edited, closed, converted_to_draft]
   issues:
     types: [opened, reopened, closed, labeled, unlabeled]
   issue_comment:
@@ -31,6 +32,7 @@ jobs:
     if: >-
       (github.event_name == 'pull_request' && github.event.action != 'closed'
         && github.event.action != 'converted_to_draft' && !github.event.pull_request.draft
+        && (github.event.action != 'edited' || github.event.changes.body != null)
         && github.event.pull_request.head.repo.full_name == github.repository
         && github.event.pull_request.user.login == github.repository_owner)
       || (github.event_name == 'issues' && (github.event.action == 'opened' || github.event.action == 'reopened')
@@ -131,10 +133,47 @@ jobs:
           STAND: ${{ steps.ziel.outputs.stand }}
           ERGEBNIS: ${{ steps.claude.outputs.structured_output }}
 
+  danach:
+    name: Erklärseite danach
+    needs: [erklaeren]
+    # Nach jeder Erklärung eines PRs, auch wenn Claude scheiterte: ein altes „Ja“ zu einer geänderten Frage
+    # zurücknehmen und Auto-Merge anstoßen (es hat vielleicht auf die Erklärung gewartet). Ohne Claude.
+    if: >-
+      always()
+      && ((github.event_name == 'pull_request' && github.event.action != 'closed'
+        && github.event.action != 'converted_to_draft' && !github.event.pull_request.draft
+        && github.event.pull_request.head.repo.full_name == github.repository
+        && github.event.pull_request.user.login == github.repository_owner)
+      || (github.event_name == 'workflow_dispatch' && github.event.inputs.nummer != ''))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write  # Auto-Merge anstoßen
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+          sparse-checkout: .github/scripts/erklaerseite.py
+          sparse-checkout-cone-mode: false
+          path: .erklaerseite-skript
+      - name: Altes Ja prüfen, Auto-Merge anstoßen
+        run: |
+          if [ ! -f .erklaerseite-skript/.github/scripts/erklaerseite.py ]; then echo "::notice::Erklärseite noch nicht auf dem Haupt-Branch"; exit 0; fi
+          python3 .erklaerseite-skript/.github/scripts/erklaerseite.py danach
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUMMER: ${{ github.event.pull_request.number || github.event.inputs.nummer }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          ERKLAERT: ${{ needs.erklaeren.result }}
+
   knoepfe:
     name: Erklärseite Knöpfe
     # Nur Bearbeitungen durch Basti an einem Kommentar dieses Workflows (dem Erklär-Kommentar). Schnell und ohne
-    # Claude, damit „Erst mal nicht“ sofort greift; gleicht die Labels immer an alle Häkchen an.
+    # Claude, damit „Erst mal nicht“ sofort greift; setzt Labels nach Bastis gerade geänderten Häkchen.
     if: >-
       github.event_name == 'issue_comment' && github.event.comment.user.login == 'github-actions[bot]'
       && github.event.sender.login == github.repository_owner
@@ -145,7 +184,7 @@ jobs:
       contents: read
       issues: write
       pull-requests: write
-      actions: write  # nur um Auto-Merge neu anzustoßen, wenn Basti „Erst mal nicht“ wieder abhakt
+      actions: write  # Auto-Merge nach Bastis Antwort anstoßen, bei veralteter Frage die Erklärung neu
     concurrency:
       group: erklaerseite-knopf-${{ github.event.issue.number }}
       cancel-in-progress: false

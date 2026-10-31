@@ -29,9 +29,13 @@ TRAILER = re.compile(r"^[ \t]*Reviewed-by:[ \t]*\S", re.M)
 TEXT_SUFFIXES = (".md", ".markdown", ".txt", ".rst")
 OK_CONCLUSIONS = {"success", "neutral", "skipped"}
 SELF_CHECK = "Auto-Merge"  # Name des eigenen Jobs; seine Prüfung zählt nicht mit.
-# Die Erklärseite (Erklärung für Basti, ci/erklaerseite.yml) entscheidet nicht über den Merge; auf sie wird nie gewartet.
+# Die Erklärseite (Erklärung für Basti, ci/erklaerseite.yml) entscheidet nicht über den Merge. Gewartet wird nur,
+# solange sie die Erklärung schreibt (EXPLAIN_CHECK); scheitert sie, hält das nichts auf.
 INFO_PREFIX = "Erklärseite"
 LABEL_LATER = "später"  # Basti hat in der Erklärung „Erst mal nicht“ angetippt: nicht mergen, bis das Label weg ist.
+# Die Erklärung hat im PR eine Frage an Basti gefunden: nicht mergen, bis er „Ja, mach das“ antippt (Label LABEL_YES).
+LABEL_WAIT, LABEL_YES = "wartet-auf-basti", "ja-von-basti"
+EXPLAIN_CHECK = "Erklärseite"  # Job, der die Erklärung schreibt: Solange er läuft, kann noch eine Frage kommen.
 GRACE_SECONDS = 90  # So lange bekommen andere Workflows Zeit, ihre Prüfungen anzulegen.
 POLL_SECONDS = 30  # Abstand der Abfragen bei kurzer Wartezeit
 LONG_POLL_SECONDS = 120  # bei langer Wartezeit: GITHUB_TOKEN hat nur 1000 Abfragen je Stunde und Repo
@@ -95,6 +99,22 @@ def guarded(path, source_repo=None):
             or source_repo and (path.startswith(SOURCE_PREFIXES) or path in SOURCE_FILES))
 
 
+def held_by_labels(issue):
+    """Bastis Labels, die einen Merge anhalten: Grund oder ""."""
+    labels = {lb.get("name") or "" for lb in issue.get("labels") or []}
+    if LABEL_LATER in labels:
+        return "Basti: erst mal nicht"
+    if LABEL_WAIT in labels and LABEL_YES not in labels:
+        return "wartet auf Bastis Entscheidung"
+    return ""
+
+
+def label_hold(gh, number):
+    """Labels direkt vor dem Merge frisch lesen: Die Erklärung setzt „wartet-auf-basti“ vielleicht erst, nachdem
+    der PR gelesen wurde, und ist fertig, bevor die Prüfungen gelesen werden."""
+    return held_by_labels(gh.get(f"/repos/{gh.repo}/issues/{number}"))
+
+
 def evaluate(pr, owner, default_branch, commits, files, check_runs, status, waited, runs=(), has_ci=False,
              unresolved=0):
     """Entscheidung für einen PR. Gibt (Ergebnis, Begründung) zurück.
@@ -120,8 +140,9 @@ def evaluate(pr, owner, default_branch, commits, files, check_runs, status, wait
         return "skip", "fremder Autor"
     if (pr.get("base") or {}).get("ref") != default_branch:
         return "skip", "Ziel ist nicht der Haupt-Branch"
-    if any((lb.get("name") or "") == LABEL_LATER for lb in pr.get("labels") or []):
-        return "skip", "Basti: erst mal nicht"
+    held = held_by_labels(pr)
+    if held:
+        return "skip", held
 
     unreviewed = [c["sha"][:7] for c in commits
                   if len(c.get("parents") or []) < 2 and needs_review(c.get("files") or [])
@@ -146,6 +167,8 @@ def evaluate(pr, owner, default_branch, commits, files, check_runs, status, wait
     pending += [r.get("name") or "Workflow" for r in runs if r.get("status") != "completed"]
     if pending or (status.get("total_count") and status.get("state") == "pending"):
         return "wait", "läuft: " + ", ".join(pending or ["Commit-Status"])
+    if any(c.get("name") == EXPLAIN_CHECK and c.get("status") != "completed" for c in check_runs):
+        return "wait", "Erklärseite schreibt noch die Erklärung"  # scheitert sie, hält das den Merge nicht auf
     if not checks and not runs and not status.get("total_count") and (has_ci or waited < GRACE_SECONDS):
         return "wait", "noch keine Prüfungen angelegt"
     if pr.get("mergeable") is None:
@@ -347,6 +370,10 @@ def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotoni
                     comment_once(gh, number, pr["head"]["sha"], kind,
                                  COMMENTS[kind].format(detail=detail, base=default_branch, repo=gh.repo, number=number))
                 elif result == "merge":
+                    held = label_hold(gh, number)
+                    if held:  # Label kam erst nach dem Lesen des PRs (etwa die Frage aus der Erklärung)
+                        print(f"#{number}: skip ({held})")
+                        continue
                     code, data, _ = gh.call("PUT", f"/repos/{gh.repo}/pulls/{number}/merge", {
                         "merge_method": method, "sha": pr["head"]["sha"],
                         "commit_title": f"{pr['title']} (#{number})"})
@@ -354,6 +381,7 @@ def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotoni
                     print(f"#{number}: Merge {code} {msg}")
                     if code == 200:
                         merged.append(number)
+                        refresh_overview(gh, default_branch)
                     elif rate_limited(code, data):
                         raise RateLimited(f"Merge #{number}: {code} Abfrage-Kontingent erschöpft")
                     elif code == 405 and pr.get("mergeable_state") == "behind":  # wird von allein nicht aktuell
@@ -379,6 +407,15 @@ def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotoni
     if failed:  # roter Lauf: Der Thread, der den PR beobachtet, sieht das und kümmert sich
         raise RuntimeError("Merge fehlgeschlagen: " + "; ".join(failed))
     return merged
+
+
+def refresh_overview(gh, default_branch):
+    """Nach einem Merge die Übersicht der Erklärseite neu schreiben lassen: Ein Merge über GITHUB_TOKEN startet
+    sonst keinen Workflow, der gemergte PR stünde bis zum nächsten Morgen als „läuft“ da. Fehlt die Erklärseite
+    in diesem Repo, lehnt GitHub mit 404 ab; das ist kein Fehler."""
+    code, data, _ = gh.call("POST", f"/repos/{gh.repo}/actions/workflows/erklaerseite.yml/dispatches",
+                            {"ref": default_branch})
+    print(f"Übersicht der Erklärseite angestoßen: {code}" + ("" if code == 204 else f" {(data or {}).get('message', '')}"))
 
 
 def main():
