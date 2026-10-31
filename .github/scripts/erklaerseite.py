@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# Kopie aus HerrStolzier/claude-config (ci/erklaerseite.py); dort pflegen, dann scripts/install-repo-gate.py erneut ausführen.
 """Erklärseite: Jeder PR und jedes Issue bekommt eine Erklärung in einfachem Deutsch, jedes Repo eine Übersicht.
 
 Basti liest keinen Code, will aber verstehen, wozu er Ja sagt (Auftrag vom 31.10.2026, Vorbild: Fitz' „PR wiki“).
@@ -32,7 +31,7 @@ import urllib.request
 MARK = "<!-- erklaerseite -->"
 OVERVIEW_MARK = "<!-- erklaerseite-uebersicht -->"
 DATA_RE = re.compile(r"<!-- erklaerseite-daten ([A-Za-z0-9+/=]*) -->")
-BOX_RE = re.compile(r"^- \[( |x|X)\] .*<!-- k:(\w+) -->[ \t]*$", re.M)
+BOX_RE = re.compile(r"^- \[( |x|X)\] .*<!-- k:(\w+) -->[ \t\r]*$", re.M)
 BOT = "github-actions[bot]"
 WORK = ".erklaerseite"
 
