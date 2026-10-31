@@ -107,7 +107,8 @@ def guarded(path, source_repo=None):
 
 HOLD_LATER_TICK = "Basti: erst mal nicht (Häkchen im Erklär-Kommentar)"
 HOLD_YES_TICK = "wartet auf Bastis Entscheidung (Häkchen „Ja“ im Erklär-Kommentar fehlt)"
-TICK_HOLDS = {HOLD_LATER_TICK: "haekchen_spaeter", HOLD_YES_TICK: "haekchen_ja"}
+HOLD_EXPLAIN_ASKS = "wartet auf Bastis Entscheidung (Frage aus der Erklärung)"
+TICK_HOLDS = {HOLD_LATER_TICK: "haekchen_spaeter", HOLD_YES_TICK: "haekchen_ja", HOLD_EXPLAIN_ASKS: "frage"}
 
 
 def held_by_labels(issue, ticks=None):
@@ -119,10 +120,13 @@ def held_by_labels(issue, ticks=None):
         return "Basti: erst mal nicht"
     if ticks.get("spaeter"):
         return HOLD_LATER_TICK
-    asks = LABEL_WAIT in labels or QUESTION.search(issue.get("body") or "")
+    own = QUESTION.search(issue.get("body") or "")
+    asks = LABEL_WAIT in labels or own
     # Ein abgehaktes „Ja, mach das“ nimmt das Label noch nicht weg, solange der Knopf-Job in der Warteschlange steht.
     if asks and LABEL_YES not in labels:
-        return "wartet auf Bastis Entscheidung"
+        # Ohne eigene Zeile „Frage an Basti“ hat nur die Erklärung eine Frage gefunden: Davon weiß Claude nichts,
+        # darum bekommt der PR dazu einen Hinweis (TICK_HOLDS).
+        return "wartet auf Bastis Entscheidung" if own else HOLD_EXPLAIN_ASKS
     if asks and not ticks.get("ja", True):
         return HOLD_YES_TICK
     mark = ticks.get("_beschreibung")
@@ -262,6 +266,10 @@ COMMENTS = {
                     "allein zählt nicht. Claude: Setz Häkchen und Label nie selbst. Brauchst du die Antwort, frag Basti "
                     "per Karte nach dem Ziel und verlinke den Erklär-Kommentar; antippen muss er dort (oder auf der "
                     "Erklärseite) selbst. Ein Ja auf der Karte setzt du nicht um."),
+    "frage": ("Auto-Merge wartet: Die Erklärung für Basti hat eine Frage an ihn gefunden (Label `wartet-auf-basti`). "
+              "Claude: Frag Basti per Karte nach dem Ziel und verlinke den Erklär-Kommentar; antippen muss er dort (oder "
+              "auf der Erklärseite) selbst. Setz `ja-von-basti` nie selbst. Auch wenn du die Frage für unnötig hältst: "
+              "Frag Basti trotzdem, entscheiden muss er. Die Beschreibung danach nicht ändern."),
     "hinter": ("Auto-Merge wartet: Der Branch ist hinter `{base}`, und `{base}` verlangt einen aktuellen Stand. "
                "Claude: Hol `{base}` in den Branch, lokal `gh pr update-branch`, in der Cloud "
                "`PUT /repos/{repo}/pulls/{number}/update-branch`. Nach grüner CI mergt Auto-Merge von selbst."),
@@ -435,6 +443,8 @@ def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotoni
                 if result == "wait":
                     continue
                 open_prs.remove(number)
+                if result == "skip" and TICK_HOLDS.get(why):  # sonst wüsste niemand, warum der PR wartet
+                    comment_once(gh, number, pr["head"]["sha"], TICK_HOLDS[why], COMMENTS[TICK_HOLDS[why]])
                 if result == "block":
                     kind, _, detail = why.partition(":")
                     comment_once(gh, number, pr["head"]["sha"], kind,

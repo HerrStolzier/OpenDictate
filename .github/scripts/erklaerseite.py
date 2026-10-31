@@ -706,10 +706,12 @@ def cmd_genauer(gh, event, owner):
     if not boxes(body).get("mehr"):
         output(weiter="0")
         return 0
+    # Vor dem Sammeln: Scheitert es, überspringt der Workflow Claude, postet aber trotzdem die kurze Absage und nimmt
+    # das Häkchen weg. Sonst bliebe es stehen, und ein späteres anderes Häkchen startete ungefragt eine lange Erklärung.
+    output(weiter="1", nummer=number, kommentar=comment_id)
     collect(gh, number, owner)
     with open(f"{WORK}/erklaerung.md", "w", encoding="utf-8") as f:
         f.write(body)
-    output(weiter="1", nummer=number, kommentar=comment_id)
     return 0
 
 
