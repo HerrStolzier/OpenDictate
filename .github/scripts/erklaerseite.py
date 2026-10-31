@@ -376,6 +376,8 @@ def collect(gh, number, owner):
              issue.get("body") or "(keine Beschreibung)"]
     with open(f"{WORK}/auftrag.md", "w", encoding="utf-8") as f:
         f.write("\n".join(parts) + "\n")
+    with open(f"{WORK}/beschreibung", "w", encoding="utf-8") as f:  # Fingerabdruck der Beschreibung, die Claude liest
+        f.write(description_mark(issue))
     notes = [f"## {c['user']['login']} ({c['created_at']})\n{c.get('body') or ''}\n"
              for c in gh.pages(f"/repos/{gh.repo}/issues/{number}/comments", limit=10)
              if trusted((c.get("user") or {}).get("login"), owner) and MARK not in (c.get("body") or "")]
@@ -443,7 +445,17 @@ def question_stand_in(issue):
         "braucht_text": (question.group(1) or "").strip() or "Die Frage aus der PR-Beschreibung."})
 
 
+def read_seen_mark():
+    """Fingerabdruck der Beschreibung aus collect() oder "" (etwa wenn ohne Sammeln aufgerufen)."""
+    try:
+        with open(f"{WORK}/beschreibung", encoding="utf-8") as f:
+            return f.read().strip()
+    except OSError:
+        return ""
+
+
 def cmd_schreiben(gh, number, kind, stand, result):
+    stand_in = False
     try:
         data = normalize(result)
         issue = None
@@ -459,14 +471,23 @@ def cmd_schreiben(gh, number, kind, stand, result):
         if data is None:
             return 0
         print(f"#{number}: Ersatz-Erklärung mit der Frage an Basti")
+        stand_in = True  # baut auf der frisch gelesenen Beschreibung auf, nicht auf Claudes Unterlagen
     existing = own_comment(gh, number)
     issue = issue or gh.ok("GET", f"/repos/{gh.repo}/issues/{number}")
     labels = {lb["name"] for lb in issue.get("labels") or []}
     data["beschreibung"] = description_mark(issue)
+    seen = read_seen_mark()
+    if kind == "pr" and seen and seen != data["beschreibung"] and not stand_in:
+        # Claude erklärte eine ältere Beschreibung. Mit dem Fingerabdruck der neuen gespeichert, gälte Bastis Ja zu
+        # dieser Erklärung für eine Frage, die er nicht gesehen hat. Die Änderung startet einen neuen Lauf
+        # (pull_request edited). Bei Issues gibt ein Ja keinen Merge frei, und Bearbeiten startet keinen Lauf.
+        print(f"::notice::#{number}: Beschreibung hat sich während der Erklärung geändert, der nächste Lauf erklärt neu.")
+        return 0
     prev = (parse_data(existing["body"]) if existing else None) or {}
     question = QUESTION.search(issue.get("body") or "") if kind == "pr" else None
-    if question and data["braucht"] != "entscheidung":
-        # Ausdrücklich gestellte Frage: Sie wird immer als Entscheidung gezeigt, auch wenn Claude sie anders liest.
+    if question:
+        # Ausdrücklich gestellte Frage: Sie wird immer als Entscheidung und in ihrem Wortlaut gezeigt, auch wenn
+        # Claude sie anders liest oder eine andere Frage findet. Bastis Ja gibt genau diese Frage frei.
         data["braucht"] = "entscheidung"
         data["braucht_text"] = clean((question.group(1) or "").strip(), LIMITS["braucht_text"]) or "Die Frage aus der PR-Beschreibung."
     if (kind == "pr" and data["braucht"] != "entscheidung" and LABEL_WARTET in labels
@@ -475,11 +496,16 @@ def cmd_schreiben(gh, number, kind, stand, result):
         # Hinweis liest. Sonst fiele „wartet-auf-basti“ weg und Auto-Merge mergte ohne Bastis „Ja“.
         data["braucht"] = "entscheidung"
         data["braucht_text"] = prev.get("braucht_text") or "Die Frage aus der PR-Beschreibung."
-    # Zur sicheren Seite hin zusammenführen: angehakt bleibt, was im Kommentar angehakt ist (der Knopf-Job hat das
-    # Label vielleicht noch nicht gesetzt) oder was als Label am Eintrag steht.
+    # Zur sicheren Seite hin zusammenführen. „Erst mal nicht“ bleibt angehakt, wenn es im Kommentar angehakt ist (der
+    # Knopf-Job hat das Label vielleicht noch nicht gesetzt) oder als Label am Eintrag steht. „Ja“ gilt nur, wenn
+    # Basti es im Kommentar angehakt hat: Ein Label, das noch steht, während der Knopf-Job eine Rücknahme noch nicht
+    # verarbeitet hat, darf das Häkchen nicht zurückbringen. Ohne Kommentar zählt das Label (das nimmt stale_yes
+    # unten ohnehin zurück).
     old = boxes(existing["body"]) if existing else {}
     state = {k: v for k, v in old.items() if k not in BOX_LABELS}
     state.update({k: name in labels or old.get(k, False) for k, name in BOX_LABELS.items()})
+    if existing:
+        state["ja"] = bool(old.get("ja"))
     asks = kind == "pr" and data["braucht"] == "entscheidung"
     # Ein „Ja“ gilt für die Beschreibung, zu der Basti geantwortet hat. Hat sie sich seit der letzten Erklärung
     # geändert, wird neu gefragt. Ein Ja von Hand ohne frühere Erklärung lässt sich keiner Beschreibung zuordnen

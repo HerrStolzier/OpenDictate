@@ -105,19 +105,26 @@ def guarded(path, source_repo=None):
             or source_repo and (path.startswith(SOURCE_PREFIXES) or path in SOURCE_FILES))
 
 
+HOLD_LATER_TICK = "Basti: erst mal nicht (Häkchen im Erklär-Kommentar)"
+HOLD_YES_TICK = "wartet auf Bastis Entscheidung (Häkchen „Ja“ im Erklär-Kommentar fehlt)"
+TICK_HOLDS = {HOLD_LATER_TICK: "haekchen_spaeter", HOLD_YES_TICK: "haekchen_ja"}
+
+
 def held_by_labels(issue, ticks=None):
     """Bastis Labels, die einen Merge anhalten: Grund oder "". ticks: Häkchen im Erklär-Kommentar (siehe
     explain_ticks); sie zählen schon, bevor der Knopf-Job das Label angeglichen hat."""
     labels = {lb.get("name") or "" for lb in issue.get("labels") or []}
     ticks = ticks or {}
-    if LABEL_LATER in labels or ticks.get("spaeter"):
+    if LABEL_LATER in labels:
         return "Basti: erst mal nicht"
+    if ticks.get("spaeter"):
+        return HOLD_LATER_TICK
     asks = LABEL_WAIT in labels or QUESTION.search(issue.get("body") or "")
     # Ein abgehaktes „Ja, mach das“ nimmt das Label noch nicht weg, solange der Knopf-Job in der Warteschlange steht.
     if asks and LABEL_YES not in labels:
         return "wartet auf Bastis Entscheidung"
     if asks and not ticks.get("ja", True):
-        return "wartet auf Bastis Entscheidung (Häkchen „Ja“ im Erklär-Kommentar fehlt)"
+        return HOLD_YES_TICK
     mark = ticks.get("_beschreibung")
     if asks and mark and mark != hashlib.sha256((issue.get("body") or "").strip().encode()).hexdigest()[:16]:
         # Die Beschreibung ist neuer als die Erklärung, zu der Basti Ja sagte (der Lauf „Erklärseite“, der das alte
@@ -168,7 +175,8 @@ def explain_data(body):
 def label_hold(gh, number):
     """Labels und Häkchen direkt vor dem Merge frisch lesen: Die Erklärung setzt „wartet-auf-basti“ vielleicht
     erst, nachdem der PR gelesen wurde, und Basti tippt vielleicht gerade „Erst mal nicht“ an."""
-    return held_by_labels(gh.get(f"/repos/{gh.repo}/issues/{number}"), explain_ticks(gh, number))
+    # Über /pulls lesen, nicht /issues: Der Workflow hat keine issues-Rechte (403 „Resource not accessible“).
+    return held_by_labels(gh.get(f"/repos/{gh.repo}/pulls/{number}"), explain_ticks(gh, number))
 
 
 def evaluate(pr, owner, default_branch, commits, files, check_runs, status, waited, runs=(), has_ci=False,
@@ -248,6 +256,12 @@ COMMENTS = {
                  "starte Auto-Merge danach neu: lokal `gh workflow run auto-merge.yml`, in der Cloud "
                  "`POST /repos/{repo}/actions/workflows/auto-merge.yml/dispatches` mit `{{\"ref\": \"{base}\"}}`. "
                  "Danach mergt Auto-Merge von selbst."),
+    "haekchen_spaeter": ("Auto-Merge wartet: Basti hat im Erklär-Kommentar „Erst mal nicht“ angehakt. Claude: Nichts tun "
+                         "und nicht nachfragen. Der PR wartet, bis Basti das Häkchen selbst entfernt."),
+    "haekchen_ja": ("Auto-Merge wartet: Im Erklär-Kommentar ist „Ja, mach das“ nicht angehakt; das Label `ja-von-basti` "
+                    "allein zählt nicht. Claude: Setz Häkchen und Label nie selbst. Brauchst du die Antwort, frag Basti "
+                    "per Karte nach dem Ziel und verlinke den Erklär-Kommentar; antippen muss er dort (oder auf der "
+                    "Erklärseite) selbst. Ein Ja auf der Karte setzt du nicht um."),
     "hinter": ("Auto-Merge wartet: Der Branch ist hinter `{base}`, und `{base}` verlangt einen aktuellen Stand. "
                "Claude: Hol `{base}` in den Branch, lokal `gh pr update-branch`, in der Cloud "
                "`PUT /repos/{repo}/pulls/{number}/update-branch`. Nach grüner CI mergt Auto-Merge von selbst."),
@@ -429,6 +443,9 @@ def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotoni
                     held = label_hold(gh, number)
                     if held:  # Label kam erst nach dem Lesen des PRs (etwa die Frage aus der Erklärung)
                         print(f"#{number}: skip ({held})")
+                        tick = TICK_HOLDS.get(held)  # nur das Häkchen hält an: sonst wüsste niemand, warum der PR wartet
+                        if tick:
+                            comment_once(gh, number, pr["head"]["sha"], tick, COMMENTS[tick])
                         continue
                     code, data, _ = gh.call("PUT", f"/repos/{gh.repo}/pulls/{number}/merge", {
                         "merge_method": method, "sha": pr["head"]["sha"],
