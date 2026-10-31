@@ -216,6 +216,11 @@ def evaluate(pr, owner, default_branch, commits, files, check_runs, status, wait
     if (pr.get("base") or {}).get("ref") != default_branch:
         return "skip", "Ziel ist nicht der Haupt-Branch"
     held = held_by_labels(pr)
+    if held == HOLD_EXPLAIN_ASKS and any(c.get("name") == EXPLAIN_CHECK and c.get("status") != "completed"
+                                         for c in check_runs):
+        # Das Label stammt von einer älteren Erklärung; die neue kann die Frage streichen. Sonst bekäme der PR einen
+        # Hinweis „frage“ zu einer Frage, die es gleich nicht mehr gibt. Ihr Job „danach“ stößt Auto-Merge wieder an.
+        return "wait", "Erklärseite schreibt noch die Erklärung"
     if held:
         return "skip", held
 
