@@ -108,13 +108,16 @@ def guarded(path, source_repo=None):
 HOLD_LATER_TICK = "Basti: erst mal nicht (Häkchen im Erklär-Kommentar)"
 HOLD_YES_TICK = "wartet auf Bastis Entscheidung (Häkchen „Ja“ im Erklär-Kommentar fehlt)"
 HOLD_EXPLAIN_ASKS = "wartet auf Bastis Entscheidung (Frage aus der Erklärung)"
-TICK_HOLDS = {HOLD_LATER_TICK: "haekchen_spaeter", HOLD_YES_TICK: "haekchen_ja", HOLD_EXPLAIN_ASKS: "frage"}
+HOLD_NO_EXPLAIN = "wartet auf Bastis Entscheidung (noch keine Erklärung mit Knöpfen)"
+TICK_HOLDS = {HOLD_LATER_TICK: "haekchen_spaeter", HOLD_YES_TICK: "haekchen_ja", HOLD_EXPLAIN_ASKS: "frage",
+              HOLD_NO_EXPLAIN: "keine_erklaerung"}
 
 
 def held_by_labels(issue, ticks=None):
     """Bastis Labels, die einen Merge anhalten: Grund oder "". ticks: Häkchen im Erklär-Kommentar (siehe
     explain_ticks); sie zählen schon, bevor der Knopf-Job das Label angeglichen hat."""
     labels = {lb.get("name") or "" for lb in issue.get("labels") or []}
+    read = ticks is not None  # None: Kommentar nicht gelesen (die frische Prüfung vor dem Merge liest ihn)
     ticks = ticks or {}
     if LABEL_LATER in labels:
         return "Basti: erst mal nicht"
@@ -127,7 +130,11 @@ def held_by_labels(issue, ticks=None):
         # Ohne eigene Zeile „Frage an Basti“ hat nur die Erklärung eine Frage gefunden: Davon weiß Claude nichts,
         # darum bekommt der PR dazu einen Hinweis (TICK_HOLDS).
         return "wartet auf Bastis Entscheidung" if own else HOLD_EXPLAIN_ASKS
-    if asks and not ticks.get("ja", True):
+    if asks and read and not ticks:
+        # Gelesen, aber noch kein Erklär-Kommentar: Das Label allein zählt nicht, es zählt Bastis Häkchen. Basti hat
+        # noch nichts zum Antippen, darum sagt der Hinweis, wie die Erklärung neu startet.
+        return HOLD_NO_EXPLAIN
+    if asks and not ticks.get("ja", not read):
         return HOLD_YES_TICK
     mark = ticks.get("_beschreibung")
     if asks and mark and mark != hashlib.sha256((issue.get("body") or "").strip().encode()).hexdigest()[:16]:
@@ -266,6 +273,12 @@ COMMENTS = {
                     "allein zählt nicht. Claude: Setz Häkchen und Label nie selbst. Brauchst du die Antwort, frag Basti "
                     "per Karte nach dem Ziel und verlinke den Erklär-Kommentar; antippen muss er dort (oder auf der "
                     "Erklärseite) selbst. Ein Ja auf der Karte setzt du nicht um."),
+    "keine_erklaerung": ("Auto-Merge wartet: Der PR hat eine Frage an Basti, aber es gibt noch keinen Erklär-Kommentar "
+                         "mit Knöpfen; das Label `ja-von-basti` allein zählt nicht. Claude: Starte die Erklärseite für "
+                         "diesen PR neu: lokal `gh workflow run erklaerseite.yml -f nummer={number}`, in der Cloud "
+                         "`POST /repos/{repo}/actions/workflows/erklaerseite.yml/dispatches` mit "
+                         "`{{\"ref\": \"{base}\", \"inputs\": {{\"nummer\": \"{number}\"}}}}`. Steht der Kommentar, "
+                         "frag Basti per Karte nach dem Ziel und verlinke ihn; antippen muss er dort selbst."),
     "frage": ("Auto-Merge wartet: Die Erklärung für Basti hat eine Frage an ihn gefunden (Label `wartet-auf-basti`). "
               "Claude: Frag Basti per Karte nach dem Ziel und verlinke den Erklär-Kommentar; antippen muss er dort (oder "
               "auf der Erklärseite) selbst. Setz `ja-von-basti` nie selbst. Auch wenn du die Frage für unnötig hältst: "
@@ -444,7 +457,8 @@ def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotoni
                     continue
                 open_prs.remove(number)
                 if result == "skip" and TICK_HOLDS.get(why):  # sonst wüsste niemand, warum der PR wartet
-                    comment_once(gh, number, pr["head"]["sha"], TICK_HOLDS[why], COMMENTS[TICK_HOLDS[why]])
+                    comment_once(gh, number, pr["head"]["sha"], TICK_HOLDS[why],
+                                 COMMENTS[TICK_HOLDS[why]].format(base=default_branch, repo=gh.repo, number=number))
                 if result == "block":
                     kind, _, detail = why.partition(":")
                     comment_once(gh, number, pr["head"]["sha"], kind,
@@ -455,7 +469,8 @@ def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotoni
                         print(f"#{number}: skip ({held})")
                         tick = TICK_HOLDS.get(held)  # nur das Häkchen hält an: sonst wüsste niemand, warum der PR wartet
                         if tick:
-                            comment_once(gh, number, pr["head"]["sha"], tick, COMMENTS[tick])
+                            comment_once(gh, number, pr["head"]["sha"], tick,
+                                         COMMENTS[tick].format(base=default_branch, repo=gh.repo, number=number))
                         continue
                     code, data, _ = gh.call("PUT", f"/repos/{gh.repo}/pulls/{number}/merge", {
                         "merge_method": method, "sha": pr["head"]["sha"],
