@@ -48,6 +48,27 @@ jobs:
       group: erklaerseite-${{ github.event.pull_request.number || github.event.issue.number || github.event.inputs.nummer }}
       cancel-in-progress: true
     steps:
+      # Stand des Haupt-Branches: Claude liest dort den umliegenden Code, das Skript kommt ebenfalls von dort.
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      # Zuerst, solange diese Prüfung läuft (Auto-Merge wartet so lange): Hat sich die PR-Beschreibung seit Bastis
+      # „Ja“ geändert, gilt es nicht mehr. Auch wenn Claude danach scheitert, ist das alte „Ja“ dann schon weg.
+      - name: Altes Ja prüfen
+        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+        continue-on-error: true  # scheitert die Prüfung, wiederholt sie der Job „danach“; die Erklärung kommt trotzdem
+        run: |
+          if [ ! -f .github/scripts/erklaerseite.py ]; then exit 0; fi
+          python3 .github/scripts/erklaerseite.py danach
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NUMMER: ${{ github.event.pull_request.number || github.event.inputs.nummer }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          ERKLAERT: skipped  # nur prüfen, Auto-Merge stößt der Job „danach“ an
+          BESCHREIBUNG_GEAENDERT: ${{ github.event.action == 'edited' && github.event.changes.body != null }}
+
       - name: Vorbereiten
         env:
           TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -59,12 +80,6 @@ jobs:
           # Eigener Home-Ordner je Lauf: Auf den eigenen Runnern teilen sich alle Runner einen Benutzer.
           mkdir -p "$RUNNER_TEMP/claude-home"
           echo "HOME=$RUNNER_TEMP/claude-home" >> "$GITHUB_ENV"
-
-      # Stand des Haupt-Branches: Claude liest dort den umliegenden Code, das Skript kommt ebenfalls von dort.
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ github.event.repository.default_branch }}
-          persist-credentials: false
 
       - name: Unterlagen sammeln
         id: ziel
@@ -169,6 +184,7 @@ jobs:
           NUMMER: ${{ github.event.pull_request.number || github.event.inputs.nummer }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           ERKLAERT: ${{ needs.erklaeren.result }}
+          BESCHREIBUNG_GEAENDERT: ${{ github.event.action == 'edited' && github.event.changes.body != null }}
 
   knoepfe:
     name: Erklärseite Knöpfe

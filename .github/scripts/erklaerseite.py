@@ -41,6 +41,9 @@ WORK = ".erklaerseite"
 
 LABEL_SPAETER, LABEL_JA, LABEL_OVERVIEW = "später", "ja-von-basti", "übersicht"
 LABEL_WARTET = "wartet-auf-basti"  # PR mit Frage an Basti: Auto-Merge wartet auf „Ja, mach das“
+# Frage an Basti als eigene Zeile der PR-Beschreibung („Frage an Basti: …“). Gleiches Muster in auto_merge.py,
+# das daran auch ohne Erklärung wartet.
+QUESTION = re.compile(r"^[ \t>#+\-]*(?:\*[ \t]+)?(?:\d+[.)][ \t]*)?[*_]*Frage an Basti[*_]*[ \t\r]*(?:[:–—-][ \t*_]*(.*))?$", re.M | re.I)
 ETIKETTEN = {  # Etikett: (Zeichen, Text, Label, Farbe)
     "sicher": ("🟢", "Sicher", "sicher", "2da44e"),
     "kleine-bedenken": ("🟡", "Kleine Bedenken", "kleine bedenken", "d4a72c"),
@@ -423,17 +426,49 @@ def description_mark(issue):
     return hashlib.sha256((issue.get("body") or "").strip().encode()).hexdigest()[:16]
 
 
+def question_stand_in(issue):
+    """Ersatz-Erklärung für einen PR mit „Frage an Basti“, wenn Claude keine Erklärung liefert: Ohne Kommentar hätte
+    Basti keinen Knopf, um zu antworten, und Auto-Merge wartete unbemerkt."""
+    question = QUESTION.search(issue.get("body") or "")
+    if not question:
+        return None
+    return normalize({
+        "kurztitel": issue.get("title") or "PR mit einer Frage an dich",
+        "ein_satz": "Claude konnte diesen PR gerade nicht erklären. Die Frage an dich "
+                    "steht trotzdem hier, damit du antworten kannst.",
+        "was_es_macht": "Noch nicht erklärt. Beim nächsten Push oder einem Start von Hand wird es erneut versucht.",
+        "sicherheit_text": "Nicht geprüft, weil die Erklärung fehlt. Darum vorsichtshalber „Bedenken“.",
+        "etikett": "bedenken",  # nicht geprüft: nie milder als eine frühere Bewertung
+        "braucht": "entscheidung",
+        "braucht_text": (question.group(1) or "").strip() or "Die Frage aus der PR-Beschreibung."})
+
+
 def cmd_schreiben(gh, number, kind, stand, result):
     try:
         data = normalize(result)
+        issue = None
     except ValueError as e:
-        print(f"::warning::Claudes Erklärung war unbrauchbar ({e}); beim nächsten Push wird es erneut versucht.")
-        return 0
+        print(f"::warning::Claudes Erklärung fehlt oder ist unbrauchbar ({e}); beim nächsten Push wird es erneut "
+              "versucht.")
+        issue = gh.ok("GET", f"/repos/{gh.repo}/issues/{number}") if kind == "pr" else None
+        # Auch wenn die vorhandene Erklärung zu einer älteren Beschreibung gehört: Sonst zeigte sie die alte Frage,
+        # und Bastis „Ja“ würde immer wieder als veraltet abgelehnt.
+        shown = own_comment(gh, number) if issue else None
+        current = shown and (parse_data(shown["body"]) or {}).get("beschreibung") == description_mark(issue)
+        data = question_stand_in(issue) if issue and not current else None
+        if data is None:
+            return 0
+        print(f"#{number}: Ersatz-Erklärung mit der Frage an Basti")
     existing = own_comment(gh, number)
-    issue = gh.ok("GET", f"/repos/{gh.repo}/issues/{number}")
+    issue = issue or gh.ok("GET", f"/repos/{gh.repo}/issues/{number}")
     labels = {lb["name"] for lb in issue.get("labels") or []}
     data["beschreibung"] = description_mark(issue)
     prev = (parse_data(existing["body"]) if existing else None) or {}
+    question = QUESTION.search(issue.get("body") or "") if kind == "pr" else None
+    if question and data["braucht"] != "entscheidung":
+        # Ausdrücklich gestellte Frage: Sie wird immer als Entscheidung gezeigt, auch wenn Claude sie anders liest.
+        data["braucht"] = "entscheidung"
+        data["braucht_text"] = clean((question.group(1) or "").strip(), LIMITS["braucht_text"]) or "Die Frage aus der PR-Beschreibung."
     if (kind == "pr" and data["braucht"] != "entscheidung" and LABEL_WARTET in labels
             and prev.get("braucht") == "entscheidung" and prev.get("beschreibung") == data["beschreibung"]):
         # Die Frage steht unverändert in der Beschreibung: Sie bleibt offen, auch wenn Claude sie diesmal nur als
@@ -446,9 +481,11 @@ def cmd_schreiben(gh, number, kind, stand, result):
     state = {k: v for k, v in old.items() if k not in BOX_LABELS}
     state.update({k: name in labels or old.get(k, False) for k, name in BOX_LABELS.items()})
     asks = kind == "pr" and data["braucht"] == "entscheidung"
-    # Ein „Ja“ gilt für die Frage, auf die Basti geantwortet hat. Steht jetzt eine andere in der Beschreibung (oder
-    # vorher gar keine), wird neu gefragt.
+    # Ein „Ja“ gilt für die Beschreibung, zu der Basti geantwortet hat. Hat sie sich seit der letzten Erklärung
+    # geändert, wird neu gefragt. Ein Ja von Hand ohne frühere Erklärung lässt sich keiner Beschreibung zuordnen
+    # (sie kann sich davor schon geändert haben): Die erste Erklärung fragt darum neu, mit Ja-Knopf.
     stale_yes = asks and state.get("ja") and prev.get("beschreibung") != data["beschreibung"]
+    by_hand = stale_yes and not prev.get("beschreibung")
     if stale_yes:
         state["ja"] = False
     body = render(data, kind, number, state, stand)
@@ -464,7 +501,7 @@ def cmd_schreiben(gh, number, kind, stand, result):
     if wanted not in current:
         add_label(gh, number, wanted)
     if stale_yes and LABEL_JA in current:
-        withdraw_yes(gh, number)
+        withdraw_yes(gh, number, by_hand)
     if asks and LABEL_WARTET not in current:
         add_label(gh, number, LABEL_WARTET)
     elif not asks and LABEL_WARTET in current:
@@ -473,9 +510,11 @@ def cmd_schreiben(gh, number, kind, stand, result):
     return 0
 
 
-def withdraw_yes(gh, number):
+def withdraw_yes(gh, number, by_hand=False):
     remove_label(gh, number, LABEL_JA)
     gh.ok("POST", f"/repos/{gh.repo}/issues/{number}/comments", {"body": (
+        "Das von Hand gesetzte „Ja“ stammt von vor der ersten Erklärung. Damit es sicher zur aktuellen Frage "
+        "gehört, bitte oben „Ja, mach das“ antippen; bis dahin wartet Auto-Merge." if by_hand else
         "Die PR-Beschreibung hat sich geändert, Bastis früheres „Ja, mach das“ gilt dafür nicht mehr. "
         "Auto-Merge wartet, bis er die Frage neu beantwortet.")})
 
@@ -489,12 +528,23 @@ def cmd_danach(gh, number, default):
     labels = {lb["name"] for lb in issue.get("labels") or []}
     comment = own_comment(gh, number)
     data = (parse_data(comment["body"]) if comment else None) or {}
-    if LABEL_JA in labels and data.get("beschreibung") != description_mark(issue):
+    # Mit gespeichertem Fingerabdruck entscheidet der. Ohne Erklär-Kommentar (Claude scheiterte, Basti setzte sein
+    # Ja von Hand) zählt nur, ob dieser Lauf von einer Änderung der Beschreibung kommt; ein Push nimmt es nicht ab.
+    mark = data.get("beschreibung")
+    edited = os.environ.get("BESCHREIBUNG_GEAENDERT") == "true"
+    if LABEL_JA in labels and (mark != description_mark(issue) if mark else edited):
         if comment and boxes(comment["body"]).get("ja"):
             gh.ok("PATCH", f"/repos/{gh.repo}/issues/comments/{comment['id']}",
                   {"body": set_box(comment["body"], "ja", False)})
         withdraw_yes(gh, number)
-    if os.environ.get("ERKLAERT") != "skipped":  # ohne neue Erklärung (etwa nur der Titel geändert) kein Anstoß
+    explained = os.environ.get("ERKLAERT")
+    owner = gh.repo.split("/")[0]
+    if (explained in ("failure", "cancelled") and (issue.get("user") or {}).get("login", "").lower() == owner.lower()
+            and not gh.ok("GET", f"/repos/{gh.repo}/pulls/{number}").get("draft")):
+        # Der Job brach vor „Erklärung speichern“ ab (Zeitlimit, Schlüssel fehlt, GitHub-Fehler): Hat der PR eine Frage
+        # an Basti, bekommt er trotzdem den Ersatz mit Frage und Knöpfen (question_stand_in), sonst nichts.
+        cmd_schreiben(gh, number, "pr", "", "{}")
+    if explained != "skipped":  # ohne neue Erklärung (etwa nur der Titel geändert) kein Anstoß
         start_auto_merge(gh, default)
     return 0
 
@@ -534,6 +584,7 @@ def cmd_knopf(gh, event, owner):
     previous = ((event.get("changes") or {}).get("body") or {}).get("from")
     before = boxes(previous) if previous is not None else dict(ticks)
     fixes = {}  # Häkchen, die am Ende frisch angeglichen werden
+    kicked = False  # Auto-Merge schon angestoßen
     for key, state in label_actions(ticks, labels):
         if before.get(key, False) == state and state != (key == "spaeter"):
             # Nicht gerade von Basti geändert und kein Nachholen in die sichere Richtung („später“ setzen, „Ja“
@@ -564,7 +615,15 @@ def cmd_knopf(gh, event, owner):
         else:
             remove_label(gh, number, BOX_LABELS[key])
         if kind == "pr" and (key, state) in (("spaeter", False), ("ja", True)):
+            kicked = True
             start_auto_merge(gh, (event.get("repository") or {}).get("default_branch") or "main")
+    # Passte das Label schon (etwa von Hand gesetzt), hielt Auto-Merge bisher nur noch wegen des Häkchens an
+    # (held_by_labels in auto_merge.py). Dann stößt Bastis Häkchen es trotzdem an, sonst wartete der PR bis morgens.
+    freed = [k for k, state in (("ja", True), ("spaeter", False))
+             if k in ticks and ticks[k] == state and before.get(k, False) != state and k not in fixes
+             and (k != "ja" or (parse_data(body) or {}).get("beschreibung") == description_mark(issue))]
+    if kind == "pr" and freed and not kicked and issue.get("state") == "open":
+        start_auto_merge(gh, (event.get("repository") or {}).get("default_branch") or "main")
     if fixes:  # frisch lesen: Basti hat in der Zwischenzeit vielleicht schon wieder etwas angetippt
         fresh = gh.ok("GET", f"/repos/{gh.repo}/issues/comments/{comment_id}")["body"]
         changed = fresh
@@ -624,6 +683,11 @@ def item_from(issue, data, owner):
           "aktualisiert": issue.get("updated_at") or "", "bewegt": when(issue.get("updated_at") or issue["created_at"])}
     if data:
         it.update({k: data.get(k) for k in EXPLAIN_KEYS})
+    # Nur bereite PRs: Entwürfe bekommen keine Erklärung und damit keinen „Ja“-Knopf.
+    question = QUESTION.search(issue.get("body") or "") if is_pr and not it["fremd"] and not it["entwurf"] else None
+    if question and it.get("braucht") != "entscheidung":  # auch ohne (gelungene) Erklärung als Frage zeigen
+        it["braucht"] = "entscheidung"
+        it["braucht_text"] = clean((question.group(1) or "").strip(), LIMITS["braucht_text"]) or "Frage in der PR-Beschreibung."
     return it
 
 
@@ -699,15 +763,11 @@ def main(argv):
     cmd = argv[1]
     if cmd == "sammeln":
         return cmd_sammeln(gh, event_name, event, owner)
-    if cmd == "schreiben" and not os.environ.get("ERGEBNIS", "").strip():
-        print("::warning::Claude hat keine Erklärung geliefert (Nutzungsgrenze oder Ausfall?); beim nächsten Push "
-              "oder per Hand-Start mit der Nummer wird es erneut versucht.")
-        return 0
-    if cmd == "schreiben":
+    if cmd == "schreiben":  # ERGEBNIS leer: Claude scheiterte (Nutzungsgrenze, Ausfall), siehe question_stand_in
         return cmd_schreiben(gh, int(os.environ["NUMMER"]), os.environ["ART"], os.environ.get("STAND", ""),
-                             os.environ["ERGEBNIS"])
+                             os.environ.get("ERGEBNIS", "").strip() or "{}")
     if cmd == "danach":
-        return cmd_danach(gh, int(os.environ["NUMMER"]), os.environ.get("DEFAULT_BRANCH") or "main")
+        return cmd_danach(gh, int(os.environ["NUMMER"].strip().lstrip("#")), os.environ.get("DEFAULT_BRANCH") or "main")
     if cmd == "knopf":
         return cmd_knopf(gh, event, owner)
     if cmd == "genauer":

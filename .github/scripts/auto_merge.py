@@ -35,6 +35,9 @@ INFO_PREFIX = "Erklärseite"
 LABEL_LATER = "später"  # Basti hat in der Erklärung „Erst mal nicht“ angetippt: nicht mergen, bis das Label weg ist.
 # Die Erklärung hat im PR eine Frage an Basti gefunden: nicht mergen, bis er „Ja, mach das“ antippt (Label LABEL_YES).
 LABEL_WAIT, LABEL_YES = "wartet-auf-basti", "ja-von-basti"
+# Frage an Basti in der PR-Beschreibung (eigene Zeile „Frage an Basti: …“): hält den Merge bis zu seinem „Ja“,
+# auch wenn die Erklärung scheitert oder die Frage übersieht. Gleiches Muster in erklaerseite.py.
+QUESTION = re.compile(r"^[ \t>#+\-]*(?:\*[ \t]+)?(?:\d+[.)][ \t]*)?[*_]*Frage an Basti[*_]*[ \t\r]*(?:[:–—-]|$)", re.M | re.I)
 EXPLAIN_CHECK = "Erklärseite"  # Job, der die Erklärung schreibt: Solange er läuft, kann noch eine Frage kommen.
 GRACE_SECONDS = 90  # So lange bekommen andere Workflows Zeit, ihre Prüfungen anzulegen.
 POLL_SECONDS = 30  # Abstand der Abfragen bei kurzer Wartezeit
@@ -99,20 +102,41 @@ def guarded(path, source_repo=None):
             or source_repo and (path.startswith(SOURCE_PREFIXES) or path in SOURCE_FILES))
 
 
-def held_by_labels(issue):
-    """Bastis Labels, die einen Merge anhalten: Grund oder ""."""
+def held_by_labels(issue, ticks=None):
+    """Bastis Labels, die einen Merge anhalten: Grund oder "". ticks: Häkchen im Erklär-Kommentar (siehe
+    explain_ticks); sie zählen schon, bevor der Knopf-Job das Label angeglichen hat."""
     labels = {lb.get("name") or "" for lb in issue.get("labels") or []}
-    if LABEL_LATER in labels:
+    ticks = ticks or {}
+    if LABEL_LATER in labels or ticks.get("spaeter"):
         return "Basti: erst mal nicht"
-    if LABEL_WAIT in labels and LABEL_YES not in labels:
+    asks = LABEL_WAIT in labels or QUESTION.search(issue.get("body") or "")
+    # Ein abgehaktes „Ja, mach das“ nimmt das Label noch nicht weg, solange der Knopf-Job in der Warteschlange steht.
+    if asks and LABEL_YES not in labels:
         return "wartet auf Bastis Entscheidung"
+    if asks and not ticks.get("ja", True):
+        return "wartet auf Bastis Entscheidung (Häkchen „Ja“ im Erklär-Kommentar fehlt)"
     return ""
 
 
+EXPLAIN_MARK, EXPLAIN_BOT = "<!-- erklaerseite -->", "github-actions[bot]"
+EXPLAIN_BOX = re.compile(r"^- \[( |x|X)\] .*<!-- k:(\w+) -->[ \t\r]*$", re.M)
+
+
+def explain_ticks(gh, number):
+    """Häkchen im Erklär-Kommentar der Erklärseite, etwa {"spaeter": True, "ja": False}; {} ohne Kommentar.
+    Basti tippt direkt in diesen Kommentar. Das Label setzt erst der Knopf-Job, und der kann hinter einem
+    belegten Runner warten. Beide Richtungen halten nur an, darum zählt hier jedes Häkchen."""
+    for c in gh.pages(f"/repos/{gh.repo}/issues/{number}/comments"):
+        body = c.get("body") or ""
+        if (c.get("user") or {}).get("login") == EXPLAIN_BOT and EXPLAIN_MARK in body:
+            return {m.group(2): m.group(1).lower() == "x" for m in EXPLAIN_BOX.finditer(body)}
+    return {}
+
+
 def label_hold(gh, number):
-    """Labels direkt vor dem Merge frisch lesen: Die Erklärung setzt „wartet-auf-basti“ vielleicht erst, nachdem
-    der PR gelesen wurde, und ist fertig, bevor die Prüfungen gelesen werden."""
-    return held_by_labels(gh.get(f"/repos/{gh.repo}/issues/{number}"))
+    """Labels und Häkchen direkt vor dem Merge frisch lesen: Die Erklärung setzt „wartet-auf-basti“ vielleicht
+    erst, nachdem der PR gelesen wurde, und Basti tippt vielleicht gerade „Erst mal nicht“ an."""
+    return held_by_labels(gh.get(f"/repos/{gh.repo}/issues/{number}"), explain_ticks(gh, number))
 
 
 def evaluate(pr, owner, default_branch, commits, files, check_runs, status, waited, runs=(), has_ci=False,
