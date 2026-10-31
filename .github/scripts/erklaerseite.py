@@ -580,7 +580,7 @@ BOX_LABELS = {"spaeter": LABEL_SPAETER, "ja": LABEL_JA}
 
 def label_actions(ticks, labels):
     """Unterschiede Häkchen ↔ Labels: [(Schlüssel, setzen?)]. Welche davon gelten, entscheidet cmd_knopf: Bastis
-    gerade geänderte Häkchen und, falls ein Lauf verloren ging, nur das sichere Nachholen."""
+    gerade geänderte Häkchen und, falls ein Lauf verloren ging, das Nachholen (außer ein „später“ abzunehmen)."""
     # Nur Knöpfe, die im Kommentar stehen. Ob ein leeres Häkchen ein Label wirklich abnimmt, entscheidet cmd_knopf.
     return [(k, ticks[k]) for k, name in BOX_LABELS.items() if k in ticks and ticks[k] != (name in labels)]
 
@@ -606,16 +606,17 @@ def cmd_knopf(gh, event, owner):
     issue = gh.ok("GET", f"/repos/{gh.repo}/issues/{number}")
     kind = "pr" if issue.get("pull_request") is not None else "issue"
     labels = {lb["name"] for lb in issue.get("labels") or []}
-    # Stand vor Bastis Änderung. Fehlt er im Ereignis, gilt nichts als gerade geändert (nur sicheres Nachholen).
+    # Stand vor Bastis Änderung. Fehlt er im Ereignis, gilt nichts als gerade geändert (nur Nachholen).
     previous = ((event.get("changes") or {}).get("body") or {}).get("from")
     before = boxes(previous) if previous is not None else dict(ticks)
     fixes = {}  # Häkchen, die am Ende frisch angeglichen werden
     kicked = False  # Auto-Merge schon angestoßen
     for key, state in label_actions(ticks, labels):
-        if before.get(key, False) == state and state != (key == "spaeter"):
-            # Nicht gerade von Basti geändert und kein Nachholen in die sichere Richtung („später“ setzen, „Ja“
-            # abnehmen): Das Label bleibt, wie es ist. So nimmt ein beliebiges Häkchen kein von Hand gesetztes
-            # „später“ ab und setzt kein von Hand entferntes „Ja“ wieder.
+        if before.get(key, False) == state and (key, state) == ("spaeter", False):
+            # Nicht gerade von Basti geändert: Ein beliebiges Häkchen nimmt kein von Hand gesetztes „später“ ab.
+            # Alles andere wird nachgeholt, denn es zählt Bastis Häkchen. Das gilt auch für ein angehaktes „Ja“ ohne
+            # Label: GitHub verwirft den wartenden Lauf dieses Jobs, wenn Basti rasch ein zweites Häkchen setzt.
+            # Ob das Ja zur aktuellen Beschreibung gehört, prüft der nächste Schritt.
             continue
         if key == "ja" and state and kind == "pr" and (parse_data(body) or {}).get("beschreibung") != description_mark(issue):
             # Die Frage im Kommentar passt nicht mehr zur Beschreibung (neue Erklärung fehlt noch oder scheiterte):
