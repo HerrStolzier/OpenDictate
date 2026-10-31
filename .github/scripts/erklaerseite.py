@@ -157,7 +157,9 @@ def render(data, kind, number, state=None, stand=""):
         lines.append("")
     keys = ["mehr"] + (["ja"] if kind == "issue" or data["braucht"] == "entscheidung" or state.get("ja") else []) + ["spaeter"]
     lines += ["**Deine Antwort** (Häkchen antippen, der Rest passiert von selbst)"]
-    lines += [f"- [{'x' if state.get(k) and k != 'mehr' else ' '}] {KNOEPFE[k]} <!-- k:{k} -->" for k in keys]
+    # Auch „genauer“ bleibt angehakt: Der Job „genauer“ wartet vielleicht noch und liest das Häkchen frisch; die Antwort
+    # nimmt es danach selbst weg.
+    lines += [f"- [{'x' if state.get(k) else ' '}] {KNOEPFE[k]} <!-- k:{k} -->" for k in keys]
     lines += ["", "Du kannst auch einfach einen Kommentar darunter schreiben.", ""]
     stop = ("Auto-Merge hält den PR dann an, bis das Häkchen wieder weg ist." if kind == "pr"
             else "Das Issue wandert dann in der Übersicht nach „Später“.")
@@ -505,6 +507,10 @@ def cmd_schreiben(gh, number, kind, stand, result):
     # eine Rücknahme noch nicht verarbeitet hat, darf das Häkchen nicht zurückbringen. Ein „Erst mal nicht“, dessen
     # Label noch fehlt, bleibt so angehakt, und ein von Hand gesetztes Label `später` hält Auto-Merge auch ohne
     # Häkchen an. Ohne Kommentar zeigen die Häkchen die Labels („Ja“ nimmt stale_yes unten ohnehin zurück).
+    if existing:
+        # Frisch lesen, direkt vor dem Schreiben: Basti oder der Job „genauer“ hat die Häkchen seit dem Lesen oben
+        # vielleicht geändert (etwa „genauer“ nach der Antwort weggenommen). So bleibt nur ein winziges Fenster.
+        existing = {**existing, "body": gh.ok("GET", f"/repos/{gh.repo}/issues/comments/{existing['id']}")["body"]}
     old = boxes(existing["body"]) if existing else {}
     state = {k: v for k, v in old.items() if k not in BOX_LABELS}
     state.update({k: name in labels or old.get(k, False) for k, name in BOX_LABELS.items()})
