@@ -17,6 +17,8 @@ behebt das dann selbst. Rote CI kommentiert er nicht, die meldet GitHub dem Thre
 
 Quelle: HerrStolzier/claude-config (ci/auto_merge.py), verteilt mit scripts/install-repo-gate.py.
 """
+import base64
+import hashlib
 import json
 import os
 import re
@@ -24,6 +26,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+import zlib
 
 TRAILER = re.compile(r"^[ \t]*Reviewed-by:[ \t]*\S", re.M)
 TEXT_SUFFIXES = (".md", ".markdown", ".txt", ".rst")
@@ -115,6 +118,11 @@ def held_by_labels(issue, ticks=None):
         return "wartet auf Bastis Entscheidung"
     if asks and not ticks.get("ja", True):
         return "wartet auf Bastis Entscheidung (Häkchen „Ja“ im Erklär-Kommentar fehlt)"
+    mark = ticks.get("_beschreibung")
+    if asks and mark and mark != hashlib.sha256((issue.get("body") or "").strip().encode()).hexdigest()[:16]:
+        # Die Beschreibung ist neuer als die Erklärung, zu der Basti Ja sagte (der Lauf „Erklärseite“, der das alte
+        # Ja abnimmt, ist vielleicht noch nicht angelegt). Gleiche Rechnung wie description_mark in erklaerseite.py.
+        return "wartet auf Bastis Entscheidung (Beschreibung geändert, neue Erklärung folgt)"
     return ""
 
 
@@ -123,14 +131,38 @@ EXPLAIN_BOX = re.compile(r"^- \[( |x|X)\] .*<!-- k:(\w+) -->[ \t\r]*$", re.M)
 
 
 def explain_ticks(gh, number):
-    """Häkchen im Erklär-Kommentar der Erklärseite, etwa {"spaeter": True, "ja": False}; {} ohne Kommentar.
+    """Häkchen im Erklär-Kommentar der Erklärseite, etwa {"spaeter": True, "ja": False}, dazu unter "_beschreibung"
+    der Fingerabdruck der Beschreibung, zu der die Erklärung gehört; {} ohne Kommentar.
     Basti tippt direkt in diesen Kommentar. Das Label setzt erst der Knopf-Job, und der kann hinter einem
     belegten Runner warten. Beide Richtungen halten nur an, darum zählt hier jedes Häkchen."""
     for c in gh.pages(f"/repos/{gh.repo}/issues/{number}/comments"):
         body = c.get("body") or ""
         if (c.get("user") or {}).get("login") == EXPLAIN_BOT and EXPLAIN_MARK in body:
-            return {m.group(2): m.group(1).lower() == "x" for m in EXPLAIN_BOX.finditer(body)}
+            ticks = {m.group(2): m.group(1).lower() == "x" for m in EXPLAIN_BOX.finditer(body)}
+            mark = (explain_data(body) or {}).get("beschreibung")
+            return {**ticks, "_beschreibung": mark} if isinstance(mark, str) else ticks
     return {}
+
+
+EXPLAIN_DATA = re.compile(r"<!-- erklaerseite-daten (z )?([A-Za-z0-9+/=]*) -->")
+
+
+def explain_data(body):
+    """Versteckte Daten des Erklär-Kommentars (wie parse_data in erklaerseite.py): gepackt („z “) oder reines JSON."""
+    m = EXPLAIN_DATA.search(body or "")
+    if not m:
+        return None
+    try:
+        raw = base64.b64decode(m.group(2))
+        if m.group(1):
+            unpack = zlib.decompressobj()
+            raw = unpack.decompress(raw, 5_000_000)
+            if unpack.unconsumed_tail:
+                return None
+        data = json.loads(raw.decode())
+    except (ValueError, UnicodeDecodeError, zlib.error):
+        return None
+    return data if isinstance(data, dict) else None
 
 
 def label_hold(gh, number):
