@@ -9,6 +9,7 @@ und ohne Branch-Schutz. Ein PR wird gemergt (Squash), wenn alles davon stimmt:
   - Jeder Commit, der Code ändert (nicht nur .md/.txt/.rst), trägt eine Zeile `Reviewed-by:` (wie hooks/review-gate.py).
   - Alle Prüfungen auf dem letzten Stand sind fertig und grün (Erfolg, neutral oder übersprungen).
   - Es gibt keinen Konflikt mit dem Ziel-Branch und keinen offenen Review-Hinweis (Thread).
+  - Er trägt nicht das Label `später` (Basti hat in der Erklärung „Erst mal nicht“ angetippt).
 Fehlt ein Review, ist ein Review-Hinweis offen, gibt es einen Konflikt, ist der Branch zu alt für einen
 Ziel-Branch, der einen aktuellen Stand verlangt, oder ändert der PR Dateien, die über das Mergen urteilen
 (Workflows, CI-Skripte, Claudes Regeln, Secret-Scan-Ausnahmen; siehe guarded()), schreibt der Workflow einmal je Stand einen Kommentar. Der Claude-Thread, der den PR beobachtet,
@@ -16,6 +17,8 @@ behebt das dann selbst. Rote CI kommentiert er nicht, die meldet GitHub dem Thre
 
 Quelle: HerrStolzier/claude-config (ci/auto_merge.py), verteilt mit scripts/install-repo-gate.py.
 """
+import base64
+import hashlib
 import json
 import os
 import re
@@ -23,11 +26,22 @@ import sys
 import time
 import urllib.error
 import urllib.request
+import zlib
 
 TRAILER = re.compile(r"^[ \t]*Reviewed-by:[ \t]*\S", re.M)
 TEXT_SUFFIXES = (".md", ".markdown", ".txt", ".rst")
 OK_CONCLUSIONS = {"success", "neutral", "skipped"}
 SELF_CHECK = "Auto-Merge"  # Name des eigenen Jobs; seine Prüfung zählt nicht mit.
+# Die Erklärseite (Erklärung für Basti, ci/erklaerseite.yml) entscheidet nicht über den Merge. Gewartet wird nur,
+# solange sie die Erklärung schreibt (EXPLAIN_CHECK); scheitert sie, hält das nichts auf.
+INFO_PREFIX = "Erklärseite"
+LABEL_LATER = "später"  # Basti hat in der Erklärung „Erst mal nicht“ angetippt: nicht mergen, bis das Label weg ist.
+# Die Erklärung hat im PR eine Frage an Basti gefunden: nicht mergen, bis er „Ja, mach das“ antippt (Label LABEL_YES).
+LABEL_WAIT, LABEL_YES = "wartet-auf-basti", "ja-von-basti"
+# Frage an Basti in der PR-Beschreibung (eigene Zeile „Frage an Basti: …“): hält den Merge bis zu seinem „Ja“,
+# auch wenn die Erklärung scheitert oder die Frage übersieht. Gleiches Muster in erklaerseite.py.
+QUESTION = re.compile(r"^[ \t>#+\-]*(?:\*[ \t]+)?(?:\d+[.)][ \t]*)?[*_]*Frage an Basti[*_]*[ \t\r]*(?:[:–—-]|$)", re.M | re.I)
+EXPLAIN_CHECK = "Erklärseite"  # Job, der die Erklärung schreibt: Solange er läuft, kann noch eine Frage kommen.
 GRACE_SECONDS = 90  # So lange bekommen andere Workflows Zeit, ihre Prüfungen anzulegen.
 POLL_SECONDS = 30  # Abstand der Abfragen bei kurzer Wartezeit
 LONG_POLL_SECONDS = 120  # bei langer Wartezeit: GITHUB_TOKEN hat nur 1000 Abfragen je Stunde und Repo
@@ -50,7 +64,7 @@ def latest_checks(check_runs, runs=()):
     Gleich benannte Jobs aus verschiedenen Workflows zählen getrennt."""
     latest = {}
     for c in check_runs:
-        if c.get("name") == SELF_CHECK:
+        if c.get("name") == SELF_CHECK or (c.get("name") or "").startswith(INFO_PREFIX):
             continue
         key = ((c.get("check_suite") or {}).get("id"), c.get("name"))
         if key not in latest or c.get("id", 0) > latest[key].get("id", 0):
@@ -91,6 +105,91 @@ def guarded(path, source_repo=None):
             or source_repo and (path.startswith(SOURCE_PREFIXES) or path in SOURCE_FILES))
 
 
+HOLD_LATER_TICK = "Basti: erst mal nicht (Häkchen im Erklär-Kommentar)"
+HOLD_YES_TICK = "wartet auf Bastis Entscheidung (Häkchen „Ja“ im Erklär-Kommentar fehlt)"
+HOLD_EXPLAIN_ASKS = "wartet auf Bastis Entscheidung (Frage aus der Erklärung)"
+HOLD_NO_EXPLAIN = "wartet auf Bastis Entscheidung (noch keine Erklärung mit Knöpfen)"
+TICK_HOLDS = {HOLD_LATER_TICK: "haekchen_spaeter", HOLD_YES_TICK: "haekchen_ja", HOLD_EXPLAIN_ASKS: "frage",
+              HOLD_NO_EXPLAIN: "keine_erklaerung"}
+
+
+def held_by_labels(issue, ticks=None):
+    """Bastis Labels, die einen Merge anhalten: Grund oder "". ticks: Häkchen im Erklär-Kommentar (siehe
+    explain_ticks); sie zählen schon, bevor der Knopf-Job das Label angeglichen hat."""
+    labels = {lb.get("name") or "" for lb in issue.get("labels") or []}
+    read = ticks is not None  # None: Kommentar nicht gelesen (die frische Prüfung vor dem Merge liest ihn)
+    ticks = ticks or {}
+    if LABEL_LATER in labels:
+        return "Basti: erst mal nicht"
+    if ticks.get("spaeter"):
+        return HOLD_LATER_TICK
+    own = QUESTION.search(issue.get("body") or "")
+    asks = LABEL_WAIT in labels or own
+    # Ein abgehaktes „Ja, mach das“ nimmt das Label noch nicht weg, solange der Knopf-Job in der Warteschlange steht.
+    if asks and LABEL_YES not in labels:
+        # Ohne eigene Zeile „Frage an Basti“ hat nur die Erklärung eine Frage gefunden: Davon weiß Claude nichts,
+        # darum bekommt der PR dazu einen Hinweis (TICK_HOLDS).
+        return "wartet auf Bastis Entscheidung" if own else HOLD_EXPLAIN_ASKS
+    if asks and read and not ticks:
+        # Gelesen, aber noch kein Erklär-Kommentar: Das Label allein zählt nicht, es zählt Bastis Häkchen. Basti hat
+        # noch nichts zum Antippen, darum sagt der Hinweis, wie die Erklärung neu startet.
+        return HOLD_NO_EXPLAIN
+    if asks and not ticks.get("ja", not read):
+        return HOLD_YES_TICK
+    mark = ticks.get("_beschreibung")
+    if asks and mark and mark != hashlib.sha256((issue.get("body") or "").strip().encode()).hexdigest()[:16]:
+        # Die Beschreibung ist neuer als die Erklärung, zu der Basti Ja sagte (der Lauf „Erklärseite“, der das alte
+        # Ja abnimmt, ist vielleicht noch nicht angelegt). Gleiche Rechnung wie description_mark in erklaerseite.py.
+        return "wartet auf Bastis Entscheidung (Beschreibung geändert, neue Erklärung folgt)"
+    return ""
+
+
+EXPLAIN_MARK, EXPLAIN_BOT = "<!-- erklaerseite -->", "github-actions[bot]"
+EXPLAIN_BOX = re.compile(r"^- \[( |x|X)\] .*<!-- k:(\w+) -->[ \t\r]*$", re.M)
+
+
+def explain_ticks(gh, number):
+    """Häkchen im Erklär-Kommentar der Erklärseite, etwa {"spaeter": True, "ja": False}, dazu unter "_beschreibung"
+    der Fingerabdruck der Beschreibung, zu der die Erklärung gehört; {} ohne Kommentar.
+    Basti tippt direkt in diesen Kommentar. Das Label setzt erst der Knopf-Job, und der kann hinter einem
+    belegten Runner warten. Beide Richtungen halten nur an, darum zählt hier jedes Häkchen."""
+    for c in gh.pages(f"/repos/{gh.repo}/issues/{number}/comments"):
+        body = c.get("body") or ""
+        if (c.get("user") or {}).get("login") == EXPLAIN_BOT and EXPLAIN_MARK in body:
+            ticks = {m.group(2): m.group(1).lower() == "x" for m in EXPLAIN_BOX.finditer(body)}
+            mark = (explain_data(body) or {}).get("beschreibung")
+            return {**ticks, "_beschreibung": mark} if isinstance(mark, str) else ticks
+    return {}
+
+
+EXPLAIN_DATA = re.compile(r"<!-- erklaerseite-daten (z )?([A-Za-z0-9+/=]*) -->")
+
+
+def explain_data(body):
+    """Versteckte Daten des Erklär-Kommentars (wie parse_data in erklaerseite.py): gepackt („z “) oder reines JSON."""
+    m = EXPLAIN_DATA.search(body or "")
+    if not m:
+        return None
+    try:
+        raw = base64.b64decode(m.group(2))
+        if m.group(1):
+            unpack = zlib.decompressobj()
+            raw = unpack.decompress(raw, 5_000_000)
+            if unpack.unconsumed_tail:
+                return None
+        data = json.loads(raw.decode())
+    except (ValueError, UnicodeDecodeError, zlib.error):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def label_hold(gh, number):
+    """Labels und Häkchen direkt vor dem Merge frisch lesen: Die Erklärung setzt „wartet-auf-basti“ vielleicht
+    erst, nachdem der PR gelesen wurde, und Basti tippt vielleicht gerade „Erst mal nicht“ an."""
+    # Über /pulls lesen, nicht /issues: Der Workflow hat keine issues-Rechte (403 „Resource not accessible“).
+    return held_by_labels(gh.get(f"/repos/{gh.repo}/pulls/{number}"), explain_ticks(gh, number))
+
+
 def evaluate(pr, owner, default_branch, commits, files, check_runs, status, waited, runs=(), has_ci=False,
              unresolved=0):
     """Entscheidung für einen PR. Gibt (Ergebnis, Begründung) zurück.
@@ -116,6 +215,14 @@ def evaluate(pr, owner, default_branch, commits, files, check_runs, status, wait
         return "skip", "fremder Autor"
     if (pr.get("base") or {}).get("ref") != default_branch:
         return "skip", "Ziel ist nicht der Haupt-Branch"
+    held = held_by_labels(pr)
+    if held == HOLD_EXPLAIN_ASKS and any(c.get("name") == EXPLAIN_CHECK and c.get("status") != "completed"
+                                         for c in check_runs):
+        # Das Label stammt von einer älteren Erklärung; die neue kann die Frage streichen. Sonst bekäme der PR einen
+        # Hinweis „frage“ zu einer Frage, die es gleich nicht mehr gibt. Ihr Job „danach“ stößt Auto-Merge wieder an.
+        return "wait", "Erklärseite schreibt noch die Erklärung"
+    if held:
+        return "skip", held
 
     unreviewed = [c["sha"][:7] for c in commits
                   if len(c.get("parents") or []) < 2 and needs_review(c.get("files") or [])
@@ -140,6 +247,8 @@ def evaluate(pr, owner, default_branch, commits, files, check_runs, status, wait
     pending += [r.get("name") or "Workflow" for r in runs if r.get("status") != "completed"]
     if pending or (status.get("total_count") and status.get("state") == "pending"):
         return "wait", "läuft: " + ", ".join(pending or ["Commit-Status"])
+    if any(c.get("name") == EXPLAIN_CHECK and c.get("status") != "completed" for c in check_runs):
+        return "wait", "Erklärseite schreibt noch die Erklärung"  # scheitert sie, hält das den Merge nicht auf
     if not checks and not runs and not status.get("total_count") and (has_ci or waited < GRACE_SECONDS):
         return "wait", "noch keine Prüfungen angelegt"
     if pr.get("mergeable") is None:
@@ -163,6 +272,22 @@ COMMENTS = {
                  "starte Auto-Merge danach neu: lokal `gh workflow run auto-merge.yml`, in der Cloud "
                  "`POST /repos/{repo}/actions/workflows/auto-merge.yml/dispatches` mit `{{\"ref\": \"{base}\"}}`. "
                  "Danach mergt Auto-Merge von selbst."),
+    "haekchen_spaeter": ("Auto-Merge wartet: Basti hat im Erklär-Kommentar „Erst mal nicht“ angehakt. Claude: Nichts tun "
+                         "und nicht nachfragen. Der PR wartet, bis Basti das Häkchen selbst entfernt."),
+    "haekchen_ja": ("Auto-Merge wartet: Im Erklär-Kommentar ist „Ja, mach das“ nicht angehakt; das Label `ja-von-basti` "
+                    "allein zählt nicht. Claude: Setz Häkchen und Label nie selbst. Brauchst du die Antwort, frag Basti "
+                    "per Karte nach dem Ziel und verlinke den Erklär-Kommentar; antippen muss er dort (oder auf der "
+                    "Erklärseite) selbst. Ein Ja auf der Karte setzt du nicht um."),
+    "keine_erklaerung": ("Auto-Merge wartet: Der PR hat eine Frage an Basti, aber es gibt noch keinen Erklär-Kommentar "
+                         "mit Knöpfen; das Label `ja-von-basti` allein zählt nicht. Claude: Starte die Erklärseite für "
+                         "diesen PR neu: lokal `gh workflow run erklaerseite.yml -f nummer={number}`, in der Cloud "
+                         "`POST /repos/{repo}/actions/workflows/erklaerseite.yml/dispatches` mit "
+                         "`{{\"ref\": \"{base}\", \"inputs\": {{\"nummer\": \"{number}\"}}}}`. Steht der Kommentar, "
+                         "frag Basti per Karte nach dem Ziel und verlinke ihn; antippen muss er dort selbst."),
+    "frage": ("Auto-Merge wartet: Die Erklärung für Basti hat eine Frage an ihn gefunden (Label `wartet-auf-basti`). "
+              "Claude: Frag Basti per Karte nach dem Ziel und verlinke den Erklär-Kommentar; antippen muss er dort (oder "
+              "auf der Erklärseite) selbst. Setz `ja-von-basti` nie selbst. Auch wenn du die Frage für unnötig hältst: "
+              "Frag Basti trotzdem, entscheiden muss er. Die Beschreibung danach nicht ändern."),
     "hinter": ("Auto-Merge wartet: Der Branch ist hinter `{base}`, und `{base}` verlangt einen aktuellen Stand. "
                "Claude: Hol `{base}` in den Branch, lokal `gh pr update-branch`, in der Cloud "
                "`PUT /repos/{repo}/pulls/{number}/update-branch`. Nach grüner CI mergt Auto-Merge von selbst."),
@@ -280,7 +405,8 @@ def pr_facts(gh, number, cache):
     status = gh.get(f"/repos/{r}/commits/{sha}/status")
     own = str(os.environ.get("GITHUB_RUN_ID", ""))
     runs = [x for x in gh.pages(f"/repos/{r}/actions/runs?head_sha={sha}", key="workflow_runs", limit=3)
-            if str(x.get("id")) != own and x.get("name") != SELF_CHECK]
+            if str(x.get("id")) != own and x.get("name") != SELF_CHECK
+            and not (x.get("name") or "").startswith(INFO_PREFIX)]
     return pr, cache[number]["commits"], cache[number]["files"], checks, status, runs, unresolved_threads(gh, number)
 
 
@@ -335,11 +461,22 @@ def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotoni
                 if result == "wait":
                     continue
                 open_prs.remove(number)
+                if result == "skip" and TICK_HOLDS.get(why):  # sonst wüsste niemand, warum der PR wartet
+                    comment_once(gh, number, pr["head"]["sha"], TICK_HOLDS[why],
+                                 COMMENTS[TICK_HOLDS[why]].format(base=default_branch, repo=gh.repo, number=number))
                 if result == "block":
                     kind, _, detail = why.partition(":")
                     comment_once(gh, number, pr["head"]["sha"], kind,
                                  COMMENTS[kind].format(detail=detail, base=default_branch, repo=gh.repo, number=number))
                 elif result == "merge":
+                    held = label_hold(gh, number)
+                    if held:  # Label kam erst nach dem Lesen des PRs (etwa die Frage aus der Erklärung)
+                        print(f"#{number}: skip ({held})")
+                        tick = TICK_HOLDS.get(held)  # nur das Häkchen hält an: sonst wüsste niemand, warum der PR wartet
+                        if tick:
+                            comment_once(gh, number, pr["head"]["sha"], tick,
+                                         COMMENTS[tick].format(base=default_branch, repo=gh.repo, number=number))
+                        continue
                     code, data, _ = gh.call("PUT", f"/repos/{gh.repo}/pulls/{number}/merge", {
                         "merge_method": method, "sha": pr["head"]["sha"],
                         "commit_title": f"{pr['title']} (#{number})"})
@@ -347,6 +484,7 @@ def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotoni
                     print(f"#{number}: Merge {code} {msg}")
                     if code == 200:
                         merged.append(number)
+                        refresh_overview(gh, default_branch)
                     elif rate_limited(code, data):
                         raise RateLimited(f"Merge #{number}: {code} Abfrage-Kontingent erschöpft")
                     elif code == 405 and pr.get("mergeable_state") == "behind":  # wird von allein nicht aktuell
@@ -372,6 +510,15 @@ def run(gh, event_name, event, wait_limit, sleep=time.sleep, clock=time.monotoni
     if failed:  # roter Lauf: Der Thread, der den PR beobachtet, sieht das und kümmert sich
         raise RuntimeError("Merge fehlgeschlagen: " + "; ".join(failed))
     return merged
+
+
+def refresh_overview(gh, default_branch):
+    """Nach einem Merge die Übersicht der Erklärseite neu schreiben lassen: Ein Merge über GITHUB_TOKEN startet
+    sonst keinen Workflow, der gemergte PR stünde bis zum nächsten Morgen als „läuft“ da. Fehlt die Erklärseite
+    in diesem Repo, lehnt GitHub mit 404 ab; das ist kein Fehler."""
+    code, data, _ = gh.call("POST", f"/repos/{gh.repo}/actions/workflows/erklaerseite.yml/dispatches",
+                            {"ref": default_branch})
+    print(f"Übersicht der Erklärseite angestoßen: {code}" + ("" if code == 204 else f" {(data or {}).get('message', '')}"))
 
 
 def main():

@@ -7,7 +7,7 @@ name: Auto-Merge
 
 on:
   pull_request:
-    types: [opened, reopened, ready_for_review, synchronize]
+    types: [opened, reopened, ready_for_review, synchronize, labeled, unlabeled]  # Labels: Bastis „später“/„ja“
   workflow_run:
     workflows: ["Swift checks", "iOS prototype", "Linux checks", "Repository hygiene", "Windows checks", "Claude Review"]
     types: [completed]
@@ -20,7 +20,7 @@ permissions:
   pull-requests: write
   checks: read
   statuses: read
-  actions: read
+  actions: write  # nach einem Merge die Übersicht der Erklärseite anstoßen
 
 # Je Ereignis und auslösendem CI-Workflow eine eigene Gruppe: Ein Lauf zu einem fertigen
 # CI-Workflow bricht so weder den wartenden PR-Lauf ab (dessen abgebrochene Prüfung sonst rot
@@ -30,7 +30,10 @@ permissions:
 concurrency:
   group: >-
     auto-merge-${{ github.event_name }}-${{ github.event.workflow_run.name }}-${{
-    github.head_ref || github.event.workflow_run.head_branch || 'alle' }}
+    github.head_ref || github.event.workflow_run.head_branch || 'alle' }}${{
+    (github.event.action == 'labeled' || github.event.action == 'unlabeled') && format('-label-{0}', github.run_id) || '' }}
+  # Label-Läufe bekommen je eine eigene Gruppe: Sonst bräche ein von Hand gesetztes Label den wartenden Lauf zum
+  # selben Stand ab, und am PR hinge eine abgebrochene Prüfung „Auto-Merge“. Doppelte Läufe mergen nicht doppelt (Merge mit sha).
   cancel-in-progress: true
 
 jobs:
