@@ -9,6 +9,7 @@ und ohne Branch-Schutz. Ein PR wird gemergt (Squash), wenn alles davon stimmt:
   - Jeder Commit, der Code ändert (nicht nur .md/.txt/.rst), trägt eine Zeile `Reviewed-by:` (wie hooks/review-gate.py).
   - Alle Prüfungen auf dem letzten Stand sind fertig und grün (Erfolg, neutral oder übersprungen).
   - Es gibt keinen Konflikt mit dem Ziel-Branch und keinen offenen Review-Hinweis (Thread).
+  - Er trägt nicht das Label `später` (Basti hat in der Erklärung „Erst mal nicht“ angetippt).
 Fehlt ein Review, ist ein Review-Hinweis offen, gibt es einen Konflikt, ist der Branch zu alt für einen
 Ziel-Branch, der einen aktuellen Stand verlangt, oder ändert der PR Dateien, die über das Mergen urteilen
 (Workflows, CI-Skripte, Claudes Regeln, Secret-Scan-Ausnahmen; siehe guarded()), schreibt der Workflow einmal je Stand einen Kommentar. Der Claude-Thread, der den PR beobachtet,
@@ -28,6 +29,9 @@ TRAILER = re.compile(r"^[ \t]*Reviewed-by:[ \t]*\S", re.M)
 TEXT_SUFFIXES = (".md", ".markdown", ".txt", ".rst")
 OK_CONCLUSIONS = {"success", "neutral", "skipped"}
 SELF_CHECK = "Auto-Merge"  # Name des eigenen Jobs; seine Prüfung zählt nicht mit.
+# Die Erklärseite (Erklärung für Basti, ci/erklaerseite.yml) entscheidet nicht über den Merge; auf sie wird nie gewartet.
+INFO_PREFIX = "Erklärseite"
+LABEL_LATER = "später"  # Basti hat in der Erklärung „Erst mal nicht“ angetippt: nicht mergen, bis das Label weg ist.
 GRACE_SECONDS = 90  # So lange bekommen andere Workflows Zeit, ihre Prüfungen anzulegen.
 POLL_SECONDS = 30  # Abstand der Abfragen bei kurzer Wartezeit
 LONG_POLL_SECONDS = 120  # bei langer Wartezeit: GITHUB_TOKEN hat nur 1000 Abfragen je Stunde und Repo
@@ -50,7 +54,7 @@ def latest_checks(check_runs, runs=()):
     Gleich benannte Jobs aus verschiedenen Workflows zählen getrennt."""
     latest = {}
     for c in check_runs:
-        if c.get("name") == SELF_CHECK:
+        if c.get("name") == SELF_CHECK or (c.get("name") or "").startswith(INFO_PREFIX):
             continue
         key = ((c.get("check_suite") or {}).get("id"), c.get("name"))
         if key not in latest or c.get("id", 0) > latest[key].get("id", 0):
@@ -116,6 +120,8 @@ def evaluate(pr, owner, default_branch, commits, files, check_runs, status, wait
         return "skip", "fremder Autor"
     if (pr.get("base") or {}).get("ref") != default_branch:
         return "skip", "Ziel ist nicht der Haupt-Branch"
+    if any((lb.get("name") or "") == LABEL_LATER for lb in pr.get("labels") or []):
+        return "skip", "Basti: erst mal nicht"
 
     unreviewed = [c["sha"][:7] for c in commits
                   if len(c.get("parents") or []) < 2 and needs_review(c.get("files") or [])
@@ -280,7 +286,8 @@ def pr_facts(gh, number, cache):
     status = gh.get(f"/repos/{r}/commits/{sha}/status")
     own = str(os.environ.get("GITHUB_RUN_ID", ""))
     runs = [x for x in gh.pages(f"/repos/{r}/actions/runs?head_sha={sha}", key="workflow_runs", limit=3)
-            if str(x.get("id")) != own and x.get("name") != SELF_CHECK]
+            if str(x.get("id")) != own and x.get("name") != SELF_CHECK
+            and not (x.get("name") or "").startswith(INFO_PREFIX)]
     return pr, cache[number]["commits"], cache[number]["files"], checks, status, runs, unresolved_threads(gh, number)
 
 
