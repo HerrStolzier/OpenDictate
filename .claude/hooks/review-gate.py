@@ -3,26 +3,32 @@
 """PreToolUse-Hook: Review-Pflicht vor Commit, Push und Merge (Basti liest keinen Code, siehe global-CLAUDE.md).
 
 - `git commit`: Enthält der Commit Code (nicht nur Text wie .md/.txt), muss die Nachricht eine Zeile
-  `Reviewed-by:` tragen (Ergebnis des Agenten critic).
-- `git push`: Jeder noch nicht gepushte Commit mit Code braucht diese Zeile.
+  `Verified-by: pruefer patch=<Fingerabdruck>` tragen (stellt scripts/pruefen.py aus, nachdem Tests und der
+  Fehler-Einbau bestanden haben).
+- `git push`: Jeder noch nicht gepushte Commit mit Code braucht diese Zeile, und der Fingerabdruck muss zur
+  tatsächlichen Änderung des Commits passen (sonst ist die Prüfung veraltet oder ausgedacht).
 - `gh pr merge` und Merge/Auto-Merge per GitHub-MCP: CI auf dem PR muss fertig und grün sein, und jeder
-  Commit des PRs, der Code ändert, braucht die Zeile `Reviewed-by:`.
+  Commit des PRs, der Code ändert, braucht die Zeile mit passendem Fingerabdruck.
 - Commits direkt über die GitHub-MCP-Werkzeuge (push_files, create_or_update_file, delete_file): wie `git commit`.
 
-Bei Verstoß: deny mit Begründung an Claude, nie ask. Die Entscheidung soll bei critic und CI liegen, nicht bei Basti.
+Bei Verstoß: deny mit Begründung an Claude, nie ask. Die Entscheidung soll bei Prüfung und CI liegen, nicht bei Basti.
 """
 import base64
+import hashlib
 import json
 import os
 import re
 import shlex
 import subprocess
 import time
+from collections import Counter
 from urllib.parse import quote
 import sys
 
-# Nur als eigene Zeile der Nachricht, nicht mitten im Satz ("Enforce Reviewed-by: …").
-TRAILER = re.compile(r"^[ \t]*Reviewed-by:[ \t]*\S", re.M)
+# Nur als eigene Zeile der Nachricht, nicht mitten im Satz. Die Zeile stellt scripts/pruefen.py aus; patch= ist der
+# Fingerabdruck der Änderung des Commits (siehe fingerprint).
+VERIFIED = re.compile(r"^[ \t]*Verified-by:[ \t]*pruefer\b[^\n]*?\bpatch=([0-9a-f]{12})\b", re.M)
+VERIFY_LIMIT = 30  # So viele PR-Commits werden gegen ihren Fingerabdruck geprüft; bei mehr zählt nur die Zeile.
 TEXT_SUFFIXES = (".md", ".markdown", ".txt", ".rst")
 # git, dann globale Optionen wie -C <dir>, -c <k=v>, --no-pager, dann der Unterbefehl.
 GIT = r"(?:^|[;&|(\s])git(?:\s+(?:-[cC]\s+(?:\"[^\"]*\"|'[^']*'|\S+)|--[\w-]+(?:=\S+)?))*\s+"
@@ -46,9 +52,50 @@ OK_CONCLUSIONS = {"SUCCESS", "NEUTRAL", "SKIPPED"}
 GH_TIMEOUT = 10
 BUDGET = 45  # Sekunden für alle GitHub-Abfragen; das Zeitlimit des Hooks (60 s) ließe den Befehl sonst durch.
 STARTED = time.monotonic()
-HOW = ("Lass den Agenten critic den aktuellen Stand prüfen, behebe wesentliche Befunde und trag das Ergebnis "
-       "als Zeile `Reviewed-by: critic (…)` in die Commit-Nachricht ein. Frag Basti nicht nach einer "
-       "Code-Bewertung; er liest keinen Code.")
+HOW = ("Lass den Agenten pruefer den Stand angreifen, behebe wesentliche Befunde, merk alles mit `git add` vor und "
+       "führe `{script}` aus. Besteht die Prüfung, gibt das Skript die Zeile `Verified-by: pruefer patch=…` aus; "
+       "sie kommt unverändert in die Commit-Nachricht. Ändert sich der Code danach (auch durch `git commit --amend` oder "
+       "einen Rebase), muss sie neu ausgestellt werden, bei schon gemachten Commits mit `--rev HEAD`. "
+       "Frag Basti nicht nach einer Code-Bewertung; er liest keinen Code.")
+
+
+def hunk_lines(diff_text: str):
+    inside = False
+    for line in diff_text.split("\n"):
+        if line.startswith("diff --git"):
+            inside = False
+        elif line.startswith("@@"):
+            inside = True
+        elif inside and line[:1] in ("+", "-"):
+            yield line[0], line[1:].rstrip("\r")
+
+
+def fingerprint(diff_text: str) -> str:
+    """Netto-Änderung als Fingerabdruck; gleiche Funktion wie in scripts/pruefen.py und ci/auto_merge.py."""
+    net = Counter()
+    for sign, text in hunk_lines(diff_text):
+        net[text] += 1 if sign == "+" else -1
+    body = "\n".join(f"{n}\t{t}" for t, n in sorted(net.items()) if n)
+    return hashlib.sha256(body.encode("utf-8", "replace")).hexdigest()[:12]
+
+
+def stamp(message):
+    m = VERIFIED.search(message or "")
+    return m.group(1) if m else None
+
+
+def api_fingerprint(detail):
+    """Fingerabdruck eines Commits aus der GitHub-Antwort; None, wenn GitHub einen Diff nicht ausliefert."""
+    files = detail.get("files") or []
+    if any(f.get("changes") and "patch" not in f for f in files):
+        return None
+    return fingerprint("\n".join("diff --git\n" + (f.get("patch") or "") for f in files))
+
+
+def how(top=None):
+    local = os.path.join(top or "", ".claude", "pruefen.py")
+    script = local if top and os.path.isfile(local) else os.path.expanduser("~/Projekte/claude-config/scripts/pruefen.py")
+    return HOW.format(script=f"python3 {script}")
 
 
 def deny(reason: str) -> None:
@@ -62,7 +109,7 @@ def deny(reason: str) -> None:
 
 def run(args, cwd=None, timeout=15):
     cwd = cwd if cwd and os.path.isdir(cwd) else None
-    r = subprocess.run(args, cwd=cwd, capture_output=True, text=True, timeout=timeout)
+    r = subprocess.run(args, cwd=cwd, capture_output=True, errors="replace", timeout=timeout)
     return r.returncode, r.stdout
 
 
@@ -283,10 +330,11 @@ def check_commit(raw, bare, seg, cwd):
     if not top:
         return
     code = sorted(needs_review(commit_files(top, raw, bare, seg, cwd)))
-    if not code or TRAILER.search(commit_message(top, seg, cwd)):
+    if not code or stamp(commit_message(top, seg, cwd)):
         return
     shown = ", ".join(code[:5]) + (" …" if len(code) > 5 else "")
-    deny(f"Der Commit ändert Code ({shown}), aber die Nachricht hat keine Zeile `Reviewed-by:`. {HOW}")
+    deny(f"Der Commit ändert Code ({shown}), aber die Nachricht hat keine Zeile `Verified-by: pruefer patch=…`. "
+         f"{how(top)}")
 
 
 def default_base(top, remote="origin"):
@@ -366,18 +414,25 @@ def check_push(raw, bare, seg, cwd):
         # Commit kommt mit diesem Push nicht neu dazu und sperrt ihn darum nicht.
         for c in lines(git(top, "rev-list", "--no-merges", src, "--not", "--remotes")):
             files = lines(git(top, "diff-tree", "--root", "--no-commit-id", "--name-only", "-r", c))
-            if needs_review(files) and not TRAILER.search(git(top, "log", "-1", "--format=%B", c) or ""):
-                missing.append((c[:8], base, src))
+            if not needs_review(files):
+                continue
+            have = stamp(git(top, "log", "-1", "--format=%B", c))
+            if have is None:
+                missing.append((c[:8], base, src, "ohne Zeile"))
+            elif have != fingerprint(git(top, "diff-tree", "--root", "-p", "--no-commit-id", "-r", "--no-renames",
+                                         "--no-ext-diff", "--no-textconv", "--no-color", "-U0", c) or ""):
+                missing.append((c[:8], base, src, "mit veralteter oder falscher Zeile"))
     if missing:
-        hashes = ", ".join(sorted({h for h, _, _ in missing})[:10])
-        _, base, src = missing[0]
+        hashes = ", ".join(sorted({f"{h} ({why})" for h, _, _, why in missing})[:10])
+        _, base, src, _ = missing[0]
         # `reset --soft` fasst alles ab base zusammen. Ist base nicht Vorfahr oder liegt ein Merge dazwischen,
         # landeten fremde Änderungen (etwa aus eingemischtem main) im eigenen Commit; dann kein Tipp.
         linear = base and git(top, "merge-base", "--is-ancestor", base, src) is not None and \
             not lines(git(top, "rev-list", "--merges", f"{base}..{src}"))
         tip = (f" Da sie noch nicht auf {base} liegen, kannst du sie mit `git reset --soft {base}` zusammenfassen "
                "und nach dem Review als einen Commit neu anlegen.") if linear else ""
-        deny(f"Diese noch nicht gepushten Commits ändern Code ohne Zeile `Reviewed-by:`: {hashes}. {HOW}{tip}")
+        deny(f"Diese noch nicht gepushten Commits ändern Code ohne gültige Zeile `Verified-by: pruefer patch=…`: "
+             f"{hashes}. {how(top)}{tip}")
 
 
 def gh_call(args, cwd):
@@ -500,17 +555,26 @@ def check_pr(repo, target, cwd):
         deny(f"PR #{num} hat 100 oder mehr Commits; die kann ich nicht alle prüfen. Fasse sie zusammen "
              "(nach Review) oder teile den PR auf.")
     missing = []
-    for c in commits:
-        if len(c.get("parents") or []) > 1 or TRAILER.search((c.get("commit") or {}).get("message") or ""):
+    for i, c in enumerate(commits):
+        if len(c.get("parents") or []) > 1:
+            continue
+        have = stamp((c.get("commit") or {}).get("message"))
+        if have and i >= VERIFY_LIMIT:
             continue
         detail = gh_json(["api", f"repos/{repo}/commits/{c.get('sha', '')}"], cwd)
         if not isinstance(detail, dict):
             blocked("die Dateien eines PR-Commits")
-        if needs_review([f.get("filename", "") for f in detail.get("files") or []]):
-            missing.append((c.get("sha") or "")[:8])
+        if not needs_review([f.get("filename", "") for f in detail.get("files") or []]):
+            continue
+        if have is None:
+            missing.append(((c.get("sha") or "")[:8], "ohne Zeile"))
+        elif api_fingerprint(detail) not in (None, have):
+            missing.append(((c.get("sha") or "")[:8], "mit veralteter oder falscher Zeile"))
+        if missing:
             break  # Ein Fund reicht; das spart Abfragen.
     if missing:
-        deny(f"PR #{num}: Mindestens dieser Commit ändert Code ohne Zeile `Reviewed-by:`: {missing[0]}. {HOW}")
+        deny(f"PR #{num}: Mindestens dieser Commit ändert Code ohne gültige Zeile `Verified-by: pruefer patch=…`: "
+             f"{missing[0][0]} ({missing[0][1]}). {how()}")
 
 
 def gh_api_calls(raw, bare, cwd):
@@ -631,8 +695,9 @@ def main():
     if tool.endswith(("push_files", "create_or_update_file", "delete_file")):
         paths = [f.get("path", "") for f in ti.get("files") or []] or [ti.get("path", "")]
         code = needs_review(paths)
-        if code and not TRAILER.search(ti.get("message") or ""):
-            deny(f"Der Commit über GitHub ändert Code ({', '.join(code[:5])}) ohne Zeile `Reviewed-by:`. {HOW}")
+        if code and not stamp(ti.get("message")):
+            deny(f"Der Commit über GitHub ändert Code ({', '.join(code[:5])}) ohne Zeile "
+                 f"`Verified-by: pruefer patch=…`. {how()}")
         return
 
     raw = ti.get("command") or ""

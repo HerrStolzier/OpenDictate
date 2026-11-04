@@ -4,6 +4,8 @@
 # des PRs sie behebt oder begründet beantwortet und auflöst. Läuft über Bastis Claude-Abo (Max), nicht über
 # einen API-Schlüssel: Das Geheimnis CLAUDE_CODE_OAUTH_TOKEN stammt aus `claude setup-token` und wird mit
 # scripts/claude-review-token.sh in allen Repos hinterlegt. Anleitung: docs/claude-review.md.
+# Zugabe (Basti 02.11.2026): Endet dieser Lauf ohne Erfolg (Schlüssel, Nutzungsgrenze, Abbruch), zählt das für
+# Auto-Merge als neutral (REVIEW_EXTRA in ci/auto_merge.py); nur seine offenen Zeilenkommentare halten auf.
 name: Claude Review
 
 on:
