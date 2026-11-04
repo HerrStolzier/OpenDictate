@@ -21,7 +21,6 @@ import re
 import shlex
 import subprocess
 import time
-from collections import Counter
 from urllib.parse import quote
 import sys
 
@@ -59,43 +58,57 @@ HOW = ("Lass den Agenten pruefer den Stand angreifen, behebe wesentliche Befunde
        "Frag Basti nicht nach einer Code-Bewertung; er liest keinen Code.")
 
 
-def hunk_lines(diff_text: str):
-    inside = False
-    for line in diff_text.split("\n"):
-        if line.startswith("diff --git"):
-            inside = False
-        elif line.startswith("@@"):
-            inside = True
-        elif inside and line[:1] in ("+", "-"):
-            yield line[0], line[1:].rstrip("\r")
+ZERO = "0" * 40
+FILE_CAP = 300  # So viele Dateien liefert GitHub je Commit in der ersten Antwort; mehr wäre ungeprüft.
 
 
-def fingerprint(diff_text: str) -> str:
-    """Netto-Änderung als Fingerabdruck; gleiche Funktion wie in scripts/pruefen.py und ci/auto_merge.py."""
-    net = Counter()
-    for sign, text in hunk_lines(diff_text):
-        net[text] += 1 if sign == "+" else -1
-    body = "\n".join(f"{n}\t{t}" for t, n in sorted(net.items()) if n)
+def fingerprint(entries) -> str:
+    """Fingerabdruck des geprüften Stands (Pfad und Blob-SHA je geänderter Datei); gleiche Funktion wie in
+    scripts/pruefen.py und ci/auto_merge.py."""
+    body = "\n".join(f"{path}\t{blob}" for path, blob in sorted(set(entries)))
     return hashlib.sha256(body.encode("utf-8", "replace")).hexdigest()[:12]
 
 
+def raw_entries(raw: str) -> list:
+    """(Pfad, Blob-SHA nach der Änderung) aus der Ausgabe von `git diff-tree --raw -z --no-abbrev --no-renames`."""
+    parts, out = (raw or "").split("\0"), []
+    for i in range(len(parts) - 1):
+        if parts[i].startswith(":"):
+            out.append((parts[i + 1], parts[i].split()[3]))
+    return out
+
+
 def stamp(message):
-    m = VERIFIED.search(message or "")
-    return m.group(1) if m else None
+    """Fingerabdruck der letzten Zeile `Verified-by: pruefer patch=…`: Eine neuere Prüfung hängt ihre Zeile hinten an."""
+    found = VERIFIED.findall(message or "")
+    return found[-1] if found else None
 
 
 def api_fingerprint(detail):
-    """Fingerabdruck eines Commits aus der GitHub-Antwort; None, wenn GitHub einen Diff nicht ausliefert."""
+    """Fingerabdruck eines Commits aus der GitHub-Antwort; None, wenn GitHub einen Blob nicht nennt oder Dateien fehlen."""
     files = detail.get("files") or []
-    if any(f.get("changes") and "patch" not in f for f in files):
+    if len(files) >= FILE_CAP:
         return None
-    return fingerprint("\n".join("diff --git\n" + (f.get("patch") or "") for f in files))
+    entries = []
+    for f in files:
+        removed = f.get("status") == "removed"
+        if not f.get("filename") or not (removed or f.get("sha")):
+            return None
+        entries.append((f["filename"], ZERO if removed else f["sha"]))
+        if f.get("status") == "renamed" and f.get("previous_filename"):
+            entries.append((f["previous_filename"], ZERO))
+    return fingerprint(entries)
 
 
 def how(top=None):
     local = os.path.join(top or "", ".claude", "pruefen.py")
     script = local if top and os.path.isfile(local) else os.path.expanduser("~/Projekte/claude-config/scripts/pruefen.py")
     return HOW.format(script=f"python3 {script}")
+
+
+def project_top(cwd):
+    """Repo-Ordner für den Hinweis: In Cloud-Sitzungen ist cwd oft nicht das Repo, dort nennt CLAUDE_PROJECT_DIR es."""
+    return os.environ.get("CLAUDE_PROJECT_DIR") or toplevel(cwd)
 
 
 def deny(reason: str) -> None:
@@ -419,8 +432,8 @@ def check_push(raw, bare, seg, cwd):
             have = stamp(git(top, "log", "-1", "--format=%B", c))
             if have is None:
                 missing.append((c[:8], base, src, "ohne Zeile"))
-            elif have != fingerprint(git(top, "diff-tree", "--root", "-p", "--no-commit-id", "-r", "--no-renames",
-                                         "--no-ext-diff", "--no-textconv", "--no-color", "-U0", c) or ""):
+            elif have != fingerprint(raw_entries(git(top, "diff-tree", "--root", "-r", "--no-commit-id", "--raw", "-z",
+                                                     "--no-abbrev", "--no-renames", "--no-ext-diff", "--no-textconv", c))):
                 missing.append((c[:8], base, src, "mit veralteter oder falscher Zeile"))
     if missing:
         hashes = ", ".join(sorted({f"{h} ({why})" for h, _, _, why in missing})[:10])
@@ -574,7 +587,7 @@ def check_pr(repo, target, cwd):
             break  # Ein Fund reicht; das spart Abfragen.
     if missing:
         deny(f"PR #{num}: Mindestens dieser Commit ändert Code ohne gültige Zeile `Verified-by: pruefer patch=…`: "
-             f"{missing[0][0]} ({missing[0][1]}). {how()}")
+             f"{missing[0][0]} ({missing[0][1]}). {how(project_top(cwd))}")
 
 
 def gh_api_calls(raw, bare, cwd):
@@ -697,7 +710,7 @@ def main():
         code = needs_review(paths)
         if code and not stamp(ti.get("message")):
             deny(f"Der Commit über GitHub ändert Code ({', '.join(code[:5])}) ohne Zeile "
-                 f"`Verified-by: pruefer patch=…`. {how()}")
+                 f"`Verified-by: pruefer patch=…`. {how(project_top(cwd))}")
         return
 
     raw = ti.get("command") or ""

@@ -1,0 +1,3 @@
+{"tests": "sh -c 'python3 -m unittest $(ls scripts/tests/test_*.py | grep -v test_website_worker)'",
+ "testordner": ["scripts/tests"],
+ "hinweis": "Die Python-Tests aus .github/workflows/checks.yml, ohne test_website_worker.py: Der Test prüft einen Commit im Git-Verlauf, den das Wegwerf-Verzeichnis der Prüfung nicht hat; die CI führt ihn aus. Swift- und Rust-Tests laufen dort in eigenen Schritten und nicht hier."}

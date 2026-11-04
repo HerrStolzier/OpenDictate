@@ -12,7 +12,7 @@ Mutant, ist die Prüfung dort zu schwach: Test nachlegen oder mit --akzeptiere b
 
 Nur wenn alles besteht, steht am Ende die Zeile für die Commit-Nachricht:
   Verified-by: pruefer patch=<Fingerabdruck> fehler=<entdeckt>/<eingebaut>
-Der Fingerabdruck (patch=) beschreibt, welche Zeilen der Commit netto hinzufügt und entfernt. Wächter und
+Der Fingerabdruck (patch=) beschreibt den geprüften Stand der geänderten Dateien (Pfad und Blob-SHA). Wächter und
 Auto-Merge vergleichen ihn mit dem echten Commit: Eine ausgedachte oder veraltete Zeile fällt auf.
 Dieselbe Funktion `fingerprint` steht in hooks/review-gate.py und ci/auto_merge.py; tests/test_pruefen.py hält die
 drei Kopien gleich.
@@ -33,7 +33,6 @@ import subprocess
 import sys
 import tempfile
 import time
-from collections import Counter
 from pathlib import Path
 
 TRAILER_NAME = "Verified-by: pruefer"
@@ -44,6 +43,9 @@ BUDGET = 600
 PER_RUN = 180
 COPY_HEADER = "# Kopie aus HerrStolzier/claude-config ("  # Kopf, den scripts/install-repo-gate.py in verteilte Kopien schreibt
 MAX_OUTPUT = 2_000_000
+TEST_FILE = re.compile(r"(^test_.*\.py|_test\.(py|go)|\.(test|spec)\.[cm]?[jt]sx?|Tests?\.swift)$")
+TEST_DIRS = {"test", "tests", "__tests__"}
+CODE_SUFFIXES = (".py", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".rs", ".swift", ".go", ".sh")
 
 
 def hunk_lines(diff_text: str):
@@ -59,14 +61,22 @@ def hunk_lines(diff_text: str):
             yield line[0], line[1:].rstrip("\r")
 
 
-def fingerprint(diff_text: str) -> str:
-    """Netto-Änderung als Fingerabdruck: je Zeilentext (hinzugefügt minus entfernt). Unabhängig von Kontext, Zeilennummern,
-    Diff-Algorithmus, Umbenennungen und der Reihenfolge der Dateien."""
-    net = Counter()
-    for sign, text in hunk_lines(diff_text):
-        net[text] += 1 if sign == "+" else -1
-    body = "\n".join(f"{n}\t{t}" for t, n in sorted(net.items()) if n)
+def fingerprint(entries) -> str:
+    """Fingerabdruck des geprüften Stands: je geänderter Datei der Pfad und der Inhalt danach (Blob-SHA von git; gelöscht
+    = lauter Nullen). Ändert sich der Code nach der Prüfung, auch nur in der Reihenfolge der Zeilen oder durch Verschieben
+    in eine andere Datei, ändert sich der Fingerabdruck. Unabhängig von Kontext, Diff-Algorithmus und Umbenennungen
+    (diese zählen als gelöscht plus neu)."""
+    body = "\n".join(f"{path}\t{blob}" for path, blob in sorted(set(entries)))
     return hashlib.sha256(body.encode("utf-8", "replace")).hexdigest()[:12]
+
+
+def raw_entries(raw: str) -> list:
+    """(Pfad, Blob-SHA nach der Änderung) aus der Ausgabe von `git diff --raw -z --no-abbrev --no-renames`."""
+    parts, out = raw.split("\0"), []
+    for i in range(len(parts) - 1):
+        if parts[i].startswith(":"):
+            out.append((parts[i + 1], parts[i].split()[3]))
+    return out
 
 
 def changed_lines(diff_text: str) -> dict:
@@ -98,6 +108,20 @@ def git(root, *args, check=True):
 DIFF_FLAGS = ["--no-renames", "--no-ext-diff", "--no-textconv", "--no-color", "--src-prefix=a/", "--dst-prefix=b/"]
 
 
+RAW_FLAGS = ["--raw", "-z", "--no-abbrev", "--no-renames", "--no-ext-diff", "--no-textconv"]
+
+
+def entries_of(root, mode, value):
+    """(Pfad, Blob-SHA) der Änderung: vorgemerkter Stand, ein Commit oder alles seit einer Basis."""
+    if mode == "index":
+        raw = git(root, "diff", "--cached", *RAW_FLAGS)
+    elif mode == "rev":
+        raw = git(root, "diff-tree", "--root", "-r", "--no-commit-id", *RAW_FLAGS, value)
+    else:
+        raw = git(root, "diff", *RAW_FLAGS, f"{value}...HEAD")
+    return raw_entries(raw)
+
+
 def diff_of(root, mode, value):
     if mode == "index":
         return git(root, "diff", "--cached", *DIFF_FLAGS, "-U0")
@@ -120,6 +144,24 @@ def export(root, mode, value, dest: Path):
     git(dest, "add", "-A")
     git(dest, "-c", "user.name=pruefen", "-c", "user.email=pruefen@localhost", "-c", "commit.gpgsign=false",
         "commit", "-qm", "export")
+
+
+def evident_tests(tree: Path) -> list:
+    """Dateien im Stand, die erkennbar Tests sind (nach Dateiname, oder Code in einem Ordner test/tests/__tests__).
+    Gibt es welche, aber keinen bekannten Testbefehl, darf es keinen Nachweis geben: Es liefe nichts."""
+    found = []
+    for name in git(tree, "ls-files").splitlines():
+        base, parts = os.path.basename(name), name.split("/")[:-1]
+        if TEST_FILE.search(base) or (base.endswith(CODE_SUFFIXES) and base != "__init__.py"
+                                      and any(p.lower() in TEST_DIRS for p in parts)):
+            found.append(name)
+    return found
+
+
+def no_command_message(found: list) -> str:
+    return (f"Im Repo liegen Tests ({', '.join(found[:3])}{', …' if len(found) > 3 else ''}), aber es ist kein Testbefehl "
+            "bekannt, der sie ausführt. Ohne Lauf gibt es keinen Nachweis: `pruefung.json` mit {\"tests\": \"…\"} anlegen "
+            "(docs/pruefung.md).")
 
 
 def load_config(root: Path) -> dict:
@@ -379,7 +421,7 @@ def main(argv=None) -> int:
     if not diff.strip():
         print("Nichts zu prüfen: kein vorgemerkter Unterschied (git add?), oder der Commit ist leer.")
         return 0 if args.melden else 1
-    fp = fingerprint(diff)
+    fp = fingerprint(entries_of(root, mode, value))
     cfg = load_config(root)
     files = changed_lines(diff)
     ok = True
@@ -394,15 +436,23 @@ def main(argv=None) -> int:
         if missing:
             raise SystemExit(f"Geänderte Python-Datei im geprüften Stand nicht gefunden: {', '.join(missing)}. "
                              "Kein Nachweis, damit nicht still nichts geprüft wird.")
-        if "tests" not in cfg:
+        found = evident_tests(tree) if "tests" not in cfg else []
+        if found:
+            print(no_command_message(found))
+            ok = False
+        elif "tests" not in cfg:
             note.append("Keine Tests im Repo (kein Ordner tests/, keine pruefung.json): nur der Fingerabdruck wird bestätigt.")
         else:
             code, tail = run_cmd(cfg["tests"], tree, PER_RUN * 5)
             standard = cfg["tests"] == DEFAULT_TESTS
             if standard and re.search(r"^Ran 0 tests", tail, re.M):
                 del cfg["tests"]
-                note.append("Der Standardbefehl (unittest) findet in tests/ keine Tests (pytest oder eine andere Sprache?): nur der "
-                            "Fingerabdruck wird bestätigt. Für diese Tests `pruefung.json` mit {\"tests\": \"…\"} anlegen.")
+                found = evident_tests(tree)
+                if found:
+                    print("Der Standardbefehl (unittest) findet keinen dieser Tests. " + no_command_message(found))
+                    ok = False
+                else:
+                    note.append("Der Standardbefehl (unittest) findet in tests/ keine Tests: nur der Fingerabdruck wird bestätigt.")
             elif code != 0:
                 print(f"Die Tests sind im geprüften Stand rot (Exit {code}):\n{tail[-1500:]}")
                 if standard:

@@ -33,7 +33,6 @@ import time
 import urllib.error
 import urllib.request
 import zlib
-from collections import Counter
 
 VERIFIED = re.compile(r"^[ \t]*Verified-by:[ \t]*pruefer\b[^\n]*?\bpatch=([0-9a-f]{12})\b", re.M)
 TEXT_SUFFIXES = (".md", ".markdown", ".txt", ".rst")
@@ -124,36 +123,33 @@ def hermes_modes(gh, sha, files):
 BEHAVIOR_DIRS = ("agents/", ".claude/")  # .md dort ist Verhalten (Frontmatter mit Werkzeugen, Modell, Hooks)
 
 
-def hunk_lines(diff_text):
-    inside = False
-    for line in diff_text.split("\n"):
-        if line.startswith("diff --git"):
-            inside = False
-        elif line.startswith("@@"):
-            inside = True
-        elif inside and line[:1] in ("+", "-"):
-            yield line[0], line[1:].rstrip("\r")
+ZERO = "0" * 40
 
 
-def fingerprint(diff_text):
-    """Netto-Änderung als Fingerabdruck; gleiche Funktion wie in scripts/pruefen.py und hooks/review-gate.py."""
-    net = Counter()
-    for sign, text in hunk_lines(diff_text):
-        net[text] += 1 if sign == "+" else -1
-    body = "\n".join(f"{n}\t{t}" for t, n in sorted(net.items()) if n)
+def fingerprint(entries):
+    """Fingerabdruck des geprüften Stands (Pfad und Blob-SHA je geänderter Datei); gleiche Funktion wie in
+    scripts/pruefen.py und hooks/review-gate.py."""
+    body = "\n".join(f"{path}\t{blob}" for path, blob in sorted(set(entries)))
     return hashlib.sha256(body.encode("utf-8", "replace")).hexdigest()[:12]
 
 
 def stamp(message):
-    m = VERIFIED.search(message or "")
-    return m.group(1) if m else None
+    """Fingerabdruck der letzten Zeile `Verified-by: pruefer patch=…`: Eine neuere Prüfung hängt ihre Zeile hinten an."""
+    found = VERIFIED.findall(message or "")
+    return found[-1] if found else None
 
 
 def api_fingerprint(files):
-    """Fingerabdruck eines Commits aus den Dateien der GitHub-Antwort; None, wenn GitHub einen Diff nicht ausliefert."""
-    if any(f.get("changes") and "patch" not in f for f in files):
-        return None
-    return fingerprint("\n".join("diff --git\n" + (f.get("patch") or "") for f in files))
+    """Fingerabdruck eines Commits aus den Dateien der GitHub-Antwort; None, wenn GitHub einen Blob nicht nennt."""
+    entries = []
+    for f in files:
+        removed = f.get("status") == "removed"
+        if not f.get("filename") or not (removed or f.get("sha")):
+            return None
+        entries.append((f["filename"], ZERO if removed else f["sha"]))
+        if f.get("status") == "renamed" and f.get("previous_filename"):
+            entries.append((f["previous_filename"], ZERO))
+    return fingerprint(entries)
 
 
 def needs_review(paths):
