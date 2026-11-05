@@ -217,7 +217,7 @@ returned text is written to the Wayland clipboard (`wl-copy`). Unless
 window captured at recording start is still frontmost, sends that window a
 paste shortcut via `hyprctl`. Control characters and invisible text-direction
 marks are removed from the returned text first. Text with a line break is not
-pasted into known terminals; it stays in the clipboard. Retry never pastes
+pasted into any app automatically; it stays in the clipboard. Retry never pastes
 automatically. A clipboard history manager on Wayland (such as cliphist or
 clipman) keeps its own copy of every text copied via `wl-copy`; OpenDictate
 cannot prevent or remove that copy. The optional
@@ -227,7 +227,7 @@ With a custom server (`settings server`, or `OPENAI_BASE_URL` when no address
 is stored), the recording and, with translation on, the transcript go to that
 server's `/audio/transcriptions` and `/chat/completions` instead of OpenAI;
 nothing goes to OpenAI then. Plain `http://` is accepted only for loopback
-addresses (`localhost`, `127.0.0.1`, `[::1]`), which never receive the API key.
+addresses (`localhost`, `127.0.0.1`, `::1`, `[::1]`), which never receive the API key.
 Any other custom server is reached over HTTPS and receives the stored API key
 as a bearer token, even when that key was created for OpenAI. `OPENAI_BASE_URL` set in
 the session therefore redirects the audio, the transcript and, for a

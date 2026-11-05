@@ -8,6 +8,8 @@ use crate::server::Server;
 use crate::settings::{validate_model_for, Settings};
 
 const MAX_UPLOAD_BYTES: usize = 25 * 1_024 * 1_024;
+/// Provider JSON larger than this is rejected, not parsed in part.
+const MAX_RESPONSE_BYTES: usize = 131_072;
 /// Waiting time for the provider's answer on top of the upload. A request
 /// that stalls because the network is gone ends after this budget instead
 /// of an open-ended read timeout. A write blocked when the network drops
@@ -218,7 +220,7 @@ fn decode_response(
     let mut data = Vec::new();
     response
         .into_reader()
-        .take(131_073)
+        .take(u64::try_from(MAX_RESPONSE_BYTES + 1).expect("response cap fits in u64"))
         .read_to_end(&mut data)
         .map_err(|_| {
             if server.is_custom() {
@@ -227,7 +229,7 @@ fn decode_response(
                 invalid_response().into()
             }
         })?;
-    if data.len() > 131_072 {
+    if data.len() > MAX_RESPONSE_BYTES {
         return Err(invalid_response().into());
     }
     #[derive(Deserialize)]
@@ -235,7 +237,7 @@ fn decode_response(
         text: String,
     }
     let parsed: Response = serde_json::from_slice(&data).map_err(|_| invalid_response())?;
-    let text = crate::policy::sanitize_transcript(&parsed.text);
+    let text = crate::policy::text_for_delivery(&parsed.text);
     if text.encode_utf16().count() > 16_000 {
         return Err(invalid_response().into());
     }
