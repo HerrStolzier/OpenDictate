@@ -18,6 +18,7 @@ private enum KeychainAccount: String, Codable {
     case apiKey = "OPENAI_API_KEY_APP"
     case legacyAPIKey = "OPENAI_API_KEY"
     case recordingAuthentication = "FAILED_RECORDING_AUTH_KEY"
+    case trustedServerAddress = "TRUSTED_SERVER_ADDRESS"
 }
 
 private struct Request: Codable {

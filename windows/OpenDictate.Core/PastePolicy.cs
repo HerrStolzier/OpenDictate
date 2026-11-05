@@ -16,17 +16,7 @@ public static class PastePolicy
         autoInsert && captured is not null && captured.Window != 0 && captured.ProcessId != ownProcessId &&
         captured == current && modifiersReleased && StringComparer.Ordinal.Equals(clipboard, transcript);
 
-    // A line break pasted into a console runs the dictated line as a command.
-    // Multi-line text therefore stays on the clipboard for these programs.
-    private static readonly string[] ConsoleProcesses =
-    [
-        "windowsterminal", "conhost", "openconsole", "cmd", "powershell", "pwsh", "powershell_ise",
-        "mintty", "alacritty", "wezterm-gui", "putty", "kitty", "hyper", "tabby", "cmder", "conemu64", "conemu",
-    ];
-
-    public static bool IsConsole(string? processName) =>
-        processName is not null && Array.Exists(ConsoleProcesses, name => string.Equals(name, processName, StringComparison.OrdinalIgnoreCase));
-
-    public static bool MayPasteText(string transcript, string? processName) =>
-        !(IsConsole(processName) && TranscriptText.IsMultiline(transcript));
+    // Editors and browsers can contain a terminal. Do not auto-paste a line
+    // break into any target; the user can paste it deliberately from the clipboard.
+    public static bool MayPasteText(string transcript) => !TranscriptText.IsMultiline(transcript);
 }

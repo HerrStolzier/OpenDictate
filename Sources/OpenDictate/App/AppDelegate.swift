@@ -1019,7 +1019,8 @@ extension AppDelegate: MenuBarControllerDelegate {
 
     func menuBarDidConfigureCustomServer() {
         guard flow.state == .idle, let operation = lifecycle.beginOperation() else { return }
-        defer { lifecycle.finish(operation) }
+        var handedOff = false
+        defer { if !handedOff { lifecycle.finish(operation) } }
         let settings = Config.settings
         let current = AlertPresenter.CustomServer(
             address: settings.serverAddress ?? "",
@@ -1036,22 +1037,44 @@ extension AppDelegate: MenuBarControllerDelegate {
                 return
             }
         }
-        guard settings.setServerAddress(value.address) else {
+        let endpoint = value.address.isEmpty ? nil : ServiceEndpoint(value.address)
+        guard value.address.isEmpty || endpoint != nil else {
             updateStatus("Eigener Server nicht gespeichert: nur https:// oder http:// auf diesem Mac")
             return
         }
-        settings.serverModel =
-            value.transcriptionModel.isEmpty ? .default : TranscriptionModel(rawValue: value.transcriptionModel)
-        settings.serverTranslationModel = value.translationModel
-        let status: String
-        if settings.service == .server {
-            status = "Eigener Server gespeichert, er schreibt jetzt"
-        } else if settings.serverAddress == nil {
-            status = "OpenAI als Dienst gespeichert"
-        } else {
-            status = "Eigener Server gespeichert, es schreibt weiter OpenAI"
+        handedOff = true
+        Task { [weak self] in
+            guard let self else { return }
+            defer { lifecycle.finish(operation) }
+            // A Keychain prompt can wait for the user; keep the menu responsive.
+            let saved = await Task.detached(priority: .userInitiated) {
+                Result<Void, any Error> {
+                    if let endpoint {
+                        try TrustedServerAddressStore.save(endpoint)
+                    } else {
+                        try TrustedServerAddressStore.remove()
+                    }
+                }
+            }.value
+            guard lifecycle.isCurrent(operation) else { return }
+            guard case .success = saved else {
+                updateStatus("Eigener Server nicht gespeichert: Schlüsselbund nicht verfügbar")
+                return
+            }
+            guard settings.setServerAddress(value.address) else { return }
+            settings.serverModel =
+                value.transcriptionModel.isEmpty ? .default : TranscriptionModel(rawValue: value.transcriptionModel)
+            settings.serverTranslationModel = value.translationModel
+            let status: String
+            if settings.service == .server {
+                status = "Eigener Server gespeichert, er schreibt jetzt"
+            } else if settings.serverAddress == nil {
+                status = "OpenAI als Dienst gespeichert"
+            } else {
+                status = "Eigener Server gespeichert, es schreibt weiter OpenAI"
+            }
+            applyServiceChange(status: status)
         }
-        applyServiceChange(status: status)
     }
 
     /// Follow-up after the service, its address or its models changed.

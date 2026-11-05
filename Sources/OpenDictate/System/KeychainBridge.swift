@@ -43,8 +43,11 @@ enum KeychainBridge {
 
     static func perform(_ operation: Operation, account: String, data: Data? = nil) -> (OSStatus, Data?) {
         guard isActive else { return (errSecNotAvailable, nil) }
-        guard ["OPENAI_API_KEY_APP", "OPENAI_API_KEY", "FAILED_RECORDING_AUTH_KEY"].contains(account),
-            let executable = installedHelperURL,
+        let allowedAccounts = [
+            "OPENAI_API_KEY_APP", "OPENAI_API_KEY", "FAILED_RECORDING_AUTH_KEY", "TRUSTED_SERVER_ADDRESS"
+        ]
+        guard allowedAccounts.contains(account),
+            let executable = account == "TRUSTED_SERVER_ADDRESS" ? installedServerHelperURL : installedHelperURL,
             let request = try? JSONEncoder().encode(
                 Request(version: 1, operation: operation, account: account, data: data))
         else { return (errSecNotAvailable, nil) }
@@ -100,14 +103,18 @@ enum KeychainBridge {
     }
 
     private static let installedHelperURL: URL? = installHelperIfNeeded()
+    // The existing helper's on-disk copy cannot be updated: its stable code
+    // identity protects existing API keys. A separate stable copy handles the
+    // new account without changing that Keychain access list.
+    private static let installedServerHelperURL: URL? = installHelperIfNeeded(named: "KeychainHelper-server-v1")
 
-    private static func installHelperIfNeeded() -> URL? {
+    private static func installHelperIfNeeded(named name: String = "KeychainHelper-v1") -> URL? {
         let manager = FileManager.default
         guard let appCertificate,
             let support = manager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
         else { return nil }
         let directory = support.appendingPathComponent("OpenDictate", isDirectory: true)
-        let installed = directory.appendingPathComponent("KeychainHelper-v1")
+        let installed = directory.appendingPathComponent(name)
         let bundled = Bundle.main.bundleURL
             .appendingPathComponent("Contents/Helpers/OpenDictateKeychainHelper")
         guard hasExpectedSignature(bundled, certificate: appCertificate) else { return nil }
