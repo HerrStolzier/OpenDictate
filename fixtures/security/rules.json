@@ -1,0 +1,124 @@
+{
+  "macos_keychain_note": "The Keychain approved-server-address store (TrustedServerAddressStore) exists only on macOS, in PR #159. Linux, Windows, and iOS have no approved-address store. It is not part of these rules.",
+  "addresses": [
+    {
+      "input": "https://api.openai.com/v1",
+      "accept": true,
+      "loopback": false,
+      "canonical": "https://api.openai.com/v1"
+    },
+    {
+      "input": "https://API.Example.com/v1/",
+      "accept": true,
+      "loopback": false,
+      "canonical": "https://api.example.com/v1"
+    },
+    {
+      "input": "https://[::2]/v1",
+      "accept": true,
+      "loopback": false,
+      "canonical": "https://[::2]/v1"
+    },
+    {
+      "input": "http://localhost/v1",
+      "accept": true,
+      "loopback": true,
+      "canonical": "http://localhost/v1"
+    },
+    {
+      "input": "http://127.0.0.1:8080/v1",
+      "accept": true,
+      "loopback": true,
+      "canonical": "http://127.0.0.1:8080/v1"
+    },
+    {
+      "input": "HTTP://LOCALHOST:8000/v1/",
+      "accept": true,
+      "loopback": true,
+      "canonical": "http://localhost:8000/v1"
+    },
+    {
+      "input": "http://[::1]/v1",
+      "accept": true,
+      "loopback": true,
+      "canonical": "http://[::1]/v1"
+    },
+    {
+      "input": "http://[::1]:8080/v1",
+      "accept": true,
+      "loopback": true,
+      "canonical": "http://[::1]:8080/v1"
+    },
+    {
+      "input": "http://::1/v1",
+      "accept": true,
+      "loopback": true,
+      "canonical": "http://[::1]/v1"
+    },
+    {
+      "input": "http://::1:8080/v1",
+      "accept": true,
+      "loopback": true,
+      "canonical": "http://[::1]:8080/v1"
+    },
+    {
+      "input": "https://::1/v1",
+      "accept": true,
+      "loopback": true,
+      "canonical": "https://[::1]/v1"
+    },
+    {"input": "http://192.168.1.20:8080/v1", "accept": false},
+    {"input": "http://example.com/v1", "accept": false},
+    {"input": "http://127.0.0.2/v1", "accept": false},
+    {"input": "http://localhost.example.com/v1", "accept": false},
+    {"input": "http://[::2]/v1", "accept": false},
+    {"input": "http://0.0.0.0:8080/v1", "accept": false},
+    {"input": "ftp://127.0.0.1/v1", "accept": false}
+  ],
+  "response_limits": {
+    "linux": {
+      "transcription_bytes": 131072,
+      "translation_bytes": 1048576,
+      "enforcement": "enforced by the Linux tests in this change",
+      "transcription_code": "linux/src/transcribe.rs",
+      "translation_code": "linux/src/translate.rs"
+    },
+    "windows": {
+      "transcription_bytes": 131072,
+      "translation_bytes": 1048576,
+      "enforcement": "observed in code at the paths below; not yet enforced by tests on this platform",
+      "transcription_code": "windows/OpenDictate.Provider/OpenAiTranscriber.cs",
+      "translation_code": "windows/OpenDictate.Provider/Translator.cs"
+    },
+    "macos": {
+      "transcription_bytes": null,
+      "translation_bytes": null,
+      "enforcement": "no response-body cap in code on main; not a conformance claim",
+      "transcription_code": "Sources/OpenDictate/Transcription/OpenAITranscriber.swift",
+      "translation_code": "Sources/OpenDictate/Transcription/OpenAITranslator.swift"
+    },
+    "ios": {
+      "transcription_bytes": null,
+      "translation_bytes": null,
+      "enforcement": "no response-body cap in code on main; not a conformance claim",
+      "code": "ios/App/Dictation/ServiceClient.swift"
+    }
+  },
+  "auto_paste": {
+    "scope": "every target",
+    "enforcement": "Linux tests in this change block these breaks in every target. macOS and Windows on main still block multi-line auto-paste only in known terminals; those platforms are not changed here.",
+    "line_breaks": ["\n", "\r", "\u2028", "\u2029", "\u0085", "\u000b", "\u000c"],
+    "blocked": [
+      "echo hi\nrm -rf /",
+      "echo hi\rrm -rf /",
+      "echo hi\u2028rm -rf /",
+      "echo hi\u2029rm -rf /",
+      "echo hi\u0085rm -rf /",
+      "echo hi\u000brm -rf /",
+      "echo hi\u000crm -rf /"
+    ],
+    "allowed": [
+      {"text": "echo hi"}
+    ]
+  }
+}

@@ -24,6 +24,8 @@ mod waybar;
 mod window;
 
 #[cfg(test)]
+mod security_rules;
+#[cfg(test)]
 mod test_http;
 #[cfg(test)]
 mod test_support;

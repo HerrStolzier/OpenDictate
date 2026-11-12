@@ -1,0 +1,198 @@
+//! Linux behavior checked against `fixtures/security/rules.json`.
+
+use crate::insert::{paste_into, Skip};
+use crate::policy;
+use crate::server::Server;
+use crate::settings::Settings;
+use crate::test_http::serve;
+use crate::transcribe::Transcriber;
+use crate::translate::Translator;
+use crate::window::TargetWindow;
+
+fn rules() -> serde_json::Value {
+    serde_json::from_str(include_str!("../../fixtures/security/rules.json")).unwrap()
+}
+
+fn window(class: &str) -> TargetWindow {
+    TargetWindow {
+        address: "0x5a1b2c".to_string(),
+        class: class.to_string(),
+    }
+}
+
+fn padded(prefix: &str, bytes: usize) -> String {
+    assert!(prefix.len() <= bytes);
+    let mut body = String::with_capacity(bytes);
+    body.push_str(prefix);
+    body.extend(std::iter::repeat_n(' ', bytes - prefix.len()));
+    body
+}
+
+#[test]
+fn security_rules_accept_https_and_http_only_for_loopback() {
+    for case in rules()["addresses"].as_array().unwrap() {
+        let input = case["input"].as_str().unwrap();
+        let parsed = Server::parse(input);
+        if case["accept"].as_bool().unwrap() {
+            let server = parsed.unwrap_or_else(|error| panic!("{input}: {error}"));
+            assert_eq!(
+                server.base(),
+                case["canonical"].as_str().unwrap(),
+                "{input}"
+            );
+            assert_eq!(
+                server.sends_api_key(),
+                !case["loopback"].as_bool().unwrap(),
+                "{input}"
+            );
+        } else {
+            assert!(parsed.is_err(), "{input}");
+        }
+    }
+}
+
+fn linux_response_limits() -> (usize, usize) {
+    let limits = &rules()["response_limits"]["linux"];
+    let transcription = limits["transcription_bytes"].as_u64().unwrap();
+    let translation = limits["translation_bytes"].as_u64().unwrap();
+    assert_eq!(transcription, 131_072);
+    assert_eq!(translation, 1_048_576);
+    (
+        usize::try_from(transcription).unwrap(),
+        usize::try_from(translation).unwrap(),
+    )
+}
+
+#[test]
+fn security_rules_cap_transcription_responses() {
+    let (limit, _) = linux_response_limits();
+    assert_eq!(
+        transcribe_body(&padded(r#"{"text":"ok"}"#, limit)).unwrap(),
+        "ok"
+    );
+    assert!(transcribe_body(&padded(r#"{"text":"ok"}"#, limit + 1)).is_err());
+}
+
+#[test]
+fn security_rules_cap_translation_responses() {
+    let (_, limit) = linux_response_limits();
+    let prefix = r#"{"choices":[{"message":{"content":"ok"}}]}"#;
+    assert_eq!(translate_body(&padded(prefix, limit)).unwrap().text, "ok");
+    assert!(translate_body(&padded(prefix, limit + 1)).is_err());
+}
+
+fn transcribe_body(body: &str) -> Result<String, crate::server::Failure> {
+    let (endpoint, stub) = serve("200 OK", body);
+    let server = Server::parse(&format!("{endpoint}/v1")).unwrap();
+    let result =
+        Transcriber::new(&server).transcribe_bytes(b"RIFF-test-audio", None, &Settings::default());
+    stub.join().unwrap();
+    result
+}
+
+fn translate_body(
+    body: &str,
+) -> Result<crate::translate::TranslationResult, crate::server::Failure> {
+    let (endpoint, stub) = serve("200 OK", body);
+    let server = Server::parse(&format!("{endpoint}/v1")).unwrap();
+    let result = Translator::new(&server).translate("Hallo", "en", "local", None);
+    stub.join().unwrap();
+    result
+}
+
+#[test]
+fn security_rules_block_auto_paste_on_line_breaks() {
+    let rules = rules();
+    let paste = &rules["auto_paste"];
+    let breaks: Vec<char> = paste["line_breaks"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|value| {
+            let text = value.as_str().unwrap();
+            let mut chars = text.chars();
+            let character = chars.next().unwrap();
+            assert!(chars.next().is_none(), "{text:?}");
+            character
+        })
+        .collect();
+    let blocked: Vec<&str> = paste["blocked"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|value| value.as_str().unwrap())
+        .collect();
+    for character in &breaks {
+        assert!(
+            blocked.iter().any(|sample| sample.contains(*character)),
+            "no blocked sample contains {character:?}"
+        );
+        assert_blocked(&format!("echo hi{character}rm -rf /"));
+    }
+    for sample in &blocked {
+        assert!(
+            breaks.iter().any(|character| sample.contains(*character)),
+            "{sample:?}"
+        );
+        assert_blocked(sample);
+    }
+    assert_eq!(paste["scope"].as_str(), Some("every target"));
+    assert_eq!(
+        paste["enforcement"].as_str(),
+        Some(
+            "Linux tests in this change block these breaks in every target. macOS and Windows on main still block multi-line auto-paste only in known terminals; those platforms are not changed here."
+        )
+    );
+    for case in paste["allowed"].as_array().unwrap() {
+        let text = case["text"].as_str().unwrap();
+        assert!(!policy::is_multiline(text), "{text:?}");
+        let delivered = policy::text_for_delivery(text);
+        for class in ["Alacritty", "chromium", "code", "unknown"] {
+            assert_ne!(
+                paste_into(&window(class), &delivered),
+                Err(Skip::MultilineText),
+                "{class} {text:?}"
+            );
+        }
+    }
+
+    let nel = blocked
+        .iter()
+        .copied()
+        .find(|sample| sample.contains('\u{0085}'))
+        .unwrap();
+    let (endpoint, stub) = serve("200 OK", &serde_json::json!({"text": nel}).to_string());
+    let server = Server::parse(&format!("{endpoint}/v1")).unwrap();
+    let transcript =
+        Transcriber::new(&server).transcribe_bytes(b"RIFF-test-audio", None, &Settings::default());
+    stub.join().unwrap();
+    assert_blocked(&transcript.unwrap());
+    let (endpoint, stub) = serve(
+        "200 OK",
+        &serde_json::json!({"choices":[{"message":{"content": nel}}]}).to_string(),
+    );
+    let server = Server::parse(&format!("{endpoint}/v1")).unwrap();
+    let translation = Translator::new(&server)
+        .translate("Hallo", "en", "local", None)
+        .unwrap();
+    stub.join().unwrap();
+    assert_blocked(&translation.text);
+}
+
+fn assert_blocked(sample: &str) {
+    let delivered = policy::text_for_delivery(sample);
+    assert!(policy::is_multiline(sample), "{sample:?}");
+    assert!(policy::is_multiline(&delivered), "{delivered:?}");
+    for class in ["Alacritty", "code", "chromium", "unknown"] {
+        assert_eq!(
+            paste_into(&window(class), sample),
+            Err(Skip::MultilineText),
+            "{class} {sample:?}"
+        );
+        assert_eq!(
+            paste_into(&window(class), &delivered),
+            Err(Skip::MultilineText),
+            "{class} {delivered:?}"
+        );
+    }
+}

@@ -127,6 +127,13 @@ impl Server {
         let (authority, path) = rest.split_at(rest.find('/').unwrap_or(rest.len()));
         let (host, port) = split_authority(authority).ok_or_else(invalid)?;
         let host = host.to_ascii_lowercase();
+        // Bare IPv6 loopback has no brackets. Store the bracket form so the
+        // base URL stays a normal address.
+        let host = if host == "::1" {
+            "[::1]".to_string()
+        } else {
+            host
+        };
         if let Some(port) = port {
             if !matches!(port.parse::<u16>(), Ok(number) if number > 0) {
                 return Err(invalid());
@@ -135,8 +142,8 @@ impl Server {
         let loopback = matches!(host.as_str(), "localhost" | "127.0.0.1" | "[::1]");
         if scheme == "http" && !loopback {
             return Err(crate::tr!(
-                "http:// geht nur für diesen Rechner (localhost, 127.0.0.1, [::1]); nimm sonst https://.",
-                "http:// only works for this computer (localhost, 127.0.0.1, [::1]); use https:// otherwise."
+                "http:// geht nur für diesen Rechner (localhost, 127.0.0.1, ::1, [::1]); nimm sonst https://.",
+                "http:// only works for this computer (localhost, 127.0.0.1, ::1, [::1]); use https:// otherwise."
             ));
         }
         let path = path.trim_end_matches('/');
@@ -188,6 +195,16 @@ impl Server {
 
 /// Splits `host[:port]` and `[v6]:port`; rejects anything else.
 fn split_authority(authority: &str) -> Option<(&str, Option<&str>)> {
+    // `::1` and `::1:port`. Other bare IPv6 addresses stay rejected.
+    if authority == "::1" {
+        return Some(("::1", None));
+    }
+    if let Some(port) = authority.strip_prefix("::1:") {
+        if port.is_empty() || !port.chars().all(|character| character.is_ascii_digit()) {
+            return None;
+        }
+        return Some(("::1", Some(port)));
+    }
     let (host, port) = if authority.starts_with('[') {
         let end = authority.find(']')?;
         let (host, rest) = authority.split_at(end + 1);
