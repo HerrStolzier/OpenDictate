@@ -49,7 +49,7 @@ jobs:
       cancel-in-progress: true
     steps:
       # Stand des Haupt-Branches: Claude liest dort den umliegenden Code, das Skript kommt ebenfalls von dort.
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
@@ -96,7 +96,7 @@ jobs:
         if: steps.ziel.outputs.weiter == '1'
         # Scheitert Claude (Nutzungsgrenze, Ausfall), bleibt der PR trotzdem grün; der nächste Schritt warnt nur.
         continue-on-error: true
-        uses: anthropics/claude-code-action@6fed3ca145920b639991cb756090506e1bcaf515 # v1.0.245
+        uses: anthropics/claude-code-action@61a9c274fa7110a66dfafc1bbbced03833eb25fe # v1.0.269
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -168,7 +168,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
@@ -207,7 +207,7 @@ jobs:
     outputs:
       mehr: ${{ steps.knopf.outputs.mehr }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
@@ -241,7 +241,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/claude-home"
           echo "HOME=$RUNNER_TEMP/claude-home" >> "$GITHUB_ENV"
 
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
@@ -261,7 +261,7 @@ jobs:
         if: steps.knopf.outputs.weiter == '1'
         continue-on-error: true
         timeout-minutes: 25  # vor dem Zeitlimit des Jobs, damit „Antwort posten“ noch läuft
-        uses: anthropics/claude-code-action@6fed3ca145920b639991cb756090506e1bcaf515 # v1.0.245
+        uses: anthropics/claude-code-action@61a9c274fa7110a66dfafc1bbbced03833eb25fe # v1.0.269
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -312,7 +312,7 @@ jobs:
       group: erklaerseite-uebersicht
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
