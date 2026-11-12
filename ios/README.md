@@ -9,6 +9,10 @@ das Öffnen der App. Stand 13. Oktober 2026: läuft auf dem iPhone, der
 Kurzbefehl nimmt per Doppeltippen im Hintergrund auf und kopiert den Text
 selbst (siehe Grenzen).
 
+Antworten des Transkriptions- und Übersetzungsdienstes werden höchstens bis
+1 MiB gelesen. Eine größere Antwort gilt als Fehler; die Aufnahme bleibt
+für „Nochmal senden“ erhalten.
+
 ## Aufbau
 
 - `OpenDictate.xcodeproj`: App `OpenDictateiOS` (Bundle-ID `app.opendictate.ios`,

@@ -22,13 +22,15 @@ public static class TranscriptText
             }
             if (current is '\u2028' or '\u2029') { cleaned.Append('\n'); continue; }
             if (current is '\n' or '\t') { cleaned.Append(current); continue; }
+            if (current is '\u2028' or '\u2029') { cleaned.Append('\n'); continue; }
             if (char.IsControl(current) || IsDirectionControl(current)) continue;
             cleaned.Append(current);
         }
         return cleaned.ToString().Trim();
     }
 
-    public static bool IsMultiline(string text) => text.Contains('\n');
+    public static bool IsMultiline(string text) =>
+        text.Contains('\n') || text.Contains('\r') || text.Contains('\u2028') || text.Contains('\u2029');
 
     // Bidirectional embeddings, overrides and isolates plus the marks, which
     // can reorder how pasted text reads without being visible.

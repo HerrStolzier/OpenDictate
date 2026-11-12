@@ -37,6 +37,9 @@ struct TranscriptionOptions: Sendable {
         // An invalid configured address stops the dictation; falling back to
         // OpenAI would send audio where the user chose not to.
         guard let endpoint = settings.endpoint(for: service) else { throw OpenDictateError.invalidServerAddress }
+        guard service != .server || TrustedServerAddressStore.isApproved(endpoint) else {
+            throw OpenDictateError.untrustedServerAddress
+        }
         let key: String?
         if endpoint.isLoopback {
             key = nil
@@ -101,8 +104,7 @@ struct OpenAITranscriber: Sendable {
         try Task.checkCancellation()
         let timing = PhaseTiming(phase: "request")
         defer { timing.finish() }
-        let (data, response) = try await session.data(for: request)
-        guard let response = response as? HTTPURLResponse else { throw OpenDictateError.invalidResponse }
+        let (data, response) = try await BoundedProviderResponse.load(request, using: session)
         return try Self.decode(
             data: data, statusCode: response.statusCode, joinSegments: options.endpoint != .openAI)
     }

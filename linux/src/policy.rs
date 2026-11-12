@@ -20,7 +20,8 @@ pub fn sanitize_transcript(text: &str) -> String {
 
 /// True for text that spans more than one line after sanitizing.
 pub fn is_multiline(text: &str) -> bool {
-    text.contains('\n')
+    text.chars()
+        .any(|c| matches!(c, '\n' | '\r' | '\u{2028}' | '\u{2029}'))
 }
 
 fn is_bidi_control(c: char) -> bool {
@@ -63,11 +64,16 @@ mod tests {
     #[test]
     fn sanitizing_drops_controls_and_keeps_line_breaks() {
         assert_eq!(sanitize_transcript("  Hallo\r\nWelt\r"), "Hallo\nWelt");
+        assert_eq!(
+            sanitize_transcript("eins\u{2028}zwei\u{2029}drei"),
+            "eins\nzwei\ndrei"
+        );
         assert_eq!(sanitize_transcript("a\u{1b}b\u{7}c\u{0}\u{85}d"), "abcd");
         assert_eq!(sanitize_transcript("tab\there"), "tab\there");
         assert_eq!(sanitize_transcript("x\u{202E}y\u{2066}z\u{200F}"), "xyz");
         assert_eq!(sanitize_transcript("Grüße 🧪"), "Grüße 🧪");
         assert!(is_multiline("eins\nzwei"));
+        assert!(is_multiline("eins\u{2028}zwei"));
         assert!(!is_multiline("eine Zeile"));
     }
 }
