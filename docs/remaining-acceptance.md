@@ -168,7 +168,8 @@ veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
   11. Oktober), flach in der Menüleiste oder aus; Menü mit
   „OpenDictate beenden“. Offline geprüft: Zuordnung der Fensterzustände,
   Wahl der Variante je Bildschirm, Aufnahmezeile mit Countdown, Menüreihenfolge,
-  Anzeige ohne Fokus (`DictationIndicatorTests`), Blink Pixel für Pixel gegen
+  Anzeige ohne Fokus (`DictationIndicatorTests`,
+  `DictationIndicatorSystemTests`), Blink Pixel für Pixel gegen
   die Web-Komponente des Designsystems (`BlinkConformanceTests`). Alle Varianten
   und Zustände wurden als Bilder gerendert (`--indicator-snapshots`) und
   angesehen.
