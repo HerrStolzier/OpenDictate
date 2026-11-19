@@ -56,7 +56,7 @@ struct PasteboardInserter {
         -> InsertionSubmission
     {
         guard !text.isEmpty, !Task.isCancelled, access.isTrusted(), let app, access.isRunning(app),
-            AutoPastePolicy.allowsPaste(of: text, intoBundleIdentifier: app.bundleIdentifier),
+            AutoPastePolicy.allowsPaste(of: text),
             board.string(forType: .string) == text
         else { return .notAttempted }
         access.activate(app)

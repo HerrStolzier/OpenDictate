@@ -5,7 +5,7 @@ import Foundation
 /// text reaches the clipboard, so a provider response cannot carry escape
 /// sequences or hidden characters into the target. Line breaks and tabs stay;
 /// the Unicode line and paragraph separators become plain line breaks, so the
-/// terminal guard sees them as the line breaks a target may treat them as.
+/// paste guard sees them as the line breaks a target may treat them as.
 public enum TranscriptText {
     public static func sanitize(_ text: String) -> String {
         var cleaned = String.UnicodeScalarView()
@@ -51,7 +51,7 @@ public enum TranscriptText {
     }
 
     public static func isMultiline(_ text: String) -> Bool {
-        text.unicodeScalars.contains("\n")
+        text.contains(where: \.isNewline)
     }
 
     /// Bidirectional embeddings, overrides and isolates plus the marks, which

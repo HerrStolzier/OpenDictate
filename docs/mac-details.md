@@ -206,7 +206,9 @@ menu is not silently ignored for anyone who exports them:
 - `OPENAI_TRANSCRIBE_LANGUAGE`, for example `de`
 - `OPENAI_TRANSCRIBE_PROMPT`, for vocabulary hints. The in-app vocabulary setting overrides this value.
 - `OPENAI_BASE_URL`, the server address as in the OpenAI SDKs, for example
-  `http://127.0.0.1:8080/v1`. A value saved under **Eigener Server** wins.
+  `http://127.0.0.1:8080/v1`. Enter and save the address in **Eigener Server**
+  before dictating; an environment value alone is not approved for
+  sending audio. A value saved under **Eigener Server** wins.
 
 ## Using your own server
 
@@ -237,13 +239,15 @@ moves them to the server once.
 - **Other servers need `https://`** and receive your saved API key, for
   example a Groq key. Plain `http://` to another computer is rejected, so audio
   and keys never travel unencrypted over a network. Enter only servers you
-  trust. The address is stored in the app's preferences, not in the Keychain,
-  so any program running under your account could change it (for example with
-  `defaults write`); see [PRIVACY.md](../PRIVACY.md#data-sent-to-openai-or-your-own-server).
+  trust. The address is shown in the app's preferences and approved in the
+  Keychain when you save it. An address changed only in preferences is rejected
+  before audio or the key is sent. After upgrading, save an existing server
+  address once again in **Eigener Server**; see
+  [PRIVACY.md](../PRIVACY.md#data-sent-to-openai-or-your-own-server).
 - Redirects are not followed, so audio and text go only to the address you
   entered, never on to another host.
-- If the saved or `OPENAI_BASE_URL` address is not allowed, dictation stops
-  with a message instead of falling back to OpenAI.
+- If the saved or `OPENAI_BASE_URL` address is invalid or not approved in the
+  Keychain, dictation stops with a message instead of falling back to OpenAI.
 - Some servers, such as whisper.cpp, end every segment at a speaking pause
   with a line break. For a server of your own, OpenDictate joins those breaks
   with a space, so a dictation arrives as running text. OpenAI's text is not
@@ -274,11 +278,10 @@ different field of the same application. OpenDictate checks that the original ap
 frontmost and that the clipboard still holds the transcript before sending the
 shortcut, but cannot confirm which control accepted it or whether Paste changed
 visible text. Control characters from the provider's answer are removed before
-the text is copied. In known terminals (Terminal, iTerm2, Alacritty, kitty,
-Ghostty, Warp, Hyper, WezTerm, Tabby, Xcode's terminal) text with a line break is not pasted
-automatically, because the line break would run the dictated line as a command;
-it stays on the clipboard. A single line is pasted there as elsewhere, and
-OpenDictate does not send a separate Return. Use clipboard-only mode for targets
+the text is copied. Text with a line break stays on the clipboard in every
+app for manual pasting, because an editor or browser can contain a terminal.
+A single line may be pasted automatically. OpenDictate does not send a separate
+Return. Use clipboard-only mode for targets
 where automatic Paste is unwanted, especially password fields. OpenDictate no
 longer inspects whether the focused control is protected or read-only. The transcript remains on the clipboard for
 manual recovery; OpenDictate does not put the previous clipboard contents back.

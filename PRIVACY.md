@@ -47,8 +47,9 @@ it may collect usage and performance metrics with the app's bundle ID and the
 language pair, never the original or translated text. The recording itself
 still goes to the chosen service for transcription.
 
-With **Eigener Server** (or `OPENAI_BASE_URL`), the same requests go to the
-configured address instead of OpenAI, and that server's own terms apply. A
+With **Eigener Server** (or `OPENAI_BASE_URL` after saving the address in the
+app's server dialog), the same requests go to the configured address instead
+of OpenAI, and that server's own terms apply. A
 server on this Mac (loopback address) receives no API key, and OpenDictate sends
 audio and text only to this Mac; what that local server does with them is up to
 its own configuration. Any other server must use HTTPS and receives the saved
@@ -61,11 +62,15 @@ and only that one recording. The log records only the server's host name,
 never the path or key.
 
 Because every server outside this Mac receives the saved API key along with
-the audio and text, use only servers you trust. The server address is an
-ordinary app setting in the user's preferences (`UserDefaults`), not in the
-Keychain: any program running under your user account could change it, for
-example with `defaults write`, and send later dictations and the key
-elsewhere.
+the audio and text, use only servers you trust. The server address remains in
+the user's preferences for display and selection, but the app also stores the
+approved address in a separate Keychain item. Before sending a dictation to
+your own server, it requires an exact match. Changing `UserDefaults` alone
+cannot redirect later audio or the key to a new server. Existing custom-server
+users must save the address once again in **Einstellungen → Erweitert → Eigener Server**
+after updating. An unavailable Keychain or a mismatch stops the request.
+Mac and iPhone apps stop reading a provider response after 1 MiB; an oversized
+response is rejected without using its text.
 
 The OpenAI API key is stored as a generic password in the macOS Keychain under
 service `OpenDictate` and account `OPENAI_API_KEY_APP`. OpenDictate does not support
@@ -84,15 +89,17 @@ then remain in the Keychain until a later successful cleanup.
 The signed Keychain helper handles these operations for the installed app. The
 app copies the helper once from its bundle to
 `~/Library/Application Support/OpenDictate/KeychainHelper-v1` and verifies its
-signature before each launch. The app also checks the running helper's signing
+signature before each launch. A separate stable copy at
+`KeychainHelper-server-v1` handles the approved server address, so existing
+API-key access lists need no migration. The app also checks the running helper's signing
 identity before sending a request. The helper accepts requests only from the
 signed OpenDictate app with the same signing certificate. Keychain data travels
 between the app and helper through private process pipes, never through command
 arguments, environment variables or a file. The installed helper stays
 unchanged across ordinary app updates, so an existing item can continue to
 trust the same executable after a one-time macOS approval. Replacing the helper
-or signing certificate may require another approval. The API and recovery keys
-are separate Keychain items and may each require approval. Newly saved entries
+or signing certificate may require another approval. The API key, approved
+server address and recovery key are separate Keychain items and may each require approval. Newly saved entries
 use the helper's default Keychain access policy. The retired `store-api-key.sh`
 script only directs users to the app dialog and performs no Keychain operation.
 
@@ -103,7 +110,7 @@ local application with clipboard access may be able to read it. Control
 characters and invisible text-direction marks are removed from the provider's
 answer before it is copied; line breaks and tabs stay. Unicode line and
 paragraph separators (U+2028, U+2029) become ordinary line breaks, so the
-terminal rule below applies to them too.
+automatic-paste rule below applies to them too.
 
 OpenDictate leaves the transcript on the general clipboard until another write
 replaces it; it does not restore the previous clipboard contents, because the
@@ -120,10 +127,9 @@ application is then frontmost and that the clipboard still contains the full
 transcript. It does not inspect the destination's text or title. A different
 field or window in the original application may receive Paste after a focus
 change; the app cannot confirm that the target accepted the command. Text with
-a line break is not pasted automatically into known terminal applications
-(Terminal, iTerm2, Alacritty, kitty, Ghostty, Warp, Hyper, WezTerm, Tabby, Xcode's terminal), because a
-line break would run the dictated line as a command; the text stays on the
-clipboard. A single line is pasted there as elsewhere. OpenDictate does not
+a line break stays on the clipboard for manual pasting in every app,
+because an editor or browser may contain a terminal that would run the line
+as a command. A single line can be pasted automatically. OpenDictate does not
 identify protected, read-only or password controls before Paste. Retries copy their text
 but do not automatically paste it.
 
@@ -217,7 +223,7 @@ returned text is written to the Wayland clipboard (`wl-copy`). Unless
 window captured at recording start is still frontmost, sends that window a
 paste shortcut via `hyprctl`. Control characters and invisible text-direction
 marks are removed from the returned text first. Text with a line break is not
-pasted into known terminals; it stays in the clipboard. Retry never pastes
+pasted into any app automatically; it stays in the clipboard. Retry never pastes
 automatically. A clipboard history manager on Wayland (such as cliphist or
 clipman) keeps its own copy of every text copied via `wl-copy`; OpenDictate
 cannot prevent or remove that copy. The optional

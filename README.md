@@ -46,6 +46,9 @@ OpenDictate is a small open-source menu bar app for Macs with Apple silicon
 5. Click into any text field, hold your key, talk, let go. With a key
    combination: press it, talk, press it again.
 
+If the resulting text has a line break, it stays on the clipboard for you to
+paste manually. This also protects terminals embedded in editors or browsers.
+
 The app's menus are in German for now.
 
 ## Good to know
