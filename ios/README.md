@@ -231,8 +231,10 @@ Die Aufnahme bleibt wie eine fehlgeschlagene gesichert, bis die Tastatur den
 Text bestätigt hat. Während die Tastatur schreibt, startet kein App-Diktat
 und kein „Nochmal senden“; startet ein App-Diktat, endet das warme Mikro.
 
-Grenzen: Am iPhone noch nicht geprüft (die App Group muss einmal im
-Entwicklerkonto angelegt werden). Das Öffnen der App aus der Tastatur nutzt
+Grenzen: Am iPhone 15 bestand am 22. November ein Diktat in Notizen per
+UI-Test (Text direkt im Feld, 0,3 s nach „Fertig“, Tastatur 14 MB); weitere
+offene Punkte in [remaining-acceptance](../docs/remaining-acceptance.md#ios).
+Das Öffnen der App aus der Tastatur nutzt
 denselben Umweg über die `UIApplication` der Erweiterung wie Hex; ob Apple
 das bei der Prüfung annimmt, ist offen. Keine Wortvorschläge, keine
 Autokorrektur, kein Wischen; Umschalten nur einmal, nach Satzende von selbst.

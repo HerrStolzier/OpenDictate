@@ -109,11 +109,17 @@ final class KeyboardViewController: UIInputViewController {
 
         var configuration = UIButton.Configuration.filled()
         configuration.cornerStyle = .medium
-        configuration.imagePadding = 6
+        configuration.imagePadding = 4
+        configuration.titleLineBreakMode = .byClipping
+        configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var outgoing = incoming
+            outgoing.font = .systemFont(ofSize: 15, weight: .semibold)
+            return outgoing
+        }
         dictateButton.configuration = configuration
         dictateButton.accessibilityIdentifier = "openDictate.dictate"
         dictateButton.addAction(UIAction { [weak self] _ in self?.dictateTapped() }, for: .touchUpInside)
-        dictateButton.widthAnchor.constraint(equalToConstant: 112).isActive = true
+        dictateButton.widthAnchor.constraint(equalToConstant: 128).isActive = true
 
         let top = UIStackView(arrangedSubviews: [statusLabel, dictateButton])
         top.spacing = 8
@@ -278,6 +284,15 @@ final class KeyboardViewController: UIInputViewController {
 
     private var now: TimeInterval { Date().timeIntervalSince1970 }
 
+    /// The field's identifier. The SDK declares it non-optional, but a hidden
+    /// keyboard's proxy returns nil, and bridging that crashed the keyboard.
+    private var documentID: UUID? {
+        let proxy = textDocumentProxy as AnyObject
+        let getter = NSSelectorFromString("documentIdentifier")
+        guard proxy.responds(to: getter) else { return nil }
+        return (proxy.perform(getter)?.takeUnretainedValue() as? NSUUID) as UUID?
+    }
+
     private func dictateTapped() {
         guard hasFullAccess, bridge.isAvailable else {
             show(Self.pick("Turn on Full Access to dictate", "Zum Diktieren „Vollen Zugriff“ erlauben"))
@@ -292,7 +307,7 @@ final class KeyboardViewController: UIInputViewController {
         case .ready:
             let job = UUID().uuidString
             jobID = job
-            startDocument = textDocumentProxy.documentIdentifier
+            startDocument = documentID
             stoppedAt = nil
             bridge.send(KeyboardCommand(kind: .start, jobID: job))
             expect(.recording)
@@ -342,7 +357,7 @@ final class KeyboardViewController: UIInputViewController {
             jobID = running
             startDocument = nil
         }
-        let sameField = startDocument == nil || startDocument == textDocumentProxy.documentIdentifier
+        let sameField = startDocument == nil || startDocument == documentID
         if isShown, sameField,
             let text = snapshot.deliverableText(forJob: jobID, insertedResultID: bridge.insertedResultID, at: time)
         {

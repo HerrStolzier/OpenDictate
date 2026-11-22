@@ -227,9 +227,10 @@ Aktionstaste empfiehlt die Anleitung seitdem dreimal statt zweimal Tippen auf
 die Rückseite, AssistiveTouch als zweiten Weg. Am 22. November entschied
 Basti sich doch für eine eigene Tastatur nach dem Vorbild von Hex: Die App
 hält das Mikro warm, Parakeet schreibt auf dem iPhone, die Tastatur setzt den
-Text direkt ein ([Tastatur](ios/README.md#tastatur)). Gebaut und im
-Simulator geprüft (Tippen, hell und dunkel); am iPhone noch nicht, weil die
-App Group dafür einmal im Entwicklerkonto angelegt werden muss.
+Text direkt ein ([Tastatur](ios/README.md#tastatur)). Gebaut, im
+Simulator geprüft (hell und dunkel) und am 22. November am iPhone 15 per
+UI-Test bestanden: Diktat in Notizen, Text direkt im Feld, rund 0,3 s von
+„Fertig“ bis Text.
 
 **Nächste Schritte:**
 

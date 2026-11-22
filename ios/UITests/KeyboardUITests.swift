@@ -101,11 +101,14 @@ final class KeyboardUITests: XCTestCase {
             guard back.exists else { break }
             back.tap()
         }
-        tap(row("Allgemein"), scrollingIn: settings)
-        tap(row("Tastatur"), scrollingIn: settings)
-        tap(row("Tastaturen"), scrollingIn: settings)
+        // On the iPhone a tap right after launch can go nowhere: tap until the next page shows.
+        let keyboards = settings.cells["KEYBOARDS"]
+        let steps = [(row("Allgemein"), row("Tastatur")), (row("Tastatur"), keyboards), (keyboards, addKeyboardRow)]
+        for (element, next) in steps {
+            for _ in 0..<3 where !next.waitForExistence(timeout: 2) { tap(element, scrollingIn: settings) }
+        }
         if !row("OpenDictate").waitForExistence(timeout: 2) {
-            tap(settings.cells["AddNewKeyboard"], scrollingIn: settings)
+            tap(addKeyboardRow, scrollingIn: settings)
             tap(row("OpenDictate"), scrollingIn: settings)
         }
         snapshot("Einstellungen, Tastaturen", of: settings)
@@ -123,9 +126,12 @@ final class KeyboardUITests: XCTestCase {
         XCTAssertEqual(fullAccess.value as? String, "1", "Full Access is off")
     }
 
-    /// A Settings row by its title; the title is the label of the row or of a text in it.
+    private var addKeyboardRow: XCUIElement { settings.cells["AddNewKeyboard"] }
+
+    /// A Settings row by its title text. The text itself, not a cell around it:
+    /// on the iPhone a cell can hold a whole group of rows.
     private func row(_ title: String) -> XCUIElement {
-        settings.cells.containing(NSPredicate(format: "label == %@", title)).firstMatch
+        settings.staticTexts.matching(NSPredicate(format: "label == %@", title)).firstMatch
     }
 
     /// Taps the system's keyboard switch until the OpenDictate keyboard shows.
@@ -141,10 +147,16 @@ final class KeyboardUITests: XCTestCase {
     }
 
     private func tap(_ element: XCUIElement, scrollingIn host: XCUIApplication) {
-        for _ in 0..<5 where !(element.waitForExistence(timeout: 2) && element.isHittable) {
-            host.swipeUp()
+        // The list may be scrolled either way: down to the top first, then up.
+        for attempt in 0..<8 where !(element.waitForExistence(timeout: 1) && element.isHittable) {
+            attempt < 3 ? host.swipeDown() : host.swipeUp()
         }
         XCTAssertTrue(element.exists, "Not found: \(element)")
+        // On the iPhone the search bar floats over the lowest rows; a tap there opens the search.
+        for _ in 0..<3 where element.frame.maxY > host.frame.height * 0.8 {
+            let from = host.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.7))
+            from.press(forDuration: 0.05, thenDragTo: host.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.4)))
+        }
         element.tap()
     }
 

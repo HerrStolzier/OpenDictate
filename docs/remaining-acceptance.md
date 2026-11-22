@@ -385,11 +385,17 @@ bestanden auf omarchy; Terminal, HTTP und Schlüsselbund dabei wie im
 **Tastatur mit warmem Mikro (22. November, Zweig `claude/project-thread-xjcgl3`):**
 Simulator: Bau, Unit-Tests der App-Group-Brücke und der UI-Test
 `KeyboardUITests/testKeyboardScreens` (Tastatur hinzufügen, Vollen Zugriff
-erlauben, Tastatur hell und dunkel) bestanden. Offen am iPhone 15: die App
-Group `group.app.opendictate.ios` im Entwicklerkonto anlegen (einmal, Xcode
-oder developer.apple.com), dann `KeyboardUITests/testKeyboardDictatesIntoNotes`
-mit gesprochenem Satz, Zeit Stopp bis Text und Speicher der Tastatur messen,
-Verhalten von Musik anderer Apps bei warmem Mikro ansehen.
+erlauben, Tastatur hell und dunkel) bestanden. Am iPhone 15 (iOS 27, Debug-
+Build, App Group seit 22. November im Team angelegt) bestand
+`KeyboardUITests/testKeyboardDictatesIntoNotes`: Tastatur per UI-Test
+hinzugefügt, Voller Zugriff, Mikro warm in der App, in Notizen diktiert, der
+vom Mac gesprochene Satz „Heute teste ich die Tastatur“ stand ohne Umweg im
+Feld. Gemessen: 281 und 284 ms von „Fertig“ bis Text (zwei Läufe, kurzer Satz,
+Parakeet schon geladen), Tastatur 14 MB Speicher, kein Absturzbericht der
+Tastatur mehr (der erste Lauf fand einen Absturz beim Ausblenden, behoben).
+Das sagt nichts über die Erkennungsqualität. Offen: Musik anderer Apps bei warmem Mikro, Öffnen der
+App aus der Tastatur ohne warmes Mikro, langes Warmhalten im Hintergrund
+(15 und 60 Minuten), Kaltstart von Parakeet nach einer Installation.
 
 **Belegt:** Der Offline-Tastatur-Prototyp aus `e416a3d` besteht Build,
 Installation und den synthetischen Safari-Textpfad auf einem frischen
