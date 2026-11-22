@@ -121,6 +121,36 @@ struct DictationFlowTests {
         #expect(h.pastedText == h.text)
     }
 
+    @Test(arguments: [
+        ("Treffen um zehn Uhr dreißig", "Treffen um 10:30 Uhr"),
+        ("Ich habe zwei Katzen", "Ich habe zwei Katzen"),
+        ("Wir waren fünfundzwanzig Leute", "Wir waren 25 Leute"),
+        ("See you at ten thirty", "See you at ten thirty")
+    ])
+    func deliveredTextWritesGermanTimesAndNumbersAsDigits(spoken: String, delivered: String) async throws {
+        let h = Harness()
+        h.text = spoken
+        _ = try h.flow.start()
+        _ = h.flow.stop()
+        await h.flow.task?.value
+        #expect(h.copiedTexts == [delivered] && h.pastedText == delivered)
+    }
+
+    @Test(arguments: [false, true])
+    func translationReceivesTheDigitsOnDictationAndRetry(isRetry: Bool) async throws {
+        let h = Harness()
+        h.target = "en"
+        h.text = "Wir kommen um acht Uhr"
+        if isRetry {
+            #expect(h.flow.retry(h.payload))
+        } else {
+            _ = try h.flow.start()
+            _ = h.flow.stop()
+        }
+        await h.flow.task?.value
+        #expect(h.translated.map(\.text) == ["Wir kommen um 8 Uhr"])
+    }
+
     @Test(arguments: [true, false])
     func failedOrEmptyTranslationKeepsAudioAndNeverFallsBackToTheOriginal(fails: Bool) async throws {
         let h = Harness()

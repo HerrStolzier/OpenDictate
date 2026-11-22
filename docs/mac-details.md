@@ -112,6 +112,12 @@ Changes apply to the next dictation, no restart needed.
   by tokens, not by minute. While your own server writes, its model is set
   under **Eigener Server** instead.
 - **Language** — Auto, German, or English. Auto lets the API detect it.
+- **Numbers** — from the next Mac beta (not in Build 12), always on, on the Mac itself. German times and numbers from 13
+  are written as digits ("zehn Uhr dreißig" becomes "10:30 Uhr",
+  "fünfundzwanzig" becomes "25"); numbers up to twelve stay words unless a time,
+  "Prozent", "Euro" or "Cent" follows. English text is unchanged; only German number words are matched.
+  This happens before translation, as on the iPhone, and again on a retry.
+  "Halb elf", "Viertel nach zehn" and ordinals stay words.
 - **Übersetzen** — off by default. With a target language (for example English),
   the transcript is translated by a text model (`gpt-5.4-mini` by default) and
   only the translation is copied and pasted. If the translation fails or comes
