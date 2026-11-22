@@ -29,7 +29,9 @@ OpenDictate is a small open-source menu bar app for Macs with Apple silicon
 - **No dictation gets lost.** If the network drops or the service fails, the
   recording stays on your Mac for up to 24 hours and you can send it again.
 - **Your words, not a rewrite.** OpenDictate pastes what you said. It only
-  changes the text when you turn on translation.
+  changes the text when you turn on translation, and from the next Mac beta it
+  writes German times and numbers from 13 as digits ("zehn Uhr dreißig" becomes
+  "10:30 Uhr").
 - **Open and private.** MIT-licensed, your key stays in the macOS Keychain,
   no tracking.
 

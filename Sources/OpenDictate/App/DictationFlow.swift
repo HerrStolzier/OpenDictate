@@ -191,11 +191,12 @@ final class DictationFlow {
         }
     }
 
-    /// Returns the transcript, or its translation when a target is set. A
+    /// Returns the transcript with German numbers as digits, or its translation
+    /// when a target is set. As on iOS, the digits come before translation. A
     /// failed or empty translation throws instead of falling back to the
     /// original text, so the caller keeps the audio for retry.
     private func translateIfRequested(_ transcript: String) async throws -> String {
-        let transcript = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
+        let transcript = SpokenNumbers.written(transcript.trimmingCharacters(in: .whitespacesAndNewlines))
         guard !transcript.isEmpty, let target = operations.translationTarget() else { return transcript }
         onStatus?("Wird übersetzt …")
         let translation = try await operations.translate(transcript, target)
