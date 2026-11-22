@@ -382,6 +382,15 @@ bestanden auf omarchy; Terminal, HTTP und Schlüsselbund dabei wie im
 
 ## iOS
 
+**Tastatur mit warmem Mikro (22. November, Zweig `claude/project-thread-xjcgl3`):**
+Simulator: Bau, Unit-Tests der App-Group-Brücke und der UI-Test
+`KeyboardUITests/testKeyboardScreens` (Tastatur hinzufügen, Vollen Zugriff
+erlauben, Tastatur hell und dunkel) bestanden. Offen am iPhone 15: die App
+Group `group.app.opendictate.ios` im Entwicklerkonto anlegen (einmal, Xcode
+oder developer.apple.com), dann `KeyboardUITests/testKeyboardDictatesIntoNotes`
+mit gesprochenem Satz, Zeit Stopp bis Text und Speicher der Tastatur messen,
+Verhalten von Musik anderer Apps bei warmem Mikro ansehen.
+
 **Belegt:** Der Offline-Tastatur-Prototyp aus `e416a3d` besteht Build,
 Installation und den synthetischen Safari-Textpfad auf einem frischen
 Simulator (29. September, [Nachweis](ios-keyboard-e2e-2026-09-29.md)) und auf

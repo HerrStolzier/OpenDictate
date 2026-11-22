@@ -7,6 +7,11 @@ struct OpenDictateApp: App {
             ContentView()
                 // System parts such as the settings sheet match the Nacht theme.
                 .preferredColorScheme(.dark)
+                // The keyboard's dictation key opens the app when no session runs.
+                .onOpenURL { url in
+                    guard KeyboardLink.isStartSession(url) else { return }
+                    Task { await KeyboardDictation.shared.startSession() }
+                }
         }
     }
 }

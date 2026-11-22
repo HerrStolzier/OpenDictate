@@ -24,6 +24,8 @@ selbst (siehe Grenzen).
   (`StopDictationIntent`, läuft im App-Prozess), Texte englisch/deutsch,
   Farben, Schriften und Blink im Designsystem.
 - `Widgets/`: Live-Aktivität auf dem Sperrbildschirm und in der Dynamic Island.
+- `Keyboard/`: die Tastatur-Erweiterung ([Tastatur](#tastatur));
+  `KeyboardShared/` die App-Group-Brücke, in App und Tastatur.
 - `UITests/`: UI-Tests für Simulator und iPhone (Ziel `OpenDictateiOSUITests`).
 - `UnitTests/`: Unit-Tests für gesicherte Aufnahmen, Einstellungen und
   Anfragen, nur im Simulator (Ziel `OpenDictateiOSTests`).
@@ -195,6 +197,45 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
   vertraust. Dazu braucht er die iOS-Freigabe
   „Lokales Netzwerk“, die die App beim Öffnen anfragt; aus dem Hintergrund
   fragt iOS nicht (am Gerät noch nicht gesehen).
+
+## Tastatur
+
+Seit 22. November 2026 (Bastis Entscheidung, nach dem Vorbild von
+[Hex](https://github.com/anomalyco/hex), MIT, Hinweis in
+[Keyboard/THIRD_PARTY_NOTICES.md](Keyboard/THIRD_PARTY_NOTICES.md)):
+Die Erweiterung `OpenDictateKeyboard` (Bundle-ID
+`app.opendictate.ios.keyboard`) ist eine einfache QWERTZ-Tastatur mit
+Diktiertaste. Tippen geht ohne „Vollen Zugriff“. Zum Diktieren braucht sie
+ihn, weil sie nur dann über die App Group `group.app.opendictate.ios` mit der
+App sprechen darf.
+
+1. Einmal: Einstellungen → Allgemein → Tastatur → Tastaturen → Tastatur
+   hinzufügen → OpenDictate, dann OpenDictate antippen und „Vollen Zugriff
+   erlauben“. Dazu Parakeet in den App-Einstellungen laden.
+2. „Mikro warm halten“ in der App (Karte „Tastatur“) hält das Mikrofon offen,
+   so lange wie unter Einstellungen → Tastatur eingestellt: Aus (ein Diktat,
+   höchstens zwei Minuten Warten), 5, 15 (Standard) oder 60 Minuten nach dem
+   letzten Diktat. iOS zeigt solange den orangen Punkt. Zwischen den Diktaten
+   verwirft die App die Mikrofon-Daten.
+3. In einem Textfeld die Diktiertaste tippen: Die App nimmt auf, die Taste
+   zeigt „Fertig“. „Fertig“ tippen: Parakeet schreibt den Text auf dem
+   iPhone, danach wie beim App-Diktat Zahlen und Uhrzeiten als Ziffern und,
+   wenn eingestellt, Apples Übersetzung auf dem iPhone. Die Tastatur setzt
+   den Text ins Feld, in dem das Diktat begann.
+4. Ist das Mikro nicht warm, öffnet die Diktiertaste die App, die es
+   anschaltet; zurück per Wischen, dann nochmal tippen.
+
+Dieser Weg sendet nie etwas, auch wenn für das App-Diktat OpenAI oder ein
+eigener Server eingestellt ist. Eine Übersetzung über OpenAI fällt hier weg.
+Die Aufnahme bleibt wie eine fehlgeschlagene gesichert, bis die Tastatur den
+Text bestätigt hat. Während die Tastatur schreibt, startet kein App-Diktat
+und kein „Nochmal senden“; startet ein App-Diktat, endet das warme Mikro.
+
+Grenzen: Am iPhone noch nicht geprüft (die App Group muss einmal im
+Entwicklerkonto angelegt werden). Das Öffnen der App aus der Tastatur nutzt
+denselben Umweg über die `UIApplication` der Erweiterung wie Hex; ob Apple
+das bei der Prüfung annimmt, ist offen. Keine Wortvorschläge, keine
+Autokorrektur, kein Wischen; Umschalten nur einmal, nach Satzende von selbst.
 
 ## Tastatur-Prototyp (September 2026, abgelöst)
 

@@ -224,7 +224,12 @@ Tastatur-Prototyp bleibt als Nachweis im Repository, Draft-PR #40 ist
 geschlossen ([Richtung](docs/ios-direction.md)). Am 30. Oktober verwarf
 Basti eine eigene Tastatur, die zum Aufnehmen kurz in die App springt; ohne
 Aktionstaste empfiehlt die Anleitung seitdem dreimal statt zweimal Tippen auf
-die Rückseite, AssistiveTouch als zweiten Weg.
+die Rückseite, AssistiveTouch als zweiten Weg. Am 22. November entschied
+Basti sich doch für eine eigene Tastatur nach dem Vorbild von Hex: Die App
+hält das Mikro warm, Parakeet schreibt auf dem iPhone, die Tastatur setzt den
+Text direkt ein ([Tastatur](ios/README.md#tastatur)). Gebaut und im
+Simulator geprüft (Tippen, hell und dunkel); am iPhone noch nicht, weil die
+App Group dafür einmal im Entwicklerkonto angelegt werden muss.
 
 **Nächste Schritte:**
 

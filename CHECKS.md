@@ -327,6 +327,15 @@ xcodebuild test -project ios/OpenDictate.xcodeproj -scheme OpenDictateiOS \
   -resultBundlePath /tmp/opendictate-ui.xcresult
 ```
 
+`KeyboardUITests/testKeyboardScreens` adds the OpenDictate keyboard in iOS
+Settings with Full Access and screenshots it in light and dark; it leaves the
+keyboard added. `KeyboardUITests/testKeyboardDictatesIntoNotes` is a live test
+like the two below: it warms the microphone in the app, dictates from the
+keyboard into a new note, attaches the stop-to-text time and the keyboard's
+memory (Debug builds only), and deletes the note again. It needs the App
+Group `group.app.opendictate.ios` registered for the team and the Parakeet
+model loaded in the app.
+
 The live tests (`testDictationInApp`, `testShortcutPastesIntoNotes`) run on
 the iPhone next to the Mac, by cable or over the same Wi-Fi once the iPhone is
 paired and unlocked, and are skipped unless `TEST_RUNNER_OD_KEYWORDS`
