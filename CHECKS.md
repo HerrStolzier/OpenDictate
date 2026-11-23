@@ -334,7 +334,7 @@ like the two below: it warms the microphone in the app, dictates from the
 keyboard into a new note, attaches the stop-to-text time and the keyboard's
 memory (Debug builds only), and deletes the note again.
 `KeyboardUITests/testWarmShortcutThenKeyboardDictates` does the same after
-starting "Mikro warm halten" from the Shortcuts app while OpenDictate is not
+starting "Mikro warm halten" from Spotlight while OpenDictate is not
 running, and fails if OpenDictate comes to the front. It needs the App
 Group `group.app.opendictate.ios` registered for the team and the Parakeet
 model loaded in the app.

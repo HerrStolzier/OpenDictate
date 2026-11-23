@@ -97,6 +97,8 @@ final class KeyboardViewController: UIInputViewController {
     override func viewWillDisappear(_ animated: Bool) {
         isShown = false
         assistant.saveModel()
+        deleteRepeat?.invalidate()
+        deleteRepeat = nil
         poll?.invalidate()
         poll = nil
         super.viewWillDisappear(animated)
@@ -233,14 +235,38 @@ final class KeyboardViewController: UIInputViewController {
 
     private func deleteKey() -> UIButton {
         let delete = key("⌫", identifier: "openDictate.delete", system: true) { [weak self] in
-            guard let self else { return }
-            assistant.deleteBackward(textDocumentProxy)
-            updateShiftForContext()
-            updateSuggestions()
+            self?.deleteOnce()
         }
         delete.accessibilityLabel = Self.pick("Delete", "Löschen")
         delete.widthAnchor.constraint(equalToConstant: 42).isActive = true
+        // Held: deletes on, a character every tenth of a second, as on Apple's keyboard.
+        let hold = UILongPressGestureRecognizer(target: self, action: #selector(deleteHeld(_:)))
+        hold.minimumPressDuration = 0.4
+        delete.addGestureRecognizer(hold)
         return delete
+    }
+
+    private var deleteRepeat: Timer?
+
+    @objc private func deleteHeld(_ recognizer: UILongPressGestureRecognizer) {
+        switch recognizer.state {
+        case .began:
+            deleteOnce()
+            deleteRepeat = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+                MainActor.assumeIsolated { self?.deleteOnce() }
+            }
+        case .changed:
+            break
+        default:
+            deleteRepeat?.invalidate()
+            deleteRepeat = nil
+        }
+    }
+
+    private func deleteOnce() {
+        assistant.deleteBackward(textDocumentProxy)
+        updateShiftForContext()
+        updateSuggestions()
     }
 
     private func shiftKey() -> UIButton {

@@ -396,17 +396,26 @@ Tastatur mehr (der erste Lauf fand einen Absturz beim Ausblenden, behoben).
 Das sagt nichts über die Erkennungsqualität. Offen: Musik anderer Apps bei
 warmem Mikro, Öffnen der App aus der Tastatur ohne warmes Mikro, langes
 Warmhalten im Hintergrund (15 und 60 Minuten), Kaltstart von Parakeet nach
-einer Installation, der Kurzbefehl „Mikro warm halten“ im Hintergrund.
+einer Installation.
+
+**Am iPhone 15 am 23. November bestanden** (UI-Tests, Debug-Build, iOS 27):
+alle neun Tests in `KeyboardUITests` (acht in einem Lauf, der Kurzbefehl-Test
+danach einzeln, nachdem er auf Spotlight umgestellt war), darunter der
+Kurzbefehl „Mikro warm halten“ aus Spotlight bei beendeter App (OpenDictate kam nicht nach vorn, die
+Dynamic Island zeigte das Mikro, das Diktat kam danach in Notizen an), Stopp in
+der Live-Aktivität während eines Tastatur-Diktats, Korrektur per Leertaste und
+Zurückholen per Löschen in Notizen, Punkt/Komma, Leertaste als Cursor,
+Löschtaste halten, Vorschläge und Emojis. Gemessen: 319 und 326 ms von „Fertig“
+bis Text, Tastatur 23 bis 26 MB (vorher 14 MB, jetzt mit Wörterbuch und
+Emojis). Der Start über Aktionstaste oder Rückseite selbst bleibt Bastis kurzer
+Blick.
 
 **Tippen (23. November):** Im Simulator bestanden: Vorschläge und Tippen auf
 einen Vorschlag (`testAutocorrectAndEmoji`), Emoji-Tafel, Punkt/Komma
 (`testPeriodKeyTapTypesPeriodAndHoldTypesComma`), Leertaste als Cursor
 (`testSpaceBarSlideMovesTheCursor`), Unit-Tests der Autokorrektur mit Apples
-deutschem Wörterbuch. Offen am iPhone: Korrektur per Leertaste und Zurückholen
-per Löschen in einem Feld mit Autokorrektur
-(`testSpaceFixesAndDeleteRestoresInNotes`), Kontaktnamen und Textersetzungen
-aus `UILexicon`, Speicher der Tastatur mit Wörterbuch und Emoji-Tafel,
-Schrittweite der Leertaste nach Gefühl.
+deutschem Wörterbuch. Am iPhone bestanden (siehe oben). Offen: Kontaktnamen und
+Textersetzungen aus `UILexicon`, Schrittweite der Leertaste nach Gefühl.
 
 **Tippen lernen (23. November):** Unit-Tests bestanden für das Tippmodell
 (Mitte erst ab 20 Treffern, höchstens 0,3 Taste, ungleich gestreute Tasten

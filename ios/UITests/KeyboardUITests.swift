@@ -51,27 +51,42 @@ final class KeyboardUITests: XCTestCase {
         try dictateIntoNewNote(keywords)
     }
 
-    /// "Keep microphone warm" from the Shortcuts app while OpenDictate is not
+    /// "Keep microphone warm" from Spotlight while OpenDictate is not
     /// running, then a dictation from the keyboard: OpenDictate never comes to
     /// the front.
     func testWarmShortcutThenKeyboardDictates() throws {
         let keywords = try liveKeywords()
         try addKeyboard()
         app.terminate()
-        let shortcuts = XCUIApplication(bundleIdentifier: "com.apple.shortcuts")
-        shortcuts.launch()
-        let search = shortcuts.searchFields.firstMatch
-        if !search.waitForExistence(timeout: 5) { shortcuts.swipeDown() }
-        XCTAssertTrue(search.waitForExistence(timeout: 5), "Shortcuts shows no search field")
-        search.tap()
+        // The Shortcuts app's search lists only the person's own shortcuts;
+        // Spotlight lists the app's, as the Action button offers them.
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        XCUIDevice.shared.press(.home)
+        sleep(1)
+        // The home screen's search button, else a swipe down from its middle.
+        let searchButton = springboard.buttons["Suchen"].firstMatch
+        if searchButton.waitForExistence(timeout: 2) {
+            searchButton.tap()
+        } else {
+            let middle = springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45))
+            middle.press(forDuration: 0.05, thenDragTo: middle.withOffset(CGVector(dx: 0, dy: 250)))
+        }
+        // Spotlight runs as its own process.
+        let spotlight = XCUIApplication(bundleIdentifier: "com.apple.Spotlight")
+        let search = spotlight.textFields["SpotlightSearchField"]
+        _ = search.waitForExistence(timeout: 5)
+        XCTAssertTrue(search.exists, "No Spotlight search")
         search.typeText("Mikro warm")
-        let action = shortcuts.descendants(matching: .any)
-            .matching(NSPredicate(format: "label BEGINSWITH 'Mikro warm halten'")).element(boundBy: 0)
-        XCTAssertTrue(action.waitForExistence(timeout: 10), "No “Mikro warm halten” in Shortcuts")
-        snapshot("Kurzbefehle, Mikro warm halten", of: shortcuts)
+        // The top hit sits right under its heading; the search field completes
+        // to the same words, so a search by label finds the field first.
+        let heading = spotlight.staticTexts["Toptreffer"]
+        XCTAssertTrue(heading.waitForExistence(timeout: 10), "No top hit in Spotlight")
+        snapshot("Spotlight, Mikro warm halten", of: spotlight)
+        let action = heading.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            .withOffset(CGVector(dx: 100, dy: heading.frame.height / 2 + 48))
         action.tap()
         sleep(5)
-        snapshot("Kurzbefehle nach dem Start", of: shortcuts)
+        snapshot("Nach dem Start", of: springboard)
         XCTAssertNotEqual(app.state, .runningForeground, "OpenDictate came to the front")
         XCTAssertEqual(app.state, .runningBackground, "OpenDictate does not run in the background")
         try dictateIntoNewNote(keywords)
@@ -220,6 +235,29 @@ final class KeyboardUITests: XCTestCase {
         let typed = (search.value as? String ?? "").lowercased()
         settings.terminate()
         XCTAssertEqual(typed, "axb", "Sliding then typing gave “\(typed)”")
+    }
+
+    /// Holding delete deletes on while held, stops on release, and the
+    /// keyboard stays.
+    func testHoldingDeleteDeletesOn() throws {
+        try addKeyboard()
+        settings.terminate()
+        settings.launch()
+        let search = settings.searchFields.firstMatch
+        XCTAssertTrue(search.waitForExistence(timeout: 10))
+        search.tap()
+        try switchToOpenDictate(in: settings)
+        for letter in "qwertzuiop" { settings.buttons["openDictate.key.\(letter)"].tap() }
+        settings.buttons["openDictate.delete"].press(forDuration: 0.75)
+        let left = (search.value as? String ?? "").lowercased()
+        // Long enough for several more steps, had the repeat not stopped.
+        sleep(1)
+        let later = (search.value as? String ?? "").lowercased()
+        let keyboardStayed = settings.buttons["openDictate.dictate"].exists
+        settings.terminate()
+        XCTAssertTrue(left.hasPrefix("qwe") && left.count < 9, "Holding delete left “\(left)”")
+        XCTAssertEqual(later, left, "Delete went on after release")
+        XCTAssertTrue(keyboardStayed, "The OpenDictate keyboard was gone after holding delete")
     }
 
     // MARK: Helpers

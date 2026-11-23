@@ -231,7 +231,7 @@ App sprechen darf.
 
 Die Punkt-Taste liegt links neben der Leertaste; gedrückt halten setzt ein
 Komma. Leertaste halten und seitlich ziehen bewegt den Cursor Zeichen für
-Zeichen.
+Zeichen. Löschtaste halten löscht weiter, ein Zeichen pro Zehntelsekunde.
 
 Autokorrektur (Deutsch): Über den Tasten stehen beim Tippen bis zu drei
 Vorschläge: links das Wort wie getippt (Tippen behält es und merkt es sich),
@@ -270,9 +270,9 @@ Das Öffnen der App aus der Tastatur nutzt
 denselben Umweg über die `UIApplication` der Erweiterung wie Hex; ob Apple
 das bei der Prüfung annimmt, ist offen. Kein Wischtippen, nur Deutsch;
 Umschalten nur einmal, nach Satzende von selbst. Autokorrektur, Leertaste als
-Cursor und Emojis sind im Simulator geprüft; ob die Leertaste am iPhone
-korrigiert und Löschen zurückholt und ob Kontaktnamen ankommen, zeigt erst der
-Test am Gerät.
+Cursor, Löschtaste halten, Emojis und der Kurzbefehl „Mikro warm halten“ sind
+am 23. November am iPhone 15 per UI-Test bestanden; ob Kontaktnamen ankommen,
+ist offen.
 
 ## Tastatur-Prototyp (September 2026, abgelöst)
 
