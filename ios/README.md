@@ -151,8 +151,8 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
 
 ## Grenzen der ersten Beta
 
-- Ziffern für Uhrzeiten und Zahlen gibt es bisher nur auf dem iPhone und nur
-  für Deutsch. „Halb elf“, „Viertel nach zehn“ und Ordnungszahlen bleiben
+- Ziffern für Uhrzeiten und Zahlen gibt es auf dem iPhone und ab der nächsten
+  Mac-Beta in der Mac-App, nicht unter Linux und Windows, und nur für Deutsch. „Halb elf“, „Viertel nach zehn“ und Ordnungszahlen bleiben
   Wörter. Folgt der Zahl nach „Uhr“ direkt ein großgeschriebenes Wort (etwa
   ein Nomen oder Name), gilt sie als Anzahl:
   „um zehn Uhr dreißig Leute“ wird „um 10 Uhr 30 Leute“, nicht 10:30 Uhr. Am

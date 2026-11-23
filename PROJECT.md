@@ -27,7 +27,9 @@ Verkaufsargumente (Hauptargument seit 12. Oktober 2026 ist das erste):
   Abstürze der häufigste Grund, eine Diktier-App zu verlassen.
 - Treue Abschrift: OpenDictate formt Sätze nicht ungefragt um. Jede
   Veränderung des Textes (heute: die Übersetzung) ist bewusst eingeschaltet und
-  sichtbar.
+  sichtbar. Einzige Ausnahme seit dem 30. Oktober (iPhone) und 22. November
+  2026 (Mac): Deutsche Uhrzeiten und Zahlen ab 13 werden als Ziffern
+  geschrieben, so wie man sie tippen würde.
 - Angestrebt bessere Transkriptionsqualität als das eingebaute Diktieren
   (noch ohne Vergleichsmessung).
 
@@ -152,7 +154,8 @@ auch in der Windows- und der iPhone-App (dort noch nicht veröffentlicht)
   keine pauschale Supportzusage. Die Zwischenablage bleibt der verlustfreie
   manuelle Rückweg.
 - Keine ungefragte Nachbearbeitung: OpenDictate glättet, formatiert oder
-  kürzt nicht von selbst. Ein sichtbarer Schalter zum Glätten (Zeichensetzung,
+  kürzt nicht von selbst; Ausnahme sind deutsche Uhrzeiten und Zahlen als
+  Ziffern auf dem iPhone und dem Mac. Ein sichtbarer Schalter zum Glätten (Zeichensetzung,
   Füllwörter) ist seit dem 16. Oktober 2026 beschlossen, aber nicht gebaut;
   die treue Abschrift bleibt Standard.
 - Streaming und Echtzeit-Übersetzung sind gewünscht, nicht implementiert und
@@ -182,6 +185,7 @@ Preismodells und der Gaming-Ursprung verloren.
 | --- | --- | --- |
 | 23. November 2026 | Die iPhone-Tastatur bekommt Autokorrektur (Deutsch zuerst, Apples Rechtschreibprüfung, austauschbar; Vorbild Hex), Leertaste als Cursor und eine Emoji-Tafel; die Punkt-Taste liegt links der Leertaste, Halten setzt ein Komma. Danach „Tippen lernen“: ein persönliches Tippmodell (Trefferpunkte je Taste, nur auf dem Gerät, Schalter standardmäßig aus, löschbar). Das Leiserwerden anderer Audio bei der Aufnahme bleibt vorerst. | [ios/README.md](ios/README.md#tastatur); Bastis Nachrichten vom 23. November 2026 |
 | 22. November 2026 | Auf dem iPhone kommt doch eine eigene Tastatur, nach dem Vorbild von Hex (MIT): Die App hält das Mikro auf Wunsch warm („Mikro warm halten“: Aus, 5, 15 oder 60 Minuten), die Tastatur startet und stoppt das Diktat, Parakeet schreibt den Text auf dem iPhone, und die Tastatur setzt ihn direkt ins Feld. Ohne warmes Mikro öffnet die Diktiertaste die App, die es startet. Kein Diktat in der Tastatur selbst und kein OpenAI-Weg über die Tastatur. Tippen geht ohne „Vollen Zugriff“, Diktieren braucht ihn. Hebt die Ablehnung vom 30. Oktober auf; Kurzbefehl, Aktionstaste und Rückseite bleiben. | [ios/README.md](ios/README.md#tastatur); Bastis Nachricht vom 22. November 2026 |
+| 22. November 2026 | Zahlen als Ziffern auch in der Mac-App: Deutsche Uhrzeiten und Zahlen ab 13 schreibt die Mac-App wie die iPhone-App als Ziffern, vor einer Übersetzung. Linux und Windows folgen später in ihren Tracks. | [ROADMAP](ROADMAP.md#plattformübergreifend), [docs/mac-details.md](docs/mac-details.md); Bastis Antwort im Projektchat vom 22. November |
 | 30. Oktober 2026 | Auf dem iPhone kommt keine eigene Tastatur, die zum Aufnehmen kurz in die App springt (wie andere Diktier-Apps): Basti findet diesen Weg schlecht. Die Aktionstaste bleibt der Auslöser; für iPhones ohne sie wird ein verlässlicherer Weg als das Doppeltippen auf die Rückseite gesucht, das sich im Alltag als unzuverlässig gezeigt hat; die Anleitung empfiehlt darum dreimal Tippen als Standard und AssistiveTouch als zweiten Weg. Android braucht ein Gegenstück. Deutsche Uhrzeiten und Zahlen ab 13 schreibt die iPhone-App als Ziffern. | [ios/README.md](ios/README.md); Bastis Nachrichten vom 30. Oktober 11:44, 12:08 und 12:14 |
 | 18. Oktober 2026 | Blink bleibt grün, auch auf hellem Grund: Das helle Theme Papier nimmt statt Blau ein dunkles Grün (`signal` `#2D6A0C`), für Figur, Hauptknopf und Fortschritt. Jede geänderte Oberfläche wird vor dem Merge hell und dunkel per Bildschirmfoto geprüft; Tests halten das Grün und den Kontrast fest. Anlass: Blink war im hellen Mac-Menü blau, und keine Prüfung hatte es bemerkt. | [design/brand.md](design/brand.md#farben-und-themes), [CHECKS.md](CHECKS.md#visual-check-of-a-changed-surface); Bastis Nachricht im Thread „Projektübersicht und offene Punkte“, 18. Oktober 09:54 |
 | 18. Oktober 2026 | Support-Mails mit Ticketnummer im Betreff, aber ohne gültige private Marke, werden nicht mehr abgewiesen, sondern als neue Anfrage erfasst; an ein bestehendes Ticket hängt nur eine Antwort mit gültiger Marke aus der Kundenmailbox. | [support-desk PR #11](https://github.com/HerrStolzier/support-desk/pull/11) (privates Repo, Umsetzung und README); Bastis Antwort „Annehmen“ im Thread „Support für die App“, 18. Oktober |
