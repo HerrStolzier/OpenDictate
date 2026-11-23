@@ -454,7 +454,9 @@ Screen and in the Dynamic Island shows that a recording is running.
   through the App Group (a container on the iPhone shared by the app and its
   keyboard). With "Mikro warm halten" the app keeps the microphone open for
   the chosen time (one dictation, 5, 15 or 60 minutes after the last
-  dictation), and iOS shows its orange indicator all that time. Between
+  dictation), and iOS shows its orange indicator all that time, as well as
+  the Live Activity "Mikro warm" (also when the shortcut "Keep microphone
+  warm" starts it in the background). Between
   dictations the app drops the microphone's samples without storing them;
   only between the keyboard's start and stop does it write a recording.
   Parakeet writes the text on the iPhone; this path never sends audio or text

@@ -10,7 +10,7 @@ struct OpenDictateApp: App {
                 // The keyboard's dictation key opens the app when no session runs.
                 .onOpenURL { url in
                     guard KeyboardLink.isStartSession(url) else { return }
-                    Task { await KeyboardDictation.shared.startSession() }
+                    Task { try? await KeyboardDictation.shared.startSession() }
                 }
         }
     }

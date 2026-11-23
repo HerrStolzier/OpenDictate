@@ -207,16 +207,12 @@ final class KeyboardViewController: UIInputViewController {
             globe.widthAnchor.constraint(equalToConstant: 44).isActive = true
             bottom.addArrangedSubview(globe)
         }
+        if layout == .letters { bottom.addArrangedSubview(periodKey()) }
         let space = key(Self.pick("space", "Leerzeichen"), identifier: "openDictate.space") { [weak self] in
             self?.type(" ")
         }
         space.setContentHuggingPriority(.defaultLow, for: .horizontal)
         bottom.addArrangedSubview(space)
-        if layout == .letters {
-            let period = key(".", identifier: "openDictate.key.period") { [weak self] in self?.type(".") }
-            period.widthAnchor.constraint(equalToConstant: 40).isActive = true
-            bottom.addArrangedSubview(period)
-        }
         let enter = key("↵", identifier: "openDictate.return", system: true) { [weak self] in
             self?.textDocumentProxy.insertText("\n")
         }
@@ -224,6 +220,28 @@ final class KeyboardViewController: UIInputViewController {
         enter.widthAnchor.constraint(equalToConstant: 84).isActive = true
         bottom.addArrangedSubview(enter)
         return bottom
+    }
+
+    /// Left of the space bar; a tap types a period, holding it a comma.
+    private func periodKey() -> UIButton {
+        let period = key(".", identifier: "openDictate.key.period") {}
+        period.accessibilityHint = Self.pick("Hold for a comma", "Halten für ein Komma")
+        period.widthAnchor.constraint(equalToConstant: 40).isActive = true
+        let hold = UILongPressGestureRecognizer(target: self, action: #selector(periodHeld(_:)))
+        hold.minimumPressDuration = 0.35
+        let tap = UITapGestureRecognizer(target: self, action: #selector(periodTapped))
+        // A hold types only the comma, never the period as well.
+        tap.require(toFail: hold)
+        period.addGestureRecognizer(hold)
+        period.addGestureRecognizer(tap)
+        return period
+    }
+
+    @objc private func periodTapped() { type(".") }
+
+    @objc private func periodHeld(_ recognizer: UILongPressGestureRecognizer) {
+        guard recognizer.state == .began else { return }
+        type(",")
     }
 
     private func key(_ title: String, identifier: String, system: Bool = false, action: @escaping () -> Void)

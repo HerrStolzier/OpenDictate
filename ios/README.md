@@ -223,7 +223,14 @@ App sprechen darf.
    wenn eingestellt, Apples Übersetzung auf dem iPhone. Die Tastatur setzt
    den Text ins Feld, in dem das Diktat begann.
 4. Ist das Mikro nicht warm, öffnet die Diktiertaste die App, die es
-   anschaltet; zurück per Wischen, dann nochmal tippen.
+   anschaltet; zurück per Wischen, dann nochmal tippen. Ohne die App zu
+   öffnen geht es mit dem Kurzbefehl „Mikro warm halten“ (Aktion der App,
+   etwa auf der Aktionstaste oder dreimal Tippen auf die Rückseite); er
+   nimmt wie „Diktieren“ im Hintergrund auf und zeigt dafür die
+   Live-Aktivität „Mikro warm“ mit Stopp-Taste.
+
+Die Punkt-Taste liegt links neben der Leertaste; gedrückt halten setzt ein
+Komma.
 
 Dieser Weg sendet nie etwas, auch wenn für das App-Diktat OpenAI oder ein
 eigener Server eingestellt ist. Eine Übersetzung über OpenAI fällt hier weg.

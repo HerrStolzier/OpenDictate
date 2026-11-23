@@ -24,7 +24,7 @@ struct KeyboardCard: View {
             }
             if keyboard.phase == .off {
                 Button(L10n.pick("Keep microphone warm", "Mikro warm halten")) {
-                    Task { await keyboard.startSession() }
+                    Task { try? await keyboard.startSession() }
                 }
                 .buttonStyle(PixelButtonStyle(primary: false, theme: theme))
                 .accessibilityIdentifier("startWarm")

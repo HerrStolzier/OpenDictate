@@ -422,8 +422,9 @@ final class DictationRunner {
     }
 
     /// Also those whose dismissal was only scheduled.
+    /// Not the keyboard's "Mic warm": the warm microphone needs it in the background.
     private static func endShownActivities() async {
-        for activity in Activity<DictationAttributes>.activities {
+        for activity in Activity<DictationAttributes>.activities where activity.content.state.phase != .warm {
             await activity.end(nil, dismissalPolicy: .immediate)
         }
     }

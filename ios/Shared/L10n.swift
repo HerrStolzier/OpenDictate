@@ -18,6 +18,7 @@ enum L10n {
         case .copied: pick("Copied", "Kopiert")
         case .done: pick("Done", "Fertig")
         case .oops: pick("Oops", "Hoppla")
+        case .warm: pick("Mic warm", "Mikro warm")
         }
     }
 

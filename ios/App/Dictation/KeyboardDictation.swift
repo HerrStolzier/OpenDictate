@@ -1,4 +1,6 @@
 import AVFoundation
+// `Activity` is not Sendable in the SDK; it is used only from the main actor.
+@preconcurrency import ActivityKit
 import Foundation
 import Observation
 import OpenDictateCore
@@ -62,9 +64,10 @@ final class KeyboardDictation {
         bridge.publish(.off)
     }
 
-    /// Opens the microphone for the chosen time. Needs the app in front:
-    /// iOS lets an app start recording only from there.
-    func startSession() async {
+    /// Opens the microphone for the chosen time, from the app or from the
+    /// shortcut "Keep microphone warm" in the background. A Live Activity
+    /// shows it; iOS ends a background recording without one.
+    func startSession() async throws {
         problem = nil
         if phase == .ready, !microphone.isRunning {
             // The engine stopped without notice (a route change): start over.
@@ -76,19 +79,30 @@ final class KeyboardDictation {
         }
         // The app's own dictation holds the microphone and the phase.
         guard !DictationRunner.shared.isBusy else { return }
+        duration = bridge.warmDuration
         do {
             if AVAudioApplication.shared.recordPermission == .undetermined {
                 _ = await Recorder.requestPermission()
             }
             guard ParakeetTranscriber.isInstalled else { throw DictationFailure.localModelMissing }
             guard phase == .off, !DictationRunner.shared.isBusy else { return }
-            try microphone.start()
+            // In front the app can record without one; only the background needs it.
+            if UIApplication.shared.applicationState == .active {
+                try? startActivity()
+            } else {
+                try startActivity()
+            }
+            do {
+                try microphone.start()
+            } catch {
+                await endActivity()
+                throw error
+            }
         } catch {
             problem = DictationFailure(error).message
-            return
+            throw DictationFailure(error)
         }
         ParakeetTranscriber.prepare()
-        duration = bridge.warmDuration
         // Nothing of an earlier session, a text included, carries over.
         snapshot = .off
         phase = .ready
@@ -116,13 +130,50 @@ final class KeyboardDictation {
         if phase == .ready { phase = .off }
         snapshot.warmUntil = 0
         publish()
+        // Taken now, so a session started right after keeps its own activity.
+        if let ending = activity {
+            activity = nil
+            Task { await ending.end(nil, dismissalPolicy: .immediate) }
+        }
         Self.log.info("warm session ended")
     }
 
     private func extendSession() {
-        warmUntil = Date() + duration.seconds
-        snapshot.warmUntil = warmUntil?.timeIntervalSince1970 ?? 0
+        let until = Date() + duration.seconds
+        warmUntil = until
+        snapshot.warmUntil = until.timeIntervalSince1970
         publish()
+        let state = Self.activityState(until: until)
+        Task { await activity?.update(ActivityContent(state: state, staleDate: until)) }
+    }
+
+    // MARK: Live Activity
+
+    @ObservationIgnored private var activity: Activity<DictationAttributes>?
+
+    private static func activityState(until: Date) -> DictationAttributes.ContentState {
+        .init(phase: .warm, startedAt: Date(), endsAt: until, detail: nil)
+    }
+
+    private func startActivity() throws {
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else { throw DictationFailure.liveActivitiesOff }
+        // A "Copied" or "Oops" of the last dictation may still show.
+        let earlier = Activity<DictationAttributes>.activities
+        Task { for activity in earlier { await activity.end(nil, dismissalPolicy: .immediate) } }
+        let until = Date() + duration.seconds
+        do {
+            activity = try Activity.request(
+                attributes: DictationAttributes(),
+                content: ActivityContent(state: Self.activityState(until: until), staleDate: until))
+        } catch {
+            throw DictationFailure.liveActivityFailed
+        }
+    }
+
+    private func endActivity() async {
+        guard let activity else { return }
+        self.activity = nil
+        await activity.end(nil, dismissalPolicy: .immediate)
     }
 
     private func tick() {

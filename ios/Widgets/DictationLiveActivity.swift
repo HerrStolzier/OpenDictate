@@ -28,7 +28,7 @@ struct DictationLiveActivity: Widget {
                     StateLine(state: context.state)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    if context.state.phase == .listening, !context.isStale { StopButton(compact: true) }
+                    if context.state.hasStop, !context.isStale { StopButton(compact: true) }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     if let detail = context.state.shownDetail {
@@ -71,6 +71,7 @@ private enum CompactSymbol {
         case .copied: "checkmark"
         case .done: "doc.on.clipboard"
         case .oops: "exclamationmark"
+        case .warm: "mic"
         }
     }
 }
@@ -94,7 +95,7 @@ private struct LockScreenView: View {
                 }
             }
             Spacer(minLength: 0)
-            if state.phase == .listening, !stale { StopButton(compact: false) }
+            if state.hasStop, !stale { StopButton(compact: false) }
         }
         .padding(DesignMetric.space4)
     }
@@ -142,4 +143,9 @@ private struct StopButton: View {
         .background(Circle().fill(Color(design: .rec)))
         .accessibilityLabel(L10n.stop)
     }
+}
+
+extension DictationAttributes.ContentState {
+    /// A running recording, or the warm microphone, which the button turns off.
+    fileprivate var hasStop: Bool { phase == .listening || phase == .warm }
 }

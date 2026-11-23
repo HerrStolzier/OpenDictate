@@ -12,6 +12,26 @@
         }
       }
     },
+    "Keep Microphone Warm": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikro warm halten"
+          }
+        }
+      }
+    },
+    "Keeps the microphone ready for the OpenDictate keyboard for the time set in the app.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hält das Mikrofon für die OpenDictate-Tastatur so lange bereit, wie in der App eingestellt."
+          }
+        }
+      }
+    },
     "Starts a dictation. Run it again to stop; it then returns the text for “Copy to Clipboard”.": {
       "extractionState": "manual",
       "localizations": {

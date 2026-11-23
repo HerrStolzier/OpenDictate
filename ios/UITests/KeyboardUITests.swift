@@ -48,6 +48,109 @@ final class KeyboardUITests: XCTestCase {
         XCTAssertTrue(app.buttons["endWarm"].waitForExistence(timeout: 60), "The microphone did not get warm")
         snapshot("App, Mikro warm", of: app)
 
+        try dictateIntoNewNote(keywords)
+    }
+
+    /// "Keep microphone warm" from the Shortcuts app while OpenDictate is not
+    /// running, then a dictation from the keyboard: OpenDictate never comes to
+    /// the front.
+    func testWarmShortcutThenKeyboardDictates() throws {
+        let keywords = try liveKeywords()
+        try addKeyboard()
+        app.terminate()
+        let shortcuts = XCUIApplication(bundleIdentifier: "com.apple.shortcuts")
+        shortcuts.launch()
+        let search = shortcuts.searchFields.firstMatch
+        if !search.waitForExistence(timeout: 5) { shortcuts.swipeDown() }
+        XCTAssertTrue(search.waitForExistence(timeout: 5), "Shortcuts shows no search field")
+        search.tap()
+        search.typeText("Mikro warm")
+        let action = shortcuts.descendants(matching: .any)
+            .matching(NSPredicate(format: "label BEGINSWITH 'Mikro warm halten'")).element(boundBy: 0)
+        XCTAssertTrue(action.waitForExistence(timeout: 10), "No “Mikro warm halten” in Shortcuts")
+        snapshot("Kurzbefehle, Mikro warm halten", of: shortcuts)
+        action.tap()
+        sleep(5)
+        snapshot("Kurzbefehle nach dem Start", of: shortcuts)
+        XCTAssertNotEqual(app.state, .runningForeground, "OpenDictate came to the front")
+        XCTAssertEqual(app.state, .runningBackground, "OpenDictate does not run in the background")
+        try dictateIntoNewNote(keywords)
+    }
+
+    /// The Live Activity's stop button while the keyboard records: the warm
+    /// microphone goes off once that dictation is written, instead of staying
+    /// warm for the chosen time.
+    func testLiveActivityStopEndsWarmMicrophoneWhileKeyboardRecords() throws {
+        _ = try liveKeywords()
+        try addKeyboard()
+        app.launch()
+        app.swipeUp()
+        let warm = app.buttons["startWarm"]
+        if warm.waitForExistence(timeout: 5) { warm.tap() }
+        XCTAssertTrue(app.buttons["endWarm"].waitForExistence(timeout: 60), "The microphone did not get warm")
+
+        let notes = XCUIApplication(bundleIdentifier: "com.apple.mobilenotes")
+        notes.launch()
+        let compose = notes.buttons["Neue Notiz"].firstMatch
+        XCTAssertTrue(compose.waitForExistence(timeout: 10), "Notes has no “Neue Notiz” button")
+        compose.tap()
+        let body = notes.textViews.firstMatch
+        XCTAssertTrue(body.waitForExistence(timeout: 10))
+        body.tap()
+        try switchToOpenDictate(in: notes)
+        notes.buttons["openDictate.dictate"].tap()
+        XCTAssertTrue(
+            notes.buttons.matching(NSPredicate(format: "label CONTAINS 'Fertig'")).firstMatch.waitForExistence(
+                timeout: 5), "The key does not show “Fertig”")
+
+        // Notification Center shows the Live Activity "Mikro warm" with its stop button.
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let top = springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.005))
+        top.press(
+            forDuration: 0.1, thenDragTo: springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.7)))
+        let stop = springboard.buttons.matching(NSPredicate(format: "label IN %@", ["Stopp", "Stop"])).firstMatch
+        XCTAssertTrue(stop.waitForExistence(timeout: 10), "No stop button on the Live Activity")
+        snapshot("Mitteilungszentrale, Mikro warm", of: springboard)
+        stop.tap()
+        XCUIDevice.shared.press(.home)
+
+        app.activate()
+        app.swipeUp()
+        let wentOff = app.buttons["startWarm"].waitForExistence(timeout: 30)
+        snapshot("App nach Stopp der Live-Aktivität", of: app)
+        if app.buttons["endWarm"].exists { app.buttons["endWarm"].tap() }
+        notes.activate()
+        body.tap()
+        cleanUp(note: body, text: body.value as? String ?? "", in: notes)
+        XCTAssertTrue(wentOff, "The microphone stayed warm after the Live Activity's stop button")
+    }
+
+    /// The key left of the space bar: a tap types a period, holding it a comma, never both.
+    func testPeriodKeyTapTypesPeriodAndHoldTypesComma() throws {
+        try addKeyboard()
+        // The Settings search field: there in the simulator too, unlike Notes.
+        settings.terminate()
+        settings.launch()
+        let search = settings.searchFields.firstMatch
+        XCTAssertTrue(search.waitForExistence(timeout: 10))
+        search.tap()
+        try switchToOpenDictate(in: settings)
+        let period = settings.buttons["openDictate.key.period"]
+        XCTAssertTrue(period.waitForExistence(timeout: 5), "No period key")
+        period.tap()
+        period.press(forDuration: 0.8)
+        snapshot("Punkt und Komma", of: settings)
+        let typed = search.value as? String ?? ""
+        settings.terminate()
+        XCTAssertEqual(typed.filter { $0 == "." || $0 == "," }, ".,", "Tap and hold typed “\(typed)”")
+    }
+
+    // MARK: Helpers
+
+    /// A dictation from the keyboard into a new note, then the note is
+    /// deleted and the warm microphone turned off. Reports the stop-to-text
+    /// time and the keyboard's memory.
+    private func dictateIntoNewNote(_ keywords: [String]) throws {
         let notes = XCUIApplication(bundleIdentifier: "com.apple.mobilenotes")
         notes.launch()
         let compose = notes.buttons["Neue Notiz"].firstMatch
@@ -89,8 +192,6 @@ final class KeyboardUITests: XCTestCase {
         XCTAssertEqual(result, .completed, "Text did not arrive; keyboard said “\(measured)”")
     }
 
-    // MARK: Helpers
-
     /// Settings → General → Keyboard → Keyboards: adds OpenDictate with Full
     /// Access unless it is there already.
     private func addKeyboard() throws {
@@ -128,10 +229,12 @@ final class KeyboardUITests: XCTestCase {
 
     private var addKeyboardRow: XCUIElement { settings.cells["AddNewKeyboard"] }
 
-    /// A Settings row by its title text. The text itself, not a cell around it:
-    /// on the iPhone a cell can hold a whole group of rows.
+    /// A Settings row by its title: the cell holding that text, or the text
+    /// itself where the cell does not report it (some root rows).
     private func row(_ title: String) -> XCUIElement {
-        settings.staticTexts.matching(NSPredicate(format: "label == %@", title)).firstMatch
+        let label = NSPredicate(format: "label == %@", title)
+        let cell = settings.cells.containing(label).firstMatch
+        return cell.exists ? cell : settings.staticTexts.matching(label).firstMatch
     }
 
     /// Taps the system's keyboard switch until the OpenDictate keyboard shows.
