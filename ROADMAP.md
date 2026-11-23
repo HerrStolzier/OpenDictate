@@ -230,7 +230,9 @@ hält das Mikro warm, Parakeet schreibt auf dem iPhone, die Tastatur setzt den
 Text direkt ein ([Tastatur](ios/README.md#tastatur)). Gebaut, im
 Simulator geprüft (hell und dunkel) und am 22. November am iPhone 15 per
 UI-Test bestanden: Diktat in Notizen, Text direkt im Feld, rund 0,3 s von
-„Fertig“ bis Text.
+„Fertig“ bis Text. Seit 23. November dazu Autokorrektur (Deutsch), Leertaste
+als Cursor und Emojis; danach folgt „Tippen lernen“ (persönliches Tippmodell
+nur auf dem Gerät, Schalter standardmäßig aus).
 
 **Nächste Schritte:**
 

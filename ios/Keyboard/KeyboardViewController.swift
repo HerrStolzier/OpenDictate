@@ -9,12 +9,16 @@ final class KeyboardViewController: UIInputViewController {
     private enum Layout {
         case letters
         case symbols
+        case emoji
     }
 
     private let bridge = KeyboardBridge()
     private let rows = UIStackView()
     private let statusLabel = UILabel()
     private let dictateButton = UIButton(configuration: .filled())
+    /// Suggestions for the word being typed, in place of the status while typing.
+    private let strip = UIStackView()
+    private let assistant = TypingAssistant()
     private var letterButtons: [(UIButton, String)] = []
     private var layout = Layout.letters
     private var isShifted = true
@@ -42,10 +46,30 @@ final class KeyboardViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         build()
+        requestLexicon()
         Self.current = self
         if !Self.observing {
             Self.observing = true
             KeyboardBridge.observe(KeyboardBridge.snapshotNotification) { KeyboardViewController.current?.refresh() }
+        }
+    }
+
+    /// iOS calls the completion handler off the main queue, but the SDK
+    /// declares it main-actor, so a Swift closure traps on the isolation check
+    /// (seen in the simulator). The block is handed over through Objective-C
+    /// and moves to the main queue itself.
+    private func requestLexicon() {
+        let selector = NSSelectorFromString("requestSupplementaryLexiconWithCompletion:")
+        guard responds(to: selector) else { return }
+        perform(selector, with: Self.lexiconHandler())
+    }
+
+    /// Made outside the main actor, so the block carries no isolation check.
+    private nonisolated static func lexiconHandler() -> @convention(block) @Sendable (UILexicon) -> Void {
+        { lexicon in
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated { KeyboardViewController.current?.assistant.load(lexicon) }
+            }
         }
     }
 
@@ -78,6 +102,7 @@ final class KeyboardViewController: UIInputViewController {
     override func textDidChange(_ textInput: UITextInput?) {
         super.textDidChange(textInput)
         updateShiftForContext()
+        updateSuggestions()
     }
 
     // MARK: Layout
@@ -89,7 +114,7 @@ final class KeyboardViewController: UIInputViewController {
         height.isActive = true
 
         rows.axis = .vertical
-        rows.distribution = .fillEqually
+        rows.distribution = .fill
         rows.spacing = 8
         rows.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(rows)
@@ -121,13 +146,20 @@ final class KeyboardViewController: UIInputViewController {
         dictateButton.addAction(UIAction { [weak self] _ in self?.dictateTapped() }, for: .touchUpInside)
         dictateButton.widthAnchor.constraint(equalToConstant: 128).isActive = true
 
-        let top = UIStackView(arrangedSubviews: [statusLabel, dictateButton])
+        strip.distribution = .fillEqually
+        strip.spacing = 1
+        strip.isHidden = true
+        strip.accessibilityIdentifier = "openDictate.suggestions"
+        let top = UIStackView(arrangedSubviews: [statusLabel, strip, dictateButton])
         top.spacing = 8
         top.isLayoutMarginsRelativeArrangement = true
         top.layoutMargins = UIEdgeInsets(top: 0, left: 6, bottom: 0, right: 3)
         rows.addArrangedSubview(top)
+        topRow = top
         rebuildKeys()
     }
+
+    private weak var topRow: UIView?
 
     private func rebuildKeys() {
         while rows.arrangedSubviews.count > 1 {
@@ -138,16 +170,31 @@ final class KeyboardViewController: UIInputViewController {
         letterButtons = []
         switch layout {
         case .letters:
-            rows.addArrangedSubview(row("qwertzuiopü"))
-            rows.addArrangedSubview(row("asdfghjklöä"))
-            rows.addArrangedSubview(row("yxcvbnmß", leading: shiftKey(), delete: true))
+            addRow(row("qwertzuiopü"))
+            addRow(row("asdfghjklöä"))
+            addRow(row("yxcvbnmß", leading: shiftKey(), delete: true))
         case .symbols:
-            rows.addArrangedSubview(row("1234567890"))
-            rows.addArrangedSubview(row("-/:;()€&@\""))
-            rows.addArrangedSubview(row(".,?!'%+=#", delete: true))
+            addRow(row("1234567890"))
+            addRow(row("-/:;()€&@\""))
+            addRow(row(".,?!'%+=#", delete: true))
+        case .emoji:
+            let panel = EmojiPanel()
+            panel.onPick = { [weak self] emoji in self?.insert(emoji) }
+            // As tall as the three key rows it replaces.
+            addRow(panel, rows: 3)
         }
-        rows.addArrangedSubview(bottomRow())
+        addRow(bottomRow())
         updateLetterTitles()
+    }
+
+    /// Every key row as tall as the top row, so the layout keeps its height.
+    private func addRow(_ row: UIView, rows count: CGFloat = 1) {
+        rows.addArrangedSubview(row)
+        guard let topRow else { return }
+        row.heightAnchor.constraint(
+            equalTo: topRow.heightAnchor, multiplier: count, constant: (count - 1) * rows.spacing
+        )
+        .isActive = true
     }
 
     private func row(_ characters: String, leading: UIButton? = nil, delete: Bool = false) -> UIStackView {
@@ -168,14 +215,21 @@ final class KeyboardViewController: UIInputViewController {
         }
         outer.addArrangedSubview(letters)
         if delete {
-            let delete = key("⌫", identifier: "openDictate.delete", system: true) { [weak self] in
-                self?.textDocumentProxy.deleteBackward()
-            }
-            delete.accessibilityLabel = Self.pick("Delete", "Löschen")
-            delete.widthAnchor.constraint(equalToConstant: 42).isActive = true
-            outer.addArrangedSubview(delete)
+            outer.addArrangedSubview(deleteKey())
         }
         return outer
+    }
+
+    private func deleteKey() -> UIButton {
+        let delete = key("⌫", identifier: "openDictate.delete", system: true) { [weak self] in
+            guard let self else { return }
+            assistant.deleteBackward(textDocumentProxy)
+            updateShiftForContext()
+            updateSuggestions()
+        }
+        delete.accessibilityLabel = Self.pick("Delete", "Löschen")
+        delete.widthAnchor.constraint(equalToConstant: 42).isActive = true
+        return delete
     }
 
     private func shiftKey() -> UIButton {
@@ -199,6 +253,16 @@ final class KeyboardViewController: UIInputViewController {
         }
         modeKey.widthAnchor.constraint(equalToConstant: 48).isActive = true
         bottom.addArrangedSubview(modeKey)
+        if layout != .emoji {
+            let emojiKey = key("😊", identifier: "openDictate.emojiKey", system: true) { [weak self] in
+                guard let self else { return }
+                layout = .emoji
+                rebuildKeys()
+            }
+            emojiKey.accessibilityLabel = "Emoji"
+            emojiKey.widthAnchor.constraint(equalToConstant: 40).isActive = true
+            bottom.addArrangedSubview(emojiKey)
+        }
         // The Home-button-less iPhones show their own globe below the keyboard.
         if needsInputModeSwitchKey {
             let globe = key("🌐", identifier: "openDictate.nextKeyboard", system: true) {}
@@ -209,12 +273,19 @@ final class KeyboardViewController: UIInputViewController {
         }
         if layout == .letters { bottom.addArrangedSubview(periodKey()) }
         let space = key(Self.pick("space", "Leerzeichen"), identifier: "openDictate.space") { [weak self] in
-            self?.type(" ")
+            guard let self else { return }
+            assistant.space(textDocumentProxy)
+            afterInput()
         }
         space.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        // Hold and slide: the cursor moves a character per step, as on Apple's keyboard.
+        let slide = UILongPressGestureRecognizer(target: self, action: #selector(spaceSlid(_:)))
+        slide.minimumPressDuration = 0.3
+        space.addGestureRecognizer(slide)
         bottom.addArrangedSubview(space)
+        if layout == .emoji { bottom.addArrangedSubview(deleteKey()) }
         let enter = key("↵", identifier: "openDictate.return", system: true) { [weak self] in
-            self?.textDocumentProxy.insertText("\n")
+            self?.insert("\n")
         }
         enter.accessibilityLabel = Self.pick("Return", "Zeilenumbruch")
         enter.widthAnchor.constraint(equalToConstant: 84).isActive = true
@@ -238,6 +309,33 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     @objc private func periodTapped() { type(".") }
+
+    /// Where the last cursor step was taken, along the space bar.
+    private var slideAnchor: CGFloat?
+    private static let slideStep: CGFloat = 9
+
+    @objc private func spaceSlid(_ recognizer: UILongPressGestureRecognizer) {
+        let x = recognizer.location(in: view).x
+        switch recognizer.state {
+        case .began:
+            slideAnchor = x
+        case .changed:
+            guard var anchor = slideAnchor else { return }
+            while x - anchor >= Self.slideStep {
+                textDocumentProxy.adjustTextPosition(byCharacterOffset: 1)
+                anchor += Self.slideStep
+            }
+            while anchor - x >= Self.slideStep {
+                textDocumentProxy.adjustTextPosition(byCharacterOffset: -1)
+                anchor -= Self.slideStep
+            }
+            slideAnchor = anchor
+        default:
+            slideAnchor = nil
+            assistant.typedOther()
+            afterInput()
+        }
+    }
 
     @objc private func periodHeld(_ recognizer: UILongPressGestureRecognizer) {
         guard recognizer.state == .began else { return }
@@ -270,11 +368,74 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func type(_ value: String) {
-        textDocumentProxy.insertText(shifted(value))
+        insert(shifted(value))
         if isShifted, layout == .letters {
             isShifted = false
             updateLetterTitles()
         }
+    }
+
+    private func insert(_ text: String) {
+        assistant.typedOther()
+        textDocumentProxy.insertText(text)
+        afterInput()
+    }
+
+    private func afterInput() {
+        updateShiftForContext()
+        updateSuggestions()
+    }
+
+    // MARK: Suggestions
+
+    private func updateSuggestions() {
+        let suggestions = assistant.refresh(textDocumentProxy)
+        for view in strip.arrangedSubviews {
+            strip.removeArrangedSubview(view)
+            view.removeFromSuperview()
+        }
+        guard !suggestions.typed.isEmpty else {
+            renderTop()
+            return
+        }
+        var slots: [(String, String, Bool)] = [("„\(suggestions.typed)“", suggestions.typed, false)]
+        if let best = suggestions.best { slots.append((best, best, suggestions.replacesOnSpace)) }
+        if let second = suggestions.second { slots.append((second, second, false)) }
+        for (index, slot) in slots.enumerated() {
+            var configuration = UIButton.Configuration.plain()
+            configuration.title = slot.0
+            configuration.baseForegroundColor = .label
+            configuration.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 2, bottom: 0, trailing: 2)
+            configuration.titleLineBreakMode = .byTruncatingTail
+            configuration.background.backgroundColor = slot.2 ? Self.letterKeyColor : .clear
+            configuration.background.cornerRadius = 6
+            let bold = slot.2
+            configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+                var outgoing = incoming
+                outgoing.font = .systemFont(ofSize: 16, weight: bold ? .semibold : .regular)
+                return outgoing
+            }
+            let button = UIButton(configuration: configuration)
+            button.accessibilityIdentifier = "openDictate.suggestion.\(index)"
+            let word = slot.1
+            button.addAction(
+                UIAction { [weak self] _ in
+                    guard let self else { return }
+                    assistant.pick(word, in: textDocumentProxy)
+                    afterInput()
+                }, for: .touchUpInside)
+            strip.addArrangedSubview(button)
+        }
+        renderTop()
+    }
+
+    /// While a word is typed the strip shows instead of the status, unless the
+    /// status has something to say about a dictation.
+    private func renderTop() {
+        let dictating = shownState == .recording || shownState == .writing
+        let showsStrip = !assistant.current.typed.isEmpty && note == nil && !dictating
+        strip.isHidden = !showsStrip
+        statusLabel.isHidden = showsStrip
     }
 
     private func updateShiftForContext() {
@@ -379,7 +540,7 @@ final class KeyboardViewController: UIInputViewController {
         if isShown, sameField,
             let text = snapshot.deliverableText(forJob: jobID, insertedResultID: bridge.insertedResultID, at: time)
         {
-            textDocumentProxy.insertText(text)
+            insert(text)
             bridge.insertedResultID = snapshot.resultID
             jobID = nil
             #if DEBUG
@@ -395,7 +556,11 @@ final class KeyboardViewController: UIInputViewController {
         render(state, snapshot: snapshot)
     }
 
+    /// The dictation state last shown, so typing never hides "Listening".
+    private var shownState = KeyboardSessionState.off
+
     private func render(_ state: KeyboardSessionState, snapshot: KeyboardSnapshot) {
+        shownState = state
         var configuration = dictateButton.configuration ?? .filled()
         let title: String
         let symbol: String
@@ -427,6 +592,7 @@ final class KeyboardViewController: UIInputViewController {
             note = nil
             statusLabel.text = status(state, snapshot: snapshot)
         }
+        renderTop()
         #if DEBUG
             statusLabel.accessibilityValue =
                 "state=\(state.rawValue);latencyMs=\(lastLatency ?? -1);memMB=\(Self.memoryMB())"

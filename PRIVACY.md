@@ -468,6 +468,12 @@ Screen and in the Dynamic Island shows that a recording is running.
   never sees audio. A recording is kept like a failed one (see below) until
   the keyboard confirms its text, so "Send again" in the app can send it; that
   uses the app's own recognition setting.
+- **Keyboard typing:** suggestions and autocorrection run in the keyboard on
+  the iPhone with iOS's spelling dictionary and, as iOS offers every keyboard,
+  the names from Contacts and the text replacements from Settings. Words the
+  person keeps by tapping them, and the last 30 emoji picked, are stored in
+  the keyboard's own settings on the iPhone; deleting the app removes them.
+  Nothing typed is stored otherwise or sent anywhere.
 - **No log, no telemetry:** the iPhone app writes no log file and sends
   nothing else anywhere. The keyboard path logs only durations to the
   system log, never audio or text.

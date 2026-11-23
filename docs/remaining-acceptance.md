@@ -393,7 +393,17 @@ vom Mac gesprochene Satz „Heute teste ich die Tastatur“ stand ohne Umweg im
 Feld. Gemessen: 281 und 284 ms von „Fertig“ bis Text (zwei Läufe, kurzer Satz,
 Parakeet schon geladen), Tastatur 14 MB Speicher, kein Absturzbericht der
 Tastatur mehr (der erste Lauf fand einen Absturz beim Ausblenden, behoben).
-Das sagt nichts über die Erkennungsqualität. Offen: Musik anderer Apps bei warmem Mikro, Öffnen der
+Das sagt nichts über die Erkennungsqualität.
+
+**Tippen (23. November):** Im Simulator bestanden: Vorschläge und Tippen auf
+einen Vorschlag (`testAutocorrectAndEmoji`), Emoji-Tafel, Punkt/Komma
+(`testPeriodKeyTapTypesPeriodAndHoldTypesComma`), Leertaste als Cursor
+(`testSpaceBarSlideMovesTheCursor`), Unit-Tests der Autokorrektur mit Apples
+deutschem Wörterbuch. Offen am iPhone: Korrektur per Leertaste und Zurückholen
+per Löschen in einem Feld mit Autokorrektur
+(`testSpaceFixesAndDeleteRestoresInNotes`), Kontaktnamen und Textersetzungen
+aus `UILexicon`, Speicher der Tastatur mit Wörterbuch und Emoji-Tafel,
+Schrittweite der Leertaste nach Gefühl. Offen: Musik anderer Apps bei warmem Mikro, Öffnen der
 App aus der Tastatur ohne warmes Mikro, langes Warmhalten im Hintergrund
 (15 und 60 Minuten), Kaltstart von Parakeet nach einer Installation.
 

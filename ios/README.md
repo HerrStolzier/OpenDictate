@@ -230,7 +230,21 @@ App sprechen darf.
    Live-Aktivität „Mikro warm“ mit Stopp-Taste.
 
 Die Punkt-Taste liegt links neben der Leertaste; gedrückt halten setzt ein
-Komma.
+Komma. Leertaste halten und seitlich ziehen bewegt den Cursor Zeichen für
+Zeichen.
+
+Autokorrektur (Deutsch): Über den Tasten stehen beim Tippen bis zu drei
+Vorschläge: links das Wort wie getippt (Tippen behält es und merkt es sich),
+in der Mitte der beste Vorschlag, rechts der zweite. Die Vorschläge kommen aus
+der Rechtschreibprüfung von iOS (`UITextChecker`), dazu Namen aus den Kontakten
+und Textersetzungen aus den iOS-Einstellungen (`UILexicon`). Vertipper auf eine
+Nachbartaste zählen weniger als andere Fehler. Ist der beste Vorschlag nah genug
+(hinterlegt), setzt ihn die Leertaste ein; Löschen direkt danach holt das
+getippte Wort zurück. Felder, die keine Autokorrektur wollen, sowie Adressen und
+Zahlenfelder bekommen keine. Die Prüfung ist austauschbar (`SpellChecking`).
+
+Emojis: Die Emoji-Taste neben „123“ öffnet eine Tafel mit „Zuletzt“ und den
+Unicode-Kategorien; Emojis, die das iOS nicht zeichnen kann, fehlen.
 
 Dieser Weg sendet nie etwas, auch wenn für das App-Diktat OpenAI oder ein
 eigener Server eingestellt ist. Eine Übersetzung über OpenAI fällt hier weg.
@@ -243,8 +257,11 @@ UI-Test (Text direkt im Feld, 0,3 s nach „Fertig“, Tastatur 14 MB); weitere
 offene Punkte in [remaining-acceptance](../docs/remaining-acceptance.md#ios).
 Das Öffnen der App aus der Tastatur nutzt
 denselben Umweg über die `UIApplication` der Erweiterung wie Hex; ob Apple
-das bei der Prüfung annimmt, ist offen. Keine Wortvorschläge, keine
-Autokorrektur, kein Wischen; Umschalten nur einmal, nach Satzende von selbst.
+das bei der Prüfung annimmt, ist offen. Kein Wischtippen, nur Deutsch;
+Umschalten nur einmal, nach Satzende von selbst. Autokorrektur, Leertaste als
+Cursor und Emojis sind im Simulator geprüft; ob die Leertaste am iPhone
+korrigiert und Löschen zurückholt und ob Kontaktnamen ankommen, zeigt erst der
+Test am Gerät.
 
 ## Tastatur-Prototyp (September 2026, abgelöst)
 

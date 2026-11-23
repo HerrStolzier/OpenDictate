@@ -4,7 +4,12 @@ The keyboard and the app's warm microphone follow the design of Hex's iOS
 keyboard. `ContainingAppOpener.swift` is taken from Hex unchanged except for
 formatting; `KeyboardShared/KeyboardBridge.swift` and
 `App/Dictation/WarmMicrophone.swift` are written for OpenDictate after Hex's
-`KeyboardBridge.swift` and `AudioBackend.swift`.
+`KeyboardBridge.swift` and `AudioBackend.swift`, and
+`KeyboardShared/Autocorrect.swift` after Hex's `AutocorrectEngine.swift`.
+
+`emoji.txt` lists the emoji of Unicode's emoji-test.txt 18.0 by category,
+taken from Hex's `emoji-index-de.txt`; Unicode's data is under the Unicode
+License v3 in `LICENSE-Unicode.txt`.
 
 Source: https://github.com/anomalyco/hex (folder `ios/`, commit
 `339a5caa56a22223d126ba0a98b944f66123bbc2`)

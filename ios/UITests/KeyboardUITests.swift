@@ -145,6 +145,83 @@ final class KeyboardUITests: XCTestCase {
         XCTAssertEqual(typed.filter { $0 == "." || $0 == "," }, ".,", "Tap and hold typed “\(typed)”")
     }
 
+    /// Typing "hsus" offers "Haus"; a tap on it puts it in. The emoji key
+    /// opens the panel and a tap there types the emoji. (The Settings search
+    /// field turns autocorrection off, so space keeps the word there;
+    /// `testSpaceFixesAndDeleteRestoresInNotes` checks space and delete.)
+    func testAutocorrectAndEmoji() throws {
+        try addKeyboard()
+        settings.terminate()
+        settings.launch()
+        let search = settings.searchFields.firstMatch
+        XCTAssertTrue(search.waitForExistence(timeout: 10))
+        search.tap()
+        try switchToOpenDictate(in: settings)
+        for letter in "hsus" { settings.buttons["openDictate.key.\(letter)"].tap() }
+        let best = settings.buttons["openDictate.suggestion.1"]
+        XCTAssertTrue(best.waitForExistence(timeout: 3), "No suggestions")
+        snapshot("Vorschlagsleiste", of: settings)
+        XCTAssertEqual(best.label.lowercased(), "haus")
+        best.tap()
+        let picked = (search.value as? String ?? "").lowercased()
+        XCTAssertEqual(picked, "haus ", "The suggestion put in “\(picked)”")
+
+        settings.buttons["openDictate.emojiKey"].tap()
+        let panel = settings.collectionViews["openDictate.emoji"]
+        XCTAssertTrue(panel.waitForExistence(timeout: 3), "No emoji panel")
+        snapshot("Emoji", of: settings)
+        panel.cells.firstMatch.tap()
+        let typed = search.value as? String ?? ""
+        settings.terminate()
+        XCTAssertTrue(typed.unicodeScalars.contains { $0.properties.isEmojiPresentation }, "No emoji in “\(typed)”")
+    }
+
+    /// In a field with autocorrection (Notes, so only on the iPhone): "hsus"
+    /// and space become "Haus ", and delete right after brings back "hsus".
+    func testSpaceFixesAndDeleteRestoresInNotes() throws {
+        #if targetEnvironment(simulator)
+            throw XCTSkip("The simulator has no Notes")
+        #endif
+        try addKeyboard()
+        let notes = XCUIApplication(bundleIdentifier: "com.apple.mobilenotes")
+        notes.launch()
+        let compose = notes.buttons["Neue Notiz"].firstMatch
+        XCTAssertTrue(compose.waitForExistence(timeout: 10), "Notes has no “Neue Notiz” button")
+        compose.tap()
+        let body = notes.textViews.firstMatch
+        XCTAssertTrue(body.waitForExistence(timeout: 10))
+        body.tap()
+        try switchToOpenDictate(in: notes)
+        for letter in "hsus" { notes.buttons["openDictate.key.\(letter)"].tap() }
+        notes.buttons["openDictate.space"].tap()
+        let fixed = body.value as? String ?? ""
+        snapshot("Notiz, korrigiert", of: notes)
+        notes.buttons["openDictate.delete"].tap()
+        let restored = body.value as? String ?? ""
+        cleanUp(note: body, text: restored, in: notes)
+        XCTAssertEqual(fixed.lowercased(), "haus ", "Space put in “\(fixed)”")
+        XCTAssertEqual(restored.lowercased(), "hsus", "Delete after the fix gave “\(restored)”")
+    }
+
+    /// Holding the space bar and sliding left moves the cursor a character.
+    func testSpaceBarSlideMovesTheCursor() throws {
+        try addKeyboard()
+        settings.terminate()
+        settings.launch()
+        let search = settings.searchFields.firstMatch
+        XCTAssertTrue(search.waitForExistence(timeout: 10))
+        search.tap()
+        try switchToOpenDictate(in: settings)
+        for letter in "ab" { settings.buttons["openDictate.key.\(letter)"].tap() }
+        let space = settings.buttons["openDictate.space"]
+        let start = space.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        start.press(forDuration: 0.6, thenDragTo: start.withOffset(CGVector(dx: -13, dy: 0)))
+        settings.buttons["openDictate.key.x"].tap()
+        let typed = (search.value as? String ?? "").lowercased()
+        settings.terminate()
+        XCTAssertEqual(typed, "axb", "Sliding then typing gave “\(typed)”")
+    }
+
     // MARK: Helpers
 
     /// A dictation from the keyboard into a new note, then the note is
@@ -195,6 +272,10 @@ final class KeyboardUITests: XCTestCase {
     /// Settings → General → Keyboard → Keyboards: adds OpenDictate with Full
     /// Access unless it is there already.
     private func addKeyboard() throws {
+        // iOS lists a freshly installed keyboard only after its app ran once.
+        app.launch()
+        // A search left open by an earlier test would hide the rows.
+        settings.terminate()
         settings.launch()
         // Settings reopens where the last run left it.
         for _ in 0..<5 where !row("Allgemein").waitForExistence(timeout: 2) {
@@ -208,12 +289,12 @@ final class KeyboardUITests: XCTestCase {
         for (element, next) in steps {
             for _ in 0..<3 where !next.waitForExistence(timeout: 2) { tap(element, scrollingIn: settings) }
         }
-        if !row("OpenDictate").waitForExistence(timeout: 2) {
+        if !openDictateRow.waitForExistence(timeout: 2) {
             tap(addKeyboardRow, scrollingIn: settings)
-            tap(row("OpenDictate"), scrollingIn: settings)
+            tap(openDictateRow, scrollingIn: settings)
         }
         snapshot("Einstellungen, Tastaturen", of: settings)
-        tap(row("OpenDictate"), scrollingIn: settings)
+        tap(openDictateRow, scrollingIn: settings)
         let fullAccess = settings.switches.firstMatch
         XCTAssertTrue(fullAccess.waitForExistence(timeout: 5), "No Full Access switch")
         if (fullAccess.value as? String) != "1" {
@@ -225,6 +306,12 @@ final class KeyboardUITests: XCTestCase {
         }
         snapshot("Einstellungen, Voller Zugriff", of: settings)
         XCTAssertEqual(fullAccess.value as? String, "1", "Full Access is off")
+    }
+
+    /// By the extension's bundle ID: a search by name can match a cell iOS cannot tap.
+    private var openDictateRow: XCUIElement {
+        let cell = settings.cells["app.opendictate.ios.keyboard"]
+        return cell.exists ? cell : row("OpenDictate")
     }
 
     private var addKeyboardRow: XCUIElement { settings.cells["AddNewKeyboard"] }
@@ -251,7 +338,7 @@ final class KeyboardUITests: XCTestCase {
 
     private func tap(_ element: XCUIElement, scrollingIn host: XCUIApplication) {
         // The list may be scrolled either way: down to the top first, then up.
-        for attempt in 0..<8 where !(element.waitForExistence(timeout: 1) && element.isHittable) {
+        for attempt in 0..<8 where !(element.waitForExistence(timeout: 1) && onScreen(element, in: host)) {
             attempt < 3 ? host.swipeDown() : host.swipeUp()
         }
         XCTAssertTrue(element.exists, "Not found: \(element)")
@@ -261,6 +348,12 @@ final class KeyboardUITests: XCTestCase {
             from.press(forDuration: 0.05, thenDragTo: host.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.4)))
         }
         element.tap()
+    }
+
+    /// Like `isHittable`, which fails the test outright for a cell iOS is still moving.
+    private func onScreen(_ element: XCUIElement, in host: XCUIApplication) -> Bool {
+        let frame = element.frame
+        return !frame.isEmpty && host.frame.contains(CGPoint(x: frame.midX, y: frame.midY))
     }
 
     private func cleanUp(note body: XCUIElement, text: String, in notes: XCUIApplication) {
