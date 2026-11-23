@@ -393,7 +393,10 @@ vom Mac gesprochene Satz „Heute teste ich die Tastatur“ stand ohne Umweg im
 Feld. Gemessen: 281 und 284 ms von „Fertig“ bis Text (zwei Läufe, kurzer Satz,
 Parakeet schon geladen), Tastatur 14 MB Speicher, kein Absturzbericht der
 Tastatur mehr (der erste Lauf fand einen Absturz beim Ausblenden, behoben).
-Das sagt nichts über die Erkennungsqualität.
+Das sagt nichts über die Erkennungsqualität. Offen: Musik anderer Apps bei
+warmem Mikro, Öffnen der App aus der Tastatur ohne warmes Mikro, langes
+Warmhalten im Hintergrund (15 und 60 Minuten), Kaltstart von Parakeet nach
+einer Installation, der Kurzbefehl „Mikro warm halten“ im Hintergrund.
 
 **Tippen (23. November):** Im Simulator bestanden: Vorschläge und Tippen auf
 einen Vorschlag (`testAutocorrectAndEmoji`), Emoji-Tafel, Punkt/Komma
@@ -403,9 +406,16 @@ deutschem Wörterbuch. Offen am iPhone: Korrektur per Leertaste und Zurückholen
 per Löschen in einem Feld mit Autokorrektur
 (`testSpaceFixesAndDeleteRestoresInNotes`), Kontaktnamen und Textersetzungen
 aus `UILexicon`, Speicher der Tastatur mit Wörterbuch und Emoji-Tafel,
-Schrittweite der Leertaste nach Gefühl. Offen: Musik anderer Apps bei warmem Mikro, Öffnen der
-App aus der Tastatur ohne warmes Mikro, langes Warmhalten im Hintergrund
-(15 und 60 Minuten), Kaltstart von Parakeet nach einer Installation.
+Schrittweite der Leertaste nach Gefühl.
+
+**Tippen lernen (23. November):** Unit-Tests bestanden für das Tippmodell
+(Mitte erst ab 20 Treffern, höchstens 0,3 Taste, ungleich gestreute Tasten
+nehmen keiner anderen die Fläche), den gespeicherten Standard „aus“ und das
+Löschen. Nicht automatisch geprüft (nur im Tastatur-Ziel): dass bei Schalter
+aus nichts gespeichert wird, ein sofort gelöschter Tipp nicht zählt und ein
+Löschen in der App während offener Tastatur nicht überschrieben wird. Offen am
+iPhone: ob sich die verschobenen Trefferflächen nach ein paar Tagen besser
+anfühlen; ein Messverfahren dafür fehlt noch.
 
 **Belegt:** Der Offline-Tastatur-Prototyp aus `e416a3d` besteht Build,
 Installation und den synthetischen Safari-Textpfad auf einem frischen

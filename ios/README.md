@@ -243,6 +243,17 @@ Nachbartaste zählen weniger als andere Fehler. Ist der beste Vorschlag nah genu
 getippte Wort zurück. Felder, die keine Autokorrektur wollen, sowie Adressen und
 Zahlenfelder bekommen keine. Die Prüfung ist austauschbar (`SpellChecking`).
 
+Tippen lernen (Einstellungen → Tastatur, Standard aus, braucht Vollen
+Zugriff): Die Tastatur merkt sich bei jedem Buchstaben, wo auf der Taste er
+getroffen wurde (nur die Stelle, nie den Text); ein Tipp, den Löschen gleich
+zurücknimmt, zählt nicht. Ab 20 Treffern je Taste rückt ihre Trefferfläche um
+höchstens 0,3 Taste dorthin, wo du sie triffst, und ein Treffer nahe
+einer Nachbartaste macht die Autokorrektur zu dieser Taste wahrscheinlicher
+(nach dem Prinzip von Gboards „spatial model“). Gespeichert wird es in der App
+Group auf dem iPhone und nie gesendet (ob iOS es ins Geräte-Backup nimmt, ist
+nicht geprüft); „Gelerntes löschen“ entfernt es, auch wenn die Tastatur gerade
+offen ist.
+
 Emojis: Die Emoji-Taste neben „123“ öffnet eine Tafel mit „Zuletzt“ und den
 Unicode-Kategorien; Emojis, die das iOS nicht zeichnen kann, fehlen.
 

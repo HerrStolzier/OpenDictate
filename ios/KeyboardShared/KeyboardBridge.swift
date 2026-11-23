@@ -147,7 +147,7 @@ struct KeyboardBridge: @unchecked Sendable {
     }
 
     // `UserDefaults` is thread-safe; the type is not marked Sendable.
-    private let defaults: UserDefaults?
+    let defaults: UserDefaults?
 
     init(defaults: UserDefaults? = UserDefaults(suiteName: KeyboardBridge.appGroup)) {
         self.defaults = defaults

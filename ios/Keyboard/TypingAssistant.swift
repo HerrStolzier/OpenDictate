@@ -13,6 +13,18 @@ final class TypingAssistant {
     /// Put back by a delete in this showing: not corrected again.
     private var keptInSession: Set<String> = []
 
+    /// Tippen lernen: on only when the person turned it on in the app, and
+    /// only with Full Access, which the App Group needs.
+    private(set) var model: TypingModel?
+    private let bridge = KeyboardBridge()
+    /// The last tap, kept only once the next key is not delete.
+    private var pendingTap: (key: String, x: Double, y: Double)?
+    /// The taps behind the letters of the word being typed.
+    private var wordTaps: [(key: Character, x: Double, y: Double)] = []
+    private var unsaved = 0
+    /// "Gelerntes löschen" in the app since the model was read.
+    private var resetsAtLoad = 0
+
     private static let learnedKey = "autocorrect.learned"
     private static let learnedLimit = 1000
 
@@ -36,10 +48,73 @@ final class TypingAssistant {
         }
     }
 
+    /// Reads the switch and the learned model each time the keyboard shows.
+    func loadModel(hasFullAccess: Bool) {
+        model = hasFullAccess && bridge.learnsTyping ? bridge.typingModel : nil
+        resetsAtLoad = bridge.typingResets
+        pendingTap = nil
+        unsaved = 0
+    }
+
+    /// Saves what was learned; also when the keyboard hides.
+    func saveModel() {
+        guard model != nil else { return }
+        // Turned off or deleted in the app while the keyboard was open:
+        // what it holds is dropped, never written back.
+        guard bridge.learnsTyping, bridge.typingResets == resetsAtLoad else {
+            model = nil
+            pendingTap = nil
+            return
+        }
+        guard unsaved > 0, let model else { return }
+        bridge.typingModel = model
+        unsaved = 0
+    }
+
+    /// A tap on a letter key at `x`/`y` from its centre, in key sizes.
+    func tapped(key: String, x: Double, y: Double) {
+        guard model != nil else { return }
+        commitPendingTap()
+        pendingTap = (key, x, y)
+        if let letter = key.lowercased().first, key.count == 1, letter.isLetter {
+            wordTaps.append((letter, x, y))
+        }
+    }
+
+    private func commitPendingTap() {
+        guard let tap = pendingTap else { return }
+        pendingTap = nil
+        model?.record(key: tap.key, x: tap.x, y: tap.y)
+        unsaved += 1
+        if unsaved >= 20 { saveModel() }
+    }
+
+    /// A key that is neither a letter nor delete keeps the last letter's tap.
+    func keptLastTap() {
+        guard model != nil else { return }
+        commitPendingTap()
+    }
+
+    /// The keys each letter's tap was near enough to have meant.
+    private func slips(for word: String) -> [Set<Character>] {
+        guard let model, wordTaps.count == word.count else { return [] }
+        return wordTaps.map { tap in
+            Set(
+                Autocorrect.neighbours(of: tap.key).filter { other in
+                    guard model.shift(for: String(other)) != nil,
+                        let offset = Autocorrect.keyOffset(from: tap.key, to: other)
+                    else { return false }
+                    let towardsOther = model.distance(fromKey: String(other), x: tap.x - offset.x, y: tap.y - offset.y)
+                    return towardsOther < model.distance(fromKey: String(tap.key), x: tap.x, y: tap.y) + 0.5
+                })
+        }
+    }
+
     @discardableResult
     func refresh(_ proxy: UITextDocumentProxy) -> Suggestions {
         let word = Autocorrect.currentWord(before: proxy.documentContextBeforeInput)
-        var suggestions = engine.suggestions(for: word)
+        if word.isEmpty { wordTaps = [] }
+        var suggestions = engine.suggestions(for: word, slips: slips(for: word))
         if keptInSession.contains(word) || !Self.correctsIn(proxy) { suggestions.replacesOnSpace = false }
         current = suggestions
         return suggestions
@@ -47,6 +122,7 @@ final class TypingAssistant {
 
     /// Space: a confident fix first, then the space.
     func space(_ proxy: UITextDocumentProxy) {
+        keptLastTap()
         let suggestions = refresh(proxy)
         lastCorrection = nil
         if suggestions.replacesOnSpace, let best = suggestions.best {
@@ -56,8 +132,11 @@ final class TypingAssistant {
         proxy.insertText(" ")
     }
 
-    /// Delete: right after a fix, puts back what was typed instead.
+    /// Delete: right after a fix, puts back what was typed instead. The tap
+    /// it takes back is not learned.
     func deleteBackward(_ proxy: UITextDocumentProxy) {
+        pendingTap = nil
+        if !wordTaps.isEmpty { wordTaps.removeLast() }
         // Not over a selection: delete then removes the selection, as anywhere.
         if let correction = lastCorrection, proxy.selectedText?.isEmpty ?? true,
             proxy.documentContextBeforeInput?.hasSuffix(correction.replacement + " ") == true

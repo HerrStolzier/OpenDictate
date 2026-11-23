@@ -117,6 +117,22 @@ final class AutocorrectTests: XCTestCase {
         XCTAssertEqual(Autocorrect.areNeighbours("h", "t"), Autocorrect.areNeighbours("h", "u"))
     }
 
+    /// Tippen lernen: a tap on "o" that landed near "ö" makes "ö" likelier,
+    /// never less likely than without the model ("konnen" → "können").
+    func testALearnedSlipNeverRaisesTheCost() {
+        let plain = Autocorrect.cost(from: "konnen", to: "können")
+        let learned = Autocorrect.cost(from: "konnen", to: "können", slips: [[], ["ö"], [], [], [], []])
+        XCTAssertLessThanOrEqual(learned, plain)
+    }
+
+    /// Tippen lernen: of two guesses one neighbour key away, the one the tap
+    /// landed near wins ("s" tapped near "a": "Hallo", not "Hello").
+    func testALearnedSlipPicksTheGuessTheTapPointsTo() {
+        let checker = FakeChecker(guesses: ["Hsllo": ["Hello", "Hallo"]])
+        let suggestions = engine(checker).suggestions(for: "Hsllo", slips: [[], ["a"], [], [], []])
+        XCTAssertEqual(suggestions.best, "Hallo")
+    }
+
     /// iOS's own German dictionary, where the simulator has one.
     func testGermanDictionaryFixesACommonSlip() throws {
         guard let german = UITextChecker.availableLanguages.first(where: { $0.hasPrefix("de") }) else {

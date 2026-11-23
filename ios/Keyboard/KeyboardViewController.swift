@@ -13,7 +13,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private let bridge = KeyboardBridge()
-    private let rows = UIStackView()
+    private let rows = KeyArea()
     private let statusLabel = UILabel()
     private let dictateButton = UIButton(configuration: .filled())
     /// Suggestions for the word being typed, in place of the status while typing.
@@ -79,6 +79,8 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        assistant.loadModel(hasFullAccess: hasFullAccess)
+        rows.model = assistant.model
         updateShiftForContext()
         refresh()
         poll = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
@@ -94,6 +96,7 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewWillDisappear(_ animated: Bool) {
         isShown = false
+        assistant.saveModel()
         poll?.invalidate()
         poll = nil
         super.viewWillDisappear(animated)
@@ -168,6 +171,7 @@ final class KeyboardViewController: UIInputViewController {
             row.removeFromSuperview()
         }
         letterButtons = []
+        rows.letterKeys = [:]
         switch layout {
         case .letters:
             addRow(row("qwertzuiopü"))
@@ -203,7 +207,14 @@ final class KeyboardViewController: UIInputViewController {
         letters.distribution = .fillEqually
         for character in characters {
             let value = String(character)
-            let button = key(value, identifier: "openDictate.key.\(value)") { [weak self] in self?.type(value) }
+            let button = key(value, identifier: "openDictate.key.\(value)") { [weak self] in
+                guard let self else { return }
+                if layout == .letters, let tap = rows.lastTap(on: value) {
+                    assistant.tapped(key: value, x: tap.x, y: tap.y)
+                }
+                type(value)
+            }
+            rows.letterKeys[value] = button
             letterButtons.append((button, value))
             letters.addArrangedSubview(button)
         }
@@ -625,4 +636,51 @@ final class KeyboardViewController: UIInputViewController {
             return result == KERN_SUCCESS ? Int(info.phys_footprint / 1_048_576) : -1
         }
     #endif
+}
+
+/// The keys' stack. With Tippen lernen on, a touch between keys goes to the
+/// key whose learned centre (`TypingModel`) is nearest, which moves each key's
+/// touch area a little towards where the person really taps it.
+final class KeyArea: UIStackView {
+    var model: TypingModel?
+    var letterKeys: [String: UIButton] = [:]
+    private var touch: (point: CGPoint, key: String)?
+
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let hit = super.hitTest(point, with: event)
+        let hitKey = letterKeys.first(where: { $0.value === hit })?.key
+        // Without the model only a key's own area counts; with it, gaps too.
+        guard hitKey != nil || (model != nil && !(hit is UIButton)) else { return hit }
+        var chosen = hitKey ?? ""
+        if let model {
+            var best = Double.infinity
+            for (key, button) in letterKeys {
+                let frame = button.convert(button.bounds, to: self)
+                // Inside a key its neighbours compete; in a gap only keys right next to it.
+                let reach =
+                    hitKey != nil
+                    ? CGSize(width: frame.width / 2, height: frame.height / 2) : CGSize(width: 4, height: 4)
+                guard frame.insetBy(dx: -reach.width, dy: -reach.height).contains(point) else { continue }
+                let offset = Self.offset(of: point, in: frame)
+                let distance = model.distance(fromKey: key, x: offset.x, y: offset.y)
+                if distance < best {
+                    best = distance
+                    chosen = key
+                }
+            }
+        }
+        guard let button = letterKeys[chosen] else { return hit }
+        touch = (point, chosen)
+        return button
+    }
+
+    /// Where the last touch landed on `key`, from its centre in key sizes.
+    func lastTap(on key: String) -> (x: Double, y: Double)? {
+        guard let touch, touch.key == key, let button = letterKeys[key] else { return nil }
+        return Self.offset(of: touch.point, in: button.convert(button.bounds, to: self))
+    }
+
+    private static func offset(of point: CGPoint, in frame: CGRect) -> (x: Double, y: Double) {
+        (Double((point.x - frame.midX) / frame.width), Double((point.y - frame.midY) / frame.height))
+    }
 }

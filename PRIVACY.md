@@ -473,7 +473,12 @@ Screen and in the Dynamic Island shows that a recording is running.
   the names from Contacts and the text replacements from Settings. Words the
   person keeps by tapping them, and the last 30 emoji picked, are stored in
   the keyboard's own settings on the iPhone; deleting the app removes them.
-  Nothing typed is stored otherwise or sent anywhere.
+  Nothing typed is stored otherwise or sent anywhere. With "Tippen lernen"
+  (off until turned on, needs Full Access) the keyboard also keeps, per
+  letter key, how far from the key's centre it is hit (a count and an
+  average), never which keys made which text; it stays in the App Group on
+  the iPhone and is never sent (whether iOS includes it in a device backup is
+  not verified), and "Gelerntes löschen" removes it.
 - **No log, no telemetry:** the iPhone app writes no log file and sends
   nothing else anywhere. The keyboard path logs only durations to the
   system log, never audio or text.

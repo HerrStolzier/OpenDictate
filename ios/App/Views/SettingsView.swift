@@ -12,6 +12,8 @@ struct SettingsView: View {
     @AppStorage(AppSettings.transcriptionModelKey) private var transcriptionModel = ""
     @AppStorage(AppSettings.translationModelKey) private var translationModel = ""
     @State private var warmDuration = KeyboardBridge().warmDuration
+    @State private var learnsTyping = KeyboardBridge().learnsTyping
+    @State private var learnedTaps = KeyboardBridge().typingModel.tapCount
     @State private var keyInput = ""
     @State private var hasKey = KeychainStore.apiKey() != nil
     @State private var keyRefused = false
@@ -345,6 +347,15 @@ struct SettingsView: View {
             }
             .accessibilityIdentifier("warmDuration")
             .onChange(of: warmDuration) { _, duration in KeyboardBridge().warmDuration = duration }
+            Toggle(L10n.pick("Learn how I type", "Tippen lernen"), isOn: $learnsTyping)
+                .accessibilityIdentifier("learnsTyping")
+                .onChange(of: learnsTyping) { _, on in KeyboardBridge().learnsTyping = on }
+            if learnedTaps > 0 {
+                Button(L10n.pick("Delete what was learned", "Gelerntes löschen"), role: .destructive) {
+                    KeyboardBridge().forgetTyping()
+                    learnedTaps = 0
+                }
+            }
         } header: {
             Text(L10n.pick("Keyboard", "Tastatur"))
         } footer: {
@@ -352,10 +363,12 @@ struct SettingsView: View {
                 L10n.pick(
                     "While the microphone is warm, the OpenDictate keyboard dictates without opening the app. "
                         + "Parakeet writes the text on this iPhone; nothing is sent. iOS shows the orange dot "
-                        + "the whole time.",
+                        + "the whole time. “Learn how I type” keeps only where you hit each key, never the "
+                        + "text, and only on this iPhone.",
                     "Solange das Mikro warm ist, diktiert die OpenDictate-Tastatur, ohne die App zu öffnen. "
                         + "Parakeet schreibt den Text auf diesem iPhone; nichts wird gesendet. iOS zeigt die "
-                        + "ganze Zeit den orangen Punkt."))
+                        + "ganze Zeit den orangen Punkt. „Tippen lernen“ merkt sich nur, wo du jede Taste "
+                        + "triffst, nie den Text, und nur auf diesem iPhone."))
         }
     }
 
