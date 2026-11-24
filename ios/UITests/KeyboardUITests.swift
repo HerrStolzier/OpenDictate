@@ -183,6 +183,10 @@ final class KeyboardUITests: XCTestCase {
         XCTAssertTrue(best.waitForExistence(timeout: 3), "No suggestions")
         snapshot("Vorschlagsleiste", of: settings)
         XCTAssertEqual(best.label.lowercased(), "haus")
+        // This field turns autocorrection off, so space keeps the word and it shows without quotes.
+        XCTAssertEqual(
+            settings.buttons["openDictate.suggestion.0"].label.lowercased(), "hsus",
+            "Without autocorrection the typed word shows without quotes")
         best.tap()
         let picked = (search.value as? String ?? "").lowercased()
         XCTAssertEqual(picked, "haus ", "The suggestion put in “\(picked)”")

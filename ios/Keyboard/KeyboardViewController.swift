@@ -556,7 +556,9 @@ final class KeyboardViewController: UIInputViewController {
             renderTop()
             return
         }
-        var slots: [(String, String, Bool)] = [("„\(suggestions.typed)“", suggestions.typed, false)]
+        // As on Apple's keyboard, quotes mark the typed word only when space would replace it.
+        let typedTitle = suggestions.replacesOnSpace ? "„\(suggestions.typed)“" : suggestions.typed
+        var slots: [(String, String, Bool)] = [(typedTitle, suggestions.typed, false)]
         if let best = suggestions.best { slots.append((best, best, suggestions.replacesOnSpace)) }
         if let second = suggestions.second { slots.append((second, second, false)) }
         for (index, slot) in slots.enumerated() {
