@@ -236,7 +236,7 @@ Simulator geprüft (hell und dunkel) und am 22. November am iPhone 15 per
 UI-Test bestanden: Diktat in Notizen, Text direkt im Feld, rund 0,3 s von
 „Fertig“ bis Text. Seit 23. November dazu Autokorrektur (Deutsch), Leertaste
 als Cursor, Emojis und „Tippen lernen“ (persönliches Tippmodell nur auf dem
-Gerät, Schalter standardmäßig aus); am iPhone noch nicht geprüft.
+Gerät, Schalter standardmäßig an seit 24. November); am iPhone noch nicht geprüft.
 
 **Nächste Schritte:**
 

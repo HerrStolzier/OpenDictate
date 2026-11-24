@@ -39,6 +39,35 @@ final class AutocorrectTests: XCTestCase {
         XCTAssertEqual(suggestions.best, "Hause")
     }
 
+    /// At a sentence start "Ab" offers "Aber" (Basti, 24 November), though
+    /// iOS completes only the lower-case "ab".
+    func testACapitalisedPrefixIsCompleted() {
+        let checker = FakeChecker(words: ["Ab"], completions: ["ab": ["aber", "abend"]])
+        let suggestions = engine(checker).suggestions(for: "Ab")
+        XCTAssertEqual(suggestions.best, "Aber")
+        XCTAssertEqual(suggestions.second, "Abend")
+        XCTAssertFalse(suggestions.replacesOnSpace)
+    }
+
+    /// A word both lists hold ("Abend" for "Ab", "abend" for "ab") shows
+    /// once, and "Aber" still gets a slot (Basti, 24 November).
+    func testACompletionInBothListsShowsOnce() {
+        let checker = FakeChecker(words: ["Ab"], completions: ["Ab": ["Abend"], "ab": ["abend", "aber"]])
+        let suggestions = engine(checker).suggestions(for: "Ab")
+        XCTAssertNotEqual(suggestions.best, suggestions.second, "The strip shows the same word twice")
+        XCTAssertTrue([suggestions.best, suggestions.second].contains("Aber"))
+        XCTAssertFalse(suggestions.replacesOnSpace)
+    }
+
+    /// "ab" is a word, so "Ab" at a sentence start is one too: completed,
+    /// never "corrected".
+    func testASentenceStartCapitalKeepsAWordKnown() {
+        let checker = FakeChecker(words: ["ab"], guesses: ["Ab": ["An"]], completions: ["ab": ["aber"]])
+        let suggestions = engine(checker).suggestions(for: "Ab")
+        XCTAssertEqual(suggestions.best, "Aber")
+        XCTAssertFalse(suggestions.replacesOnSpace)
+    }
+
     func testOwnWordsStayAsTyped() {
         var autocorrect = engine(FakeChecker(guesses: ["Basti": ["Bast"]]))
         autocorrect.ownWords = ["Basti"]
@@ -131,6 +160,24 @@ final class AutocorrectTests: XCTestCase {
         let checker = FakeChecker(guesses: ["Hsllo": ["Hello", "Hallo"]])
         let suggestions = engine(checker).suggestions(for: "Hsllo", slips: [[], ["a"], [], [], []])
         XCTAssertEqual(suggestions.best, "Hallo")
+    }
+
+    /// iOS's own German dictionary: "Ab" at a sentence start offers "Aber"
+    /// (Basti, 24 November) and is never replaced. The keyboard asks once
+    /// before the first key (`TypingAssistant`), so the test does too.
+    func testGermanDictionaryCompletesACapitalisedPrefix() throws {
+        guard let german = UITextChecker.availableLanguages.first(where: { $0.hasPrefix("de") }) else {
+            throw XCTSkip("No German spelling dictionary here")
+        }
+        var autocorrect = Autocorrect()
+        autocorrect.language = german
+        _ = autocorrect.checker.completions(for: "ab", language: german)
+        let suggestions = autocorrect.suggestions(for: "Ab")
+        XCTAssertTrue(
+            [suggestions.best, suggestions.second].contains("Aber"),
+            "The strip shows \(suggestions.best ?? "-") and \(suggestions.second ?? "-")")
+        XCTAssertNotEqual(suggestions.best, suggestions.second)
+        XCTAssertFalse(suggestions.replacesOnSpace)
     }
 
     /// iOS's own German dictionary, where the simulator has one.

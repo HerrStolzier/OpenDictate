@@ -72,12 +72,22 @@ struct Autocorrect {
         }
         let lowered = word.lowercased()
         let own = ownWords.first { $0.lowercased() == lowered }
-        let known = own != nil || checker.isWord(word, language: language)
+        // A capital at a sentence start keeps a word known ("Ab" for "ab").
+        let known =
+            own != nil || checker.isWord(word, language: language)
+            || (word != lowered && checker.isWord(lowered, language: language))
         if known {
             // Completions only; a known word is never replaced.
-            let completions = checker.completions(for: word, language: language)
+            // A capital mostly comes from a sentence start, and iOS answers a
+            // capitalised prefix ("Ab") with nouns only or nothing, so the
+            // lower-case one asks first ("ab" → "aber" → "Aber").
+            var seen = Set<String>()
+            let completions =
+                (checker.completions(for: lowered, language: language)
+                + checker.completions(for: word, language: language))
                 .filter { $0.count > word.count }
                 .map { Self.matchingCase($0, typed: word) }
+                .filter { seen.insert($0).inserted }
             return Suggestions(typed: word, best: completions.first, second: completions.dropFirst().first)
         }
         // Own words (Contacts, kept words) one slip away come first, then the dictionary's.

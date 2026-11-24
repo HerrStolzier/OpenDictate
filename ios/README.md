@@ -247,7 +247,7 @@ Nachbartaste zählen weniger als andere Fehler. Ist der beste Vorschlag nah genu
 getippte Wort zurück. Felder, die keine Autokorrektur wollen, sowie Adressen und
 Zahlenfelder bekommen keine. Die Prüfung ist austauschbar (`SpellChecking`).
 
-Tippen lernen (Einstellungen → Tastatur, Standard aus, braucht Vollen
+Tippen lernen (Einstellungen → Tastatur, Standard an, braucht Vollen
 Zugriff): Die Tastatur merkt sich bei jedem Buchstaben, wo auf der Taste er
 getroffen wurde (nur die Stelle, nie den Text); ein Tipp, den Löschen gleich
 zurücknimmt, zählt nicht. Ab 20 Treffern je Taste rückt ihre Trefferfläche um

@@ -3,7 +3,7 @@ import XCTest
 @testable import OpenDictateiOS
 
 /// Tippen lernen: where a key is really hit moves its centre a little, only
-/// after enough taps; the switch is off until turned on, and deleting forgets.
+/// after enough taps; the switch is on until turned off, and deleting forgets.
 @MainActor
 final class TypingModelTests: XCTestCase {
     func testAKeyHitRightOfItsCentreMovesRight() {
@@ -107,7 +107,7 @@ final class TypingModelTests: XCTestCase {
         XCTAssertEqual(bridge.typingModel, model, "The learned model was dropped before it was saved anywhere")
     }
 
-    func testLearningIsOffUntilTurnedOnAndDeletingForgets() throws {
+    func testLearningIsOnUntilTurnedOffAndDeletingForgets() throws {
         let name = "TypingModelTests.\(UUID().uuidString)"
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent(name)
         let (bridge, defaults) = try bridge(name, in: folder)
@@ -115,6 +115,8 @@ final class TypingModelTests: XCTestCase {
             defaults.removePersistentDomain(forName: name)
             try? FileManager.default.removeItem(at: folder)
         }
+        XCTAssertTrue(bridge.learnsTyping)
+        bridge.learnsTyping = false
         XCTAssertFalse(bridge.learnsTyping)
         var model = TypingModel()
         model.record(key: "a", x: 0.1, y: 0)

@@ -417,11 +417,13 @@ einen Vorschlag (`testAutocorrectAndEmoji`), Emoji-Tafel, Punkt/Komma
 (`testPeriodKeyTapTypesPeriodAndHoldTypesComma`), Leertaste als Cursor
 (`testSpaceBarSlideMovesTheCursor`), Unit-Tests der Autokorrektur mit Apples
 deutschem Wörterbuch. Am iPhone bestanden (siehe oben). Offen: Kontaktnamen und
-Textersetzungen aus `UILexicon`, Schrittweite der Leertaste nach Gefühl.
+Textersetzungen aus `UILexicon`, Schrittweite der Leertaste nach Gefühl. Seit 24. November ergänzt ein großgeschriebener Wortanfang am Satzbeginn
+auch klein geschriebene Wörter („Ab“ → „Aber“; Unit-Test mit Apples deutschem
+Wörterbuch im Simulator); am iPhone nicht geprüft.
 
 **Tippen lernen (23. November):** Unit-Tests bestanden für das Tippmodell
 (Mitte erst ab 20 Treffern, höchstens 0,3 Taste, ungleich gestreute Tasten
-nehmen keiner anderen die Fläche), den gespeicherten Standard „aus“ und das
+nehmen keiner anderen die Fläche), den Standard „an“ (seit 24. November, abschaltbar) und das
 Löschen. Nicht automatisch geprüft (nur im Tastatur-Ziel): dass bei Schalter
 aus nichts gespeichert wird, ein sofort gelöschter Tipp nicht zählt und ein
 Löschen in der App während offener Tastatur nicht überschrieben wird. Offen am
