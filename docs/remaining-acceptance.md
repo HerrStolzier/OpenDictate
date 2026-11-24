@@ -426,7 +426,10 @@ Löschen. Nicht automatisch geprüft (nur im Tastatur-Ziel): dass bei Schalter
 aus nichts gespeichert wird, ein sofort gelöschter Tipp nicht zählt und ein
 Löschen in der App während offener Tastatur nicht überschrieben wird. Offen am
 iPhone: ob sich die verschobenen Trefferflächen nach ein paar Tagen besser
-anfühlen; ein Messverfahren dafür fehlt noch.
+anfühlen; ein Messverfahren dafür fehlt noch. Seit 24. November liegt das
+Modell in einer eigenen Datei, die als „nicht sichern“ markiert ist, außer bei
+„Gelerntes im Backup sichern“ (Standard aus); geprüft ist das Attribut im
+Simulator, nicht ein echtes Backup.
 
 **Belegt:** Der Offline-Tastatur-Prototyp aus `e416a3d` besteht Build,
 Installation und den synthetischen Safari-Textpfad auf einem frischen

@@ -162,8 +162,16 @@ struct KeyboardBridge: @unchecked Sendable {
     // `UserDefaults` is thread-safe; the type is not marked Sendable.
     let defaults: UserDefaults?
 
-    init(defaults: UserDefaults? = UserDefaults(suiteName: KeyboardBridge.appGroup)) {
+    /// The App Group's folder, for data kept out of backups (`typingModel`).
+    let directory: URL?
+
+    init(
+        defaults: UserDefaults? = UserDefaults(suiteName: KeyboardBridge.appGroup),
+        directory: URL? = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: KeyboardBridge.appGroup)
+    ) {
         self.defaults = defaults
+        self.directory = directory
     }
 
     var isAvailable: Bool { defaults != nil }

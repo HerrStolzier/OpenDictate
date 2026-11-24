@@ -60,6 +60,7 @@ extension KeyboardBridge {
     private static let learnKey = "typing.learn"
     private static let modelKey = "typing.model"
     private static let resetKey = "typing.resets"
+    private static let backupKey = "typing.backup"
 
     /// The switch in the app; off unless the person turns it on.
     var learnsTyping: Bool {
@@ -67,23 +68,61 @@ extension KeyboardBridge {
         nonmutating set { defaults?.set(newValue, forKey: Self.learnKey) }
     }
 
+    /// Kept in a file of its own, out of backups unless the person turns
+    /// `backsUpTyping` on (Basti, 24 November): it fits only this iPhone's
+    /// keyboard and relearns in a few days. A model an earlier build kept in
+    /// the App Group's settings, which are backed up, moves there on first read.
     var typingModel: TypingModel {
         get {
-            guard let data = defaults?.data(forKey: Self.modelKey),
+            if let old = defaults?.data(forKey: Self.modelKey) {
+                guard let model = try? JSONDecoder().decode(TypingModel.self, from: old) else {
+                    defaults?.removeObject(forKey: Self.modelKey)
+                    return TypingModel()
+                }
+                // Leaves the settings only once the file holds it.
+                if save(model) { defaults?.removeObject(forKey: Self.modelKey) }
+                return model
+            }
+            guard let file = modelFile, let data = try? Data(contentsOf: file),
                 let model = try? JSONDecoder().decode(TypingModel.self, from: data)
             else { return TypingModel() }
             return model
         }
+        nonmutating set { save(newValue) }
+    }
+
+    @discardableResult
+    private func save(_ model: TypingModel) -> Bool {
+        guard let file = modelFile, let data = try? JSONEncoder().encode(model),
+            (try? data.write(to: file, options: .atomic)) != nil
+        else { return false }
+        applyTypingBackup()
+        return true
+    }
+
+    /// "Gelerntes im Backup sichern" in the app; off unless turned on.
+    var backsUpTyping: Bool {
+        get { defaults?.bool(forKey: Self.backupKey) ?? false }
         nonmutating set {
-            guard let data = try? JSONEncoder().encode(newValue) else { return }
-            defaults?.set(data, forKey: Self.modelKey)
+            defaults?.set(newValue, forKey: Self.backupKey)
+            applyTypingBackup()
         }
     }
+
+    private func applyTypingBackup() {
+        guard var file = modelFile, FileManager.default.fileExists(atPath: file.path) else { return }
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = !backsUpTyping
+        try? file.setResourceValues(values)
+    }
+
+    private var modelFile: URL? { directory?.appendingPathComponent("TypingModel.json") }
 
     /// "Delete what was learned" in the app. The keyboard compares the
     /// count before it saves, so a model it still holds is not written back.
     func forgetTyping() {
         defaults?.removeObject(forKey: Self.modelKey)
+        if let modelFile { try? FileManager.default.removeItem(at: modelFile) }
         defaults?.set(typingResets + 1, forKey: Self.resetKey)
     }
 

@@ -476,9 +476,10 @@ Screen and in the Dynamic Island shows that a recording is running.
   Nothing typed is stored otherwise or sent anywhere. With "Tippen lernen"
   (off until turned on, needs Full Access) the keyboard also keeps, per
   letter key, how far from the key's centre it is hit (a count and an
-  average), never which keys made which text; it stays in the App Group on
-  the iPhone and is never sent (whether iOS includes it in a device backup is
-  not verified), and "Gelerntes löschen" removes it.
+  average), never which keys made which text; it stays in a file in the App Group on
+  the iPhone and is never sent. That file is marked to be excluded from device
+  backups unless "Gelerntes im Backup sichern" is turned on (off by default), and
+  "Gelerntes löschen" removes it.
 - **No log, no telemetry:** the iPhone app writes no log file and sends
   nothing else anywhere. The keyboard path logs only durations to the
   system log, never audio or text.
