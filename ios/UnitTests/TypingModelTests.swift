@@ -39,11 +39,82 @@ final class TypingModelTests: XCTestCase {
         XCTAssertLessThan(model.distance(fromKey: "s", x: -0.25, y: 0.1), model.distance(fromKey: "s", x: 0.25, y: 0))
     }
 
-    func testLearningIsOffUntilTurnedOnAndDeletingForgets() throws {
+    private func bridge(_ name: String, in folder: URL) throws -> (KeyboardBridge, UserDefaults) {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        return (KeyboardBridge(defaults: defaults, directory: folder), defaults)
+    }
+
+    /// What was learned stays out of the iPhone's backups unless the person
+    /// turns the backup on (Basti, 24 November).
+    func testTheLearnedModelIsKeptOutOfBackups() throws {
+        let name = "TypingModelTests.\(UUID().uuidString)"
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+        let (bridge, defaults) = try bridge(name, in: folder)
+        defer {
+            defaults.removePersistentDomain(forName: name)
+            try? FileManager.default.removeItem(at: folder)
+        }
+        var model = TypingModel()
+        model.record(key: "a", x: 0.1, y: 0)
+        bridge.typingModel = model
+        XCTAssertEqual(bridge.typingModel, model)
+        XCTAssertNil(defaults.data(forKey: "typing.model"), "The model is in the backed-up settings")
+        XCTAssertFalse(bridge.backsUpTyping)
+        var file = folder.appendingPathComponent("TypingModel.json")
+        XCTAssertEqual(try file.resourceValues(forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup, true)
+        // Turned on in the settings, the same file goes into backups.
+        bridge.backsUpTyping = true
+        file.removeAllCachedResourceValues()
+        XCTAssertEqual(try file.resourceValues(forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup, false)
+        bridge.backsUpTyping = false
+        file.removeAllCachedResourceValues()
+        XCTAssertEqual(try file.resourceValues(forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup, true)
+    }
+
+    /// A model an earlier build kept in the settings moves out of them.
+    func testAModelInTheOldPlaceMovesOutOfTheSettings() throws {
+        let name = "TypingModelTests.\(UUID().uuidString)"
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+        let (bridge, defaults) = try bridge(name, in: folder)
+        defer {
+            defaults.removePersistentDomain(forName: name)
+            try? FileManager.default.removeItem(at: folder)
+        }
+        var model = TypingModel()
+        model.record(key: "s", x: -0.1, y: 0.1)
+        defaults.set(try JSONEncoder().encode(model), forKey: "typing.model")
+        XCTAssertEqual(bridge.typingModel, model)
+        XCTAssertNil(defaults.data(forKey: "typing.model"))
+        XCTAssertEqual(bridge.typingModel, model)
+        let file = folder.appendingPathComponent("TypingModel.json")
+        XCTAssertEqual(try file.resourceValues(forKeys: [.isExcludedFromBackupKey]).isExcludedFromBackup, true)
+    }
+
+    /// The old model leaves the settings only once the file holds it: when
+    /// the file cannot be written, nothing learned is lost.
+    func testAModelInTheOldPlaceIsKeptWhenTheFileCannotBeWritten() throws {
         let name = "TypingModelTests.\(UUID().uuidString)"
         let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
         defer { defaults.removePersistentDomain(forName: name) }
-        let bridge = KeyboardBridge(defaults: defaults)
+        // Never created, so the file cannot be written into it.
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+        let bridge = KeyboardBridge(defaults: defaults, directory: folder)
+        var model = TypingModel()
+        model.record(key: "s", x: -0.1, y: 0.1)
+        defaults.set(try JSONEncoder().encode(model), forKey: "typing.model")
+        XCTAssertEqual(bridge.typingModel, model)
+        XCTAssertEqual(bridge.typingModel, model, "The learned model was dropped before it was saved anywhere")
+    }
+
+    func testLearningIsOffUntilTurnedOnAndDeletingForgets() throws {
+        let name = "TypingModelTests.\(UUID().uuidString)"
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+        let (bridge, defaults) = try bridge(name, in: folder)
+        defer {
+            defaults.removePersistentDomain(forName: name)
+            try? FileManager.default.removeItem(at: folder)
+        }
         XCTAssertFalse(bridge.learnsTyping)
         var model = TypingModel()
         model.record(key: "a", x: 0.1, y: 0)

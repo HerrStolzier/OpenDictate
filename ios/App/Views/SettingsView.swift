@@ -13,6 +13,7 @@ struct SettingsView: View {
     @AppStorage(AppSettings.translationModelKey) private var translationModel = ""
     @State private var warmDuration = KeyboardBridge().warmDuration
     @State private var learnsTyping = KeyboardBridge().learnsTyping
+    @State private var backsUpTyping = KeyboardBridge().backsUpTyping
     @State private var learnedTaps = KeyboardBridge().typingModel.tapCount
     @State private var keyInput = ""
     @State private var hasKey = KeychainStore.apiKey() != nil
@@ -350,6 +351,12 @@ struct SettingsView: View {
             Toggle(L10n.pick("Learn how I type", "Tippen lernen"), isOn: $learnsTyping)
                 .accessibilityIdentifier("learnsTyping")
                 .onChange(of: learnsTyping) { _, on in KeyboardBridge().learnsTyping = on }
+            // Also while learning is off: what was learned may still be there.
+            if learnsTyping || learnedTaps > 0 {
+                Toggle(L10n.pick("Include in backups", "Gelerntes im Backup sichern"), isOn: $backsUpTyping)
+                    .accessibilityIdentifier("backsUpTyping")
+                    .onChange(of: backsUpTyping) { _, on in KeyboardBridge().backsUpTyping = on }
+            }
             if learnedTaps > 0 {
                 Button(L10n.pick("Delete what was learned", "Gelerntes löschen"), role: .destructive) {
                     KeyboardBridge().forgetTyping()
