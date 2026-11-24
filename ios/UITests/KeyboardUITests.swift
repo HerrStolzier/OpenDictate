@@ -323,6 +323,111 @@ final class KeyboardUITests: XCTestCase {
         XCTAssertTrue(offered, "The text was not offered for a deliberate tap")
     }
 
+    /// Opens the Settings search with the OpenDictate keyboard, for typing tests.
+    private func searchWithKeyboard() throws -> XCUIElement {
+        try addKeyboard()
+        settings.terminate()
+        settings.launch()
+        let search = settings.searchFields.firstMatch
+        XCTAssertTrue(search.waitForExistence(timeout: 10))
+        search.tap()
+        try switchToOpenDictate(in: settings)
+        return search
+    }
+
+    /// Every point of the key area types a key: a tap in the gap under the top
+    /// row just above "q", one between the screen's edge and "q", one right of
+    /// "a" and one left of "s" type "q", "q", "a", "s".
+    func testTapsInGapsAndAtTheEdgeTypeTheNearestKey() throws {
+        let search = try searchWithKeyboard()
+        let a = settings.buttons["openDictate.key.a"]
+        let s = settings.buttons["openDictate.key.s"]
+        let q = settings.buttons["openDictate.key.q"]
+        XCTAssertTrue(a.waitForExistence(timeout: 5), "No letter keys")
+        XCTAssertGreaterThan(s.frame.minX - a.frame.maxX, 2, "No gap between a and s")
+        let origin = settings.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+        for point in [
+            CGPoint(x: q.frame.midX, y: q.frame.minY - 6),
+            CGPoint(x: max(1, q.frame.minX / 2), y: q.frame.midY),
+            CGPoint(x: a.frame.maxX + 1, y: a.frame.midY),
+            CGPoint(x: s.frame.minX - 1, y: s.frame.midY)
+        ] {
+            origin.withOffset(CGVector(dx: point.x, dy: point.y)).tap()
+        }
+        snapshot("Lücken und Rand", of: settings)
+        let typed = (search.value as? String ?? "").lowercased()
+        settings.terminate()
+        XCTAssertEqual(typed, "qqas", "Taps in gaps and at the edge typed “\(typed)”")
+    }
+
+    /// Holding the space bar without sliding still types a space.
+    func testHoldingSpaceWithoutSlidingTypesASpace() throws {
+        let search = try searchWithKeyboard()
+        settings.buttons["openDictate.key.a"].tap()
+        settings.buttons["openDictate.space"].press(forDuration: 0.6)
+        settings.buttons["openDictate.key.b"].tap()
+        let typed = (search.value as? String ?? "").lowercased()
+        settings.terminate()
+        XCTAssertEqual(typed, "a b", "Holding space typed “\(typed)”")
+    }
+
+    /// Shift twice quickly locks capitals until shift is tapped again.
+    func testShiftTwiceLocksCapitals() throws {
+        let search = try searchWithKeyboard()
+        let shift = settings.buttons["openDictate.shift"]
+        // The search field may start a sentence: start from lower case.
+        settings.buttons["openDictate.key.x"].tap()
+        shift.doubleTap()
+        for letter in "ab" { settings.buttons["openDictate.key.\(letter)"].tap() }
+        shift.tap()
+        settings.buttons["openDictate.key.c"].tap()
+        let typed = search.value as? String ?? ""
+        settings.terminate()
+        XCTAssertTrue(typed.hasSuffix("ABc"), "Caps lock typed “\(typed)”")
+    }
+
+    /// Shift twice quickly locks capitals also where the keyboard starts with a
+    /// capital (an empty field, a sentence start), as on Apple's keyboard.
+    func testShiftTwiceLocksCapitalsAtTheStart() throws {
+        let search = try searchWithKeyboard()
+        let shift = settings.buttons["openDictate.shift"]
+        XCTAssertTrue(shift.waitForExistence(timeout: 5), "No shift key")
+        shift.doubleTap()
+        for letter in "ab" { settings.buttons["openDictate.key.\(letter)"].tap() }
+        shift.tap()
+        settings.buttons["openDictate.key.c"].tap()
+        let typed = search.value as? String ?? ""
+        settings.terminate()
+        XCTAssertEqual(typed, "ABc", "Caps lock at the start typed “\(typed)”")
+    }
+
+    /// Emoji page: a tap just above or below the category bar is nearer to the
+    /// bar than to the bottom row, so it never types a space, deletes or starts
+    /// a new line.
+    func testTapsBesideTheEmojiCategoryBarTypeNothing() throws {
+        let search = try searchWithKeyboard()
+        for letter in "ab" { settings.buttons["openDictate.key.\(letter)"].tap() }
+        settings.buttons["openDictate.emojiKey"].tap()
+        let grid = settings.collectionViews["openDictate.emoji"]
+        XCTAssertTrue(grid.waitForExistence(timeout: 3), "No emoji panel")
+        let space = settings.buttons["openDictate.space"]
+        // The category bar sits between the grid and the bottom row; take a button above the space bar.
+        let category = settings.buttons.allElementsBoundByIndex.first {
+            $0.frame.minY >= grid.frame.maxY && $0.frame.maxY <= space.frame.minY
+                && $0.frame.midX > space.frame.minX && $0.frame.midX < space.frame.maxX
+        }
+        let bar = try XCTUnwrap(category, "No category button above the space bar")
+        let before = search.value as? String ?? ""
+        let origin = settings.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+        for y in [bar.frame.minY - 1, bar.frame.maxY + 1] {
+            origin.withOffset(CGVector(dx: bar.frame.midX, dy: y)).tap()
+        }
+        snapshot("Emoji, neben der Leiste", of: settings)
+        let after = search.value as? String ?? ""
+        settings.terminate()
+        XCTAssertEqual(after, before, "Taps beside the category bar changed “\(before)” to “\(after)”")
+    }
+
     // MARK: Helpers
 
     /// Warms the microphone in the app, then starts a keyboard dictation in a new note.

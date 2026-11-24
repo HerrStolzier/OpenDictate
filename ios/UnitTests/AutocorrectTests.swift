@@ -129,6 +129,25 @@ final class AutocorrectTests: XCTestCase {
         XCTAssertEqual(suggestions.best, "Basti")
     }
 
+    /// README: names from Contacts one slip away are suggested; the slip can
+    /// be on the first letter too ("v" sits next to "b": "Vasti" → "Basti").
+    func testANearOwnWordWithASlipOnTheFirstLetterIsSuggested() {
+        var autocorrect = engine(FakeChecker(guesses: ["Vasti": ["Vase"]]))
+        autocorrect.ownWords = ["Basti"]
+        XCTAssertEqual(autocorrect.suggestions(for: "Vasti").best, "Basti")
+    }
+
+    /// `TypingAssistant.load` adds Contacts' names one at a time, on the main
+    /// thread at every showing; a big address book must not hold up the first
+    /// key. 5000: about 2000 contacts plus kept words.
+    func testAddingManyOwnWordsOneByOneIsQuick() {
+        var autocorrect = engine(FakeChecker())
+        let start = Date()
+        for index in 0..<5000 { autocorrect.ownWords.insert("Name\(index)") }
+        let seconds = Date().timeIntervalSince(start)
+        XCTAssertLessThan(seconds, 0.25, "Adding 5000 own words one by one took \(seconds) s")
+    }
+
     /// A name from Contacts or a word kept at a sentence start ("Sebas"),
     /// typed later in lower case, is still the person's own word.
     func testAnOwnWordTypedInLowerCaseIsNotReplaced() {

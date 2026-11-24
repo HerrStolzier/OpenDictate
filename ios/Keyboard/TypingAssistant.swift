@@ -154,7 +154,8 @@ final class TypingAssistant {
 
     /// A tap on a suggestion: that word and a space.
     func pick(_ word: String, in proxy: UITextDocumentProxy) {
-        let typed = current.typed
+        // What is before the cursor now: the strip may lag a key behind.
+        let typed = Autocorrect.currentWord(before: proxy.documentContextBeforeInput)
         lastCorrection = nil
         if word != typed { replaceWord(typed, with: word, in: proxy) } else { learn(word) }
         proxy.insertText(" ")

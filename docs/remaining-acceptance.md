@@ -421,6 +421,20 @@ Textersetzungen aus `UILexicon`, Schrittweite der Leertaste nach Gefühl. Seit 2
 auch klein geschriebene Wörter („Ab“ → „Aber“; Unit-Test mit Apples deutschem
 Wörterbuch im Simulator); am iPhone nicht geprüft.
 
+**Tippgefühl (Plan Fassung 4, 24. November):** Im Simulator bestanden:
+Lücken und Rand (`testTapsInGapsAndAtTheEdgeTypeTheNearestKey`), Leertaste
+halten (`testHoldingSpaceWithoutSlidingTypesASpace`), Feststelltaste
+auch am Feldanfang (`testShiftTwiceLocksCapitalsAtTheStart`), Tipps neben der
+Emoji-Leiste schreiben nichts (`testTapsBesideTheEmojiCategoryBarTypeNothing`),
+Emojis und alle übrigen `KeyboardUITests`; 5000 Kontaktnamen laden schnell und
+Tippfehler im ersten Buchstaben finden eigene Wörter (Unit-Tests).
+Ursache der toten Lücken war auch der völlig durchsichtige Hintergrund: iOS
+gibt einer Tastatur dort keine Berührungen. Nicht automatisch prüfbar und am
+iPhone offen: zwei Daumen (Reihenfolge des Aufsetzens, auch Buchstabe plus
+Leertaste), Blase über der
+gehaltenen Taste, Großschreibung nach Zeilenumbruch, Dauer je Tastendruck im
+Release-Build.
+
 **Tippen lernen (23. November):** Unit-Tests bestanden für das Tippmodell
 (Mitte erst ab 20 Treffern, höchstens 0,3 Taste, ungleich gestreute Tasten
 nehmen keiner anderen die Fläche), den Standard „an“ (seit 24. November, abschaltbar) und das

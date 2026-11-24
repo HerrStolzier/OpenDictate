@@ -56,7 +56,11 @@ struct Autocorrect {
     /// Text replacements from Settings › General › Keyboard, by what is typed.
     var shortcuts: [String: String] = [:]
     /// Contacts' names and words the person kept: never corrected.
-    var ownWords: Set<String> = []
+    var ownWords: Set<String> = [] {
+        // Contacts arrive one name at a time: only the next lookup rebuilds.
+        didSet { ownIndex = OwnWordIndex() }
+    }
+    private var ownIndex = OwnWordIndex()
 
     /// The word being typed: the letters right before the cursor.
     static func currentWord(before text: String?) -> String {
@@ -71,7 +75,7 @@ struct Autocorrect {
             return Suggestions(typed: word, best: expansion, replacesOnSpace: true)
         }
         let lowered = word.lowercased()
-        let own = ownWords.first { $0.lowercased() == lowered }
+        let own = ownIndex.byLowercase(ownWords)[lowered]
         // A capital at a sentence start keeps a word known ("Ab" for "ab").
         let known =
             own != nil || checker.isWord(word, language: language)
@@ -91,7 +95,11 @@ struct Autocorrect {
             return Suggestions(typed: word, best: completions.first, second: completions.dropFirst().first)
         }
         // Own words (Contacts, kept words) one slip away come first, then the dictionary's.
-        let nearOwn = ownWords.filter {
+        // Only words starting with the typed letter or a key around it are weighed.
+        let initial = lowered.first ?? " "
+        let initials = [initial] + Self.neighbours(of: initial) + (slips.first.map(Array.init) ?? [])
+        let byInitial = ownIndex.byInitial(ownWords)
+        let nearOwn = Set(initials.flatMap { byInitial[$0] ?? [] }).filter {
             abs($0.count - word.count) <= 1 && Self.cost(from: word, to: $0, slips: slips) <= 1
         }
         .sorted()
@@ -197,5 +205,28 @@ struct Autocorrect {
             if let index = keys.firstIndex(of: c) { return (row, index) }
         }
         return nil
+    }
+}
+
+/// `Autocorrect.ownWords` by lower case and by first letter, so a key press
+/// never walks the whole list (up to a thousand kept words plus Contacts).
+/// Built on the first lookup after a change.
+@MainActor
+private final class OwnWordIndex {
+    private var lowercase: [String: String]?
+    private var initial: [Character: [String]]?
+
+    func byLowercase(_ words: Set<String>) -> [String: String] {
+        if let lowercase { return lowercase }
+        let built = Dictionary(words.map { ($0.lowercased(), $0) }, uniquingKeysWith: { first, _ in first })
+        lowercase = built
+        return built
+    }
+
+    func byInitial(_ words: Set<String>) -> [Character: [String]] {
+        if let initial { return initial }
+        let built = Dictionary(grouping: words) { $0.lowercased().first ?? " " }
+        initial = built
+        return built
     }
 }

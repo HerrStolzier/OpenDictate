@@ -42,13 +42,19 @@ struct ToggleDictationIntent: AudioRecordingIntent, LiveActivityIntent {
 struct WarmMicrophoneIntent: AudioRecordingIntent, LiveActivityIntent {
     static let title: LocalizedStringResource = "Keep Microphone Warm"
     static let description = IntentDescription(
-        "Keeps the microphone ready for the OpenDictate keyboard for the time set in the app.")
+        "Keeps the microphone ready for the OpenDictate keyboard for the time set in the app. Run it again to turn the microphone off.")
 
     @available(iOS 26.0, *)
     static let supportedModes: IntentModes = [.background, .foreground(.dynamic)]
 
     @MainActor
     func perform() async throws -> some IntentResult {
+        // Like "Dictate", a second run turns it off (Basti, 24 November):
+        // the same Back Tap starts and ends it.
+        if KeyboardDictation.shared.phase != .off {
+            KeyboardDictation.shared.endSession()
+            return .result()
+        }
         do {
             try await KeyboardDictation.shared.startSession()
         } catch let failure as DictationFailure {
