@@ -597,9 +597,10 @@ final class KeyboardViewController: UIInputViewController {
     private func refresh() {
         let snapshot = hasFullAccess ? bridge.snapshot() : .off
         let time = now
-        // A keyboard shown anew (iOS may create one per showing) takes over a
-        // running dictation, so its key can stop it and its text arrives.
-        if jobID == nil, let running = snapshot.jobID,
+        // A keyboard shown anew (iOS may create one per showing), or one still
+        // holding an earlier job, takes over a running dictation, so its key
+        // can stop it and its text arrives.
+        if let running = snapshot.jobID, running != jobID,
             [.recording, .writing].contains(snapshot.effectiveState(at: time))
         {
             jobID = running
