@@ -260,7 +260,113 @@ final class KeyboardUITests: XCTestCase {
         XCTAssertTrue(keyboardStayed, "The OpenDictate keyboard was gone after holding delete")
     }
 
+    /// Leaving the note while the keyboard records and coming back: the
+    /// keyboard shown anew takes the dictation over, and its text arrives in
+    /// that same note.
+    func testKeyboardDictationArrivesAfterLeavingAndReturningToTheNote() throws {
+        let keywords = try liveKeywords()
+        try addKeyboard()
+        let (notes, body) = try startKeyboardDictationInNewNote()
+        let dictate = notes.buttons["openDictate.dictate"]
+        // Away while the app records, then back into the same note.
+        XCUIDevice.shared.press(.home)
+        sleep(2)
+        notes.activate()
+        if !dictate.waitForExistence(timeout: 5) { body.tap() }
+        try switchToOpenDictate(in: notes)
+        XCTAssertTrue(waitUntil(dictate, labelContains: "Fertig"), "The keyboard shown anew does not show “Fertig”")
+        sleep(4)
+        dictate.tap()
+        // iOS may name the note anew after the return: then the text waits
+        // for one tap on "Diktat einsetzen" instead of going in by itself.
+        let offer = notes.buttons["openDictate.offer"]
+        var result = XCTWaiter().wait(for: [arrival(of: keywords, in: body)], timeout: 30)
+        if result != .completed, offer.waitForExistence(timeout: 60) {
+            snapshot("Notiz, Diktat angeboten", of: notes)
+            offer.tap()
+            result = XCTWaiter().wait(for: [arrival(of: keywords, in: body)], timeout: 10)
+        }
+        snapshot("Notiz nach der Rückkehr", of: notes)
+        cleanUp(note: body, text: body.value as? String ?? "", in: notes)
+        endWarmSession()
+        XCTAssertTrue(result == .completed, "Text did not arrive in the same note after the keyboard came back")
+    }
+
+    /// The review case: a dictation started in a note and stopped from the
+    /// keyboard in another app's field never puts its text there.
+    func testKeyboardDictationStoppedInAnotherAppStaysOutOfIt() throws {
+        let keywords = try liveKeywords()
+        try addKeyboard()
+        let (notes, body) = try startKeyboardDictationInNewNote()
+        settings.terminate()
+        settings.launch()
+        let search = settings.searchFields.firstMatch
+        XCTAssertTrue(search.waitForExistence(timeout: 10))
+        search.tap()
+        try switchToOpenDictate(in: settings)
+        let other = settings.buttons["openDictate.dictate"]
+        XCTAssertTrue(
+            waitUntil(other, labelContains: "Fertig"), "The keyboard in Settings did not take the dictation over")
+        sleep(4)
+        other.tap()
+        // Parakeet takes well under a second; a wrong insert would be in by then.
+        sleep(15)
+        let typed = (search.value as? String ?? "").lowercased()
+        let offered = settings.buttons["openDictate.offer"].exists
+        snapshot("Einstellungen nach dem Diktat", of: settings)
+        settings.terminate()
+        notes.activate()
+        body.tap()
+        cleanUp(note: body, text: body.value as? String ?? "", in: notes)
+        endWarmSession()
+        XCTAssertFalse(keywords.contains { typed.contains($0) }, "The text went into another app's field: “\(typed)”")
+        XCTAssertTrue(offered, "The text was not offered for a deliberate tap")
+    }
+
     // MARK: Helpers
+
+    /// Warms the microphone in the app, then starts a keyboard dictation in a new note.
+    private func startKeyboardDictationInNewNote() throws -> (notes: XCUIApplication, body: XCUIElement) {
+        app.launch()
+        app.swipeUp()
+        let warm = app.buttons["startWarm"]
+        if warm.waitForExistence(timeout: 5) { warm.tap() }
+        XCTAssertTrue(app.buttons["endWarm"].waitForExistence(timeout: 60), "The microphone did not get warm")
+        let notes = XCUIApplication(bundleIdentifier: "com.apple.mobilenotes")
+        notes.launch()
+        let compose = notes.buttons["Neue Notiz"].firstMatch
+        XCTAssertTrue(compose.waitForExistence(timeout: 10), "Notes has no “Neue Notiz” button")
+        compose.tap()
+        let body = notes.textViews.firstMatch
+        XCTAssertTrue(body.waitForExistence(timeout: 10))
+        body.tap()
+        try switchToOpenDictate(in: notes)
+        let dictate = notes.buttons["openDictate.dictate"]
+        dictate.tap()
+        XCTAssertTrue(waitUntil(dictate, labelContains: "Fertig"), "The key does not show “Fertig”")
+        return (notes, body)
+    }
+
+    /// Waits on the key itself: Notes has a “Fertig” button of its own.
+    private func waitUntil(_ element: XCUIElement, labelContains text: String) -> Bool {
+        let shown = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "label CONTAINS %@", text), object: element)
+        return XCTWaiter().wait(for: [shown], timeout: 5) == .completed
+    }
+
+    private func arrival(of keywords: [String], in body: XCUIElement) -> XCTNSPredicateExpectation {
+        let arrived = NSPredicate { object, _ in
+            let text = ((object as? XCUIElement)?.value as? String ?? "").lowercased()
+            return keywords.allSatisfy { text.contains($0) }
+        }
+        return XCTNSPredicateExpectation(predicate: arrived, object: body)
+    }
+
+    private func endWarmSession() {
+        app.launch()
+        app.swipeUp()
+        if app.buttons["endWarm"].waitForExistence(timeout: 5) { app.buttons["endWarm"].tap() }
+    }
 
     /// A dictation from the keyboard into a new note, then the note is
     /// deleted and the warm microphone turned off. Reports the stop-to-text

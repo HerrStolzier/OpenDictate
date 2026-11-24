@@ -43,14 +43,17 @@ struct KeyboardCommand: Codable, Equatable, Sendable {
     /// One dictation from start to inserted text.
     let jobID: String
     let sentAt: TimeInterval
+    /// The field a start came from (`UITextDocumentProxy.documentIdentifier`).
+    var document: String?
 
     init(
-        kind: KeyboardCommandKind, jobID: String, id: String = UUID().uuidString,
+        kind: KeyboardCommandKind, jobID: String, document: UUID? = nil, id: String = UUID().uuidString,
         sentAt: TimeInterval = Date().timeIntervalSince1970
     ) {
         self.id = id
         self.kind = kind
         self.jobID = jobID
+        self.document = document?.uuidString
         self.sentAt = sentAt
     }
 
@@ -78,6 +81,9 @@ struct KeyboardSnapshot: Codable, Equatable, Sendable {
     var recordingSince: TimeInterval?
     /// The job of the recording or text below.
     var jobID: String?
+    /// The field the dictation of `jobID` was started in, so a keyboard that
+    /// takes it over inserts its text there and nowhere else.
+    var document: String?
     var resultID: String?
     /// The finished text, only until the keyboard confirmed it.
     var text: String?
@@ -112,6 +118,13 @@ struct KeyboardSnapshot: Codable, Equatable, Sendable {
             let text, !text.isEmpty, let resultAt, now - resultAt < Self.resultLifetime
         else { return nil }
         return text
+    }
+
+    /// The text goes only into the field its dictation was started in: an
+    /// unknown field on either side could be another app's.
+    static func isSameField(started: UUID?, current: UUID?) -> Bool {
+        guard let started, let current else { return false }
+        return started == current
     }
 
     func currentMessage(forJob jobID: String?, at now: TimeInterval) -> String? {

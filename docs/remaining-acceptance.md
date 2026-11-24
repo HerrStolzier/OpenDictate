@@ -393,8 +393,10 @@ vom Mac gesprochene Satz „Heute teste ich die Tastatur“ stand ohne Umweg im
 Feld. Gemessen: 281 und 284 ms von „Fertig“ bis Text (zwei Läufe, kurzer Satz,
 Parakeet schon geladen), Tastatur 14 MB Speicher, kein Absturzbericht der
 Tastatur mehr (der erste Lauf fand einen Absturz beim Ausblenden, behoben).
-Das sagt nichts über die Erkennungsqualität. Offen: Musik anderer Apps bei
-warmem Mikro, Öffnen der App aus der Tastatur ohne warmes Mikro, langes
+Das sagt nichts über die Erkennungsqualität. Ton anderer Apps bei warmem
+Mikro: Am 23. November war ein Video in einer anderen App kaum zu hören
+(Basti); seitdem lenkt die App den Ton von der Hörmuschel auf den Lautsprecher,
+Kopfhörer und Bluetooth bleiben. Offen: ob das am iPhone so klingt, Öffnen der App aus der Tastatur ohne warmes Mikro, langes
 Warmhalten im Hintergrund (15 und 60 Minuten), Kaltstart von Parakeet nach
 einer Installation.
 

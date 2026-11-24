@@ -41,6 +41,7 @@ final class WarmMicrophone {
         } catch {
             throw DictationFailure.recordingFailed("warm \((error as NSError).code)")
         }
+        Self.keepOthersOnTheSpeaker()
         let engine = AVAudioEngine()
         let input = engine.inputNode
         let format = input.inputFormat(forBus: 0)
@@ -59,16 +60,38 @@ final class WarmMicrophone {
         }
         self.engine = engine
         sampleRate = format.sampleRate
+        routeObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main
+        ) { _ in
+            MainActor.assumeIsolated { Self.keepOthersOnTheSpeaker() }
+        }
+    }
+
+    private var routeObserver: (any NSObjectProtocol)?
+
+    /// While the microphone is open, iOS plays everything, other apps' sound
+    /// included, through the earpiece, so a video in another app was barely
+    /// audible (Basti, 23 November). Only that case moves to the speaker;
+    /// headphones, Bluetooth and CarPlay stay as they are.
+    private static func keepOthersOnTheSpeaker() {
+        let session = AVAudioSession.sharedInstance()
+        guard session.currentRoute.outputs.contains(where: { $0.portType == .builtInReceiver }) else { return }
+        try? session.overrideOutputAudioPort(.speaker)
     }
 
     /// Ends a running capture first; its file stays where it is.
     func stop() {
         _ = endCapture()
         guard let engine else { return }
+        if let routeObserver { NotificationCenter.default.removeObserver(routeObserver) }
+        routeObserver = nil
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
         self.engine = nil
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        let session = AVAudioSession.sharedInstance()
+        // No speaker override may outlive the session.
+        try? session.overrideOutputAudioPort(.none)
+        try? session.setActive(false, options: .notifyOthersOnDeactivation)
     }
 
     func beginCapture(into url: URL) throws {

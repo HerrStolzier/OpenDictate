@@ -18,6 +18,10 @@ final class KeyboardViewController: UIInputViewController {
     private let dictateButton = UIButton(configuration: .filled())
     /// Suggestions for the word being typed, in place of the status while typing.
     private let strip = UIStackView()
+    /// A finished dictation for another field (or one iOS no longer names the
+    /// same): offered with one tap instead of put in by itself.
+    private let offerButton = UIButton(configuration: .gray())
+    private var offer: (text: String, resultID: String?)?
     private let assistant = TypingAssistant()
     private var letterButtons: [(UIButton, String)] = []
     private var layout = Layout.letters
@@ -155,7 +159,17 @@ final class KeyboardViewController: UIInputViewController {
         strip.spacing = 1
         strip.isHidden = true
         strip.accessibilityIdentifier = "openDictate.suggestions"
-        let top = UIStackView(arrangedSubviews: [statusLabel, strip, dictateButton])
+        offerButton.isHidden = true
+        offerButton.accessibilityIdentifier = "openDictate.offer"
+        offerButton.configuration?.titleLineBreakMode = .byTruncatingTail
+        offerButton.configuration?.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer {
+            incoming in
+            var outgoing = incoming
+            outgoing.font = .systemFont(ofSize: 15, weight: .medium)
+            return outgoing
+        }
+        offerButton.addAction(UIAction { [weak self] _ in self?.insertOffer() }, for: .touchUpInside)
+        let top = UIStackView(arrangedSubviews: [statusLabel, strip, offerButton, dictateButton])
         top.spacing = 8
         top.isLayoutMarginsRelativeArrangement = true
         top.layoutMargins = UIEdgeInsets(top: 0, left: 6, bottom: 0, right: 3)
@@ -470,9 +484,27 @@ final class KeyboardViewController: UIInputViewController {
     /// status has something to say about a dictation.
     private func renderTop() {
         let dictating = shownState == .recording || shownState == .writing
-        let showsStrip = !assistant.current.typed.isEmpty && note == nil && !dictating
+        let showsOffer = offer != nil && !dictating
+        let showsStrip = !showsOffer && !assistant.current.typed.isEmpty && note == nil && !dictating
+        if let offer, offerButton.accessibilityValue != offer.text {
+            // One line: what tapping does, then the start of the text.
+            let start = offer.text.count > 36 ? offer.text.prefix(36) + "…" : offer.text
+            offerButton.configuration?.title = "⤵︎ " + start
+            offerButton.accessibilityLabel = Self.pick("Insert dictation", "Diktat einsetzen")
+            offerButton.accessibilityValue = offer.text
+        }
+        offerButton.isHidden = !showsOffer
         strip.isHidden = !showsStrip
-        statusLabel.isHidden = showsStrip
+        statusLabel.isHidden = showsStrip || showsOffer
+    }
+
+    private func insertOffer() {
+        guard let offer else { return }
+        self.offer = nil
+        insert(offer.text)
+        bridge.insertedResultID = offer.resultID
+        jobID = nil
+        renderTop()
     }
 
     private func updateShiftForContext() {
@@ -525,7 +557,7 @@ final class KeyboardViewController: UIInputViewController {
             jobID = job
             startDocument = documentID
             stoppedAt = nil
-            bridge.send(KeyboardCommand(kind: .start, jobID: job))
+            bridge.send(KeyboardCommand(kind: .start, jobID: job, document: startDocument))
             expect(.recording)
         case .recording:
             guard let jobID else { return }
@@ -571,12 +603,14 @@ final class KeyboardViewController: UIInputViewController {
             [.recording, .writing].contains(snapshot.effectiveState(at: time))
         {
             jobID = running
-            startDocument = nil
+            startDocument = snapshot.document.flatMap(UUID.init(uuidString:))
         }
-        let sameField = startDocument == nil || startDocument == documentID
-        if isShown, sameField,
-            let text = snapshot.deliverableText(forJob: jobID, insertedResultID: bridge.insertedResultID, at: time)
-        {
+        // Only into the field it was started in; anywhere else, or where iOS
+        // names the field anew, it waits for a tap, and the recording stays kept.
+        let sameField = KeyboardSnapshot.isSameField(started: startDocument, current: documentID)
+        let text = snapshot.deliverableText(forJob: jobID, insertedResultID: bridge.insertedResultID, at: time)
+        offer = isShown && !sameField ? text.map { ($0, snapshot.resultID) } : nil
+        if isShown, sameField, let text {
             insert(text)
             bridge.insertedResultID = snapshot.resultID
             jobID = nil

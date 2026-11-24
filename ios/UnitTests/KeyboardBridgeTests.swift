@@ -71,6 +71,27 @@ final class KeyboardBridgeTests: XCTestCase {
         XCTAssertEqual(bridge.snapshot(), state)
     }
 
+    /// A keyboard that takes over a dictation puts the text only into the
+    /// field it was started in, never into another app's.
+    func testTheTextGoesOnlyIntoTheFieldTheDictationStartedIn() {
+        let notes = UUID()
+        let whatsApp = UUID()
+        XCTAssertTrue(KeyboardSnapshot.isSameField(started: notes, current: notes))
+        XCTAssertFalse(KeyboardSnapshot.isSameField(started: notes, current: whatsApp))
+        XCTAssertFalse(KeyboardSnapshot.isSameField(started: nil, current: whatsApp))
+        XCTAssertFalse(KeyboardSnapshot.isSameField(started: notes, current: nil))
+    }
+
+    func testTheStartingFieldTravelsWithTheCommand() throws {
+        let name = "KeyboardBridgeTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
+        defer { defaults.removePersistentDomain(forName: name) }
+        let bridge = KeyboardBridge(defaults: defaults)
+        let field = UUID()
+        bridge.send(KeyboardCommand(kind: .start, jobID: "job", document: field))
+        XCTAssertEqual(bridge.command()?.document.flatMap(UUID.init(uuidString:)), field)
+    }
+
     func testTheKeyboardLinkStartsTheSession() {
         XCTAssertTrue(KeyboardLink.isStartSession(KeyboardLink.startSession))
         XCTAssertFalse(KeyboardLink.isStartSession(URL(string: "opendictate://keyboard/other")!))

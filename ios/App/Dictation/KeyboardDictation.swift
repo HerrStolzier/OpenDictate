@@ -206,16 +206,17 @@ final class KeyboardDictation {
         handledCommand = command.id
         guard command.isFresh(at: Date().timeIntervalSince1970) else { return }
         switch command.kind {
-        case .start: startRecording(job: command.jobID)
+        case .start: startRecording(job: command.jobID, document: command.document)
         case .stop:
             guard snapshot.jobID == command.jobID else { return }
             Task { await finish(endingSession: false) }
         }
     }
 
-    private func startRecording(job: String) {
+    private func startRecording(job: String, document: String?) {
         guard phase == .ready, !DictationRunner.shared.isBusy else { return }
         snapshot.jobID = job
+        snapshot.document = document
         snapshot.message = nil
         snapshot.text = nil
         snapshot.resultID = nil

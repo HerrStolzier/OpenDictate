@@ -216,12 +216,16 @@ App sprechen darf.
    so lange wie unter Einstellungen → Tastatur eingestellt: Aus (ein Diktat,
    höchstens zwei Minuten Warten), 5, 15 (Standard) oder 60 Minuten nach dem
    letzten Diktat. iOS zeigt solange den orangen Punkt. Zwischen den Diktaten
-   verwirft die App die Mikrofon-Daten.
+   verwirft die App die Mikrofon-Daten. Ton anderer Apps läuft dabei über den
+   Lautsprecher weiter, nicht über die Hörmuschel; Kopfhörer bleiben.
 3. In einem Textfeld die Diktiertaste tippen: Die App nimmt auf, die Taste
    zeigt „Fertig“. „Fertig“ tippen: Parakeet schreibt den Text auf dem
    iPhone, danach wie beim App-Diktat Zahlen und Uhrzeiten als Ziffern und,
    wenn eingestellt, Apples Übersetzung auf dem iPhone. Die Tastatur setzt
-   den Text ins Feld, in dem das Diktat begann.
+   den Text ins Feld, in dem das Diktat begann. In jedem anderen Feld, und wenn
+   iOS das Feld nach einem App-Wechsel neu benennt, bietet sie ihn oben als
+   „⤵︎ Text …“ an; erst ein Tipp setzt ihn ein, und die Aufnahme bleibt bis
+   dahin gesichert.
 4. Ist das Mikro nicht warm, öffnet die Diktiertaste die App, die es
    anschaltet; zurück per Wischen, dann nochmal tippen. Ohne die App zu
    öffnen geht es mit dem Kurzbefehl „Mikro warm halten“ (Aktion der App,
