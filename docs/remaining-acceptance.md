@@ -429,12 +429,11 @@ Emoji-Leiste schreiben nichts (`testTapsBesideTheEmojiCategoryBarTypeNothing`),
 Emojis und alle übrigen `KeyboardUITests`; 5000 Kontaktnamen laden schnell und
 Tippfehler im ersten Buchstaben finden eigene Wörter (Unit-Tests). Am iPhone 15
 (24. November) dieselben elf `KeyboardUITests` bestanden; die Live-Diktate
-liefen dabei nicht.
+liefen dabei nicht. Von Hand am iPhone bestanden (Basti, 24. November): zwei
+Daumen mit Buchstabe plus Leertaste, Blase über der gehaltenen Taste, Rückseite
+dreimal tippen schaltet „Mikro warm“ ein und wieder aus.
 Ursache der toten Lücken war auch der völlig durchsichtige Hintergrund: iOS
-gibt einer Tastatur dort keine Berührungen. Nicht automatisch prüfbar und am
-iPhone offen: zwei Daumen (Reihenfolge des Aufsetzens, auch Buchstabe plus
-Leertaste), Blase über der
-gehaltenen Taste, Großschreibung nach Zeilenumbruch, Dauer je Tastendruck im
+gibt einer Tastatur dort keine Berührungen. Am iPhone offen: Großschreibung nach Zeilenumbruch, Dauer je Tastendruck im
 Release-Build.
 
 **Tippen lernen (23. November):** Unit-Tests bestanden für das Tippmodell
