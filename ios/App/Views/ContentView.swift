@@ -29,6 +29,7 @@ struct ContentView: View {
                     state
                     controls
                     if let text = runner.lastText { result(text) }
+                    KeyboardCard(theme: theme)
                     setup
                 }
                 .padding(.horizontal, DesignMetric.space4)
@@ -141,7 +142,7 @@ struct ContentView: View {
                 Button(L10n.pick("Start dictation", "Diktat starten")) { Task { try? await runner.start() } }
                     .buttonStyle(PixelButtonStyle(primary: true, theme: theme))
             }
-            if let entry = runner.retryable, !runner.isBusy {
+            if let entry = runner.retryable, !runner.isBusy, !KeyboardDictation.shared.isBusy {
                 Button(L10n.pick("Send again", "Nochmal senden")) { Task { await runner.retry() } }
                     .buttonStyle(PixelButtonStyle(primary: false, theme: theme))
                     .accessibilityHint(

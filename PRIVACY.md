@@ -365,8 +365,8 @@ A ledger failure never turns successfully recognized text into a failed request.
 
 ## iPhone app
 
-The iPhone app in [ios/](ios/README.md) is written but not released yet. It
-records only between the start of a dictation (the shortcut "Dictate", for
+The iPhone app in [ios/](ios/README.md) is written but not released yet.
+Apart from "Keep microphone warm" for its keyboard (below), it records only between the start of a dictation (the shortcut "Dictate", for
 example from Back Tap or the Action button, or the button in the app) and its
 end (the shortcut again, the stop button of the Live Activity, a call or Siri
 taking the microphone, or the 90-second limit). iOS shows its orange
@@ -448,8 +448,40 @@ Screen and in the Dynamic Island shows that a recording is running.
   Mac. A recording cut off because iOS ended the app during it is
   kept at the next start without a tag, so it is never sent again, and
   expires under the same rule.
+- **Keyboard and "Keep microphone warm":** the OpenDictate keyboard types
+  without Full Access; it then reads, stores and sends nothing. Dictating
+  from it needs Full Access, because only then may it talk to the app
+  through the App Group (a container on the iPhone shared by the app and its
+  keyboard). With "Mikro warm halten" the app keeps the microphone open for
+  the chosen time (one dictation, 5, 15 or 60 minutes after the last
+  dictation), and iOS shows its orange indicator all that time, as well as
+  the Live Activity "Mikro warm" (also when the shortcut "Keep microphone
+  warm" starts it in the background). Between
+  dictations the app drops the microphone's samples without storing them;
+  only between the keyboard's start and stop does it write a recording.
+  Parakeet writes the text on the iPhone; this path never sends audio or text
+  anywhere, also not with OpenAI or a custom server chosen for the app's own
+  dictation, and translates only with Apple's translation on the iPhone. The
+  finished text goes into the App Group for the keyboard, which inserts it
+  into the field the dictation started in; it is removed from there once the
+  keyboard confirms it, or at the next session or app start. The keyboard
+  never sees audio. A recording is kept like a failed one (see below) until
+  the keyboard confirms its text, so "Send again" in the app can send it; that
+  uses the app's own recognition setting.
+- **Keyboard typing:** suggestions and autocorrection run in the keyboard on
+  the iPhone with iOS's spelling dictionary and, as iOS offers every keyboard,
+  the names from Contacts and the text replacements from Settings. Words the
+  person keeps by tapping them, and the last 30 emoji picked, are stored in
+  the keyboard's own settings on the iPhone; deleting the app removes them.
+  Nothing typed is stored otherwise or sent anywhere. With "Tippen lernen"
+  (off until turned on, needs Full Access) the keyboard also keeps, per
+  letter key, how far from the key's centre it is hit (a count and an
+  average), never which keys made which text; it stays in the App Group on
+  the iPhone and is never sent (whether iOS includes it in a device backup is
+  not verified), and "Gelerntes löschen" removes it.
 - **No log, no telemetry:** the iPhone app writes no log file and sends
-  nothing else anywhere.
+  nothing else anywhere. The keyboard path logs only durations to the
+  system log, never audio or text.
 
 ## Support requests
 

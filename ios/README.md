@@ -24,6 +24,8 @@ selbst (siehe Grenzen).
   (`StopDictationIntent`, läuft im App-Prozess), Texte englisch/deutsch,
   Farben, Schriften und Blink im Designsystem.
 - `Widgets/`: Live-Aktivität auf dem Sperrbildschirm und in der Dynamic Island.
+- `Keyboard/`: die Tastatur-Erweiterung ([Tastatur](#tastatur));
+  `KeyboardShared/` die App-Group-Brücke, in App und Tastatur.
 - `UITests/`: UI-Tests für Simulator und iPhone (Ziel `OpenDictateiOSUITests`).
 - `UnitTests/`: Unit-Tests für gesicherte Aufnahmen, Einstellungen und
   Anfragen, nur im Simulator (Ziel `OpenDictateiOSTests`).
@@ -195,6 +197,86 @@ den App-Eintrag in App Store Connect. Hochladen nur mit Bastis Go.
   vertraust. Dazu braucht er die iOS-Freigabe
   „Lokales Netzwerk“, die die App beim Öffnen anfragt; aus dem Hintergrund
   fragt iOS nicht (am Gerät noch nicht gesehen).
+
+## Tastatur
+
+Seit 22. November 2026 (Bastis Entscheidung, nach dem Vorbild von
+[Hex](https://github.com/anomalyco/hex), MIT, Hinweis in
+[Keyboard/THIRD_PARTY_NOTICES.md](Keyboard/THIRD_PARTY_NOTICES.md)):
+Die Erweiterung `OpenDictateKeyboard` (Bundle-ID
+`app.opendictate.ios.keyboard`) ist eine einfache QWERTZ-Tastatur mit
+Diktiertaste. Tippen geht ohne „Vollen Zugriff“. Zum Diktieren braucht sie
+ihn, weil sie nur dann über die App Group `group.app.opendictate.ios` mit der
+App sprechen darf.
+
+1. Einmal: Einstellungen → Allgemein → Tastatur → Tastaturen → Tastatur
+   hinzufügen → OpenDictate, dann OpenDictate antippen und „Vollen Zugriff
+   erlauben“. Dazu Parakeet in den App-Einstellungen laden.
+2. „Mikro warm halten“ in der App (Karte „Tastatur“) hält das Mikrofon offen,
+   so lange wie unter Einstellungen → Tastatur eingestellt: Aus (ein Diktat,
+   höchstens zwei Minuten Warten), 5, 15 (Standard) oder 60 Minuten nach dem
+   letzten Diktat. iOS zeigt solange den orangen Punkt. Zwischen den Diktaten
+   verwirft die App die Mikrofon-Daten. Ton anderer Apps läuft dabei über den
+   Lautsprecher weiter, nicht über die Hörmuschel; Kopfhörer bleiben.
+3. In einem Textfeld die Diktiertaste tippen: Die App nimmt auf, die Taste
+   zeigt „Fertig“. „Fertig“ tippen: Parakeet schreibt den Text auf dem
+   iPhone, danach wie beim App-Diktat Zahlen und Uhrzeiten als Ziffern und,
+   wenn eingestellt, Apples Übersetzung auf dem iPhone. Die Tastatur setzt
+   den Text ins Feld, in dem das Diktat begann. In jedem anderen Feld, und wenn
+   iOS das Feld nach einem App-Wechsel neu benennt, bietet sie ihn oben als
+   „⤵︎ Text …“ an; erst ein Tipp setzt ihn ein, und die Aufnahme bleibt bis
+   dahin gesichert.
+4. Ist das Mikro nicht warm, öffnet die Diktiertaste die App, die es
+   anschaltet; zurück per Wischen, dann nochmal tippen. Ohne die App zu
+   öffnen geht es mit dem Kurzbefehl „Mikro warm halten“ (Aktion der App,
+   etwa auf der Aktionstaste oder dreimal Tippen auf die Rückseite); er
+   nimmt wie „Diktieren“ im Hintergrund auf und zeigt dafür die
+   Live-Aktivität „Mikro warm“ mit Stopp-Taste.
+
+Die Punkt-Taste liegt links neben der Leertaste; gedrückt halten setzt ein
+Komma. Leertaste halten und seitlich ziehen bewegt den Cursor Zeichen für
+Zeichen. Löschtaste halten löscht weiter, ein Zeichen pro Zehntelsekunde.
+
+Autokorrektur (Deutsch): Über den Tasten stehen beim Tippen bis zu drei
+Vorschläge: links das Wort wie getippt (Tippen behält es und merkt es sich),
+in der Mitte der beste Vorschlag, rechts der zweite. Die Vorschläge kommen aus
+der Rechtschreibprüfung von iOS (`UITextChecker`), dazu Namen aus den Kontakten
+und Textersetzungen aus den iOS-Einstellungen (`UILexicon`). Vertipper auf eine
+Nachbartaste zählen weniger als andere Fehler. Ist der beste Vorschlag nah genug
+(hinterlegt), setzt ihn die Leertaste ein; Löschen direkt danach holt das
+getippte Wort zurück. Felder, die keine Autokorrektur wollen, sowie Adressen und
+Zahlenfelder bekommen keine. Die Prüfung ist austauschbar (`SpellChecking`).
+
+Tippen lernen (Einstellungen → Tastatur, Standard aus, braucht Vollen
+Zugriff): Die Tastatur merkt sich bei jedem Buchstaben, wo auf der Taste er
+getroffen wurde (nur die Stelle, nie den Text); ein Tipp, den Löschen gleich
+zurücknimmt, zählt nicht. Ab 20 Treffern je Taste rückt ihre Trefferfläche um
+höchstens 0,3 Taste dorthin, wo du sie triffst, und ein Treffer nahe
+einer Nachbartaste macht die Autokorrektur zu dieser Taste wahrscheinlicher
+(nach dem Prinzip von Gboards „spatial model“). Gespeichert wird es in der App
+Group auf dem iPhone und nie gesendet (ob iOS es ins Geräte-Backup nimmt, ist
+nicht geprüft); „Gelerntes löschen“ entfernt es, auch wenn die Tastatur gerade
+offen ist.
+
+Emojis: Die Emoji-Taste neben „123“ öffnet eine Tafel mit „Zuletzt“ und den
+Unicode-Kategorien; Emojis, die das iOS nicht zeichnen kann, fehlen.
+
+Dieser Weg sendet nie etwas, auch wenn für das App-Diktat OpenAI oder ein
+eigener Server eingestellt ist. Eine Übersetzung über OpenAI fällt hier weg.
+Die Aufnahme bleibt wie eine fehlgeschlagene gesichert, bis die Tastatur den
+Text bestätigt hat. Während die Tastatur schreibt, startet kein App-Diktat
+und kein „Nochmal senden“; startet ein App-Diktat, endet das warme Mikro.
+
+Grenzen: Am iPhone 15 bestand am 22. November ein Diktat in Notizen per
+UI-Test (Text direkt im Feld, 0,3 s nach „Fertig“, Tastatur 14 MB); weitere
+offene Punkte in [remaining-acceptance](../docs/remaining-acceptance.md#ios).
+Das Öffnen der App aus der Tastatur nutzt
+denselben Umweg über die `UIApplication` der Erweiterung wie Hex; ob Apple
+das bei der Prüfung annimmt, ist offen. Kein Wischtippen, nur Deutsch;
+Umschalten nur einmal, nach Satzende von selbst. Autokorrektur, Leertaste als
+Cursor, Löschtaste halten, Emojis und der Kurzbefehl „Mikro warm halten“ sind
+am 23. November am iPhone 15 per UI-Test bestanden; ob Kontaktnamen ankommen,
+ist offen.
 
 ## Tastatur-Prototyp (September 2026, abgelöst)
 

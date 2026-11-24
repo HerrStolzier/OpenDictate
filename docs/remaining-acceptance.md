@@ -382,6 +382,52 @@ bestanden auf omarchy; Terminal, HTTP und Schlüsselbund dabei wie im
 
 ## iOS
 
+**Tastatur mit warmem Mikro (22. November, Zweig `claude/project-thread-xjcgl3`):**
+Simulator: Bau, Unit-Tests der App-Group-Brücke und der UI-Test
+`KeyboardUITests/testKeyboardScreens` (Tastatur hinzufügen, Vollen Zugriff
+erlauben, Tastatur hell und dunkel) bestanden. Am iPhone 15 (iOS 27, Debug-
+Build, App Group seit 22. November im Team angelegt) bestand
+`KeyboardUITests/testKeyboardDictatesIntoNotes`: Tastatur per UI-Test
+hinzugefügt, Voller Zugriff, Mikro warm in der App, in Notizen diktiert, der
+vom Mac gesprochene Satz „Heute teste ich die Tastatur“ stand ohne Umweg im
+Feld. Gemessen: 281 und 284 ms von „Fertig“ bis Text (zwei Läufe, kurzer Satz,
+Parakeet schon geladen), Tastatur 14 MB Speicher, kein Absturzbericht der
+Tastatur mehr (der erste Lauf fand einen Absturz beim Ausblenden, behoben).
+Das sagt nichts über die Erkennungsqualität. Ton anderer Apps bei warmem
+Mikro: Am 23. November war ein Video in einer anderen App kaum zu hören
+(Basti); seitdem lenkt die App den Ton von der Hörmuschel auf den Lautsprecher,
+Kopfhörer und Bluetooth bleiben. Offen: ob das am iPhone so klingt, Öffnen der App aus der Tastatur ohne warmes Mikro, langes
+Warmhalten im Hintergrund (15 und 60 Minuten), Kaltstart von Parakeet nach
+einer Installation.
+
+**Am iPhone 15 am 23. November bestanden** (UI-Tests, Debug-Build, iOS 27):
+alle neun Tests in `KeyboardUITests` (acht in einem Lauf, der Kurzbefehl-Test
+danach einzeln, nachdem er auf Spotlight umgestellt war), darunter der
+Kurzbefehl „Mikro warm halten“ aus Spotlight bei beendeter App (OpenDictate kam nicht nach vorn, die
+Dynamic Island zeigte das Mikro, das Diktat kam danach in Notizen an), Stopp in
+der Live-Aktivität während eines Tastatur-Diktats, Korrektur per Leertaste und
+Zurückholen per Löschen in Notizen, Punkt/Komma, Leertaste als Cursor,
+Löschtaste halten, Vorschläge und Emojis. Gemessen: 319 und 326 ms von „Fertig“
+bis Text, Tastatur 23 bis 26 MB (vorher 14 MB, jetzt mit Wörterbuch und
+Emojis). Der Start über Aktionstaste oder Rückseite selbst bleibt Bastis kurzer
+Blick.
+
+**Tippen (23. November):** Im Simulator bestanden: Vorschläge und Tippen auf
+einen Vorschlag (`testAutocorrectAndEmoji`), Emoji-Tafel, Punkt/Komma
+(`testPeriodKeyTapTypesPeriodAndHoldTypesComma`), Leertaste als Cursor
+(`testSpaceBarSlideMovesTheCursor`), Unit-Tests der Autokorrektur mit Apples
+deutschem Wörterbuch. Am iPhone bestanden (siehe oben). Offen: Kontaktnamen und
+Textersetzungen aus `UILexicon`, Schrittweite der Leertaste nach Gefühl.
+
+**Tippen lernen (23. November):** Unit-Tests bestanden für das Tippmodell
+(Mitte erst ab 20 Treffern, höchstens 0,3 Taste, ungleich gestreute Tasten
+nehmen keiner anderen die Fläche), den gespeicherten Standard „aus“ und das
+Löschen. Nicht automatisch geprüft (nur im Tastatur-Ziel): dass bei Schalter
+aus nichts gespeichert wird, ein sofort gelöschter Tipp nicht zählt und ein
+Löschen in der App während offener Tastatur nicht überschrieben wird. Offen am
+iPhone: ob sich die verschobenen Trefferflächen nach ein paar Tagen besser
+anfühlen; ein Messverfahren dafür fehlt noch.
+
 **Belegt:** Der Offline-Tastatur-Prototyp aus `e416a3d` besteht Build,
 Installation und den synthetischen Safari-Textpfad auf einem frischen
 Simulator (29. September, [Nachweis](ios-keyboard-e2e-2026-09-29.md)) und auf

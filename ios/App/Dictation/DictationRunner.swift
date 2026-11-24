@@ -112,7 +112,8 @@ final class DictationRunner {
     }
 
     func start() async throws {
-        guard !isBusy else { return }
+        // The keyboard's dictation holds the warm microphone.
+        guard !isBusy, !KeyboardDictation.shared.isBusy else { return }
         do {
             let configuration = try DictationConfiguration.current()
             if configuration.recognition == .onDevice {
@@ -134,6 +135,9 @@ final class DictationRunner {
             }
             // Another start may have run during the checks.
             guard !isBusy else { return }
+            guard !KeyboardDictation.shared.isBusy else { return }
+            // Its own recording sets up the audio session differently.
+            KeyboardDictation.shared.endSession()
             let startedAt = Date()
             try startActivity(at: startedAt)
             try recorder.start(into: store.newRecordingURL(), limit: Self.limit)
@@ -190,7 +194,8 @@ final class DictationRunner {
 
     /// Sends the newest kept recording again with the current settings.
     func retry() async {
-        guard !isBusy else { return }
+        // The keyboard's dictation may be writing this very recording.
+        guard !isBusy, !KeyboardDictation.shared.isBusy else { return }
         guard let entry = pendingRetry() else {
             retryable = nil
             return
@@ -225,7 +230,7 @@ final class DictationRunner {
     /// Syncs "Send again" with the kept recordings, e.g. after one expired
     /// while the app stayed open.
     func refreshRetryable() {
-        guard !isBusy else { return }
+        guard !isBusy, !KeyboardDictation.shared.isBusy else { return }
         retryable = pendingRetry()
     }
 
@@ -417,8 +422,9 @@ final class DictationRunner {
     }
 
     /// Also those whose dismissal was only scheduled.
+    /// Not the keyboard's "Mic warm": the warm microphone needs it in the background.
     private static func endShownActivities() async {
-        for activity in Activity<DictationAttributes>.activities {
+        for activity in Activity<DictationAttributes>.activities where activity.content.state.phase != .warm {
             await activity.end(nil, dismissalPolicy: .immediate)
         }
     }

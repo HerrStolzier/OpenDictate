@@ -36,11 +36,42 @@ struct ToggleDictationIntent: AudioRecordingIntent, LiveActivityIntent {
     }
 }
 
+/// "Keep microphone warm" for the OpenDictate keyboard, from the Action
+/// button, Back Tap or the Shortcuts app, without opening the app. Like
+/// "Dictate" it records in the background, so it shows a Live Activity.
+struct WarmMicrophoneIntent: AudioRecordingIntent, LiveActivityIntent {
+    static let title: LocalizedStringResource = "Keep Microphone Warm"
+    static let description = IntentDescription(
+        "Keeps the microphone ready for the OpenDictate keyboard for the time set in the app.")
+
+    @available(iOS 26.0, *)
+    static let supportedModes: IntentModes = [.background, .foreground(.dynamic)]
+
+    @MainActor
+    func perform() async throws -> some IntentResult {
+        do {
+            try await KeyboardDictation.shared.startSession()
+        } catch let failure as DictationFailure {
+            guard case .recordingFailed = failure else { throw failure }
+            guard #available(iOS 26.0, *), systemContext.currentMode.canContinueInForeground else { throw failure }
+            try await continueInForeground(alwaysConfirm: false)
+            try await KeyboardDictation.shared.startSession()
+        }
+        return .result()
+    }
+}
+
 /// `StopDictationIntent` runs here, in the app's process.
 enum DictationEntry {
+    /// The stop button of a dictation, or of the warm microphone.
     @MainActor
     static func stop() async {
-        DictationRunner.shared.stopFromLiveActivity()
+        // Also while the keyboard records or writes: that dictation finishes, then the microphone closes.
+        if KeyboardDictation.shared.phase != .off {
+            KeyboardDictation.shared.endSession()
+        } else {
+            DictationRunner.shared.stopFromLiveActivity()
+        }
     }
 }
 
@@ -51,5 +82,10 @@ struct OpenDictateShortcuts: AppShortcutsProvider {
             phrases: ["Dictate with \(.applicationName)", "Start \(.applicationName)"],
             shortTitle: "Dictate",
             systemImageName: "waveform")
+        AppShortcut(
+            intent: WarmMicrophoneIntent(),
+            phrases: ["Keep the microphone warm with \(.applicationName)"],
+            shortTitle: "Keep Microphone Warm",
+            systemImageName: "mic")
     }
 }
