@@ -427,7 +427,9 @@ halten (`testHoldingSpaceWithoutSlidingTypesASpace`), Feststelltaste
 auch am Feldanfang (`testShiftTwiceLocksCapitalsAtTheStart`), Tipps neben der
 Emoji-Leiste schreiben nichts (`testTapsBesideTheEmojiCategoryBarTypeNothing`),
 Emojis und alle übrigen `KeyboardUITests`; 5000 Kontaktnamen laden schnell und
-Tippfehler im ersten Buchstaben finden eigene Wörter (Unit-Tests).
+Tippfehler im ersten Buchstaben finden eigene Wörter (Unit-Tests). Am iPhone 15
+(24. November) dieselben elf `KeyboardUITests` bestanden; die Live-Diktate
+liefen dabei nicht.
 Ursache der toten Lücken war auch der völlig durchsichtige Hintergrund: iOS
 gibt einer Tastatur dort keine Berührungen. Nicht automatisch prüfbar und am
 iPhone offen: zwei Daumen (Reihenfolge des Aufsetzens, auch Buchstabe plus
