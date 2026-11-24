@@ -32,6 +32,10 @@ final class KeyboardDictation {
     private(set) var problem: String?
 
     var isBusy: Bool { phase == .recording || phase == .writing }
+    /// A session that is on, except one that only looks warm because its
+    /// engine stopped without notice (a route change).
+    var isWarm: Bool { phase != .off && !isStale }
+    private var isStale: Bool { phase == .ready && !microphone.isRunning }
 
     @ObservationIgnored private let microphone = WarmMicrophone()
     @ObservationIgnored private let bridge = KeyboardBridge()
@@ -69,7 +73,7 @@ final class KeyboardDictation {
     /// shows it; iOS ends a background recording without one.
     func startSession() async throws {
         problem = nil
-        if phase == .ready, !microphone.isRunning {
+        if isStale {
             // The engine stopped without notice (a route change): start over.
             endSession()
         }

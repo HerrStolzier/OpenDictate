@@ -434,7 +434,9 @@ Daumen mit Buchstabe plus Leertaste, Blase über der gehaltenen Taste, Rückseit
 dreimal tippen schaltet „Mikro warm“ ein und wieder aus.
 Ursache der toten Lücken war auch der völlig durchsichtige Hintergrund: iOS
 gibt einer Tastatur dort keine Berührungen. Am iPhone offen: Großschreibung nach Zeilenumbruch, Dauer je Tastendruck im
-Release-Build.
+Release-Build, Komma-Blase beim Halten der Punkt-Taste, und dass der
+Kurzbefehl „Mikro warm“ nach einem Routenwechsel im Hintergrund (Kopfhörer an
+oder ab) das Mikro neu startet statt es auszuschalten.
 
 **Tippen lernen (23. November):** Unit-Tests bestanden für das Tippmodell
 (Mitte erst ab 20 Treffern, höchstens 0,3 Taste, ungleich gestreute Tasten

@@ -51,8 +51,9 @@ struct WarmMicrophoneIntent: AudioRecordingIntent, LiveActivityIntent {
     @MainActor
     func perform() async throws -> some IntentResult {
         // Like "Dictate", a second run turns it off (Basti, 24 November):
-        // the same Back Tap starts and ends it.
-        if KeyboardDictation.shared.phase != .off {
+        // the same Back Tap starts and ends it. A session that only looks
+        // warm is started over instead.
+        if KeyboardDictation.shared.isWarm {
             KeyboardDictation.shared.endSession()
             return .result()
         }
