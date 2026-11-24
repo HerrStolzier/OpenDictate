@@ -83,6 +83,13 @@ final class AutocorrectTests: XCTestCase {
         XCTAssertEqual(autocorrect.suggestions(for: "asti").best, "Basti")
     }
 
+    /// A name starting with an umlaut, typed without it, is still found.
+    func testAnOwnWordWithAnUmlautTypedWithoutItIsSuggested() {
+        var autocorrect = engine(FakeChecker())
+        autocorrect.ownWords = ["Ünal"]
+        XCTAssertEqual(autocorrect.suggestions(for: "Unal").best, "Ünal")
+    }
+
     func testEqualGuessesKeepTheDictionarysOrder() {
         let checker = FakeChecker(guesses: ["Hsllo": ["Hello", "Hallo"]])
         XCTAssertEqual(engine(checker).suggestions(for: "Hsllo").best, "Hello")

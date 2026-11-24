@@ -100,7 +100,8 @@ struct Autocorrect {
         let initial = lowered.first ?? " "
         let initials = [initial] + Self.neighbours(of: initial) + (slips.first.map(Array.init) ?? [])
         let byInitial = ownIndex.byInitial(ownWords)
-        let nearOwn = Set(initials.flatMap { byInitial[$0] ?? [] }).filter {
+        // The index folds umlauts, so "Unal" still finds "Ünal".
+        let nearOwn = Set(initials.flatMap { byInitial[Self.base($0)] ?? [] }).filter {
             abs($0.count - word.count) <= 1 && Self.cost(from: word, to: $0, slips: slips) <= 1
         }
         .sorted()
@@ -164,7 +165,7 @@ struct Autocorrect {
     }
 
     /// "ä" without its dots, so "Mädchen" typed as "Madchen" is a small slip.
-    private static func base(_ c: Character) -> Character {
+    fileprivate static func base(_ c: Character) -> Character {
         switch c {
         case "ä": "a"
         case "ö": "o"
@@ -209,7 +210,7 @@ struct Autocorrect {
     }
 }
 
-/// `Autocorrect.ownWords` by lower case and by first and second letter, so a key press
+/// `Autocorrect.ownWords` by lower case and by first and second letter (umlauts folded), so a key press
 /// never walks the whole list (up to a thousand kept words plus Contacts).
 /// Built on the first lookup after a change.
 @MainActor
@@ -231,7 +232,7 @@ private final class OwnWordIndex {
         var built: [Character: [String]] = [:]
         for word in words {
             let letters = Array(word.lowercased().prefix(2))
-            for letter in Set(letters) { built[letter, default: []].append(word) }
+            for letter in Set(letters.map(Autocorrect.base)) { built[letter, default: []].append(word) }
         }
         initial = built
         return built
