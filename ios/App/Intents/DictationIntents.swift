@@ -42,7 +42,8 @@ struct ToggleDictationIntent: AudioRecordingIntent, LiveActivityIntent {
 struct WarmMicrophoneIntent: AudioRecordingIntent, LiveActivityIntent {
     static let title: LocalizedStringResource = "Keep Microphone Warm"
     static let description = IntentDescription(
-        "Keeps the microphone ready for the OpenDictate keyboard for the time set in the app. Run it again to turn the microphone off.")
+        "Keeps the microphone ready for the OpenDictate keyboard for the time set in the app. Run it again to turn the microphone off."
+    )
 
     @available(iOS 26.0, *)
     static let supportedModes: IntentModes = [.background, .foreground(.dynamic)]
