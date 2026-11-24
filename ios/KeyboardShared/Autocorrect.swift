@@ -95,7 +95,8 @@ struct Autocorrect {
             return Suggestions(typed: word, best: completions.first, second: completions.dropFirst().first)
         }
         // Own words (Contacts, kept words) one slip away come first, then the dictionary's.
-        // Only words starting with the typed letter or a key around it are weighed.
+        // Only words whose first or second letter is the typed one, or a key
+        // around it, are weighed.
         let initial = lowered.first ?? " "
         let initials = [initial] + Self.neighbours(of: initial) + (slips.first.map(Array.init) ?? [])
         let byInitial = ownIndex.byInitial(ownWords)
@@ -208,7 +209,7 @@ struct Autocorrect {
     }
 }
 
-/// `Autocorrect.ownWords` by lower case and by first letter, so a key press
+/// `Autocorrect.ownWords` by lower case and by first and second letter, so a key press
 /// never walks the whole list (up to a thousand kept words plus Contacts).
 /// Built on the first lookup after a change.
 @MainActor
@@ -225,7 +226,13 @@ private final class OwnWordIndex {
 
     func byInitial(_ words: Set<String>) -> [Character: [String]] {
         if let initial { return initial }
-        let built = Dictionary(grouping: words) { $0.lowercased().first ?? " " }
+        // Under its first and its second letter, so a swapped or missing first
+        // letter ("aMx", "asti") still finds the word ("Max", "Basti").
+        var built: [Character: [String]] = [:]
+        for word in words {
+            let letters = Array(word.lowercased().prefix(2))
+            for letter in Set(letters) { built[letter, default: []].append(word) }
+        }
         initial = built
         return built
     }

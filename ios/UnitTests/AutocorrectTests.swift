@@ -74,6 +74,15 @@ final class AutocorrectTests: XCTestCase {
         XCTAssertFalse(autocorrect.suggestions(for: "Basti").replacesOnSpace)
     }
 
+    /// A contact's name with its first two letters swapped or its first one
+    /// missing is still suggested ("aMx" → "Max", "asti" → "Basti").
+    func testAnOwnWordWithASlipOnTheFirstLetterIsSuggested() {
+        var autocorrect = engine(FakeChecker())
+        autocorrect.ownWords = ["Max", "Basti"]
+        XCTAssertEqual(autocorrect.suggestions(for: "aMx").best, "Max")
+        XCTAssertEqual(autocorrect.suggestions(for: "asti").best, "Basti")
+    }
+
     func testEqualGuessesKeepTheDictionarysOrder() {
         let checker = FakeChecker(guesses: ["Hsllo": ["Hello", "Hallo"]])
         XCTAssertEqual(engine(checker).suggestions(for: "Hsllo").best, "Hello")

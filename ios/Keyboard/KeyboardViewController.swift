@@ -293,6 +293,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func deleteOnce() {
+        lastShiftTap = 0
         assistant.deleteBackward(textDocumentProxy)
         updateShiftForContext()
         updateSuggestions()
@@ -492,6 +493,8 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func afterInput() {
+        // Two taps on shift lock capitals only when nothing came between them.
+        lastShiftTap = 0
         updateShiftForContext()
         scheduleSuggestions()
     }
