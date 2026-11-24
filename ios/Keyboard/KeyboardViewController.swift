@@ -111,6 +111,7 @@ final class KeyboardViewController: UIInputViewController {
         assistant.saveModel()
         deleteRepeat?.invalidate()
         deleteRepeat = nil
+        rows.hideBubble()
         poll?.invalidate()
         poll = nil
         super.viewWillDisappear(animated)
@@ -395,10 +396,28 @@ final class KeyboardViewController: UIInputViewController {
         tap.require(toFail: hold)
         period.addGestureRecognizer(hold)
         period.addGestureRecognizer(tap)
+        // The bubble shows the period while the key is down and the comma once it is held.
+        period.addTarget(self, action: #selector(periodDown(_:)), for: .touchDown)
+        period.addTarget(self, action: #selector(periodUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+        periodHold = hold
         return period
     }
 
-    @objc private func periodTapped() { type(".") }
+    /// The period key's hold, so cancelling its touch for the hold keeps the comma bubble.
+    private weak var periodHold: UILongPressGestureRecognizer?
+
+    @objc private func periodDown(_ period: UIButton) { rows.showBubble(".", over: period) }
+
+    @objc private func periodUp() {
+        // A recognised hold cancels the button's touch; the comma bubble stays until the hold ends.
+        if let periodHold, [.began, .changed].contains(periodHold.state) { return }
+        rows.hideBubble()
+    }
+
+    @objc private func periodTapped() {
+        rows.hideBubble()
+        type(".")
+    }
 
     /// Where the last cursor step was taken, along the space bar.
     private var slideAnchor: CGFloat?
@@ -438,8 +457,15 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     @objc private func periodHeld(_ recognizer: UILongPressGestureRecognizer) {
-        guard recognizer.state == .began else { return }
-        type(",")
+        switch recognizer.state {
+        case .began:
+            if let period = recognizer.view as? UIButton { rows.showBubble(",", over: period) }
+            type(",")
+        case .changed:
+            break
+        default:
+            rows.hideBubble()
+        }
     }
 
     private func key(_ title: String, identifier: String, system: Bool = false, action: @escaping () -> Void)
@@ -946,12 +972,29 @@ final class KeyArea: UIStackView {
         onCharacter?(touch.key, tap)
     }
 
+    /// A key with its own gestures that shows a bubble while down, such as the period key.
+    private var ownBubble: (text: String, key: UIButton)?
+
+    /// Shows `text` over `button` until `hideBubble()`; a held character key's bubble comes first.
+    func showBubble(_ text: String, over button: UIButton) {
+        ownBubble = (text, button)
+        showBubble()
+    }
+
+    func hideBubble() {
+        ownBubble = nil
+        showBubble()
+    }
+
     private func showBubble() {
-        guard let id = order.last, let touch = held[id], let button = characterKeys[touch.key] else {
+        if let id = order.last, let touch = held[id], let button = characterKeys[touch.key] {
+            bubble.show(bubbleText?(touch.key) ?? touch.key, over: frame(of: button))
+        } else if let ownBubble, ownBubble.key.window != nil {
+            bubble.show(ownBubble.text, over: frame(of: ownBubble.key))
+        } else {
             bubble.isHidden = true
             return
         }
-        bubble.show(bubbleText?(touch.key) ?? touch.key, over: frame(of: button))
         bringSubviewToFront(bubble)
     }
 

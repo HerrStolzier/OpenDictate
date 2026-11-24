@@ -236,11 +236,11 @@ App sprechen darf.
    Kurzbefehl mit dieser Aktion an, mit „Beim Ausführen öffnen“ aus.
 
 Die Punkt-Taste liegt links neben der Leertaste; gedrückt halten setzt ein
-Komma. Leertaste halten und seitlich ziehen bewegt den Cursor Zeichen für
-Zeichen; halten ohne Ziehen gibt ein Leerzeichen. Löschtaste halten löscht
-weiter, ein Zeichen pro Zehntelsekunde. Umschalten zweimal kurz nacheinander
-hält die Großbuchstaben fest (⇪), einmal löst es; nach einem Zeilenumbruch
-beginnt ein Satz groß.
+Komma, die Blase über der Taste zeigt dann das Komma. Leertaste halten und
+seitlich ziehen bewegt den Cursor Zeichen für Zeichen; halten ohne Ziehen gibt
+ein Leerzeichen. Löschtaste halten löscht weiter, ein Zeichen pro
+Zehntelsekunde. Umschalten zweimal kurz nacheinander hält die Großbuchstaben
+fest (⇪), einmal löst es; nach einem Zeilenumbruch beginnt ein Satz groß.
 
 Tippgefühl (seit 24. November, nach dem Vorbild von Hex): Jede Stelle unter
 der oberen Zeile trifft eine Taste; Lücken gehen an die nächste Taste, der

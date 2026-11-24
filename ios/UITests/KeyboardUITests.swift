@@ -140,7 +140,8 @@ final class KeyboardUITests: XCTestCase {
         XCTAssertTrue(wentOff, "The microphone stayed warm after the Live Activity's stop button")
     }
 
-    /// The key left of the space bar: a tap types a period, holding it a comma, never both.
+    /// The key left of the space bar: a tap types a period, holding it a comma, never both,
+    /// and its bubble is gone once the key is let go.
     func testPeriodKeyTapTypesPeriodAndHoldTypesComma() throws {
         try addKeyboard()
         // The Settings search field: there in the simulator too, unlike Notes.
@@ -153,11 +154,16 @@ final class KeyboardUITests: XCTestCase {
         let period = settings.buttons["openDictate.key.period"]
         XCTAssertTrue(period.waitForExistence(timeout: 5), "No period key")
         period.tap()
+        // The bubble over the key shows the period while down and the comma when held; it goes on release.
+        let periodBubbleLeft = settings.staticTexts["."].exists
         period.press(forDuration: 0.8)
+        let commaBubbleLeft = settings.staticTexts[","].exists
         snapshot("Punkt und Komma", of: settings)
         let typed = search.value as? String ?? ""
         settings.terminate()
         XCTAssertEqual(typed.filter { $0 == "." || $0 == "," }, ".,", "Tap and hold typed “\(typed)”")
+        XCTAssertFalse(periodBubbleLeft, "The period bubble stayed after the tap")
+        XCTAssertFalse(commaBubbleLeft, "The comma bubble stayed after the hold")
     }
 
     /// Typing "hsus" offers "Haus"; a tap on it puts it in. The emoji key
