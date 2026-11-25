@@ -169,6 +169,52 @@ final class AutocorrectTests: XCTestCase {
         XCTAssertEqual(checker.asked.count, Set(checker.asked).count, "Asked twice: \(checker.asked)")
     }
 
+    /// "nicht" and "Nicht" are one guess for "nciht", so space fixes it
+    /// (Basti, 25 November), in the typed word's case.
+    func testBothCasesOfAGuessDoNotBlockSpace() {
+        let checker = FakeChecker(guesses: ["nciht": ["Nicht", "nicht"]])
+        let suggestions = engine(checker).suggestions(for: "nciht")
+        XCTAssertEqual(suggestions.best, "nicht")
+        XCTAssertNotEqual(suggestions.second?.lowercased(), "nicht", "The strip shows the same word twice")
+        XCTAssertTrue(suggestions.replacesOnSpace)
+    }
+
+    /// Without word frequencies short completions come first and very long
+    /// ones not at all ("ich" offered "Icherzählerin", Basti, 25 November).
+    func testShortCompletionsComeFirst() {
+        let checker = FakeChecker(words: ["ich"], completions: ["ich": ["Icherzählerin", "ichbezog", "ichs"]])
+        let suggestions = engine(checker).suggestions(for: "ich")
+        XCTAssertEqual(suggestions.best, "ichs")
+        XCTAssertEqual(suggestions.second, "ichbezog")
+    }
+
+    /// Completions more than five letters longer are not offered at all.
+    func testVeryLongCompletionsAreLeftOut() {
+        let checker = FakeChecker(words: ["ich"], completions: ["ich": ["Icherzählerin", "ichs"]])
+        let suggestions = engine(checker).suggestions(for: "ich")
+        XCTAssertEqual(suggestions.best, "ichs")
+        XCTAssertNil(suggestions.second)
+    }
+
+    /// Short nouns iOS offers for a capitalised prefix ("Abo", "Abt") do not
+    /// push the lower-case completion out of the strip (Basti, 24 November).
+    func testShortNounsDoNotPushOutTheLowerCaseCompletion() {
+        let checker = FakeChecker(words: ["ab"], completions: ["ab": ["aber", "abend"], "Ab": ["Abo", "Abt"]])
+        let suggestions = engine(checker).suggestions(for: "Ab")
+        XCTAssertTrue(
+            [suggestions.best, suggestions.second].contains("Aber"),
+            "The strip shows \(suggestions.best ?? "-") and \(suggestions.second ?? "-")")
+        XCTAssertFalse(suggestions.replacesOnSpace)
+    }
+
+    /// A contact's name that is also a lower-case word keeps its capital
+    /// ("Ernst" for "ernsr", though iOS guesses "ernst" too).
+    func testAnOwnWordKeepsItsCaseAgainstALowerCaseGuess() {
+        var autocorrect = engine(FakeChecker(guesses: ["ernsr": ["ernst"]]))
+        autocorrect.ownWords = ["Ernst"]
+        XCTAssertEqual(autocorrect.suggestions(for: "ernsr").best, "Ernst")
+    }
+
     /// A two-letter part is often a slip ("dien" for "dein", not "di en"):
     /// offered, but space does not split.
     func testASplitWithATwoLetterPartIsOnlyOffered() {

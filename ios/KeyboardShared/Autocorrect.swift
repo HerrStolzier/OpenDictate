@@ -85,13 +85,17 @@ struct Autocorrect {
             // A capital mostly comes from a sentence start, and iOS answers a
             // capitalised prefix ("Ab") with nouns only or nothing, so the
             // lower-case one asks first ("ab" → "aber" → "Aber").
-            var seen = Set<String>()
-            let completions =
-                (checker.completions(for: lowered, language: language)
-                + checker.completions(for: word, language: language))
-                .filter { $0.count > word.count }
-                .map { Self.matchingCase($0, typed: word) }
-                .filter { seen.insert($0).inserted }
+            // Without word frequencies the shorter completions are the likelier
+            // ones ("ich" does not offer "Icherzählerin"), within each list,
+            // so short nouns for "Ab" ("Abo") do not push out "Aber".
+            let shortest = { (list: [String]) in
+                let fitting = list.filter { $0.count > word.count && $0.count <= word.count + 5 }
+                // Stable: equal lengths keep the dictionary's order.
+                return fitting.indices.sorted { (fitting[$0].count, $0) < (fitting[$1].count, $1) }.map { fitting[$0] }
+            }
+            let found = shortest(checker.completions(for: lowered, language: language))
+                + shortest(checker.completions(for: word, language: language))
+            let completions = Self.oneCase(found.map { Self.matchingCase($0, typed: word) }, typed: word)
             return Suggestions(typed: word, best: completions.first, second: completions.dropFirst().first)
         }
         // Own words (Contacts, kept words) one slip away come first, then the dictionary's.
@@ -105,11 +109,13 @@ struct Autocorrect {
             abs($0.count - word.count) <= 1 && Self.cost(from: word, to: $0, slips: slips) <= 1
         }
         .sorted()
-        var seen = Set<String>()
-        // Matching the typed capital can make two guesses one ("leben", "Leben").
-        let guessed = (nearOwn + checker.guesses(for: word, language: language))
-            .map { Self.matchingCase($0, typed: word) }
-            .filter { $0 != word && seen.insert($0).inserted }
+        // Matching the typed capital can make two guesses one ("leben", "Leben");
+        // "nicht" and "Nicht" for "nciht" are one guess too, so neither blocks space.
+        let guessed = Self.oneCase(
+            (nearOwn + checker.guesses(for: word, language: language)).map { Self.matchingCase($0, typed: word) },
+            typed: word, keeping: Set(nearOwn)
+        )
+        .filter { $0 != word }
         // A guess many letters away is noise ("Aufbuk" for "Abfuck"): the strip keeps the typed word.
         let farthest = max(1.5, Double(word.count) / 3)
         var candidates = guessed.filter { Self.cost(from: word, to: $0, slips: slips) <= farthest }
@@ -159,6 +165,29 @@ struct Autocorrect {
             if known(left), known(right) { return (left + " " + right, min(left.count, right.count)) }
         }
         return nil
+    }
+
+    /// One entry per word whatever its case, in the place it first came;
+    /// of "Nicht" and "nicht" the one cased like the typed word stays, but an
+    /// own word in `keeping` keeps its case (the contact "Ernst" for "ernsr").
+    static func oneCase(_ words: [String], typed: String, keeping: Set<String> = []) -> [String] {
+        let typedLower = typed.first?.isLowercase == true
+        var chosen: [String: String] = [:]
+        var order: [String] = []
+        for word in words {
+            let key = word.lowercased()
+            guard let current = chosen[key] else {
+                chosen[key] = word
+                order.append(key)
+                continue
+            }
+            if !keeping.contains(current), current.first?.isLowercase != typedLower,
+                word.first?.isLowercase == typedLower
+            {
+                chosen[key] = word
+            }
+        }
+        return order.compactMap { chosen[$0] }
     }
 
     /// The dictionary's spelling, but a capital the person typed stays.

@@ -264,7 +264,10 @@ die Leertaste wieder, wenn beide mindestens drei Buchstaben haben, das Ganze
 höchstens neun hat und klein beginnt; sonst steht die Trennung nur als
 Vorschlag da. Ein Wort, das im
 Wörterbuch steht, ersetzt die Tastatur nie, auch nicht ein seltenes wie „wes“
-statt „was“. Felder, die keine Autokorrektur wollen, sowie Adressen und
+statt „was“; Apples Wörterbuch kennt keine Häufigkeit. Deshalb zeigt die Leiste
+bei einem bekannten Wort die kürzesten Ergänzungen zuerst und keine, die mehr
+als fünf Buchstaben länger sind. Ein Wort in Groß- und Kleinschreibung zählt
+als ein Vorschlag, in der Schreibweise des getippten. Felder, die keine Autokorrektur wollen, sowie Adressen und
 Zahlenfelder bekommen keine. Die Prüfung ist austauschbar (`SpellChecking`).
 
 Tippen lernen (Einstellungen → Tastatur, Standard an, braucht Vollen
