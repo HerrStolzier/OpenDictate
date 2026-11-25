@@ -67,6 +67,18 @@ struct Autocorrect {
     /// for space to replace a word iOS knows ("das ist": 3,566).
     static let backingPair = 1000
 
+    /// Words after which a lower-case word the list writes only with a
+    /// capital is a noun ("ne stunde"). "der", "das", "meine" and the like can
+    /// be pronouns or verbs ("das regel ich"): after them the pair decides.
+    static let articles: Set<String> = [
+        "ein", "eine", "einen", "einem", "einer", "eines", "ne", "nen", "nem", "ner", "kein", "keine",
+        "keinen", "keinem", "keiner", "im", "am", "zum", "zur", "vom", "beim", "ins", "ans", "jede",
+        "jeden", "jedem", "jeder",
+    ]
+    /// How often the list must have the word before a noun for space to give
+    /// the noun its capital after a word that is no article.
+    static let backingNoun = 100
+
     /// The word being typed: the letters right before the cursor.
     static func currentWord(before text: String?) -> String {
         String((text ?? "").reversed().prefix { $0.isLetter || $0 == "-" }.reversed())
@@ -112,7 +124,8 @@ struct Autocorrect {
                     return near
                 }
             }
-            // Otherwise completions only; a known word is never replaced.
+            // Otherwise completions; a known word is replaced only by its
+            // capital after an article (below).
             // A capital mostly comes from a sentence start, and iOS answers a
             // capitalised prefix ("Ab") with nouns only or nothing, so the
             // lower-case one asks first ("ab" → "aber" → "Aber").
@@ -129,7 +142,8 @@ struct Autocorrect {
             }
             let found = shortest(checker.completions(for: lowered, language: language))
                 + shortest(checker.completions(for: word, language: language))
-            let distinct = Self.oneCase(found.map { Self.matchingCase($0, typed: word) }, typed: word)
+            let distinct = Self.oneCase(
+                Self.unshouted(found, typed: word).map { Self.matchingCase($0, typed: word) }, typed: word)
             // With the word list the commoner completion comes first ("nichts" before "Nichte").
             let completions =
                 frequency.isEmpty
@@ -137,6 +151,18 @@ struct Autocorrect {
                 : distinct.indices.sorted {
                     (-frequency.count(distinct[$0]), $0) < (-frequency.count(distinct[$1]), $1)
                 }.map { distinct[$0] }
+            // A noun typed in lower case ("ne stunde") is offered with its
+            // capital; space puts it in only after an article or a word the
+            // list often has before it, as the same letters may be a verb
+            // ("ich berichte") or an adjective ("spanisch").
+            if own == nil, let noun = frequency.capitalised(word) {
+                let afterArticle = previous.map {
+                    Self.articles.contains($0.lowercased())
+                        || frequency.count(noun, after: $0) >= Self.backingNoun
+                } ?? false
+                return Suggestions(
+                    typed: word, best: noun, second: completions.first, replacesOnSpace: afterArticle)
+            }
             return Suggestions(typed: word, best: completions.first, second: completions.dropFirst().first)
         }
         return ranked(word, slips: slips, previous: previous)
@@ -159,7 +185,9 @@ struct Autocorrect {
         .sorted()
         // Matching the typed capital can make two guesses one ("leben", "Leben");
         // "nicht" and "Nicht" for "nciht" are one guess too, so neither blocks space.
-        let found = nearOwn + checker.guesses(for: word, language: language) + frequency.nearby(word)
+        // Abbreviations in capitals ("IV" for "lvu") only for a word typed in capitals.
+        let found = nearOwn + Self.unshouted(checker.guesses(for: word, language: language), typed: word)
+            + frequency.nearby(word)
         let guessed = Self.oneCase(
             found.map { Self.matchingCase($0, typed: word) }, typed: word, keeping: Set(nearOwn)
         )
@@ -260,6 +288,11 @@ struct Autocorrect {
             }
         }
         return order.compactMap { chosen[$0] }
+    }
+
+    /// Drops words in capitals only ("HSB", "IV") unless the typed word is one.
+    static func unshouted(_ words: [String], typed: String) -> [String] {
+        WordFrequency.isShouted(typed) ? words : words.filter { !WordFrequency.isShouted($0) }
     }
 
     /// The dictionary's spelling, but a capital the person typed stays.

@@ -11,9 +11,14 @@ struct WordFrequency: Sendable {
     private var spellings: [String: String] = [:]
     /// "first second" in lower case.
     private var pairs: [String: Int] = [:]
+    /// Words the list writes only with a capital ("Stunde"), by lower case.
+    private var capitalOnly: Set<String> = []
 
     /// Words below this count are not offered as near words.
     static let nearbyMinimum = 20
+    /// From this count a word the list writes only with a capital is a noun
+    /// whatever is typed ("stunde" → "Stunde").
+    static let nounMinimum = 100
     private static let letters = Array("abcdefghijklmnopqrstuvwxyzäöüß")
 
     init() {}
@@ -21,9 +26,11 @@ struct WordFrequency: Sendable {
     /// `words`: one "word<TAB>count" per line; `pairs`: "first second<TAB>count".
     init(words: String, pairs: String) {
         var best: [String: Int] = [:]
+        var writtenLower: Set<String> = []
         for (text, count) in Self.lines(words) {
             let key = text.lowercased()
             self.words[key, default: 0] += count
+            if text.first?.isLowercase == true { writtenLower.insert(key) }
             // A word in capitals only wins when no other spelling is listed:
             // "gründet" (86) over "GRÜNDET" (93), but "SEA" stays "SEA".
             let replaces: Bool
@@ -38,6 +45,10 @@ struct WordFrequency: Sendable {
             }
         }
         for (text, count) in Self.lines(pairs) { self.pairs[text.lowercased(), default: 0] += count }
+        capitalOnly = Set(
+            spellings.filter { key, spelling in
+                spelling.first?.isUppercase == true && !Self.isShouted(spelling) && !writtenLower.contains(key)
+            }.keys)
     }
 
     /// The lists bundled with the keyboard; empty where they are missing.
@@ -53,6 +64,14 @@ struct WordFrequency: Sendable {
     }
 
     var isEmpty: Bool { words.isEmpty }
+
+    /// A word typed in lower case that the list writes only with a capital,
+    /// and often: its spelling ("stunde" → "Stunde"); otherwise nil.
+    func capitalised(_ word: String) -> String? {
+        let key = word.lowercased()
+        guard word == key, capitalOnly.contains(key), count(word) >= Self.nounMinimum else { return nil }
+        return spellings[key]
+    }
 
     func count(_ word: String) -> Int { words[word.lowercased()] ?? 0 }
 
@@ -85,7 +104,7 @@ struct WordFrequency: Sendable {
     }
 
     /// Written in capitals only, as abbreviations are ("SEA", "PDF").
-    private static func isShouted(_ text: String) -> Bool { text.count >= 2 && text == text.uppercased() }
+    static func isShouted(_ text: String) -> Bool { text.count >= 2 && text == text.uppercased() }
 
     private static func lines(_ text: String) -> [(String, Int)] {
         text.split(separator: "\n").compactMap { line in

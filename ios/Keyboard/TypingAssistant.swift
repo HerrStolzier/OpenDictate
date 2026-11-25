@@ -10,6 +10,8 @@ final class TypingAssistant {
     private(set) var engine = Autocorrect()
     private(set) var current = Suggestions.none
     private var lastCorrection: (original: String, replacement: String)?
+    /// The space a tapped suggestion put in, until the next key.
+    private var spaceAfterPick = false
     /// Put back by a delete in this showing: not corrected again.
     private var keptInSession: Set<String> = []
 
@@ -134,6 +136,7 @@ final class TypingAssistant {
 
     /// Space: a confident fix first, then the space.
     func space(_ proxy: UITextDocumentProxy) {
+        spaceAfterPick = false
         keptLastTap()
         let suggestions = refresh(proxy)
         lastCorrection = nil
@@ -147,6 +150,7 @@ final class TypingAssistant {
     /// Delete: right after a fix, puts back what was typed instead. The tap
     /// it takes back is not learned.
     func deleteBackward(_ proxy: UITextDocumentProxy) {
+        spaceAfterPick = false
         pendingTap = nil
         if !wordTaps.isEmpty { wordTaps.removeLast() }
         // Not over a selection: delete then removes the selection, as anywhere.
@@ -169,10 +173,31 @@ final class TypingAssistant {
         lastCorrection = nil
         if word != typed { replaceWord(typed, with: word, in: proxy) } else { learn(word) }
         proxy.insertText(" ")
+        spaceAfterPick = true
     }
 
-    /// Any other key: a fix can no longer be taken back with delete.
-    func typedOther() { lastCorrection = nil }
+    /// Marks that go right after a word, as on Apple's keyboard.
+    private static let attachedMarks: Set<String> = [".", ",", "?", "!", ":", ";"]
+
+    /// A mark right after a tapped suggestion takes the place of its space
+    /// and brings it back after itself ("Haus. ", not "Haus ."). False when
+    /// the key is typed as usual.
+    func attach(_ mark: String, in proxy: UITextDocumentProxy) -> Bool {
+        defer { typedOther() }
+        guard spaceAfterPick, Self.attachedMarks.contains(mark), proxy.selectedText?.isEmpty ?? true,
+            proxy.documentContextBeforeInput?.hasSuffix(" ") == true
+        else { return false }
+        proxy.deleteBackward()
+        proxy.insertText(mark + " ")
+        return true
+    }
+
+    /// Any other key: a fix can no longer be taken back with delete, nor a
+    /// tapped suggestion's space taken by a mark.
+    func typedOther() {
+        lastCorrection = nil
+        spaceAfterPick = false
+    }
 
     private func replaceWord(_ typed: String, with replacement: String, in proxy: UITextDocumentProxy) {
         for _ in 0..<typed.count { proxy.deleteBackward() }
