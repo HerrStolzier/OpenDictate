@@ -63,6 +63,10 @@ struct Autocorrect {
     private var ownIndex = OwnWordIndex()
     /// How common words are; empty in tests and until the keyboard read it.
     var frequency = WordFrequency()
+    /// How often the word before and a fix must stand together in the list
+    /// for space to replace a word iOS knows ("das ist": 3,566).
+    static let backingPair = 1000
+
     /// The word being typed: the letters right before the cursor.
     static func currentWord(before text: String?) -> String {
         String((text ?? "").reversed().prefix { $0.isLetter || $0 == "-" }.reversed())
@@ -94,14 +98,17 @@ struct Autocorrect {
             || (word != lowered && checker.isWord(lowered, language: language))
         if known {
             // A short word iOS knows but that is not among the list's 50,000
-            // ("isr", "sega") is likelier a slip: the common words near it are
-            // offered, and space puts one in only when the word before backs it
+            // ("isr", "sega") may be a slip: the common words near it are
+            // offered. Many real words are missing too ("geil", "Wels"), so
+            // space puts one in only for three letters or fewer, one
+            // neighbouring key or umlaut off, and a pair the list holds very often
             // ("das isr" → "ist"). A listed word ("helfe", "warst") stays.
             if own == nil, !frequency.isEmpty, word.count <= 5, frequency.count(word) == 0 {
                 var near = ranked(word, slips: slips, previous: previous)
                 if let best = near.best {
-                    let backed = previous.map { frequency.count(best, after: $0) > 0 } ?? false
-                    near.replacesOnSpace = near.replacesOnSpace && backed
+                    let backed = previous.map { frequency.count(best, after: $0) >= Self.backingPair } ?? false
+                    let slip = word.count <= 3 && Self.cost(from: word, to: best, slips: slips) <= 0.5
+                    near.replacesOnSpace = near.replacesOnSpace && backed && slip
                     return near
                 }
             }

@@ -268,10 +268,12 @@ Leipzig (50.000 Wörter und 100.000 Wortpaare, CC BY, Quelle in
 gleich nahen Vorschlägen gewinnt der häufigere und der, der oft nach dem Wort
 davor steht; ein Vorschlag außerhalb der Liste zählt wie ein Tippfehler mehr
 („sega“ bekommt nicht mehr „Sega“). Ein Wort, das Apples Wörterbuch kennt,
-ersetzt die Tastatur nur, wenn es kurz ist, in der Liste fehlt und das
-Wort davor den Vorschlag stützt („das isr“ → „das ist“); sonst steht der
-Vorschlag nur da. Bei einem bekannten Wort kommen Ergänzungen nach Häufigkeit,
-ohne Liste die kürzesten zuerst, und keine, die mehr als fünf Buchstaben länger
+ersetzt die Tastatur nur, wenn es höchstens drei Buchstaben hat, in der Liste
+fehlt, nur eine Nachbartaste oder ein Umlaut danebenliegt und das Paar mit dem
+Wort davor in der Liste sehr oft vorkommt („das isr“ → „das ist“); sonst steht
+der Vorschlag nur da, denn der Liste fehlen auch echte Wörter („geil“). Bei
+einem bekannten Wort kommen Ergänzungen nach Häufigkeit, ohne Liste die
+kürzesten zuerst, und keine, die mehr als fünf Buchstaben länger
 sind, und keine verkürzten wie „ich's“. Abkürzungen in Großbuchstaben
 („SEA“) schlägt die Liste nicht vor. Ein Wort in Groß- und Kleinschreibung
 zählt als ein Vorschlag, in der Schreibweise des getippten. Felder, die keine Autokorrektur wollen, sowie

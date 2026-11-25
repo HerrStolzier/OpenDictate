@@ -276,6 +276,38 @@ final class AutocorrectTests: XCTestCase {
         XCTAssertTrue(afterDas.replacesOnSpace)
     }
 
+    /// A real word the list lacks is only offered a fix, even after a word
+    /// that often stands before the fix ("ist geil" is not "ist Teil").
+    func testAKnownWordTheListLacksIsOnlyOfferedAFix() {
+        var autocorrect = engine(FakeChecker(words: ["geil"]))
+        autocorrect.frequency = WordFrequency(
+            words: "Teil\t6958\nheil\t30\nweil\t24000\n",
+            pairs: "ist Teil\t346\n")
+        let geil = autocorrect.suggestions(for: "geil", previous: "ist")
+        XCTAssertEqual(geil.best, "Teil")
+        XCTAssertFalse(geil.replacesOnSpace)
+    }
+
+    /// Each condition alone keeps a known word the list lacks (counts as in
+    /// the list): five letters ("das beißt" is not "das heißt"), a key that is
+    /// no neighbour ("und Wal" is not "und Was"), a pair below 1,000 ("jeden Gag").
+    func testEachConditionAloneKeepsAKnownWordTheListLacks() {
+        let cases: [(previous: String, word: String, fix: String, words: String, pairs: String)] = [
+            ("das", "beißt", "heißt", "heißt\t2623\n", "das heißt\t1023\n"),
+            ("und", "Wal", "Was", "was\t22487\n", "und was\t1506\n"),
+            ("jeden", "Gag", "Tag", "Tag\t5264\n", "jeden Tag\t570\n"),
+        ]
+        for c in cases {
+            var autocorrect = engine(FakeChecker(words: [c.word]))
+            autocorrect.frequency = WordFrequency(words: c.words, pairs: c.pairs)
+            let suggestions = autocorrect.suggestions(for: c.word, previous: c.previous)
+            XCTAssertEqual(suggestions.best, c.fix, "\(c.previous) \(c.word)")
+            XCTAssertFalse(
+                suggestions.replacesOnSpace,
+                "Space turns “\(c.previous) \(c.word)” into “\(c.previous) \(c.fix)”")
+        }
+    }
+
     /// A common known word stays as typed, with completions.
     func testACommonKnownWordIsNotCorrected() {
         var autocorrect = engine(FakeChecker(words: ["ihr"]))
