@@ -258,7 +258,13 @@ der Rechtschreibprüfung von iOS (`UITextChecker`), dazu Namen aus den Kontakten
 und Textersetzungen aus den iOS-Einstellungen (`UILexicon`). Vertipper auf eine
 Nachbartaste zählen weniger als andere Fehler. Ist der beste Vorschlag nah genug
 (hinterlegt), setzt ihn die Leertaste ein; Löschen direkt danach holt das
-getippte Wort zurück. Felder, die keine Autokorrektur wollen, sowie Adressen und
+getippte Wort zurück. Vorschläge, die viele Buchstaben entfernt sind, zeigt die
+Leiste nicht. Zwei bekannte Wörter ohne Leerzeichen dazwischen („undwas“) trennt
+die Leertaste wieder, wenn beide mindestens drei Buchstaben haben, das Ganze
+höchstens neun hat und klein beginnt; sonst steht die Trennung nur als
+Vorschlag da. Ein Wort, das im
+Wörterbuch steht, ersetzt die Tastatur nie, auch nicht ein seltenes wie „wes“
+statt „was“. Felder, die keine Autokorrektur wollen, sowie Adressen und
 Zahlenfelder bekommen keine. Die Prüfung ist austauschbar (`SpellChecking`).
 
 Tippen lernen (Einstellungen → Tastatur, Standard an, braucht Vollen

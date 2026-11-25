@@ -107,10 +107,27 @@ struct Autocorrect {
         .sorted()
         var seen = Set<String>()
         // Matching the typed capital can make two guesses one ("leben", "Leben").
-        let candidates = (nearOwn + checker.guesses(for: word, language: language))
+        let guessed = (nearOwn + checker.guesses(for: word, language: language))
             .map { Self.matchingCase($0, typed: word) }
             .filter { $0 != word && seen.insert($0).inserted }
-        let costs: [Double] = candidates.map { Self.cost(from: word, to: $0, slips: slips) }
+        // A guess many letters away is noise ("Aufbuk" for "Abfuck"): the strip keeps the typed word.
+        let farthest = max(1.5, Double(word.count) / 3)
+        var candidates = guessed.filter { Self.cost(from: word, to: $0, slips: slips) <= farthest }
+        var costs: [Double] = candidates.map { Self.cost(from: word, to: $0, slips: slips) }
+        if let spaced = spaced(word) {
+            // A lost space ("undwas"), also when iOS guessed the split itself.
+            // A capital may be a noun compound iOS does not know, so may a
+            // long word ("rausgefunden"), and a two-letter part is often just a
+            // slip ("dien" is not "di en"): those are offered, not put in.
+            let index = candidates.firstIndex { $0.lowercased() == spaced.text.lowercased() }
+            if let index {
+                candidates.remove(at: index)
+                costs.remove(at: index)
+            }
+            candidates.append(spaced.text)
+            let short = word.count <= 9 && spaced.shortest >= 3
+            costs.append(word.first?.isLowercase == true && short ? 0.5 : 1.25)
+        }
         // Equal costs keep the dictionary's order.
         let order: [Int] = candidates.indices.sorted { costs[$0] != costs[$1] ? costs[$0] < costs[$1] : $0 < $1 }
         guard let top = order.first else { return Suggestions(typed: word) }
@@ -121,6 +138,27 @@ struct Autocorrect {
         let confident = word.count >= 3 && first.1 <= 1.0 && (clearlyBest || first.1 <= 0.5)
         return Suggestions(
             typed: word, best: first.0, second: runnerUp?.0, replacesOnSpace: confident)
+    }
+
+    /// Two known words a lost space glued together ("undwas" → "und was"),
+    /// each at least two letters; of several splits the most even one.
+    private func spaced(_ word: String) -> (text: String, shortest: Int)? {
+        guard word.count >= 4, !word.contains("-") else { return nil }
+        let letters = Array(word)
+        let own = ownIndex.byLowercase(ownWords)
+        // Each string is asked once: this runs at every key of an unknown word.
+        let known = { (part: String) in
+            let lowered = part.lowercased()
+            return own[lowered] != nil || checker.isWord(part, language: language)
+                || (part != lowered && checker.isWord(lowered, language: language))
+        }
+        let cuts = (2...(letters.count - 2)).sorted { abs(2 * $0 - letters.count) < abs(2 * $1 - letters.count) }
+        for cut in cuts {
+            let left = String(letters[..<cut])
+            let right = String(letters[cut...])
+            if known(left), known(right) { return (left + " " + right, min(left.count, right.count)) }
+        }
+        return nil
     }
 
     /// The dictionary's spelling, but a capital the person typed stays.
