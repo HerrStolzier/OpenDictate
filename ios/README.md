@@ -272,8 +272,9 @@ ersetzt die Tastatur nur, wenn es kurz ist, in der Liste fehlt und das
 Wort davor den Vorschlag stützt („das isr“ → „das ist“); sonst steht der
 Vorschlag nur da. Bei einem bekannten Wort kommen Ergänzungen nach Häufigkeit,
 ohne Liste die kürzesten zuerst, und keine, die mehr als fünf Buchstaben länger
-sind. Ein Wort in Groß- und Kleinschreibung zählt als ein Vorschlag, in der
-Schreibweise des getippten. Felder, die keine Autokorrektur wollen, sowie
+sind, und keine verkürzten wie „ich's“. Abkürzungen in Großbuchstaben
+(„SEA“) schlägt die Liste nicht vor. Ein Wort in Groß- und Kleinschreibung
+zählt als ein Vorschlag, in der Schreibweise des getippten. Felder, die keine Autokorrektur wollen, sowie
 Adressen und Zahlenfelder bekommen keine. Die Prüfung ist austauschbar
 (`SpellChecking`).
 

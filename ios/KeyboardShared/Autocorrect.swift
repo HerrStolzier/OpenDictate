@@ -113,7 +113,10 @@ struct Autocorrect {
             // ones ("ich" does not offer "Icherzählerin"), within each list,
             // so short nouns for "Ab" ("Abo") do not push out "Aber".
             let shortest = { (list: [String]) in
-                let fitting = list.filter { $0.count > word.count && $0.count <= word.count + 5 }
+                // A clipped form ("ich's") is no completion.
+                let fitting = list.filter {
+                    $0.count > word.count && $0.count <= word.count + 5 && !$0.contains("'") && !$0.contains("’")
+                }
                 // Stable: equal lengths keep the dictionary's order.
                 return fitting.indices.sorted { (fitting[$0].count, $0) < (fitting[$1].count, $1) }.map { fitting[$0] }
             }

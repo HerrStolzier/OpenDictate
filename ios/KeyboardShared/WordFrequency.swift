@@ -24,7 +24,15 @@ struct WordFrequency: Sendable {
         for (text, count) in Self.lines(words) {
             let key = text.lowercased()
             self.words[key, default: 0] += count
-            if count > best[key, default: 0] {
+            // A word in capitals only wins when no other spelling is listed:
+            // "gründet" (86) over "GRÜNDET" (93), but "SEA" stays "SEA".
+            let replaces: Bool
+            if let current = spellings[key], Self.isShouted(current) == Self.isShouted(text) {
+                replaces = count > best[key, default: 0]
+            } else {
+                replaces = spellings[key].map(Self.isShouted) ?? true
+            }
+            if replaces {
                 best[key] = count
                 spellings[key] = text
             }
@@ -53,7 +61,8 @@ struct WordFrequency: Sendable {
     }
 
     /// Common words one letter away from `word`: changed, missing, extra, or
-    /// swapped with the next, in their usual spelling.
+    /// swapped with the next, in their usual spelling; abbreviations written
+    /// in capitals ("SEA" for "sega") are left out.
     func nearby(_ word: String) -> [String] {
         let typed = Array(word.lowercased())
         var edits = Set<String>()
@@ -72,7 +81,11 @@ struct WordFrequency: Sendable {
         }
         edits.remove(String(typed))
         return edits.filter { (words[$0] ?? 0) >= Self.nearbyMinimum }.sorted().compactMap { spellings[$0] }
+            .filter { !Self.isShouted($0) }
     }
+
+    /// Written in capitals only, as abbreviations are ("SEA", "PDF").
+    private static func isShouted(_ text: String) -> Bool { text.count >= 2 && text == text.uppercased() }
 
     private static func lines(_ text: String) -> [(String, Int)] {
         text.split(separator: "\n").compactMap { line in

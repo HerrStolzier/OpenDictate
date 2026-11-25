@@ -351,6 +351,27 @@ final class AutocorrectTests: XCTestCase {
         XCTAssertEqual(autocorrect.suggestions(for: "dieder").best, "dieser")
     }
 
+    /// "sega" gets "mega", not the abbreviation "SEA".
+    func testNearWordsLeaveOutAbbreviations() {
+        let frequency = WordFrequency(words: "SEA\t60\nmega\t27\n", pairs: "")
+        XCTAssertEqual(frequency.nearby("sega"), ["mega"])
+    }
+
+    /// A word the list mostly writes in capitals stays a near word in its
+    /// usual spelling ("GRÜNDET" 93, "gründet" 86 in the list).
+    func testNearWordsKeepAWordTheListMostlyShouts() {
+        let frequency = WordFrequency(words: "GRÜNDET\t93\ngründet\t86\n", pairs: "")
+        XCTAssertEqual(frequency.nearby("grümdet"), ["gründet"])
+    }
+
+    /// "ich" does not offer "ich's" or "ich’s".
+    func testACompletionIsNotAClippedForm() {
+        let autocorrect = engine(FakeChecker(words: ["ich"], completions: ["ich": ["ich's", "ich’s", "ichbezog"]]))
+        let suggestions = autocorrect.suggestions(for: "ich")
+        XCTAssertEqual(suggestions.best, "ichbezog")
+        XCTAssertNil(suggestions.second)
+    }
+
     func testThePreviousWordKeepsItsHyphen() {
         XCTAssertEqual(Autocorrect.previousWord(before: "per E-Mail sn"), "E-Mail")
     }
