@@ -268,17 +268,24 @@ Leipzig (50.000 Wörter und 100.000 Wortpaare, CC BY, Quelle in
 gleich nahen Vorschlägen gewinnt der häufigere und der, der oft nach dem Wort
 davor steht; ein Vorschlag außerhalb der Liste zählt wie ein Tippfehler mehr
 („sega“ bekommt nicht mehr „Sega“). Ein Wort, das Apples Wörterbuch kennt,
-ersetzt die Tastatur nur, wenn es höchstens drei Buchstaben hat, in der Liste
-fehlt, nur eine Nachbartaste oder ein Umlaut danebenliegt und das Paar mit dem
-Wort davor in der Liste sehr oft vorkommt („das isr“ → „das ist“); sonst steht
-der Vorschlag nur da, denn der Liste fehlen auch echte Wörter („geil“). Bei
-einem bekannten Wort kommen Ergänzungen nach Häufigkeit, ohne Liste die
-kürzesten zuerst, und keine, die mehr als fünf Buchstaben länger
-sind, und keine verkürzten wie „ich's“. Abkürzungen in Großbuchstaben
-(„SEA“) schlägt die Liste nicht vor. Ein Wort in Groß- und Kleinschreibung
-zählt als ein Vorschlag, in der Schreibweise des getippten. Felder, die keine Autokorrektur wollen, sowie
-Adressen und Zahlenfelder bekommen keine. Die Prüfung ist austauschbar
-(`SpellChecking`).
+ersetzt die Tastatur (außer für einen Großbuchstaben, siehe unten) nur, wenn
+es höchstens drei Buchstaben hat, in der Liste fehlt, nur eine Nachbartaste
+oder ein Umlaut danebenliegt und das Paar mit dem Wort davor in der Liste sehr
+oft vorkommt („das isr“ → „das ist“); sonst steht der Vorschlag nur da, denn
+der Liste fehlen auch echte Wörter („geil“). Bei einem bekannten Wort kommen
+Ergänzungen nach Häufigkeit, ohne Liste die kürzesten zuerst, und keine, die
+mehr als fünf Buchstaben länger sind, und keine verkürzten wie „ich's“. Abkürzungen in Großbuchstaben
+(„SEA“, „IV“) schlägt die Tastatur nur vor, wenn groß getippt wurde. Ein
+Wort, das die Liste nur groß und mindestens 100-mal kennt, schlägt sie klein
+getippt groß vor; die Leertaste schreibt es nur nach „ein“, „ne“, „kein“,
+„im“ und Ähnlichem groß („ne stunde“ → „ne Stunde“) oder wenn die Liste das
+Paar oft hat („der regel“), denn dieselben Buchstaben können ein Verb sein
+(„ich berichte“, „das regel ich“). Direkt nach einem angetippten Vorschlag rückt ein Satzzeichen
+(. , ? ! : ;) ans Wort, und das Leerzeichen kommt danach; nach einem Punkt
+beginnt das nächste Wort groß. Ein Wort in Groß- und Kleinschreibung zählt als
+ein Vorschlag, in der Schreibweise des getippten. Felder, die keine
+Autokorrektur wollen, sowie Adressen und Zahlenfelder bekommen keine. Die
+Prüfung ist austauschbar (`SpellChecking`).
 
 Tippen lernen (Einstellungen → Tastatur, Standard an, braucht Vollen
 Zugriff): Die Tastatur merkt sich bei jedem Buchstaben, wo auf der Taste er

@@ -166,7 +166,8 @@ final class KeyboardUITests: XCTestCase {
         XCTAssertFalse(commaBubbleLeft, "The comma bubble stayed after the hold")
     }
 
-    /// Typing "hsus" offers "Haus"; a tap on it puts it in. The emoji key
+    /// Typing "hsus" offers "Haus"; a tap on it puts it in, and a period
+    /// right after goes before its space. The emoji key
     /// opens the panel and a tap there types the emoji. (The Settings search
     /// field turns autocorrection off, so space keeps the word there;
     /// `testSpaceFixesAndDeleteRestoresInNotes` checks space and delete.)
@@ -190,6 +191,10 @@ final class KeyboardUITests: XCTestCase {
         best.tap()
         let picked = (search.value as? String ?? "").lowercased()
         XCTAssertEqual(picked, "haus ", "The suggestion put in “\(picked)”")
+        // A period right after it goes to the word, and the space after the period.
+        settings.buttons["openDictate.key.period"].tap()
+        let punctuated = (search.value as? String ?? "").lowercased()
+        XCTAssertEqual(punctuated, "haus. ", "The period after the suggestion gave “\(punctuated)”")
 
         settings.buttons["openDictate.emojiKey"].tap()
         let panel = settings.collectionViews["openDictate.emoji"]
@@ -226,6 +231,63 @@ final class KeyboardUITests: XCTestCase {
         cleanUp(note: body, text: restored, in: notes)
         XCTAssertEqual(fixed.lowercased(), "haus ", "Space put in “\(fixed)”")
         XCTAssertEqual(restored.lowercased(), "hsus", "Delete after the fix gave “\(restored)”")
+    }
+
+    /// In Notes (sentence capitals, so only on the iPhone): a period right
+    /// after a tapped suggestion ends the sentence, so the next letter is a
+    /// capital ("Haus. D"), as after a period and space typed by hand.
+    func testAPeriodAfterASuggestionStartsASentenceInNotes() throws {
+        #if targetEnvironment(simulator)
+            throw XCTSkip("The simulator has no Notes")
+        #endif
+        try addKeyboard()
+        let notes = XCUIApplication(bundleIdentifier: "com.apple.mobilenotes")
+        notes.launch()
+        let compose = notes.buttons["Neue Notiz"].firstMatch
+        XCTAssertTrue(compose.waitForExistence(timeout: 10), "Notes has no “Neue Notiz” button")
+        compose.tap()
+        let body = notes.textViews.firstMatch
+        XCTAssertTrue(body.waitForExistence(timeout: 10))
+        body.tap()
+        try switchToOpenDictate(in: notes)
+        for letter in "hsus" { notes.buttons["openDictate.key.\(letter)"].tap() }
+        let best = notes.buttons["openDictate.suggestion.1"]
+        XCTAssertTrue(best.waitForExistence(timeout: 3), "No suggestions")
+        best.tap()
+        notes.buttons["openDictate.key.period"].tap()
+        notes.buttons["openDictate.key.d"].tap()
+        let typed = body.value as? String ?? ""
+        cleanUp(note: body, text: typed, in: notes)
+        XCTAssertEqual(typed.lowercased(), "haus. d", "The suggestion and the period gave “\(typed)”")
+        XCTAssertTrue(typed.hasSuffix("D"), "After “Haus. ” the next letter gave “\(typed)”")
+    }
+
+    /// In Notes (sentence capitals, so only on the iPhone): a period inside an
+    /// abbreviation starts no sentence, so "d.h." keeps its small "h".
+    func testAPeriodWithoutSpaceStartsNoSentenceInNotes() throws {
+        #if targetEnvironment(simulator)
+            throw XCTSkip("The simulator has no Notes")
+        #endif
+        try addKeyboard()
+        let notes = XCUIApplication(bundleIdentifier: "com.apple.mobilenotes")
+        notes.launch()
+        let compose = notes.buttons["Neue Notiz"].firstMatch
+        XCTAssertTrue(compose.waitForExistence(timeout: 10), "Notes has no “Neue Notiz” button")
+        compose.tap()
+        let body = notes.textViews.firstMatch
+        XCTAssertTrue(body.waitForExistence(timeout: 10))
+        body.tap()
+        try switchToOpenDictate(in: notes)
+        for letter in "ja" { notes.buttons["openDictate.key.\(letter)"].tap() }
+        notes.buttons["openDictate.space"].tap()
+        let period = notes.buttons["openDictate.key.period"]
+        notes.buttons["openDictate.key.d"].tap()
+        period.tap()
+        notes.buttons["openDictate.key.h"].tap()
+        period.tap()
+        let typed = body.value as? String ?? ""
+        cleanUp(note: body, text: typed, in: notes)
+        XCTAssertTrue(typed.hasSuffix(" d.h."), "“d.h.” typed gave “\(typed)”")
     }
 
     /// Holding the space bar and sliding left moves the cursor a character.

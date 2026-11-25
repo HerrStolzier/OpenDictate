@@ -509,12 +509,14 @@ final class KeyboardViewController: UIInputViewController {
         if isShifted, !capsLocked, layout == .letters {
             isShifted = false
             updateLetterTitles()
+            // A mark after a suggestion brought its space ("Haus. "): the text
+            // decides, so a sentence starts; "d." without one stays small.
+            if textDocumentProxy.documentContextBeforeInput?.hasSuffix(" ") == true { updateShiftForContext() }
         }
     }
 
     private func insert(_ text: String) {
-        assistant.typedOther()
-        textDocumentProxy.insertText(text)
+        if !assistant.attach(text, in: textDocumentProxy) { textDocumentProxy.insertText(text) }
         afterInput()
     }
 

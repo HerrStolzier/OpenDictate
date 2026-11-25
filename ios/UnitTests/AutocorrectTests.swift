@@ -404,6 +404,84 @@ final class AutocorrectTests: XCTestCase {
         XCTAssertNil(suggestions.second)
     }
 
+    /// A noun typed in lower case gets its capital on space after an article
+    /// ("ne stunde");
+    /// a word the list also writes in lower case ("essen") stays, and so does
+    /// a rare one.
+    func testANounTypedInLowerCaseGetsItsCapital() {
+        var autocorrect = engine(
+            FakeChecker(words: ["stunde", "essen", "lagune"], completions: ["stunde": ["stunden"]]))
+        autocorrect.frequency = WordFrequency(
+            words: "Stunde\t898\nStunden\t1500\nEssen\t1123\nessen\t451\nLagune\t40\n", pairs: "")
+        let stunde = autocorrect.suggestions(for: "stunde", previous: "ne")
+        XCTAssertEqual(stunde.best, "Stunde")
+        XCTAssertEqual(stunde.second, "stunden")
+        XCTAssertTrue(stunde.replacesOnSpace)
+        // Without an article before it, the capital is offered, not put in.
+        let alone = autocorrect.suggestions(for: "stunde")
+        XCTAssertEqual(alone.best, "Stunde")
+        XCTAssertFalse(alone.replacesOnSpace)
+        XCTAssertFalse(autocorrect.suggestions(for: "Stunde").replacesOnSpace)
+        XCTAssertFalse(autocorrect.suggestions(for: "essen").replacesOnSpace)
+        XCTAssertFalse(autocorrect.suggestions(for: "lagune").replacesOnSpace)
+    }
+
+    /// Verb forms and adjectives iOS knows in lower case stay on space,
+    /// though the list as checked in writes them only with a capital
+    /// ("ich berichte", "ruf mich an", "zu siegen", "spanisch kochen").
+    func testALowerCaseVerbOrAdjectiveIsNotCapitalisedOnSpace() throws {
+        let folder = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+            .deletingLastPathComponent().appendingPathComponent("Keyboard")
+        let read = { (name: String) in
+            try String(contentsOf: folder.appendingPathComponent(name), encoding: .utf8)
+        }
+        let cases: [(previous: String?, word: String)] = [
+            ("ich", "berichte"), ("ich", "spende"), ("ich", "gründe"), (nil, "ruf"),
+            (nil, "versuch"), ("zu", "siegen"), ("gern", "spanisch"),
+        ]
+        var autocorrect = engine(FakeChecker(words: Set(cases.map { $0.word })))
+        autocorrect.frequency = WordFrequency(
+            words: try read("wortschatz-de.txt"), pairs: try read("wortschatz-de-pairs.txt"))
+        for c in cases {
+            let suggestions = autocorrect.suggestions(for: c.word, previous: c.previous)
+            XCTAssertFalse(
+                suggestions.replacesOnSpace, "Space turns “\(c.word)” into “\(suggestions.best ?? "")”")
+        }
+    }
+
+    /// After a demonstrative the same letters are often a verb ("das regel
+    /// ich", "die ruf ich an"); space keeps them where the list as checked in
+    /// never has the pair, and capitalises where it often does ("der regel").
+    func testAVerbAfterADemonstrativeIsNotCapitalisedOnSpace() throws {
+        let folder = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+            .deletingLastPathComponent().appendingPathComponent("Keyboard")
+        let read = { (name: String) in
+            try String(contentsOf: folder.appendingPathComponent(name), encoding: .utf8)
+        }
+        let cases: [(previous: String, word: String)] = [
+            ("das", "regel"), ("das", "versuch"), ("das", "kauf"), ("das", "berichte"), ("das", "spende"),
+            ("die", "ruf"),
+        ]
+        var autocorrect = engine(FakeChecker(words: Set(cases.map { $0.word })))
+        autocorrect.frequency = WordFrequency(
+            words: try read("wortschatz-de.txt"), pairs: try read("wortschatz-de-pairs.txt"))
+        for c in cases {
+            let suggestions = autocorrect.suggestions(for: c.word, previous: c.previous)
+            XCTAssertFalse(
+                suggestions.replacesOnSpace,
+                "Space turns “\(c.previous) \(c.word)” into “\(c.previous) \(suggestions.best ?? "")”")
+        }
+        XCTAssertTrue(autocorrect.suggestions(for: "regel", previous: "der").replacesOnSpace)
+    }
+
+    /// iOS's abbreviations in capitals ("IV" for "ivu") are guessed only for a
+    /// word typed in capitals.
+    func testAbbreviationsInCapitalsAreGuessedOnlyForCapitals() {
+        let autocorrect = engine(FakeChecker(guesses: ["ivu": ["IV", "IVW"], "IVU": ["IV", "IVW"]]))
+        XCTAssertNil(autocorrect.suggestions(for: "ivu").best)
+        XCTAssertEqual(autocorrect.suggestions(for: "IVU").best, "IV")
+    }
+
     func testThePreviousWordKeepsItsHyphen() {
         XCTAssertEqual(Autocorrect.previousWord(before: "per E-Mail sn"), "E-Mail")
     }
