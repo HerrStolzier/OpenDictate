@@ -262,13 +262,20 @@ getippte Wort zurück. Vorschläge, die viele Buchstaben entfernt sind, zeigt di
 Leiste nicht. Zwei bekannte Wörter ohne Leerzeichen dazwischen („undwas“) trennt
 die Leertaste wieder, wenn beide mindestens drei Buchstaben haben, das Ganze
 höchstens neun hat und klein beginnt; sonst steht die Trennung nur als
-Vorschlag da. Ein Wort, das im
-Wörterbuch steht, ersetzt die Tastatur nie, auch nicht ein seltenes wie „wes“
-statt „was“; Apples Wörterbuch kennt keine Häufigkeit. Deshalb zeigt die Leiste
-bei einem bekannten Wort die kürzesten Ergänzungen zuerst und keine, die mehr
-als fünf Buchstaben länger sind. Ein Wort in Groß- und Kleinschreibung zählt
-als ein Vorschlag, in der Schreibweise des getippten. Felder, die keine Autokorrektur wollen, sowie Adressen und
-Zahlenfelder bekommen keine. Die Prüfung ist austauschbar (`SpellChecking`).
+Vorschlag da. Dazu kennt die Tastatur eine Häufigkeitsliste aus Wortschatz
+Leipzig (50.000 Wörter und 100.000 Wortpaare, CC BY, Quelle in
+`Keyboard/THIRD_PARTY_NOTICES.md`; gekürzt mit `scripts/wortschatz.py`): Bei
+gleich nahen Vorschlägen gewinnt der häufigere und der, der oft nach dem Wort
+davor steht; ein Vorschlag außerhalb der Liste zählt wie ein Tippfehler mehr
+(„sega“ bekommt nicht mehr „Sega“). Ein Wort, das Apples Wörterbuch kennt,
+ersetzt die Tastatur nur, wenn es kurz ist, in der Liste fehlt und das
+Wort davor den Vorschlag stützt („das isr“ → „das ist“); sonst steht der
+Vorschlag nur da. Bei einem bekannten Wort kommen Ergänzungen nach Häufigkeit,
+ohne Liste die kürzesten zuerst, und keine, die mehr als fünf Buchstaben länger
+sind. Ein Wort in Groß- und Kleinschreibung zählt als ein Vorschlag, in der
+Schreibweise des getippten. Felder, die keine Autokorrektur wollen, sowie
+Adressen und Zahlenfelder bekommen keine. Die Prüfung ist austauschbar
+(`SpellChecking`).
 
 Tippen lernen (Einstellungen → Tastatur, Standard an, braucht Vollen
 Zugriff): Die Tastatur merkt sich bei jedem Buchstaben, wo auf der Taste er

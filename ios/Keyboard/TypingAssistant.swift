@@ -37,7 +37,15 @@ final class TypingAssistant {
         }
         // The first call can come back empty while iOS loads the dictionary.
         _ = engine.checker.completions(for: "ab", language: engine.language)
+        // The word list takes a moment to read: off the main thread, and the
+        // suggestions use it from the first key after.
+        Task.detached(priority: .utility) { [weak self] in
+            let frequency = WordFrequency.shared
+            await self?.use(frequency)
+        }
     }
+
+    private func use(_ frequency: WordFrequency) { engine.frequency = frequency }
 
     /// Contacts' names and the text replacements from iOS Settings.
     func load(_ lexicon: UILexicon) {
@@ -114,9 +122,11 @@ final class TypingAssistant {
 
     @discardableResult
     func refresh(_ proxy: UITextDocumentProxy) -> Suggestions {
-        let word = Autocorrect.currentWord(before: proxy.documentContextBeforeInput)
+        let before = proxy.documentContextBeforeInput
+        let word = Autocorrect.currentWord(before: before)
         if word.isEmpty { wordTaps = [] }
-        var suggestions = engine.suggestions(for: word, slips: slips(for: word))
+        var suggestions = engine.suggestions(
+            for: word, slips: slips(for: word), previous: Autocorrect.previousWord(before: before))
         if keptInSession.contains(word) || !Self.correctsIn(proxy) { suggestions.replacesOnSpace = false }
         current = suggestions
         return suggestions
