@@ -258,8 +258,27 @@ der Rechtschreibprüfung von iOS (`UITextChecker`), dazu Namen aus den Kontakten
 und Textersetzungen aus den iOS-Einstellungen (`UILexicon`). Vertipper auf eine
 Nachbartaste zählen weniger als andere Fehler. Ist der beste Vorschlag nah genug
 (hinterlegt), setzt ihn die Leertaste ein; Löschen direkt danach holt das
-getippte Wort zurück. Felder, die keine Autokorrektur wollen, sowie Adressen und
-Zahlenfelder bekommen keine. Die Prüfung ist austauschbar (`SpellChecking`).
+getippte Wort zurück. Vorschläge, die viele Buchstaben entfernt sind, zeigt die
+Leiste nicht. Zwei bekannte Wörter ohne Leerzeichen dazwischen („undwas“) trennt
+die Leertaste wieder, wenn beide mindestens drei Buchstaben haben, das Ganze
+höchstens neun hat und klein beginnt; sonst steht die Trennung nur als
+Vorschlag da. Dazu kennt die Tastatur eine Häufigkeitsliste aus Wortschatz
+Leipzig (50.000 Wörter und 100.000 Wortpaare, CC BY, Quelle in
+`Keyboard/THIRD_PARTY_NOTICES.md`; gekürzt mit `scripts/wortschatz.py`): Bei
+gleich nahen Vorschlägen gewinnt der häufigere und der, der oft nach dem Wort
+davor steht; ein Vorschlag außerhalb der Liste zählt wie ein Tippfehler mehr
+(„sega“ bekommt nicht mehr „Sega“). Ein Wort, das Apples Wörterbuch kennt,
+ersetzt die Tastatur nur, wenn es höchstens drei Buchstaben hat, in der Liste
+fehlt, nur eine Nachbartaste oder ein Umlaut danebenliegt und das Paar mit dem
+Wort davor in der Liste sehr oft vorkommt („das isr“ → „das ist“); sonst steht
+der Vorschlag nur da, denn der Liste fehlen auch echte Wörter („geil“). Bei
+einem bekannten Wort kommen Ergänzungen nach Häufigkeit, ohne Liste die
+kürzesten zuerst, und keine, die mehr als fünf Buchstaben länger
+sind, und keine verkürzten wie „ich's“. Abkürzungen in Großbuchstaben
+(„SEA“) schlägt die Liste nicht vor. Ein Wort in Groß- und Kleinschreibung
+zählt als ein Vorschlag, in der Schreibweise des getippten. Felder, die keine Autokorrektur wollen, sowie
+Adressen und Zahlenfelder bekommen keine. Die Prüfung ist austauschbar
+(`SpellChecking`).
 
 Tippen lernen (Einstellungen → Tastatur, Standard an, braucht Vollen
 Zugriff): Die Tastatur merkt sich bei jedem Buchstaben, wo auf der Taste er

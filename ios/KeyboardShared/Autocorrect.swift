@@ -61,15 +61,31 @@ struct Autocorrect {
         didSet { ownIndex = OwnWordIndex() }
     }
     private var ownIndex = OwnWordIndex()
+    /// How common words are; empty in tests and until the keyboard read it.
+    var frequency = WordFrequency()
+    /// How often the word before and a fix must stand together in the list
+    /// for space to replace a word iOS knows ("das ist": 3,566).
+    static let backingPair = 1000
 
     /// The word being typed: the letters right before the cursor.
     static func currentWord(before text: String?) -> String {
         String((text ?? "").reversed().prefix { $0.isLetter || $0 == "-" }.reversed())
     }
 
+    /// The word before the one being typed, when only spaces lie between.
+    static func previousWord(before text: String?) -> String? {
+        var rest = Substring(text ?? "")
+        rest = rest.dropLast(currentWord(before: text).count)
+        guard rest.last == " " else { return nil }
+        while rest.last == " " { rest = rest.dropLast() }
+        let word = String(rest.reversed().prefix { $0.isLetter || $0 == "-" }.reversed())
+        return word.isEmpty ? nil : word
+    }
+
     /// `slips`: per typed letter, the keys its tap was near enough to have
-    /// meant (Tippen lernen); empty without a learned model.
-    func suggestions(for word: String, slips: [Set<Character>] = []) -> Suggestions {
+    /// meant (Tippen lernen); empty without a learned model. `previous`: the
+    /// word before, for the word list's pairs.
+    func suggestions(for word: String, slips: [Set<Character>] = [], previous: String? = nil) -> Suggestions {
         guard word.count >= 1, word.contains(where: \.isLetter) else { return .none }
         if let expansion = shortcuts[word] ?? shortcuts[word.lowercased()] {
             return Suggestions(typed: word, best: expansion, replacesOnSpace: true)
@@ -81,19 +97,55 @@ struct Autocorrect {
             own != nil || checker.isWord(word, language: language)
             || (word != lowered && checker.isWord(lowered, language: language))
         if known {
-            // Completions only; a known word is never replaced.
+            // A short word iOS knows but that is not among the list's 50,000
+            // ("isr", "sega") may be a slip: the common words near it are
+            // offered. Many real words are missing too ("geil", "Wels"), so
+            // space puts one in only for three letters or fewer, one
+            // neighbouring key or umlaut off, and a pair the list holds very often
+            // ("das isr" → "ist"). A listed word ("helfe", "warst") stays.
+            if own == nil, !frequency.isEmpty, word.count <= 5, frequency.count(word) == 0 {
+                var near = ranked(word, slips: slips, previous: previous)
+                if let best = near.best {
+                    let backed = previous.map { frequency.count(best, after: $0) >= Self.backingPair } ?? false
+                    let slip = word.count <= 3 && Self.cost(from: word, to: best, slips: slips) <= 0.5
+                    near.replacesOnSpace = near.replacesOnSpace && backed && slip
+                    return near
+                }
+            }
+            // Otherwise completions only; a known word is never replaced.
             // A capital mostly comes from a sentence start, and iOS answers a
             // capitalised prefix ("Ab") with nouns only or nothing, so the
             // lower-case one asks first ("ab" → "aber" → "Aber").
-            var seen = Set<String>()
+            // Without word frequencies the shorter completions are the likelier
+            // ones ("ich" does not offer "Icherzählerin"), within each list,
+            // so short nouns for "Ab" ("Abo") do not push out "Aber".
+            let shortest = { (list: [String]) in
+                // A clipped form ("ich's") is no completion.
+                let fitting = list.filter {
+                    $0.count > word.count && $0.count <= word.count + 5 && !$0.contains("'") && !$0.contains("’")
+                }
+                // Stable: equal lengths keep the dictionary's order.
+                return fitting.indices.sorted { (fitting[$0].count, $0) < (fitting[$1].count, $1) }.map { fitting[$0] }
+            }
+            let found = shortest(checker.completions(for: lowered, language: language))
+                + shortest(checker.completions(for: word, language: language))
+            let distinct = Self.oneCase(found.map { Self.matchingCase($0, typed: word) }, typed: word)
+            // With the word list the commoner completion comes first ("nichts" before "Nichte").
             let completions =
-                (checker.completions(for: lowered, language: language)
-                + checker.completions(for: word, language: language))
-                .filter { $0.count > word.count }
-                .map { Self.matchingCase($0, typed: word) }
-                .filter { seen.insert($0).inserted }
+                frequency.isEmpty
+                ? distinct
+                : distinct.indices.sorted {
+                    (-frequency.count(distinct[$0]), $0) < (-frequency.count(distinct[$1]), $1)
+                }.map { distinct[$0] }
             return Suggestions(typed: word, best: completions.first, second: completions.dropFirst().first)
         }
+        return ranked(word, slips: slips, previous: previous)
+    }
+
+    /// The guesses for a word that may be a slip, nearest first; with the
+    /// word list the commoner and the one that fits the word before win.
+    private func ranked(_ word: String, slips: [Set<Character>], previous: String?) -> Suggestions {
+        let lowered = word.lowercased()
         // Own words (Contacts, kept words) one slip away come first, then the dictionary's.
         // Only words whose first or second letter is the typed one, or a key
         // around it, are weighed.
@@ -105,22 +157,109 @@ struct Autocorrect {
             abs($0.count - word.count) <= 1 && Self.cost(from: word, to: $0, slips: slips) <= 1
         }
         .sorted()
-        var seen = Set<String>()
-        // Matching the typed capital can make two guesses one ("leben", "Leben").
-        let candidates = (nearOwn + checker.guesses(for: word, language: language))
-            .map { Self.matchingCase($0, typed: word) }
-            .filter { $0 != word && seen.insert($0).inserted }
-        let costs: [Double] = candidates.map { Self.cost(from: word, to: $0, slips: slips) }
-        // Equal costs keep the dictionary's order.
-        let order: [Int] = candidates.indices.sorted { costs[$0] != costs[$1] ? costs[$0] < costs[$1] : $0 < $1 }
+        // Matching the typed capital can make two guesses one ("leben", "Leben");
+        // "nicht" and "Nicht" for "nciht" are one guess too, so neither blocks space.
+        let found = nearOwn + checker.guesses(for: word, language: language) + frequency.nearby(word)
+        let guessed = Self.oneCase(
+            found.map { Self.matchingCase($0, typed: word) }, typed: word, keeping: Set(nearOwn)
+        )
+        .filter { $0 != word }
+        // A guess many letters away is noise ("Aufbuk" for "Abfuck"): the strip keeps the typed word.
+        let farthest = max(1.5, Double(word.count) / 3)
+        var candidates = guessed.filter { Self.cost(from: word, to: $0, slips: slips) <= farthest }
+        var costs: [Double] = candidates.map { Self.cost(from: word, to: $0, slips: slips) }
+        if let spaced = spaced(word) {
+            // A lost space ("undwas"), also when iOS guessed the split itself.
+            // A capital may be a noun compound iOS does not know, so may a
+            // long word ("rausgefunden"), and a two-letter part is often just a
+            // slip ("dien" is not "di en"): those are offered, not put in.
+            let index = candidates.firstIndex { $0.lowercased() == spaced.text.lowercased() }
+            if let index {
+                candidates.remove(at: index)
+                costs.remove(at: index)
+            }
+            candidates.append(spaced.text)
+            let short = word.count <= 9 && spaced.shortest >= 3
+            costs.append(word.first?.isLowercase == true && short ? 0.5 : 1.25)
+        }
+        let own = Set(nearOwn)
+        let scores = candidates.indices.map { score(candidates[$0], cost: costs[$0], own: own, previous: previous) }
+        // Equal scores keep the dictionary's order.
+        let order: [Int] = candidates.indices.sorted { scores[$0] != scores[$1] ? scores[$0] < scores[$1] : $0 < $1 }
         guard let top = order.first else { return Suggestions(typed: word) }
-        let first: (String, Double) = (candidates[top], costs[top])
-        let runnerUp: (String, Double)? = order.count > 1 ? (candidates[order[1]], costs[order[1]]) : nil
+        let runnerUp = order.count > 1 ? order[1] : nil
         // Only a short distance replaces on its own; anything else waits for a tap.
-        let clearlyBest = runnerUp.map { $0.1 - first.1 >= 0.25 } ?? true
-        let confident = word.count >= 3 && first.1 <= 1.0 && (clearlyBest || first.1 <= 0.5)
+        let clearlyBest = runnerUp.map { scores[$0] - scores[top] >= 0.25 } ?? true
+        let confident = word.count >= 3 && costs[top] <= 1.0 && (clearlyBest || costs[top] <= 0.5)
         return Suggestions(
-            typed: word, best: first.0, second: runnerUp?.0, replacesOnSpace: confident)
+            typed: word, best: candidates[top], second: runnerUp.map { candidates[$0] }, replacesOnSpace: confident)
+    }
+
+    /// A guess's distance, less for a common word and for one that often
+    /// follows the word before; a word outside the list's 50,000 counts as
+    /// one more slip ("Sega" behind "mega"). Own words keep their distance.
+    private func score(_ candidate: String, cost: Double, own: Set<String>, previous: String?) -> Double {
+        guard !frequency.isEmpty, !own.contains(where: { $0.lowercased() == candidate.lowercased() }) else {
+            return cost
+        }
+        let parts = candidate.split(separator: " ").map(String.init)
+        if parts.count == 2 {
+            // A split ("und was") the list holds as a pair counts as common as
+            // its rarer word, and more so the more often the pair stands; one
+            // it never holds ("die der" for "dieder") gets nothing.
+            let pair = frequency.count(parts[1], after: parts[0])
+            guard pair > 0 else { return cost }
+            let rarer = min(frequency.count(parts[0]), frequency.count(parts[1]))
+            return cost - 0.25 * log10(1 + Double(rarer)) - 0.25 * log10(1 + Double(pair))
+        }
+        let count = frequency.count(candidate)
+        var score = cost - 0.25 * log10(1 + Double(count)) + (count == 0 ? 1 : 0)
+        if let previous { score -= 0.25 * log10(1 + Double(frequency.count(candidate, after: previous))) }
+        return score
+    }
+
+    /// Two known words a lost space glued together ("undwas" → "und was"),
+    /// each at least two letters; of several splits the most even one.
+    private func spaced(_ word: String) -> (text: String, shortest: Int)? {
+        guard word.count >= 4, !word.contains("-") else { return nil }
+        let letters = Array(word)
+        let own = ownIndex.byLowercase(ownWords)
+        // Each string is asked once: this runs at every key of an unknown word.
+        let known = { (part: String) in
+            let lowered = part.lowercased()
+            return own[lowered] != nil || checker.isWord(part, language: language)
+                || (part != lowered && checker.isWord(lowered, language: language))
+        }
+        let cuts = (2...(letters.count - 2)).sorted { abs(2 * $0 - letters.count) < abs(2 * $1 - letters.count) }
+        for cut in cuts {
+            let left = String(letters[..<cut])
+            let right = String(letters[cut...])
+            if known(left), known(right) { return (left + " " + right, min(left.count, right.count)) }
+        }
+        return nil
+    }
+
+    /// One entry per word whatever its case, in the place it first came;
+    /// of "Nicht" and "nicht" the one cased like the typed word stays, but an
+    /// own word in `keeping` keeps its case (the contact "Ernst" for "ernsr").
+    static func oneCase(_ words: [String], typed: String, keeping: Set<String> = []) -> [String] {
+        let typedLower = typed.first?.isLowercase == true
+        var chosen: [String: String] = [:]
+        var order: [String] = []
+        for word in words {
+            let key = word.lowercased()
+            guard let current = chosen[key] else {
+                chosen[key] = word
+                order.append(key)
+                continue
+            }
+            if !keeping.contains(current), current.first?.isLowercase != typedLower,
+                word.first?.isLowercase == typedLower
+            {
+                chosen[key] = word
+            }
+        }
+        return order.compactMap { chosen[$0] }
     }
 
     /// The dictionary's spelling, but a capital the person typed stays.

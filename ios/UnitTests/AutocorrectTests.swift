@@ -4,7 +4,8 @@ import XCTest
 @testable import OpenDictateiOS
 
 /// The keyboard's suggestions: a slip onto a neighbouring key is fixed on
-/// space, known and own words are never replaced, and text replacements apply.
+/// space, own words and words people write are never replaced, and text
+/// replacements apply.
 @MainActor
 final class AutocorrectTests: XCTestCase {
     private struct FakeChecker: SpellChecking {
@@ -95,10 +96,333 @@ final class AutocorrectTests: XCTestCase {
         XCTAssertEqual(engine(checker).suggestions(for: "Hsllo").best, "Hello")
     }
 
+    /// Two slips in five letters: offered, but only a tap puts it in.
     func testAFarGuessWaitsForATap() {
-        let checker = FakeChecker(guesses: ["xyz": ["Zoo"]])
-        let suggestions = engine(checker).suggestions(for: "xyz")
-        XCTAssertEqual(suggestions.best, "Zoo")
+        let checker = FakeChecker(guesses: ["Kxnnw": ["Kanne"]])
+        let suggestions = engine(checker).suggestions(for: "Kxnnw")
+        XCTAssertEqual(suggestions.best, "Kanne")
+        XCTAssertFalse(suggestions.replacesOnSpace)
+    }
+
+    /// A guess many letters away is not offered at all (Basti, 25 November:
+    /// "Aufbuk" for "Abfuck"); the strip keeps only the typed word.
+    func testAGuessManyLettersAwayIsNotOffered() {
+        let checker = FakeChecker(guesses: ["Abfuck": ["Aufbuk"]])
+        let suggestions = engine(checker).suggestions(for: "Abfuck")
+        XCTAssertNil(suggestions.best)
+        XCTAssertFalse(suggestions.replacesOnSpace)
+    }
+
+    /// A lost space between two known words is put back on space (Basti,
+    /// 25 November: "undwas").
+    func testTwoGluedWordsAreSplitOnSpace() {
+        let checker = FakeChecker(words: ["und", "was", "un", "dwas"])
+        let suggestions = engine(checker).suggestions(for: "undwas")
+        XCTAssertEqual(suggestions.best, "und was")
+        XCTAssertTrue(suggestions.replacesOnSpace)
+    }
+
+    /// iOS may guess the split itself ("und was"); it still counts as a lost
+    /// space, so a rival guess as near does not keep it from space.
+    func testAGluedPairIOSAlsoGuessesIsStillSplitOnSpace() {
+        let checker = FakeChecker(words: ["und", "was"], guesses: ["undwas": ["und was", "und-was"]])
+        let suggestions = engine(checker).suggestions(for: "undwas")
+        XCTAssertEqual(suggestions.best, "und was")
+        XCTAssertTrue(suggestions.replacesOnSpace)
+    }
+
+    /// A capitalised glued word iOS splits too stays only offered, and the
+    /// strip does not show the split twice ("Haus Boot", "Haus boot").
+    func testACapitalisedGluedWordIOSAlsoSplitsIsOnlyOffered() {
+        let checker = FakeChecker(words: ["haus", "boot"], guesses: ["Hausboot": ["Haus Boot"]])
+        let suggestions = engine(checker).suggestions(for: "Hausboot")
+        XCTAssertFalse(suggestions.replacesOnSpace)
+        XCTAssertNotEqual(
+            suggestions.best?.lowercased(), suggestions.second?.lowercased(), "The strip shows the same split twice")
+    }
+
+    /// A long lower-case word may be a compound iOS does not know
+    /// ("rausgefunden"): offered, but space keeps it.
+    func testALongGluedWordIsOnlyOffered() {
+        let checker = FakeChecker(words: ["raus", "gefunden"])
+        let suggestions = engine(checker).suggestions(for: "rausgefunden")
+        XCTAssertEqual(suggestions.best, "raus gefunden")
+        XCTAssertFalse(suggestions.replacesOnSpace)
+    }
+
+    private final class CountingChecker: SpellChecking {
+        var asked: [String] = []
+        func isWord(_ word: String, language: String) -> Bool {
+            asked.append(word)
+            return false
+        }
+        func guesses(for word: String, language: String) -> [String] { [] }
+        func completions(for prefix: String, language: String) -> [String] { [] }
+    }
+
+    /// Work per key (plan U5): the dictionary is asked about each string once,
+    /// also when looking for a lost space.
+    func testTheDictionaryIsAskedAboutEachStringOnce() {
+        let checker = CountingChecker()
+        var autocorrect = Autocorrect()
+        autocorrect.checker = checker
+        _ = autocorrect.suggestions(for: "abcdefghijkl")
+        XCTAssertEqual(checker.asked.count, Set(checker.asked).count, "Asked twice: \(checker.asked)")
+    }
+
+    /// "nicht" and "Nicht" are one guess for "nciht", so space fixes it
+    /// (Basti, 25 November), in the typed word's case.
+    func testBothCasesOfAGuessDoNotBlockSpace() {
+        let checker = FakeChecker(guesses: ["nciht": ["Nicht", "nicht"]])
+        let suggestions = engine(checker).suggestions(for: "nciht")
+        XCTAssertEqual(suggestions.best, "nicht")
+        XCTAssertNotEqual(suggestions.second?.lowercased(), "nicht", "The strip shows the same word twice")
+        XCTAssertTrue(suggestions.replacesOnSpace)
+    }
+
+    /// Without word frequencies short completions come first and very long
+    /// ones not at all ("ich" offered "Icherzählerin", Basti, 25 November).
+    func testShortCompletionsComeFirst() {
+        let checker = FakeChecker(words: ["ich"], completions: ["ich": ["Icherzählerin", "ichbezog", "ichs"]])
+        let suggestions = engine(checker).suggestions(for: "ich")
+        XCTAssertEqual(suggestions.best, "ichs")
+        XCTAssertEqual(suggestions.second, "ichbezog")
+    }
+
+    /// Completions more than five letters longer are not offered at all.
+    func testVeryLongCompletionsAreLeftOut() {
+        let checker = FakeChecker(words: ["ich"], completions: ["ich": ["Icherzählerin", "ichs"]])
+        let suggestions = engine(checker).suggestions(for: "ich")
+        XCTAssertEqual(suggestions.best, "ichs")
+        XCTAssertNil(suggestions.second)
+    }
+
+    /// Short nouns iOS offers for a capitalised prefix ("Abo", "Abt") do not
+    /// push the lower-case completion out of the strip (Basti, 24 November).
+    func testShortNounsDoNotPushOutTheLowerCaseCompletion() {
+        let checker = FakeChecker(words: ["ab"], completions: ["ab": ["aber", "abend"], "Ab": ["Abo", "Abt"]])
+        let suggestions = engine(checker).suggestions(for: "Ab")
+        XCTAssertTrue(
+            [suggestions.best, suggestions.second].contains("Aber"),
+            "The strip shows \(suggestions.best ?? "-") and \(suggestions.second ?? "-")")
+        XCTAssertFalse(suggestions.replacesOnSpace)
+    }
+
+    /// A contact's name that is also a lower-case word keeps its capital
+    /// ("Ernst" for "ernsr", though iOS guesses "ernst" too).
+    func testAnOwnWordKeepsItsCaseAgainstALowerCaseGuess() {
+        var autocorrect = engine(FakeChecker(guesses: ["ernsr": ["ernst"]]))
+        autocorrect.ownWords = ["Ernst"]
+        XCTAssertEqual(autocorrect.suggestions(for: "ernsr").best, "Ernst")
+    }
+
+    // MARK: Word list (Wortschatz Leipzig)
+
+    private let list = WordFrequency(
+        words: "ist\t146015\nnicht\t72930\nihr\t19741\nsea\t42\nmega\t27\nnichts\t2421\n"
+            + "Haus\t2745\nhaus\t3\nselten\t5\n",
+        pairs: "das ist\t3566\nund was\t1111\n")
+
+    func testTheWordListCountsAllSpellingsAndKeepsTheCommonOne() {
+        XCTAssertEqual(list.count("haus"), 2748)
+        XCTAssertEqual(list.count("Ist"), 146015)
+        XCTAssertEqual(list.count("Sega"), 0)
+        XCTAssertEqual(list.count("ist", after: "Das"), 3566)
+        XCTAssertEqual(list.count("ist", after: "es"), 0)
+        XCTAssertEqual(list.nearby("hsus"), ["Haus"])
+    }
+
+    /// Near words are one letter away (changed, missing, extra, swapped) and
+    /// not too rare to offer.
+    func testNearWordsAreOneLetterAwayAndCommonEnough() {
+        XCTAssertEqual(Set(list.nearby("isr")), ["ist", "ihr"])
+        XCTAssertEqual(list.nearby("its"), ["ist"])
+        XCTAssertEqual(Set(list.nearby("nichs")), ["nicht", "nichts"])
+        XCTAssertEqual(list.nearby("Mehga"), ["mega"])
+        XCTAssertEqual(list.nearby("seltem"), [], "Below \(WordFrequency.nearbyMinimum) a word is not offered")
+        XCTAssertEqual(list.nearby("ist"), [], "The typed word itself is no near word")
+    }
+
+    func testThePreviousWord() {
+        XCTAssertEqual(Autocorrect.previousWord(before: "Ja, das isr"), "das")
+        XCTAssertEqual(Autocorrect.previousWord(before: "das  isr"), "das")
+        XCTAssertNil(Autocorrect.previousWord(before: "Ende. isr"))
+        XCTAssertNil(Autocorrect.previousWord(before: "isr"))
+        XCTAssertNil(Autocorrect.previousWord(before: nil))
+    }
+
+    /// "Sega" is a guess no distance away, but outside the list's common
+    /// words: common near words come first and space keeps "sega" (Basti,
+    /// 25 November; "mega" itself is rarer in the list than "sea").
+    func testARareGuessDoesNotBeatCommonNearWords() {
+        var autocorrect = engine(FakeChecker(guesses: ["sega": ["Sega"]]))
+        autocorrect.frequency = list
+        let suggestions = autocorrect.suggestions(for: "sega")
+        XCTAssertNotEqual(suggestions.best, "Sega")
+        XCTAssertTrue([suggestions.best, suggestions.second].contains("mega"))
+        XCTAssertFalse(suggestions.replacesOnSpace)
+    }
+
+    /// iOS knows "isr", but the list does not: "ist" is offered, and
+    /// space puts it in only after a word that backs it ("das isr").
+    func testARareKnownWordIsCorrectedWhenTheWordBeforeBacksIt() {
+        var autocorrect = engine(FakeChecker(words: ["isr"]))
+        autocorrect.frequency = list
+        let alone = autocorrect.suggestions(for: "isr")
+        XCTAssertEqual(alone.best, "ist")
+        XCTAssertFalse(alone.replacesOnSpace)
+        let afterDas = autocorrect.suggestions(for: "isr", previous: "das")
+        XCTAssertEqual(afterDas.best, "ist")
+        XCTAssertTrue(afterDas.replacesOnSpace)
+    }
+
+    /// A real word the list lacks is only offered a fix, even after a word
+    /// that often stands before the fix ("ist geil" is not "ist Teil").
+    func testAKnownWordTheListLacksIsOnlyOfferedAFix() {
+        var autocorrect = engine(FakeChecker(words: ["geil"]))
+        autocorrect.frequency = WordFrequency(
+            words: "Teil\t6958\nheil\t30\nweil\t24000\n",
+            pairs: "ist Teil\t346\n")
+        let geil = autocorrect.suggestions(for: "geil", previous: "ist")
+        XCTAssertEqual(geil.best, "Teil")
+        XCTAssertFalse(geil.replacesOnSpace)
+    }
+
+    /// Each condition alone keeps a known word the list lacks (counts as in
+    /// the list): five letters ("das beißt" is not "das heißt"), a key that is
+    /// no neighbour ("und Wal" is not "und Was"), a pair below 1,000 ("jeden Gag").
+    func testEachConditionAloneKeepsAKnownWordTheListLacks() {
+        let cases: [(previous: String, word: String, fix: String, words: String, pairs: String)] = [
+            ("das", "beißt", "heißt", "heißt\t2623\n", "das heißt\t1023\n"),
+            ("und", "Wal", "Was", "was\t22487\n", "und was\t1506\n"),
+            ("jeden", "Gag", "Tag", "Tag\t5264\n", "jeden Tag\t570\n"),
+        ]
+        for c in cases {
+            var autocorrect = engine(FakeChecker(words: [c.word]))
+            autocorrect.frequency = WordFrequency(words: c.words, pairs: c.pairs)
+            let suggestions = autocorrect.suggestions(for: c.word, previous: c.previous)
+            XCTAssertEqual(suggestions.best, c.fix, "\(c.previous) \(c.word)")
+            XCTAssertFalse(
+                suggestions.replacesOnSpace,
+                "Space turns “\(c.previous) \(c.word)” into “\(c.previous) \(c.fix)”")
+        }
+    }
+
+    /// A common known word stays as typed, with completions.
+    func testACommonKnownWordIsNotCorrected() {
+        var autocorrect = engine(FakeChecker(words: ["ihr"]))
+        autocorrect.frequency = list
+        let suggestions = autocorrect.suggestions(for: "ihr", previous: "das")
+        XCTAssertNotEqual(suggestions.best, "ist")
+        XCTAssertFalse(suggestions.replacesOnSpace)
+    }
+
+    /// With the list the commoner completion comes first ("nichts", not "Nichte").
+    func testTheCommonerCompletionComesFirst() {
+        var autocorrect = engine(FakeChecker(words: ["nicht"], completions: ["nicht": ["Nichte", "nichts"]]))
+        autocorrect.frequency = list
+        let suggestions = autocorrect.suggestions(for: "nicht")
+        XCTAssertEqual(suggestions.best, "nichts")
+        XCTAssertEqual(suggestions.second, "Nichte")
+    }
+
+    /// The keyboard's lists as checked in: the format reads and holds the common words.
+    func testTheCheckedInListsHoldCommonWordsAndPairs() throws {
+        let folder = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+            .deletingLastPathComponent().appendingPathComponent("Keyboard")
+        let read = { (name: String) in
+            try String(contentsOf: folder.appendingPathComponent(name), encoding: .utf8)
+        }
+        let checkedIn = WordFrequency(
+            words: try read("wortschatz-de.txt"), pairs: try read("wortschatz-de-pairs.txt"))
+        XCTAssertGreaterThan(checkedIn.count("und"), 1000)
+        XCTAssertGreaterThan(checkedIn.count("ist", after: "das"), 1000)
+    }
+
+    /// Words the list holds are words people write: space keeps a correct
+    /// "ich helfe", "du warst", "der Bär", "es half" (counts as in the list).
+    func testAListedKnownWordIsNotReplacedOnSpace() {
+        var autocorrect = engine(FakeChecker(words: ["helfe", "warst", "Bär", "half"]))
+        autocorrect.frequency = WordFrequency(
+            words: "helfe\t49\nHilfe\t4425\nhelfen\t4107\nwarst\t36\nwirst\t372\n"
+                + "Bär\t46\nBar\t229\nhalf\t49\nHalt\t377\n",
+            pairs: "ich Hilfe\t20\ndu warst\t14\ndu wirst\t91\nder Bar\t13\nes halt\t12\n")
+        for (previous, word) in [("ich", "helfe"), ("du", "warst"), ("der", "Bär"), ("es", "half")] {
+            let suggestions = autocorrect.suggestions(for: word, previous: previous)
+            XCTAssertFalse(
+                suggestions.replacesOnSpace,
+                "Space turns “\(previous) \(word)” into “\(previous) \(suggestions.best ?? "")”")
+        }
+    }
+
+    /// Two glued words are still split with the list ("ihrein" → "ihr ein"),
+    /// not beaten by a common word farther away ("ihren").
+    func testAGluedPairIsStillSplitWithTheWordList() {
+        var autocorrect = engine(FakeChecker(words: ["ihr", "ein"]))
+        autocorrect.frequency = WordFrequency(
+            words: "ihr\t19741\nein\t101858\nihren\t14394\n", pairs: "ihr ein\t69\n")
+        let suggestions = autocorrect.suggestions(for: "ihrein")
+        XCTAssertEqual(suggestions.best, "ihr ein")
+        XCTAssertTrue(suggestions.replacesOnSpace)
+    }
+
+    /// An own word keeps its distance whatever the typed capital ("Mpin" → "Moin").
+    func testAnOwnWordKeepsItsDistanceAtASentenceStart() {
+        var autocorrect = engine(FakeChecker())
+        autocorrect.ownWords = ["moin"]
+        autocorrect.frequency = WordFrequency(words: "mein\t20\n", pairs: "")
+        XCTAssertEqual(autocorrect.suggestions(for: "mpin").best, "moin")
+        XCTAssertEqual(autocorrect.suggestions(for: "Mpin").best, "Moin")
+    }
+
+    /// A neighbour slip in one word is not split into two words the list
+    /// never holds together ("dieder" → "dieser", not "die der").
+    func testASlipIsNotSplitIntoTwoCommonWords() {
+        var autocorrect = engine(FakeChecker(words: ["die", "der"], guesses: ["dieder": ["dieser"]]))
+        autocorrect.frequency = WordFrequency(words: "die\t537584\nder\t484356\ndieser\t19480\n", pairs: "")
+        XCTAssertEqual(autocorrect.suggestions(for: "dieder").best, "dieser")
+    }
+
+    /// "sega" gets "mega", not the abbreviation "SEA".
+    func testNearWordsLeaveOutAbbreviations() {
+        let frequency = WordFrequency(words: "SEA\t60\nmega\t27\n", pairs: "")
+        XCTAssertEqual(frequency.nearby("sega"), ["mega"])
+    }
+
+    /// A word the list mostly writes in capitals stays a near word in its
+    /// usual spelling ("GRÜNDET" 93, "gründet" 86 in the list).
+    func testNearWordsKeepAWordTheListMostlyShouts() {
+        let frequency = WordFrequency(words: "GRÜNDET\t93\ngründet\t86\n", pairs: "")
+        XCTAssertEqual(frequency.nearby("grümdet"), ["gründet"])
+    }
+
+    /// "ich" does not offer "ich's" or "ich’s".
+    func testACompletionIsNotAClippedForm() {
+        let autocorrect = engine(FakeChecker(words: ["ich"], completions: ["ich": ["ich's", "ich’s", "ichbezog"]]))
+        let suggestions = autocorrect.suggestions(for: "ich")
+        XCTAssertEqual(suggestions.best, "ichbezog")
+        XCTAssertNil(suggestions.second)
+    }
+
+    func testThePreviousWordKeepsItsHyphen() {
+        XCTAssertEqual(Autocorrect.previousWord(before: "per E-Mail sn"), "E-Mail")
+    }
+
+    /// A two-letter part is often a slip ("dien" for "dein", not "di en"):
+    /// offered, but space does not split.
+    func testASplitWithATwoLetterPartIsOnlyOffered() {
+        let checker = FakeChecker(words: ["di", "en"], guesses: ["dien": ["dein"]])
+        let suggestions = engine(checker).suggestions(for: "dien")
+        XCTAssertEqual(suggestions.best, "dein")
+        XCTAssertEqual(suggestions.second, "di en")
+    }
+
+    /// A capitalised word may be a noun compound iOS does not know: the split
+    /// is offered, but space keeps the word.
+    func testACapitalisedGluedWordIsOnlyOffered() {
+        let checker = FakeChecker(words: ["haus", "boot"])
+        let suggestions = engine(checker).suggestions(for: "Hausboot")
+        XCTAssertEqual(suggestions.best, "Haus boot")
         XCTAssertFalse(suggestions.replacesOnSpace)
     }
 

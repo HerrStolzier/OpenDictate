@@ -37,3 +37,18 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## Wortschatz Leipzig
+
+`wortschatz-de.txt` and `wortschatz-de-pairs.txt` are trimmed by
+`scripts/wortschatz.py` from the corpus `deu-de_web_2021_1M` of the Leipzig
+Corpora Collection (Universität Leipzig, https://wortschatz.uni-leipzig.de),
+downloaded on 25 November 2026 from
+https://downloads.wortschatz-leipzig.de/corpora/deu-de_web_2021_1M.tar.gz
+(SHA-256 `d04ad49440131fa9b8cf96d097513142f44f3cc3c4b4fef5b69841827bb63324`).
+The corpora are licensed under Creative Commons Attribution (CC BY), see
+https://wortschatz.uni-leipzig.de/en/usage.
+
+D. Goldhahn, T. Eckart & U. Quasthoff: Building Large Monolingual Dictionaries
+at the Leipzig Corpora Collection: From 100 to 200 Languages. In: Proceedings
+of the 8th International Language Resources and Evaluation (LREC 2012), 2012.
