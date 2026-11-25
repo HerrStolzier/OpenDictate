@@ -22,12 +22,12 @@
         }
       }
     },
-    "Keeps the microphone ready for the OpenDictate keyboard for the time set in the app.": {
+    "Keeps the microphone ready for the OpenDictate keyboard for the time set in the app. Run it again to turn the microphone off.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hält das Mikrofon für die OpenDictate-Tastatur so lange bereit, wie in der App eingestellt."
+            "value": "Hält das Mikrofon für die OpenDictate-Tastatur so lange bereit, wie in der App eingestellt. Nochmal ausführen schaltet es aus."
           }
         }
       }

@@ -85,8 +85,16 @@ final class KeyboardViewController: UIInputViewController {
         super.viewWillAppear(animated)
         assistant.loadModel(hasFullAccess: hasFullAccess)
         rows.model = assistant.model
+        rows.bubbleText = { [weak self] value in self?.shifted(value) ?? value }
         updateShiftForContext()
         refresh()
+        startPolling()
+    }
+
+    /// Reads the app's state four times a second, but only while something
+    /// runs or waits; the app's notifications wake it again.
+    private func startPolling() {
+        guard poll == nil else { return }
         poll = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.refresh() }
         }
@@ -103,6 +111,7 @@ final class KeyboardViewController: UIInputViewController {
         assistant.saveModel()
         deleteRepeat?.invalidate()
         deleteRepeat = nil
+        rows.hideBubble()
         poll?.invalidate()
         poll = nil
         super.viewWillDisappear(animated)
@@ -126,13 +135,21 @@ final class KeyboardViewController: UIInputViewController {
         rows.distribution = .fill
         rows.spacing = 8
         rows.translatesAutoresizingMaskIntoConstraints = false
+        // The key area reaches the keyboard's edges, so a tap in the margin
+        // still finds the key next to it; the keys keep their inset.
+        // iOS hands a keyboard no touches where its pixels are fully clear;
+        // a barely visible tint makes the gaps and margins touchable.
+        rows.backgroundColor = UIColor.black.withAlphaComponent(0.002)
+        rows.isLayoutMarginsRelativeArrangement = true
+        rows.layoutMargins = UIEdgeInsets(top: 6, left: 3, bottom: 4, right: 3)
         view.addSubview(rows)
         NSLayoutConstraint.activate([
-            rows.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 3),
-            rows.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -3),
-            rows.topAnchor.constraint(equalTo: view.topAnchor, constant: 6),
-            rows.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -4)
+            rows.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            rows.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            rows.topAnchor.constraint(equalTo: view.topAnchor),
+            rows.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+        rows.onCharacter = { [weak self] value, tap in self?.typeCharacter(value, tap: tap) }
 
         statusLabel.font = .systemFont(ofSize: 13, weight: .medium)
         statusLabel.textColor = .secondaryLabel
@@ -175,6 +192,7 @@ final class KeyboardViewController: UIInputViewController {
         top.layoutMargins = UIEdgeInsets(top: 0, left: 6, bottom: 0, right: 3)
         rows.addArrangedSubview(top)
         topRow = top
+        rows.topRow = top
         rebuildKeys()
     }
 
@@ -187,7 +205,8 @@ final class KeyboardViewController: UIInputViewController {
             row.removeFromSuperview()
         }
         letterButtons = []
-        rows.letterKeys = [:]
+        rows.characterKeys = [:]
+        rows.allKeys = []
         switch layout {
         case .letters:
             addRow(row("qwertzuiopü"))
@@ -223,14 +242,11 @@ final class KeyboardViewController: UIInputViewController {
         letters.distribution = .fillEqually
         for character in characters {
             let value = String(character)
+            // Touches go to the key area (rollover, bubble); this action is VoiceOver's.
             let button = key(value, identifier: "openDictate.key.\(value)") { [weak self] in
-                guard let self else { return }
-                if layout == .letters, let tap = rows.lastTap(on: value) {
-                    assistant.tapped(key: value, x: tap.x, y: tap.y)
-                }
-                type(value)
+                self?.typeCharacter(value, tap: nil)
             }
-            rows.letterKeys[value] = button
+            rows.characterKeys[value] = button
             letterButtons.append((button, value))
             letters.addArrangedSubview(button)
         }
@@ -278,6 +294,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func deleteOnce() {
+        lastShiftTap = 0
         assistant.deleteBackward(textDocumentProxy)
         updateShiftForContext()
         updateSuggestions()
@@ -285,12 +302,35 @@ final class KeyboardViewController: UIInputViewController {
 
     private func shiftKey() -> UIButton {
         let shift = key("⇧", identifier: "openDictate.shift", system: true) { [weak self] in
-            guard let self else { return }
-            isShifted.toggle()
-            updateLetterTitles()
+            self?.shiftTapped()
         }
         shift.accessibilityLabel = Self.pick("Shift", "Umschalt")
+        shiftButton = shift
         return shift
+    }
+
+    /// Caps lock: shift twice in quick succession, as on Apple's keyboard.
+    private var capsLocked = false
+    private weak var shiftButton: UIButton?
+    private var lastShiftTap: TimeInterval = 0
+    private static let capsLockInterval: TimeInterval = 0.35
+
+    /// A single tap acts at once; only a second quick one locks.
+    private func shiftTapped() {
+        let time = now
+        if capsLocked {
+            capsLocked = false
+            isShifted = false
+        } else if time - lastShiftTap < Self.capsLockInterval {
+            // The second of two quick taps locks, whatever the first did: at a
+            // sentence start the first one turned the automatic capital off.
+            capsLocked = true
+            isShifted = true
+        } else {
+            isShifted.toggle()
+        }
+        lastShiftTap = time
+        updateLetterTitles()
     }
 
     private func bottomRow() -> UIStackView {
@@ -356,13 +396,33 @@ final class KeyboardViewController: UIInputViewController {
         tap.require(toFail: hold)
         period.addGestureRecognizer(hold)
         period.addGestureRecognizer(tap)
+        // The bubble shows the period while the key is down and the comma once it is held.
+        period.addTarget(self, action: #selector(periodDown(_:)), for: .touchDown)
+        period.addTarget(self, action: #selector(periodUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+        periodHold = hold
         return period
     }
 
-    @objc private func periodTapped() { type(".") }
+    /// The period key's hold, so cancelling its touch for the hold keeps the comma bubble.
+    private weak var periodHold: UILongPressGestureRecognizer?
+
+    @objc private func periodDown(_ period: UIButton) { rows.showBubble(".", over: period) }
+
+    @objc private func periodUp() {
+        // A recognised hold cancels the button's touch; the comma bubble stays until the hold ends.
+        if let periodHold, [.began, .changed].contains(periodHold.state) { return }
+        rows.hideBubble()
+    }
+
+    @objc private func periodTapped() {
+        rows.hideBubble()
+        type(".")
+    }
 
     /// Where the last cursor step was taken, along the space bar.
     private var slideAnchor: CGFloat?
+    /// Whether this hold moved the cursor; a hold that did not is a space.
+    private var slid = false
     private static let slideStep: CGFloat = 9
 
     @objc private func spaceSlid(_ recognizer: UILongPressGestureRecognizer) {
@@ -370,17 +430,25 @@ final class KeyboardViewController: UIInputViewController {
         switch recognizer.state {
         case .began:
             slideAnchor = x
+            slid = false
         case .changed:
             guard var anchor = slideAnchor else { return }
             while x - anchor >= Self.slideStep {
                 textDocumentProxy.adjustTextPosition(byCharacterOffset: 1)
                 anchor += Self.slideStep
+                slid = true
             }
             while anchor - x >= Self.slideStep {
                 textDocumentProxy.adjustTextPosition(byCharacterOffset: -1)
                 anchor -= Self.slideStep
+                slid = true
             }
             slideAnchor = anchor
+        case .ended where !slid:
+            // Held without sliding: still a space, as a slow tap is.
+            slideAnchor = nil
+            assistant.space(textDocumentProxy)
+            afterInput()
         default:
             slideAnchor = nil
             assistant.typedOther()
@@ -389,8 +457,15 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     @objc private func periodHeld(_ recognizer: UILongPressGestureRecognizer) {
-        guard recognizer.state == .began else { return }
-        type(",")
+        switch recognizer.state {
+        case .began:
+            if let period = recognizer.view as? UIButton { rows.showBubble(",", over: period) }
+            type(",")
+        case .changed:
+            break
+        default:
+            rows.hideBubble()
+        }
     }
 
     private func key(_ title: String, identifier: String, system: Bool = false, action: @escaping () -> Void)
@@ -410,7 +485,18 @@ final class KeyboardViewController: UIInputViewController {
         let button = UIButton(configuration: configuration)
         button.accessibilityIdentifier = identifier
         button.addAction(UIAction { _ in action() }, for: .touchUpInside)
+        // Rollover with system keys too: a letter still held is typed before the space.
+        button.addAction(UIAction { [weak self] _ in self?.rows.commitHeld() }, for: .touchDown)
+        rows.allKeys.append(button)
         return button
+    }
+
+    /// A character key's tap; `tap` is where it landed, for Tippen lernen.
+    private func typeCharacter(_ value: String, tap: (x: Double, y: Double)?) {
+        if layout == .letters, let tap {
+            assistant.tapped(key: value, x: tap.x, y: tap.y)
+        }
+        type(value)
     }
 
     /// White on light, light gray on dark, like the system keyboard.
@@ -420,7 +506,7 @@ final class KeyboardViewController: UIInputViewController {
 
     private func type(_ value: String) {
         insert(shifted(value))
-        if isShifted, layout == .letters {
+        if isShifted, !capsLocked, layout == .letters {
             isShifted = false
             updateLetterTitles()
         }
@@ -433,13 +519,34 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func afterInput() {
+        // Two taps on shift lock capitals only when nothing came between them.
+        lastShiftTap = 0
         updateShiftForContext()
-        updateSuggestions()
+        scheduleSuggestions()
     }
 
     // MARK: Suggestions
 
+    private var suggestionsScheduled = false
+    /// The text the strip was last built for; unchanged text keeps the strip.
+    private var suggestedFor: String?
+
+    /// The letter shows first; the strip follows once the key's work is done,
+    /// once for several quick keys.
+    private func scheduleSuggestions() {
+        guard !suggestionsScheduled else { return }
+        suggestionsScheduled = true
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            suggestionsScheduled = false
+            updateSuggestions()
+        }
+    }
+
     private func updateSuggestions() {
+        let context = textDocumentProxy.documentContextBeforeInput ?? ""
+        guard context != suggestedFor else { return }
+        suggestedFor = context
         let suggestions = assistant.refresh(textDocumentProxy)
         for view in strip.arrangedSubviews {
             strip.removeArrangedSubview(view)
@@ -449,7 +556,9 @@ final class KeyboardViewController: UIInputViewController {
             renderTop()
             return
         }
-        var slots: [(String, String, Bool)] = [("„\(suggestions.typed)“", suggestions.typed, false)]
+        // As on Apple's keyboard, quotes mark the typed word only when space would replace it.
+        let typedTitle = suggestions.replacesOnSpace ? "„\(suggestions.typed)“" : suggestions.typed
+        var slots: [(String, String, Bool)] = [(typedTitle, suggestions.typed, false)]
         if let best = suggestions.best { slots.append((best, best, suggestions.replacesOnSpace)) }
         if let second = suggestions.second { slots.append((second, second, false)) }
         for (index, slot) in slots.enumerated() {
@@ -510,14 +619,19 @@ final class KeyboardViewController: UIInputViewController {
     private func updateShiftForContext() {
         let before = textDocumentProxy.documentContextBeforeInput ?? ""
         let trimmed = before.trimmingCharacters(in: .whitespaces)
-        let shift = trimmed.isEmpty || trimmed.hasSuffix(".") || trimmed.hasSuffix("?") || trimmed.hasSuffix("!")
-        guard shift != isShifted, textDocumentProxy.autocapitalizationType != UITextAutocapitalizationType.none
+        // A new line starts a sentence too.
+        let shift =
+            trimmed.isEmpty || trimmed.hasSuffix("\n") || trimmed.hasSuffix(".") || trimmed.hasSuffix("?")
+            || trimmed.hasSuffix("!")
+        guard !capsLocked, shift != isShifted,
+            textDocumentProxy.autocapitalizationType != UITextAutocapitalizationType.none
         else { return }
         isShifted = shift
         updateLetterTitles()
     }
 
     private func updateLetterTitles() {
+        shiftButton?.configuration?.title = capsLocked ? "⇪" : "⇧"
         for (button, value) in letterButtons {
             button.configuration?.title = shifted(value)
         }
@@ -626,13 +740,33 @@ final class KeyboardViewController: UIInputViewController {
         }
         let state = displayedState()
         render(state, snapshot: snapshot)
+        let idle = state == .off && jobID == nil && pendingState == nil && offer == nil && note == nil
+        if idle {
+            poll?.invalidate()
+            poll = nil
+        } else if isShown {
+            startPolling()
+        }
     }
 
     /// The dictation state last shown, so typing never hides "Listening".
     private var shownState = KeyboardSessionState.off
 
+    /// What the key and status showed last; the same again draws nothing.
+    private var rendered: (state: KeyboardSessionState, status: String?)?
+
     private func render(_ state: KeyboardSessionState, snapshot: KeyboardSnapshot) {
         shownState = state
+        let status = note.flatMap { $0.until > now ? $0.text : nil } ?? statusText(state, snapshot: snapshot)
+        #if DEBUG
+            statusLabel.accessibilityValue =
+                "state=\(state.rawValue);latencyMs=\(lastLatency ?? -1);memMB=\(Self.memoryMB())"
+        #endif
+        if let rendered, rendered.state == state, rendered.status == status {
+            renderTop()
+            return
+        }
+        rendered = (state, status)
         var configuration = dictateButton.configuration ?? .filled()
         let title: String
         let symbol: String
@@ -658,20 +792,12 @@ final class KeyboardViewController: UIInputViewController {
         dictateButton.configuration = configuration
         dictateButton.isEnabled = state != .writing
 
-        if let note, note.until > now {
-            statusLabel.text = note.text
-        } else {
-            note = nil
-            statusLabel.text = status(state, snapshot: snapshot)
-        }
+        if note.map({ $0.until <= now }) ?? false { note = nil }
+        statusLabel.text = status
         renderTop()
-        #if DEBUG
-            statusLabel.accessibilityValue =
-                "state=\(state.rawValue);latencyMs=\(lastLatency ?? -1);memMB=\(Self.memoryMB())"
-        #endif
     }
 
-    private func status(_ state: KeyboardSessionState, snapshot: KeyboardSnapshot) -> String {
+    private func statusText(_ state: KeyboardSessionState, snapshot: KeyboardSnapshot) -> String {
         guard hasFullAccess else {
             return Self.pick("Dictation needs Full Access", "Diktat braucht „Vollen Zugriff“")
         }
@@ -699,49 +825,223 @@ final class KeyboardViewController: UIInputViewController {
     #endif
 }
 
-/// The keys' stack. With Tippen lernen on, a touch between keys goes to the
-/// key whose learned centre (`TypingModel`) is nearest, which moves each key's
-/// touch area a little towards where the person really taps it.
+/// The keys' stack. It takes the touches on character keys itself, so two
+/// thumbs type in the order they went down (rollover: a key going down types
+/// the one still held), a held key follows the finger, and a bubble shows the
+/// key under it. Every point below the top row reaches a key: gaps and the
+/// keyboard's margins go to the nearest one. With Tippen lernen on, a key's
+/// area moves a little towards where the person really taps it
+/// (`TypingModel`). System keys keep their own buttons and gestures, and every
+/// key stays a button for VoiceOver.
 final class KeyArea: UIStackView {
     var model: TypingModel?
-    var letterKeys: [String: UIButton] = [:]
-    private var touch: (point: CGPoint, key: String)?
+    /// Keys that type a character, by that character.
+    var characterKeys: [String: UIButton] = [:]
+    /// Every key below the top row, character or not.
+    var allKeys: [UIButton] = []
+    /// The status, suggestions and dictation key: never reached from a gap.
+    weak var topRow: UIView?
+    var onCharacter: ((String, (x: Double, y: Double)?) -> Void)?
+    var bubbleText: ((String) -> String)?
 
-    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        let hit = super.hitTest(point, with: event)
-        let hitKey = letterKeys.first(where: { $0.value === hit })?.key
-        // Without the model only a key's own area counts; with it, gaps too.
-        guard hitKey != nil || (model != nil && !(hit is UIButton)) else { return hit }
-        var chosen = hitKey ?? ""
-        if let model {
-            var best = Double.infinity
-            for (key, button) in letterKeys {
-                let frame = button.convert(button.bounds, to: self)
-                // Inside a key its neighbours compete; in a gap only keys right next to it.
-                let reach =
-                    hitKey != nil
-                    ? CGSize(width: frame.width / 2, height: frame.height / 2) : CGSize(width: 4, height: 4)
-                guard frame.insetBy(dx: -reach.width, dy: -reach.height).contains(point) else { continue }
-                let offset = Self.offset(of: point, in: frame)
-                let distance = model.distance(fromKey: key, x: offset.x, y: offset.y)
-                if distance < best {
-                    best = distance
-                    chosen = key
-                }
-            }
-        }
-        guard let button = letterKeys[chosen] else { return hit }
-        touch = (point, chosen)
-        return button
+    private struct Held {
+        var key: String
+        var point: CGPoint
     }
 
-    /// Where the last touch landed on `key`, from its centre in key sizes.
-    func lastTap(on key: String) -> (x: Double, y: Double)? {
-        guard let touch, touch.key == key, let button = letterKeys[key] else { return nil }
-        return Self.offset(of: touch.point, in: button.convert(button.bounds, to: self))
+    private var held: [ObjectIdentifier: Held] = [:]
+    /// Touches in the order they went down, for rollover and the bubble.
+    private var order: [ObjectIdentifier] = []
+    private let bubble = KeyBubble()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        isMultipleTouchEnabled = true
+        bubble.isHidden = true
+        addSubview(bubble)
+    }
+
+    required init(coder: NSCoder) { fatalError("not used") }
+
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        guard self.point(inside: point, with: event) else { return nil }
+        let hit = super.hitTest(point, with: event)
+        if let topRow, point.y < topRow.frame.maxY { return hit }
+        let underPoint = allKeys.first { $0 === hit }
+        // Only keys, gaps and margins: the emoji grid and the like keep their touches.
+        guard underPoint != nil || hit === self || hit is UIStackView else { return hit }
+        // A gap nearer to a row without keys (the emoji panel) belongs to that row.
+        if underPoint == nil, let row = nearestRow(to: point),
+            !allKeys.contains(where: { $0.isDescendant(of: row) })
+        {
+            return hit
+        }
+        if character(at: point, under: underPoint) != nil { return self }
+        if let underPoint { return underPoint }
+        return nearestKey(to: point) ?? hit
+    }
+
+    /// The character key a point belongs to, or nil when the point is on, or
+    /// nearer to, a system key. Among character keys the nearest wins, or with
+    /// Tippen lernen the one whose learned centre is nearest.
+    private func character(at point: CGPoint, under underPoint: UIButton?) -> String? {
+        if let underPoint, !isCharacterKey(underPoint) { return nil }
+        if underPoint == nil, let nearest = nearestKey(to: point), !isCharacterKey(nearest) { return nil }
+        var best: (key: String, score: Double)?
+        for (key, button) in characterKeys {
+            let frame = frame(of: button)
+            guard frame.insetBy(dx: -frame.width / 2, dy: -frame.height / 2).contains(point) else { continue }
+            let score: Double
+            if let model {
+                let offset = Self.offset(of: point, in: frame)
+                score = model.distance(fromKey: key, x: offset.x, y: offset.y)
+            } else {
+                score = Double(distance(from: point, to: frame))
+            }
+            if let current = best, current.score <= score { continue }
+            best = (key, score)
+        }
+        return best?.key
+    }
+
+    private func isCharacterKey(_ button: UIButton) -> Bool {
+        characterKeys.values.contains { $0 === button }
+    }
+
+    private func nearestRow(to point: CGPoint) -> UIView? {
+        arrangedSubviews.filter { !$0.isHidden && $0 !== topRow }.min {
+            distance(from: point, to: frame(of: $0)) < distance(from: point, to: frame(of: $1))
+        }
+    }
+
+    private func nearestKey(to point: CGPoint) -> UIButton? {
+        allKeys.min { distance(from: point, to: frame(of: $0)) < distance(from: point, to: frame(of: $1)) }
+    }
+
+    // MARK: Touches on character keys
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches {
+            let point = touch.location(in: self)
+            // The status row's label passes its touches on; they type nothing.
+            if let topRow, point.y < topRow.frame.maxY { continue }
+            guard let key = character(at: point, under: nil) else { continue }
+            // Rollover: a key going down types every key still held first.
+            for id in order { commit(id) }
+            let id = ObjectIdentifier(touch)
+            held[id] = Held(key: key, point: point)
+            order.append(id)
+        }
+        showBubble()
+    }
+
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches {
+            let id = ObjectIdentifier(touch)
+            guard held[id] != nil else { continue }
+            let point = touch.location(in: self)
+            // The key follows the finger, as on Apple's keyboard.
+            if let key = character(at: point, under: nil) { held[id]?.key = key }
+            held[id]?.point = point
+        }
+        showBubble()
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches { commit(ObjectIdentifier(touch)) }
+        showBubble()
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches {
+            let id = ObjectIdentifier(touch)
+            held[id] = nil
+            order.removeAll { $0 == id }
+        }
+        showBubble()
+    }
+
+    /// Types every character still held, for a system key going down.
+    func commitHeld() {
+        for id in order { commit(id) }
+        showBubble()
+    }
+
+    private func commit(_ id: ObjectIdentifier) {
+        guard let touch = held.removeValue(forKey: id) else { return }
+        order.removeAll { $0 == id }
+        let tap = characterKeys[touch.key].map { Self.offset(of: touch.point, in: frame(of: $0)) }
+        onCharacter?(touch.key, tap)
+    }
+
+    /// A key with its own gestures that shows a bubble while down, such as the period key.
+    private var ownBubble: (text: String, key: UIButton)?
+
+    /// Shows `text` over `button` until `hideBubble()`; a held character key's bubble comes first.
+    func showBubble(_ text: String, over button: UIButton) {
+        ownBubble = (text, button)
+        showBubble()
+    }
+
+    func hideBubble() {
+        ownBubble = nil
+        showBubble()
+    }
+
+    private func showBubble() {
+        if let id = order.last, let touch = held[id], let button = characterKeys[touch.key] {
+            bubble.show(bubbleText?(touch.key) ?? touch.key, over: frame(of: button))
+        } else if let ownBubble, ownBubble.key.window != nil {
+            bubble.show(ownBubble.text, over: frame(of: ownBubble.key))
+        } else {
+            bubble.isHidden = true
+            return
+        }
+        bringSubviewToFront(bubble)
+    }
+
+    // MARK: Geometry
+
+    private func frame(of view: UIView) -> CGRect { view.convert(view.bounds, to: self) }
+
+    private func distance(from point: CGPoint, to rect: CGRect) -> CGFloat {
+        let dx = max(rect.minX - point.x, 0, point.x - rect.maxX)
+        let dy = max(rect.minY - point.y, 0, point.y - rect.maxY)
+        return (dx * dx + dy * dy).squareRoot()
     }
 
     private static func offset(of point: CGPoint, in frame: CGRect) -> (x: Double, y: Double) {
         (Double((point.x - frame.midX) / frame.width), Double((point.y - frame.midY) / frame.height))
+    }
+}
+
+/// The enlarged character over a held key, as on Apple's iPhone keyboard.
+private final class KeyBubble: UIView {
+    private let label = UILabel()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        isUserInteractionEnabled = false
+        isAccessibilityElement = false
+        layer.cornerRadius = 8
+        layer.shadowOpacity = 0.25
+        layer.shadowRadius = 3
+        layer.shadowOffset = CGSize(width: 0, height: 1)
+        backgroundColor = UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 0.42, alpha: 1) : .white }
+        label.font = .systemFont(ofSize: 34)
+        label.textAlignment = .center
+        label.textColor = .label
+        addSubview(label)
+    }
+
+    required init?(coder: NSCoder) { fatalError("not used") }
+
+    func show(_ text: String, over key: CGRect) {
+        label.text = text
+        let width = key.width * 1.5
+        let height = key.height * 1.3
+        frame = CGRect(x: key.midX - width / 2, y: key.minY - height - 4, width: width, height: height)
+        label.frame = bounds
+        isHidden = false
     }
 }

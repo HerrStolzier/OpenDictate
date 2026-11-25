@@ -39,10 +39,55 @@ final class AutocorrectTests: XCTestCase {
         XCTAssertEqual(suggestions.best, "Hause")
     }
 
+    /// At a sentence start "Ab" offers "Aber" (Basti, 24 November), though
+    /// iOS completes only the lower-case "ab".
+    func testACapitalisedPrefixIsCompleted() {
+        let checker = FakeChecker(words: ["Ab"], completions: ["ab": ["aber", "abend"]])
+        let suggestions = engine(checker).suggestions(for: "Ab")
+        XCTAssertEqual(suggestions.best, "Aber")
+        XCTAssertEqual(suggestions.second, "Abend")
+        XCTAssertFalse(suggestions.replacesOnSpace)
+    }
+
+    /// A word both lists hold ("Abend" for "Ab", "abend" for "ab") shows
+    /// once, and "Aber" still gets a slot (Basti, 24 November).
+    func testACompletionInBothListsShowsOnce() {
+        let checker = FakeChecker(words: ["Ab"], completions: ["Ab": ["Abend"], "ab": ["abend", "aber"]])
+        let suggestions = engine(checker).suggestions(for: "Ab")
+        XCTAssertNotEqual(suggestions.best, suggestions.second, "The strip shows the same word twice")
+        XCTAssertTrue([suggestions.best, suggestions.second].contains("Aber"))
+        XCTAssertFalse(suggestions.replacesOnSpace)
+    }
+
+    /// "ab" is a word, so "Ab" at a sentence start is one too: completed,
+    /// never "corrected".
+    func testASentenceStartCapitalKeepsAWordKnown() {
+        let checker = FakeChecker(words: ["ab"], guesses: ["Ab": ["An"]], completions: ["ab": ["aber"]])
+        let suggestions = engine(checker).suggestions(for: "Ab")
+        XCTAssertEqual(suggestions.best, "Aber")
+        XCTAssertFalse(suggestions.replacesOnSpace)
+    }
+
     func testOwnWordsStayAsTyped() {
         var autocorrect = engine(FakeChecker(guesses: ["Basti": ["Bast"]]))
         autocorrect.ownWords = ["Basti"]
         XCTAssertFalse(autocorrect.suggestions(for: "Basti").replacesOnSpace)
+    }
+
+    /// A contact's name with its first two letters swapped or its first one
+    /// missing is still suggested ("aMx" → "Max", "asti" → "Basti").
+    func testAnOwnWordWithASlipOnTheFirstLetterIsSuggested() {
+        var autocorrect = engine(FakeChecker())
+        autocorrect.ownWords = ["Max", "Basti"]
+        XCTAssertEqual(autocorrect.suggestions(for: "aMx").best, "Max")
+        XCTAssertEqual(autocorrect.suggestions(for: "asti").best, "Basti")
+    }
+
+    /// A name starting with an umlaut, typed without it, is still found.
+    func testAnOwnWordWithAnUmlautTypedWithoutItIsSuggested() {
+        var autocorrect = engine(FakeChecker())
+        autocorrect.ownWords = ["Ünal"]
+        XCTAssertEqual(autocorrect.suggestions(for: "Unal").best, "Ünal")
     }
 
     func testEqualGuessesKeepTheDictionarysOrder() {
@@ -100,6 +145,25 @@ final class AutocorrectTests: XCTestCase {
         XCTAssertEqual(suggestions.best, "Basti")
     }
 
+    /// README: names from Contacts one slip away are suggested; the slip can
+    /// be on the first letter too ("v" sits next to "b": "Vasti" → "Basti").
+    func testANearOwnWordWithASlipOnTheFirstLetterIsSuggested() {
+        var autocorrect = engine(FakeChecker(guesses: ["Vasti": ["Vase"]]))
+        autocorrect.ownWords = ["Basti"]
+        XCTAssertEqual(autocorrect.suggestions(for: "Vasti").best, "Basti")
+    }
+
+    /// `TypingAssistant.load` adds Contacts' names one at a time, on the main
+    /// thread at every showing; a big address book must not hold up the first
+    /// key. 5000: about 2000 contacts plus kept words.
+    func testAddingManyOwnWordsOneByOneIsQuick() {
+        var autocorrect = engine(FakeChecker())
+        let start = Date()
+        for index in 0..<5000 { autocorrect.ownWords.insert("Name\(index)") }
+        let seconds = Date().timeIntervalSince(start)
+        XCTAssertLessThan(seconds, 0.25, "Adding 5000 own words one by one took \(seconds) s")
+    }
+
     /// A name from Contacts or a word kept at a sentence start ("Sebas"),
     /// typed later in lower case, is still the person's own word.
     func testAnOwnWordTypedInLowerCaseIsNotReplaced() {
@@ -131,6 +195,24 @@ final class AutocorrectTests: XCTestCase {
         let checker = FakeChecker(guesses: ["Hsllo": ["Hello", "Hallo"]])
         let suggestions = engine(checker).suggestions(for: "Hsllo", slips: [[], ["a"], [], [], []])
         XCTAssertEqual(suggestions.best, "Hallo")
+    }
+
+    /// iOS's own German dictionary: "Ab" at a sentence start offers "Aber"
+    /// (Basti, 24 November) and is never replaced. The keyboard asks once
+    /// before the first key (`TypingAssistant`), so the test does too.
+    func testGermanDictionaryCompletesACapitalisedPrefix() throws {
+        guard let german = UITextChecker.availableLanguages.first(where: { $0.hasPrefix("de") }) else {
+            throw XCTSkip("No German spelling dictionary here")
+        }
+        var autocorrect = Autocorrect()
+        autocorrect.language = german
+        _ = autocorrect.checker.completions(for: "ab", language: german)
+        let suggestions = autocorrect.suggestions(for: "Ab")
+        XCTAssertTrue(
+            [suggestions.best, suggestions.second].contains("Aber"),
+            "The strip shows \(suggestions.best ?? "-") and \(suggestions.second ?? "-")")
+        XCTAssertNotEqual(suggestions.best, suggestions.second)
+        XCTAssertFalse(suggestions.replacesOnSpace)
     }
 
     /// iOS's own German dictionary, where the simulator has one.

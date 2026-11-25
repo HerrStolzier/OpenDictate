@@ -14,14 +14,19 @@ final class EmojiPanel: UIView, UICollectionViewDataSource, UICollectionViewDele
 
     static let titles = ["🕘", "😀", "🐻", "🍔", "⚽️", "🚗", "💡", "❤️", "🏳️"]
 
+    /// Rows in the grid: as many as fit at about Apple's size (46 pt per
+    /// emoji, as in Hex), at least three. Set before the first layout.
+    private var rows = 3
+
     init() {
         sections = [EmojiRecents.load()] + EmojiCatalog.categories
-        let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal
-        layout.itemSize = CGSize(width: 40, height: 40)
-        layout.minimumLineSpacing = 2
-        layout.minimumInteritemSpacing = 2
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 8)
+        let configuration = UICollectionViewCompositionalLayoutConfiguration()
+        configuration.scrollDirection = .horizontal
+        var rowCount = 3
+        let layout = UICollectionViewCompositionalLayout(
+            sectionProvider: { _, environment in
+                EmojiPanel.section(rows: rowCount, height: environment.container.effectiveContentSize.height)
+            }, configuration: configuration)
         collection = UICollectionView(frame: .zero, collectionViewLayout: layout)
         super.init(frame: .zero)
         collection.backgroundColor = .clear
@@ -30,12 +35,14 @@ final class EmojiPanel: UIView, UICollectionViewDataSource, UICollectionViewDele
         collection.dataSource = self
         collection.delegate = self
         collection.accessibilityIdentifier = "openDictate.emoji"
+        rowsChanged = { rowCount = $0 }
 
         bar.distribution = .fillEqually
         for (index, title) in Self.titles.enumerated() {
-            let button = UIButton(type: .system)
-            button.setTitle(title, for: .normal)
-            button.titleLabel?.font = .systemFont(ofSize: 18)
+            var configuration = UIButton.Configuration.plain()
+            configuration.title = title
+            configuration.background.cornerRadius = 6
+            let button = UIButton(configuration: configuration)
             button.addAction(UIAction { [weak self] _ in self?.jump(to: index) }, for: .touchUpInside)
             bar.addArrangedSubview(button)
         }
@@ -51,24 +58,55 @@ final class EmojiPanel: UIView, UICollectionViewDataSource, UICollectionViewDele
             stack.bottomAnchor.constraint(equalTo: bottomAnchor),
             bar.heightAnchor.constraint(equalToConstant: 28)
         ])
+        markCategory(sections[0].isEmpty ? 1 : 0)
     }
 
     required init?(coder: NSCoder) { fatalError("not used") }
 
-    /// Four rows of emoji in whatever height the keyboard gives the panel.
+    private var rowsChanged: ((Int) -> Void)?
+
     override func layoutSubviews() {
         super.layoutSubviews()
-        guard let layout = collection.collectionViewLayout as? UICollectionViewFlowLayout else { return }
-        let side = max(24, floor((collection.bounds.height - 3 * layout.minimumInteritemSpacing) / 4))
-        if layout.itemSize.height != side {
-            layout.itemSize = CGSize(width: side, height: side)
-            layout.invalidateLayout()
+        let fitting = max(3, Int(collection.bounds.height / 46))
+        if fitting != rows, collection.bounds.height > 0 {
+            rows = fitting
+            rowsChanged?(fitting)
+            collection.collectionViewLayout.invalidateLayout()
+        }
+    }
+
+    /// Square cells in columns of `rows`, filled top down, so a column a
+    /// category leaves half empty keeps its emoji at the top.
+    private static func section(rows: Int, height: CGFloat) -> NSCollectionLayoutSection {
+        let side = floor(height / CGFloat(rows))
+        let item = NSCollectionLayoutItem(
+            layoutSize: .init(widthDimension: .absolute(side), heightDimension: .absolute(side)))
+        let group = NSCollectionLayoutGroup.vertical(
+            layoutSize: .init(widthDimension: .absolute(side), heightDimension: .absolute(side * CGFloat(rows))),
+            repeatingSubitem: item, count: rows)
+        let section = NSCollectionLayoutSection(group: group)
+        section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 8)
+        return section
+    }
+
+    /// The bar shows the category in view.
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let probe = CGPoint(x: scrollView.contentOffset.x + 12, y: scrollView.bounds.height / 2)
+        if let path = collection.indexPathForItem(at: probe) { markCategory(path.section) }
+    }
+
+    private func markCategory(_ section: Int) {
+        for (index, view) in bar.arrangedSubviews.enumerated() {
+            guard let button = view as? UIButton else { continue }
+            button.configuration?.background.backgroundColor = index == section ? .systemGray4 : .clear
+            button.isSelected = index == section
         }
     }
 
     private func jump(to section: Int) {
         guard section < sections.count, !sections[section].isEmpty else { return }
         collection.scrollToItem(at: IndexPath(item: 0, section: section), at: .left, animated: false)
+        markCategory(section)
     }
 
     func numberOfSections(in collectionView: UICollectionView) -> Int { sections.count }
@@ -98,7 +136,6 @@ private final class EmojiCell: UICollectionViewCell {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        label.font = .systemFont(ofSize: 28)
         label.textAlignment = .center
         label.frame = contentView.bounds
         label.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -107,6 +144,17 @@ private final class EmojiCell: UICollectionViewCell {
     }
 
     required init?(coder: NSCoder) { fatalError("not used") }
+
+    /// About four fifths of the cell, as on Apple's emoji keyboard.
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        label.font = .systemFont(ofSize: floor(bounds.height * 0.8))
+    }
+
+    /// The emoji under the finger lights up while it is pressed.
+    override var isHighlighted: Bool {
+        didSet { contentView.backgroundColor = isHighlighted ? .systemGray4 : .clear }
+    }
 
     override var accessibilityLabel: String? {
         get { label.text }
@@ -135,7 +183,12 @@ enum EmojiCatalog {
     /// checked against the emoji font. Sequences are kept.
     static func canDraw(_ emoji: String, with font: CTFont) -> Bool {
         let scalars = emoji.unicodeScalars.filter { $0.value != 0xFE0F }
-        guard scalars.count == 1, let scalar = scalars.first else { return true }
+        guard scalars.count == 1, let scalar = scalars.first else {
+            // A sequence this iOS does not know falls apart into several glyphs.
+            let line = CTLineCreateWithAttributedString(
+                NSAttributedString(string: emoji, attributes: [.font: font]) as CFAttributedString)
+            return CTLineGetGlyphCount(line) == 1
+        }
         var characters = Array(String(scalar).utf16)
         var glyphs = [CGGlyph](repeating: 0, count: characters.count)
         return CTFontGetGlyphsForCharacters(font, &characters, &glyphs, characters.count)

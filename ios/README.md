@@ -231,11 +231,25 @@ App sprechen darf.
    öffnen geht es mit dem Kurzbefehl „Mikro warm halten“ (Aktion der App,
    etwa auf der Aktionstaste oder dreimal Tippen auf die Rückseite); er
    nimmt wie „Diktieren“ im Hintergrund auf und zeigt dafür die
-   Live-Aktivität „Mikro warm“ mit Stopp-Taste.
+   Live-Aktivität „Mikro warm“ mit Stopp-Taste. Nochmal ausführen schaltet
+   das Mikro wieder aus. Für die Rückseite legt man einmal einen eigenen
+   Kurzbefehl mit dieser Aktion an, mit „Beim Ausführen öffnen“ aus.
 
 Die Punkt-Taste liegt links neben der Leertaste; gedrückt halten setzt ein
-Komma. Leertaste halten und seitlich ziehen bewegt den Cursor Zeichen für
-Zeichen. Löschtaste halten löscht weiter, ein Zeichen pro Zehntelsekunde.
+Komma, die Blase über der Taste zeigt dann das Komma. Leertaste halten und
+seitlich ziehen bewegt den Cursor Zeichen für Zeichen; halten ohne Ziehen gibt
+ein Leerzeichen. Löschtaste halten löscht weiter, ein Zeichen pro
+Zehntelsekunde. Umschalten zweimal kurz nacheinander hält die Großbuchstaben
+fest (⇪), einmal löst es; nach einem Zeilenumbruch beginnt ein Satz groß.
+
+Tippgefühl (seit 24. November, nach dem Vorbild von Hex): Jede Stelle unter
+der oberen Zeile trifft eine Taste; Lücken gehen an die nächste Taste, der
+Rand an die äußere. Die Diktiertaste reagiert nur auf ihre sichtbare Fläche.
+Über der gehaltenen Taste zeigt eine Blase den Buchstaben; gleitet der Finger,
+folgt die Taste ihm. Mit zwei Daumen zählt die Reihenfolge des Aufsetzens:
+setzt ein Finger auf, auch auf Leertaste oder Umschalten, wird der noch
+gehaltene Buchstabe sofort geschrieben. Die Statuszeile oben schreibt nichts.
+Die Vorschläge rechnet die Tastatur erst nach dem Buchstaben.
 
 Autokorrektur (Deutsch): Über den Tasten stehen beim Tippen bis zu drei
 Vorschläge: links das Wort wie getippt (Tippen behält es und merkt es sich),
@@ -247,7 +261,7 @@ Nachbartaste zählen weniger als andere Fehler. Ist der beste Vorschlag nah genu
 getippte Wort zurück. Felder, die keine Autokorrektur wollen, sowie Adressen und
 Zahlenfelder bekommen keine. Die Prüfung ist austauschbar (`SpellChecking`).
 
-Tippen lernen (Einstellungen → Tastatur, Standard aus, braucht Vollen
+Tippen lernen (Einstellungen → Tastatur, Standard an, braucht Vollen
 Zugriff): Die Tastatur merkt sich bei jedem Buchstaben, wo auf der Taste er
 getroffen wurde (nur die Stelle, nie den Text); ein Tipp, den Löschen gleich
 zurücknimmt, zählt nicht. Ab 20 Treffern je Taste rückt ihre Trefferfläche um
@@ -260,7 +274,9 @@ Geräte-Backup ausgenommen, außer man schaltet „Gelerntes im Backup sichern�
 entfernt sie, auch wenn die Tastatur gerade offen ist.
 
 Emojis: Die Emoji-Taste neben „123“ öffnet eine Tafel mit „Zuletzt“ und den
-Unicode-Kategorien; Emojis, die das iOS nicht zeichnen kann, fehlen.
+Unicode-Kategorien, so viele Reihen, wie bei etwa 46 pt passen (mindestens
+drei), oben bündig; die Leiste zeigt die Gruppe im Blick, ein gedrücktes Emoji
+leuchtet auf. Emojis und Emoji-Folgen, die das iOS nicht zeichnen kann, fehlen.
 
 Dieser Weg sendet nie etwas, auch wenn für das App-Diktat OpenAI oder ein
 eigener Server eingestellt ist. Eine Übersetzung über OpenAI fällt hier weg.

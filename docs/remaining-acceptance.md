@@ -417,11 +417,30 @@ einen Vorschlag (`testAutocorrectAndEmoji`), Emoji-Tafel, Punkt/Komma
 (`testPeriodKeyTapTypesPeriodAndHoldTypesComma`), Leertaste als Cursor
 (`testSpaceBarSlideMovesTheCursor`), Unit-Tests der Autokorrektur mit Apples
 deutschem Wörterbuch. Am iPhone bestanden (siehe oben). Offen: Kontaktnamen und
-Textersetzungen aus `UILexicon`, Schrittweite der Leertaste nach Gefühl.
+Textersetzungen aus `UILexicon`, Schrittweite der Leertaste nach Gefühl. Seit 24. November ergänzt ein großgeschriebener Wortanfang am Satzbeginn
+auch klein geschriebene Wörter („Ab“ → „Aber“; Unit-Test mit Apples deutschem
+Wörterbuch im Simulator); am iPhone nicht geprüft.
+
+**Tippgefühl (Plan Fassung 4, 24. November):** Im Simulator bestanden:
+Lücken und Rand (`testTapsInGapsAndAtTheEdgeTypeTheNearestKey`), Leertaste
+halten (`testHoldingSpaceWithoutSlidingTypesASpace`), Feststelltaste
+auch am Feldanfang (`testShiftTwiceLocksCapitalsAtTheStart`), Tipps neben der
+Emoji-Leiste schreiben nichts (`testTapsBesideTheEmojiCategoryBarTypeNothing`),
+Emojis und alle übrigen `KeyboardUITests`; 5000 Kontaktnamen laden schnell und
+Tippfehler im ersten Buchstaben finden eigene Wörter (Unit-Tests). Am iPhone 15
+(24. November) dieselben elf `KeyboardUITests` bestanden; die Live-Diktate
+liefen dabei nicht. Von Hand am iPhone bestanden (Basti, 24. November): zwei
+Daumen mit Buchstabe plus Leertaste, Blase über der gehaltenen Taste, Rückseite
+dreimal tippen schaltet „Mikro warm“ ein und wieder aus.
+Ursache der toten Lücken war auch der völlig durchsichtige Hintergrund: iOS
+gibt einer Tastatur dort keine Berührungen. Am iPhone offen: Großschreibung nach Zeilenumbruch, Dauer je Tastendruck im
+Release-Build, Komma-Blase beim Halten der Punkt-Taste, und dass der
+Kurzbefehl „Mikro warm“ nach einem Routenwechsel im Hintergrund (Kopfhörer an
+oder ab) das Mikro neu startet statt es auszuschalten.
 
 **Tippen lernen (23. November):** Unit-Tests bestanden für das Tippmodell
 (Mitte erst ab 20 Treffern, höchstens 0,3 Taste, ungleich gestreute Tasten
-nehmen keiner anderen die Fläche), den gespeicherten Standard „aus“ und das
+nehmen keiner anderen die Fläche), den Standard „an“ (seit 24. November, abschaltbar) und das
 Löschen. Nicht automatisch geprüft (nur im Tastatur-Ziel): dass bei Schalter
 aus nichts gespeichert wird, ein sofort gelöschter Tipp nicht zählt und ein
 Löschen in der App während offener Tastatur nicht überschrieben wird. Offen am

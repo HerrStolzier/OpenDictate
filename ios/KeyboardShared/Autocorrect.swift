@@ -56,7 +56,11 @@ struct Autocorrect {
     /// Text replacements from Settings › General › Keyboard, by what is typed.
     var shortcuts: [String: String] = [:]
     /// Contacts' names and words the person kept: never corrected.
-    var ownWords: Set<String> = []
+    var ownWords: Set<String> = [] {
+        // Contacts arrive one name at a time: only the next lookup rebuilds.
+        didSet { ownIndex = OwnWordIndex() }
+    }
+    private var ownIndex = OwnWordIndex()
 
     /// The word being typed: the letters right before the cursor.
     static func currentWord(before text: String?) -> String {
@@ -71,17 +75,33 @@ struct Autocorrect {
             return Suggestions(typed: word, best: expansion, replacesOnSpace: true)
         }
         let lowered = word.lowercased()
-        let own = ownWords.first { $0.lowercased() == lowered }
-        let known = own != nil || checker.isWord(word, language: language)
+        let own = ownIndex.byLowercase(ownWords)[lowered]
+        // A capital at a sentence start keeps a word known ("Ab" for "ab").
+        let known =
+            own != nil || checker.isWord(word, language: language)
+            || (word != lowered && checker.isWord(lowered, language: language))
         if known {
             // Completions only; a known word is never replaced.
-            let completions = checker.completions(for: word, language: language)
+            // A capital mostly comes from a sentence start, and iOS answers a
+            // capitalised prefix ("Ab") with nouns only or nothing, so the
+            // lower-case one asks first ("ab" → "aber" → "Aber").
+            var seen = Set<String>()
+            let completions =
+                (checker.completions(for: lowered, language: language)
+                + checker.completions(for: word, language: language))
                 .filter { $0.count > word.count }
                 .map { Self.matchingCase($0, typed: word) }
+                .filter { seen.insert($0).inserted }
             return Suggestions(typed: word, best: completions.first, second: completions.dropFirst().first)
         }
         // Own words (Contacts, kept words) one slip away come first, then the dictionary's.
-        let nearOwn = ownWords.filter {
+        // Only words whose first or second letter is the typed one, or a key
+        // around it, are weighed.
+        let initial = lowered.first ?? " "
+        let initials = [initial] + Self.neighbours(of: initial) + (slips.first.map(Array.init) ?? [])
+        let byInitial = ownIndex.byInitial(ownWords)
+        // The index folds umlauts, so "Unal" still finds "Ünal".
+        let nearOwn = Set(initials.flatMap { byInitial[Self.base($0)] ?? [] }).filter {
             abs($0.count - word.count) <= 1 && Self.cost(from: word, to: $0, slips: slips) <= 1
         }
         .sorted()
@@ -145,7 +165,7 @@ struct Autocorrect {
     }
 
     /// "ä" without its dots, so "Mädchen" typed as "Madchen" is a small slip.
-    private static func base(_ c: Character) -> Character {
+    fileprivate static func base(_ c: Character) -> Character {
         switch c {
         case "ä": "a"
         case "ö": "o"
@@ -187,5 +207,34 @@ struct Autocorrect {
             if let index = keys.firstIndex(of: c) { return (row, index) }
         }
         return nil
+    }
+}
+
+/// `Autocorrect.ownWords` by lower case and by first and second letter (umlauts folded), so a key press
+/// never walks the whole list (up to a thousand kept words plus Contacts).
+/// Built on the first lookup after a change.
+@MainActor
+private final class OwnWordIndex {
+    private var lowercase: [String: String]?
+    private var initial: [Character: [String]]?
+
+    func byLowercase(_ words: Set<String>) -> [String: String] {
+        if let lowercase { return lowercase }
+        let built = Dictionary(words.map { ($0.lowercased(), $0) }, uniquingKeysWith: { first, _ in first })
+        lowercase = built
+        return built
+    }
+
+    func byInitial(_ words: Set<String>) -> [Character: [String]] {
+        if let initial { return initial }
+        // Under its first and its second letter, so a swapped or missing first
+        // letter ("aMx", "asti") still finds the word ("Max", "Basti").
+        var built: [Character: [String]] = [:]
+        for word in words {
+            let letters = Array(word.lowercased().prefix(2))
+            for letter in Set(letters.map(Autocorrect.base)) { built[letter, default: []].append(word) }
+        }
+        initial = built
+        return built
     }
 }

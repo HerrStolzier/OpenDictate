@@ -13,7 +13,7 @@ final class TypingAssistant {
     /// Put back by a delete in this showing: not corrected again.
     private var keptInSession: Set<String> = []
 
-    /// Tippen lernen: on only when the person turned it on in the app, and
+    /// Tippen lernen: on unless the person turned it off in the app, and
     /// only with Full Access, which the App Group needs.
     private(set) var model: TypingModel?
     private let bridge = KeyboardBridge()
@@ -35,6 +35,8 @@ final class TypingAssistant {
         {
             engine.language = german
         }
+        // The first call can come back empty while iOS loads the dictionary.
+        _ = engine.checker.completions(for: "ab", language: engine.language)
     }
 
     /// Contacts' names and the text replacements from iOS Settings.
@@ -152,7 +154,8 @@ final class TypingAssistant {
 
     /// A tap on a suggestion: that word and a space.
     func pick(_ word: String, in proxy: UITextDocumentProxy) {
-        let typed = current.typed
+        // What is before the cursor now: the strip may lag a key behind.
+        let typed = Autocorrect.currentWord(before: proxy.documentContextBeforeInput)
         lastCorrection = nil
         if word != typed { replaceWord(typed, with: word, in: proxy) } else { learn(word) }
         proxy.insertText(" ")

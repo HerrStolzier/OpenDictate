@@ -62,9 +62,10 @@ extension KeyboardBridge {
     private static let resetKey = "typing.resets"
     private static let backupKey = "typing.backup"
 
-    /// The switch in the app; off unless the person turns it on.
+    /// The switch in the app; on unless the person turns it off (Basti,
+    /// 24 November: learning is what sets this keyboard apart from Apple's).
     var learnsTyping: Bool {
-        get { defaults?.bool(forKey: Self.learnKey) ?? false }
+        get { defaults?.object(forKey: Self.learnKey) as? Bool ?? true }
         nonmutating set { defaults?.set(newValue, forKey: Self.learnKey) }
     }
 
