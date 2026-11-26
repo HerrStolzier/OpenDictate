@@ -18,6 +18,7 @@ heutige Abnahme oder Freigabe. Der aktuelle belegte Stand je Plattform steht in
 
 | Datum | Bericht | Titel |
 | --- | --- | --- |
+| 26.11.2026 | [machbarkeit-textfeld-lesen-mac-2026-11-26.md](../machbarkeit-textfeld-lesen-mac-2026-11-26.md) | Machbarkeit: fremde Textfelder auf dem Mac lesen |
 | 12.10.2026 | [2026-10-12-build12.md](../release-plans/evidence/2026-10-12-build12.md) | Build 12: notarisiert, als Update installiert, Diktat über lokalen Server |
 | 11.10.2026 | [2026-10-11-build11.md](../release-plans/evidence/2026-10-11-build11.md) | Build 11: notarisiert, als Update installiert, ein Diktat |
 | 11.10.2026 | [2026-10-11-build10.md](../release-plans/evidence/2026-10-11-build10.md) | Build 10: notarisiert, als Update installiert, ein Diktat |
