@@ -2,6 +2,19 @@
 
 [English](README.md) · Deutsch
 
+**TL;DR**
+
+- Taste drücken, sprechen, und der Text landet im Fenster, das vorne war, auf
+  Wunsch übersetzt. Ein kleines Kommandozeilenprogramm für Hyprland auf
+  Arch-basierten Systemen.
+- Öffentliche Beta, bisher auf einem Rechner erprobt; siehe die
+  [bekannten Grenzen](#bekannte-grenzen).
+- Kostenlos mit einem Modell auf deinem eigenen Rechner, rund 0,1 Cent pro
+  Diktat mit deinem eigenen OpenAI-Schlüssel. Der Schlüssel bleibt in deinem
+  Schlüsselbund.
+- Ein fehlgeschlagenes Diktat bleibt bis zu 24 Stunden liegen;
+  `opendictate retry` schickt es nochmal.
+
 OpenDictate nimmt auf Tastendruck deine Stimme auf, lässt sie von OpenAI (oder
 deinem eigenen Server, siehe [Eigenen Server verwenden](#eigenen-server-verwenden))
 abschreiben, übersetzt sie auf Wunsch (zum Beispiel ins Englische) und fügt den

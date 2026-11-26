@@ -2,6 +2,17 @@
 
 English · [Deutsch](README.de.md)
 
+**TL;DR**
+
+- Press a key, talk, and the text lands in the window that was in front,
+  translated if you like. A small command-line program for Hyprland on
+  Arch-based systems.
+- Public beta, tested on one machine so far; see the [known limits](#known-limits).
+- Free with a model on your own computer, about 0.1 cent per dictation with
+  your own OpenAI key. The key stays in your keyring.
+- A failed dictation is kept for up to 24 hours; `opendictate retry` sends it
+  again.
+
 OpenDictate records your voice at the press of a key, has OpenAI (or your own
 server, see [Custom server](#custom-server)) transcribe it,
 translates it if you want (for example into English) and pastes the text into

@@ -1,5 +1,15 @@
 # Sicherheit
 
+**TL;DR**
+
+- Sicherheitslücke gefunden? Melde sie privat über **Security → Report a
+  vulnerability**, nicht in einem öffentlichen Issue.
+- Poste nie API-Schlüssel, Aufnahmen, Transkripte oder Logs mit persönlichen
+  Inhalten. Ist ein Schlüssel doch rausgerutscht: sofort beim Anbieter
+  widerrufen.
+- Lücken bei OpenAI, in deinem eigenen Server oder in fremden Bibliotheken
+  meldest du direkt dort.
+
 Danke, dass du hinschaust. Wenn du in OpenDictate eine Sicherheitslücke
 findest, sag mir bitte zuerst privat Bescheid, damit ich sie beheben kann,
 bevor jemand sie ausnutzt.

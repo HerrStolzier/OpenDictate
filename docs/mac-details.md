@@ -1,5 +1,18 @@
 # OpenDictate for Mac: the details
 
+**TL;DR**
+
+- While you dictate, a small indicator at the top of the screen shows what is
+  happening: **Hört zu**, **Schreibt**, **Eingefügt**, **Kopiert** or
+  **Hoppla**.
+- The text is pasted into the app you started in and also stays on the
+  clipboard. Take a quick look: the app cannot see whether it arrived.
+- Your API key stays in the macOS Keychain. A failed dictation is kept (the
+  five newest, up to 24 hours), and **Nochmal senden** tries again after
+  asking.
+- With OpenAI a dictation costs about 0.1 cent; with your own server on this
+  Mac it is free. The app never switches services on its own.
+
 The [README](../README.md) gets you to your first dictation. This page
 describes everything else about the macOS app: the indicator, every setting,
 what happens when something fails, your own server, and the permissions.

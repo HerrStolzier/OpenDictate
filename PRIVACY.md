@@ -1,6 +1,6 @@
 # Privacy
 
-**In short**
+**TL;DR**
 
 - OpenDictate records only while you dictate.
 - Your recording goes straight from your computer to OpenAI, or to your own

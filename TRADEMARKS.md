@@ -1,5 +1,13 @@
 # Name, logos and Blink
 
+**TL;DR**
+
+- The code is under the MIT License. The name, the logos, Blink, the app icons
+  and the explainer videos are not.
+- You may name OpenDictate, link to it, use the unchanged logos to refer to it
+  and build it for yourself.
+- If you publish a modified version or a fork, give it its own name and icon.
+
 The source code of OpenDictate is under the [MIT License](LICENSE). The MIT
 License does not cover the project's name and brand assets:
 

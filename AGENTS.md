@@ -43,6 +43,12 @@
 - Public texts (website, READMEs, release notes, app text) follow the tone and
   shared terms in `PROJECT.md` (decision of 12 October 2026): short, warm,
   plain, `du` in German, and the same word for the same thing on every platform.
+- Every document that users read (README files for users, `PRIVACY.md`,
+  `SECURITY.md`, `TRADEMARKS.md`, install and help guides) opens right below
+  its title with a **TL;DR**: three or four short bullets with what a reader
+  most needs, in the document's language and tone (Basti, 26 November 2026).
+  Update it in the same change as the body. Developer documents (`AGENTS.md`,
+  `CLAUDE.md`, `CHECKS.md`, plans, dated reports, developer READMEs) need none.
 
 ## Required verification
 

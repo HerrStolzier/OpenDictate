@@ -1,17 +1,17 @@
 # OpenDictate
 
-Open-source dictation for Mac and Linux. Hold a key, say what you want to
-write, let go. A moment later the text is in the app you were typing in,
-translated if you like (say, German into English).
+**TL;DR**
 
-No subscription: with a model running on your own computer, dictation costs
-nothing. With OpenAI it costs about a tenth of a cent per dictation, paid
-directly to OpenAI with your own key. The beta is free; the finished app will
-later be a one-time purchase of a few euros.
-
-OpenDictate is a small open-source menu bar app for Macs with Apple silicon
-(macOS 14 or newer). There is also a beta for
-[Linux with Hyprland](linux/README.md).
+- Hold a key, say what you want to write, let go. A moment later the text is
+  in the app you were typing in, translated if you like (say, German into
+  English).
+- No subscription: with a model on your own computer, dictation costs
+  nothing. With OpenAI it costs about a tenth of a cent per dictation, paid
+  directly to OpenAI with your own key.
+- A small open-source menu bar app for Macs with Apple silicon (macOS 14 or
+  newer), plus a beta for [Linux with Hyprland](linux/README.md).
+- The beta is free; the finished app will later be a one-time purchase of a
+  few euros.
 
 **[Download the Mac beta](https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.12)** ·
 [Install guide (German)](docs/release-plans/installationsanleitung.md) ·
