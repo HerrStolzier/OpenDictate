@@ -28,8 +28,7 @@ struct OpenAITranslator: Sendable {
         try Task.checkCancellation()
         let timing = PhaseTiming(phase: "translation")
         defer { timing.finish() }
-        let (data, response) = try await session.data(for: request)
-        guard let response = response as? HTTPURLResponse else { throw OpenDictateError.invalidResponse }
+        let (data, response) = try await BoundedProviderResponse.load(request, using: session)
         return try Self.decode(data: data, statusCode: response.statusCode)
     }
 

@@ -21,6 +21,7 @@ public enum OpenDictateError: LocalizedError {
     case translationLanguagesMissing
     case translationFailed
     case invalidServerAddress
+    case untrustedServerAddress
 
     /// User-facing messages deliberately exclude raw provider and framework errors.
     public static func userMessage(for error: Error) -> String {
@@ -72,6 +73,10 @@ public enum OpenDictateError: LocalizedError {
             return
                 "Die Server-Adresse ist ungültig. Trag sie unter Einstellungen → Erweitert → Eigener Server neu ein "
                 + "oder wähl unter „Dienst“ OpenAI."
+        case .untrustedServerAddress:
+            return
+                "Die Server-Adresse ist noch nicht im Schlüsselbund bestätigt. Speichere sie unter "
+                + "Einstellungen → Erweitert → Eigener Server erneut oder wähl OpenAI. Es wurde nichts gesendet."
         case .translationNotConfigured:
             return "Zielsprache oder Übersetzungsmodell ist ungültig. Wähle die Übersetzung in den Einstellungen neu."
         case .translationUnavailable:
