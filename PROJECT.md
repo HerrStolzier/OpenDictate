@@ -183,6 +183,7 @@ Preismodells und der Gaming-Ursprung verloren.
 
 | Datum | Entscheidung | Quelle |
 | --- | --- | --- |
+| 26. November 2026 | Jedes Dokument, das Nutzer lesen (README, Datenschutz, Sicherheit, Marke, Installations- und Hilfeanleitungen), beginnt unter dem Titel mit einem **TL;DR** aus drei bis vier kurzen Punkten in der Sprache des Dokuments. Entwickler-Dokumente brauchen keins. Die Regel steht in [AGENTS.md](AGENTS.md#code-and-ui-conventions). | Bastis Nachricht vom 26. November 2026 |
 | 25. November 2026 | Die iPhone-Tastatur bekommt eine Häufigkeitsliste mit Nachbarwörtern aus Wortschatz Leipzig (Universität Leipzig, CC BY, Quelle wird genannt), gekürzt auf rund 50.000 Wörter, damit Vorschläge häufige Wörter vorziehen und seltene bekannte Wörter („wes“ statt „was“) korrigiert werden können. Die Untertitel-Liste FrequencyWords (CC BY-SA) wurde wegen der Lizenz nicht gewählt. | Bastis Wahl auf der Karte im Thread „iOS-Beta“, 25. November 2026, 10:24 |
 | 24. November 2026 | „Tippen lernen“ ist standardmäßig an (abschaltbar): Das Lernen unterscheidet die Tastatur von Apples, sonst könnte man gleich diese nutzen. | Bastis Nachricht vom 24. November 2026, 11:21 |
 | 24. November 2026 | Was „Tippen lernen“ gelernt hat, kommt standardmäßig nicht ins Geräte-Backup; ein Schalter „Gelerntes im Backup sichern“ (Standard aus) nimmt es auf Wunsch auf. Bei warmem Mikro läuft Ton anderer Apps über den Lautsprecher statt die Hörmuschel. | [ios/README.md](ios/README.md#tastatur); Bastis Nachrichten vom 23. und 24. November 2026 |

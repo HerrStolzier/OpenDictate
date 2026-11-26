@@ -1,20 +1,20 @@
 # Kostenlos diktieren mit einem lokalen Modell
 
-OpenDictate kann statt OpenAI ein Sprachmodell auf deinem eigenen Rechner
-nutzen. Dann kostet ein Diktat nichts, du brauchst keinen API-Schlüssel, und
-deine Aufnahme verlässt den Rechner nicht. Diese Anleitung richtet dafür
+**TL;DR**
+
+- Mit einem Sprachmodell auf deinem eigenen Rechner kostet ein Diktat nichts,
+  du brauchst keinen API-Schlüssel, und deine Aufnahme verlässt den Rechner
+  nicht.
+- Geht in der Mac-Beta ab Build 12
+  ([`v0.1.0-beta.12`](https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.12))
+  und in der Linux-Beta. Du brauchst einmal das Terminal und etwa 600 MB
+  Platz für das Modell.
+- whisper.cpp schreibt nur ab, es übersetzt nicht. Schalte die Übersetzung
+  aus, sonst bleibt das Diktat als fehlgeschlagen liegen.
+
+Diese Anleitung richtet dafür
 [whisper.cpp](https://github.com/ggml-org/whisper.cpp) ein, ein freies
 Programm, das Sprache in Text umwandelt.
-
-Du brauchst dafür einmal das Terminal und etwa 600 MB Platz für das Modell.
-
-**Wo es geht:** In der Mac-Beta ab Build 12
-([`v0.1.0-beta.12`](https://github.com/HerrStolzier/OpenDictate/releases/tag/v0.1.0-beta.12))
-und in der Linux-Beta.
-
-**Was es nicht kann:** whisper.cpp schreibt nur ab, es übersetzt nicht.
-Schalte die Übersetzung aus, sonst bleibt das Diktat als fehlgeschlagen
-liegen.
 
 ## Mac
 

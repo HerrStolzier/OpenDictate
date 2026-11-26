@@ -1,9 +1,19 @@
 # OpenDictate installieren (Beta)
 
-OpenDictate ist eine Beta. Du brauchst einen Mac mit Apple-Chip (M1 oder
-neuer), macOS 14 oder neuer und einen **eigenen OpenAI-API-Schlüssel**. Die
-Transkription läuft über dein OpenAI-Konto und kostet mit `gpt-transcribe`
-0,0045 $ pro Minute, also rund 0,1 Cent für ein Diktat von 15 Sekunden.
+**TL;DR**
+
+- Du brauchst einen Mac mit Apple-Chip (M1 oder neuer), macOS 14 oder neuer
+  und einen **eigenen OpenAI-API-Schlüssel**. Ein Diktat von 15 Sekunden
+  kostet rund 0,1 Cent.
+- ZIP laden, App in **Programme** ziehen und öffnen, Schlüssel speichern,
+  Mikrofon und Bedienungshilfen erlauben.
+- Taste halten, sprechen, loslassen: Der Text landet im Feld und in der
+  Zwischenablage.
+- Probleme meldest du als Issue **Beta-Rückmeldung**, ohne private Texte und
+  ohne Schlüssel.
+
+OpenDictate ist eine Beta. Die Transkription läuft über dein OpenAI-Konto und
+kostet mit `gpt-transcribe` 0,0045 $ pro Minute.
 
 ## 1. Herunterladen
 
