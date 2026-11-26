@@ -281,6 +281,12 @@ veröffentlicht; für diesen Stand gibt es noch keinen Live-Nachweis.
   `OPENAI_API_KEY` mit Build-Hashes in der Zugriffsliste; er wird nur durch die
   App-Migration entfernt, nicht manuell.
 
+- Lesen fremder Textfelder (Grundlage für „Lernen aus Korrekturen“) ist
+  technisch möglich: Am 26. November 2026 las ein Wegwerf-Prüfprogramm mit
+  Bedienungshilfen-Erlaubnis Testtext aus TextEdit, Terminal und Chrome,
+  Passwortfelder blieben geschützt; Safari-Webfelder nicht gemessen. Die App
+  selbst liest nichts ([Bericht](machbarkeit-textfeld-lesen-mac-2026-11-26.md)).
+
 **Letzter Nachweis:** 12. Oktober 2026 (Build 12 aus `2d8d4ed` notarisiert, als Update installiert, Diktat über lokalen Server, als `v0.1.0-beta.12` veröffentlicht; [Nachweis](release-plans/evidence/2026-10-12-build12.md)).
 
 ## Windows
